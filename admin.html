@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Quản Trị - App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .fixed-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: #007bff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+
+    .bar-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .brand-title {
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-sub {
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    .toMain {
+      background: #000;
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .toMain:hover {
+      background: #222;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      background: none;
+      color: #fff;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 9999px;
+    }
+
+    .nav-btn .fa {
+      margin-right: 8px;
+      opacity: 0.95;
+    }
+
+    .nav-btn.active {
+      color: #e6f2ff;
+      text-decoration: underline;
+    }
+
+    .content {
+      margin-top: 110px;
+      padding: 28px;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(20,20,40,0.06);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .small {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .danger {
+      color: #b22222;
+      font-weight: 700;
+    }
+
+    /* Table styles */
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eef1f5;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    .users-table thead th {
+      background: #f7f9fc;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-delete {
+      background: #dc3545;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .btn-refresh {
+      background: #0d6efd;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .users-message {
+      margin-top: 12px;
+      font-size: 14px;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <div class="brand-title">Lộ Trình Học Tập AI</div>
+        <div class="brand-sub">AI-Powered Learning Path</div>
+      </div>
+
+      <div class="nav-buttons" id="navButtons">
+        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+        <!-- admin button appended by script if needed (we append below to ensure active state) -->
+      </div>
+
+      <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
+    </div>
+  </div>
+
+  <main class="content">
+    <div class="card" id="adminCard">
+      <h1>🛠️ Bảng Quản Trị</h1>
+      <p class="small">Quản lý người dùng, nội dung, phân quyền, báo cáo hệ thống...</p>
+
+      <section style="margin-top:14px;">
+        <h3>Quản lý người dùng</h3>
+        <p class="small">Hiển thị danh sách user, ban/unban, gán role...</p>
+
+        <div style="margin-top:10px;">
+          <button id="fetchUsersBtn" class="btn-refresh">
+            <i class="fa-solid fa-list"></i> Lấy danh sách users
+          </button>
+        </div>
+
+        <div id="usersArea">
+          <!-- Bảng sẽ render ở đây -->
+        </div>
+
+        <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // If not admin on client, redirect to path (UX only)
+    const storedRole = localStorage.getItem('role');
+    if (storedRole !== 'admin') {
+      // UX guard only; server enforces real rules.
+      // window.location.replace('path.html?page=path');
+    }
+
+    const navButtonsWrapper = document.getElementById('navButtons');
+    const btnPath = document.getElementById('btnPath');
+    const btnProgress = document.getElementById('btnProgress');
+    const btnHome = document.getElementById('btnHome');
+    const fetchUsersBtn = document.getElementById('fetchUsersBtn');
+    const usersArea = document.getElementById('usersArea');
+    const usersMessage = document.getElementById('usersMessage');
+
+    btnPath.addEventListener('click', () => { window.location.href = 'path.html?page=path'; });
+    btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
+    btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+
+    // add admin button to the nav (this page is admin so show it)
+    const adminBtn = document.createElement('button');
+    adminBtn.className = 'nav-btn';
+    adminBtn.id = 'btnAdmin';
+    adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+    navButtonsWrapper.appendChild(adminBtn);
+    adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page') || 'admin';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+    const btnId = idMap[page];
+    if (btnId) {
+      const el = document.getElementById(btnId);
+      if (el) el.classList.add('active');
+    }
+
+    function fmtDate(iso) {
+      try {
+        if (!iso) return '-';
+        const d = new Date(iso);
+        if (isNaN(d)) return iso;
+        return d.toLocaleString();
+      } catch (e) {
+        return iso;
+      }
+    }
+
+    function renderUsersTable(users) {
+      if (!Array.isArray(users) || users.length === 0) {
+        usersArea.innerHTML = '<div class="muted">Không có user nào.</div>';
+        return;
+      }
+
+      const rows = users.map(user => {
+        const id = user.id || user._id || user.email;
+        const name = user.name || user.username || '-';
+        const email = user.email || '-';
+        const createdAt = user.created_at || user.createdAt || user.registeredAt || user.registered_at || '';
+
+        return `
+          <tr data-id="${escapeHtml(String(id))}">
+            <td>${escapeHtml(name)}</td>
+            <td>${escapeHtml(email)}</td>
+            <td>${escapeHtml(fmtDate(createdAt))}</td>
+            <td class="actions-cell">
+              <button class="btn-delete" data-id="${escapeHtml(String(id))}"><i class="fa-solid fa-trash"></i> Xóa</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      usersArea.innerHTML = `
+        <table class="users-table" aria-describedby="usersMessage">
+          <thead>
+            <tr>
+              <th>Tên</th>
+              <th>Email</th>
+              <th>Thời gian đăng kí</th>
+              <th>Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+
+      document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', onDeleteUserClick);
+      });
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    async function onDeleteUserClick(evt) {
+      const id = evt.currentTarget.getAttribute('data-id');
+      if (!id) return alert('Không có id user');
+
+      const ok = confirm('Bạn chắc chắn muốn xóa user này? Hành động không thể hoàn tác.');
+      if (!ok) return;
+
+      const token = localStorage.getItem('token');
+      usersMessage.textContent = 'Đang xóa...';
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        });
+
+        if (res.ok) {
+          const row = document.querySelector(`tr[data-id="${CSS.escape(id)}"]`);
+          if (row) row.remove();
+          usersMessage.textContent = 'Xóa thành công.';
+        } else {
+          const body = await res.json().catch(() => null);
+          const msg = (body && body.message) ? body.message : `Xóa thất bại (status ${res.status}).`;
+          usersMessage.textContent = msg;
+          alert(msg);
+        }
+      } catch (err) {
+        console.error(err);
+        usersMessage.textContent = 'Lỗi mạng khi xóa user.';
+        alert('Lỗi mạng khi xóa user.');
+      } finally {
+        setTimeout(() => { usersMessage.textContent = ''; }, 2500);
+      }
+    }
+
+    async function fetchUsersFromServerOrFallback() {
+      usersMessage.textContent = 'Đang tải danh sách users...';
+      fetchUsersBtn.disabled = true;
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/users', {
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        });
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          usersMessage.textContent = (body && body.message) ? body.message : `Server trả lỗi (${res.status}). Dùng dữ liệu mẫu.`;
+          await new Promise(r => setTimeout(r, 600));
+          const sample = sampleUsers();
+          renderUsersTable(sample);
+          return;
+        }
+
+        const users = await res.json().catch(() => null);
+        if (!Array.isArray(users)) {
+          usersMessage.textContent = 'Dữ liệu server không hợp lệ. Dùng dữ liệu mẫu.';
+          const sample = sampleUsers();
+          renderUsersTable(sample);
+          return;
+        }
+
+        renderUsersTable(users);
+        usersMessage.textContent = `Tải ${users.length} users.`;
+      } catch (err) {
+        console.error(err);
+        usersMessage.textContent = 'Không thể kết nối server. Hiển thị dữ liệu mẫu.';
+        const sample = sampleUsers();
+        renderUsersTable(sample);
+      } finally {
+        fetchUsersBtn.disabled = false;
+        setTimeout(() => { usersMessage.textContent = ''; }, 2000);
+      }
+    }
+
+    function sampleUsers() {
+      return [
+        { id: '1', name: 'Nguyễn Văn A', email: 'a@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() },
+        { id: '2', name: 'Trần Thị B', email: 'b@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString() },
+        { id: '3', name: 'Lê Văn C', email: 'c@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString() }
+      ];
+    }
+
+    // ----- Special behaviour: open/close on odd/even clicks -----
+    let fetchClickCount = 0;
+    fetchUsersBtn.addEventListener('click', async function() {
+      fetchClickCount++;
+      // if odd -> open (load and show)
+      if (fetchClickCount % 2 === 1) {
+        // show (open)
+        await fetchUsersFromServerOrFallback();
+      } else {
+        // even -> close (clear content)
+        usersArea.innerHTML = '';
+        usersMessage.textContent = 'Danh sách đã đóng.';
+        // small UX: re-hide message after a moment
+        setTimeout(() => { usersMessage.textContent = ''; }, 1400);
+      }
+    });
+
+    // Option: auto-load on open (uncomment if you want automatic load)
+    // window.addEventListener('load', fetchUsersFromServerOrFallback);
+  </script>
+</body>
+</html>

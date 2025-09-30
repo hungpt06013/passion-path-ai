@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Lộ Trình Học - App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: #f5f5f5;
+    }
+
+    button {
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .fixed-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: #007bff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+
+    .bar-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .brand-title {
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-sub {
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.95;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      background: none;
+      color: #fff;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 9999px;
+    }
+
+    .nav-btn .fa {
+      margin-right: 8px;
+      opacity: 0.95;
+    }
+
+    .nav-btn.active {
+      color: #e6f2ff;
+      text-decoration: underline;
+    }
+
+    .toMain {
+      background: #000;
+      color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .toMain:hover {
+      background: #222;
+    }
+
+    .content {
+      margin-top: 110px;
+      padding: 28px;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(20,20,40,0.06);
+      border: 1px solid rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+    }
+
+    .roadmap-card {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(20,20,40,0.06);
+      border: 1px solid rgba(0,0,0,0.04);
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .roadmap-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(20,20,40,0.1);
+    }
+
+    .roadmap-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .roadmap-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 5px;
+    }
+
+    .roadmap-category {
+      background: #007bff;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-active {
+      background: #dcfdf4;
+      color: #065f46;
+    }
+
+    .status-completed {
+      background: #ddd6fe;
+      color: #5b21b6;
+    }
+
+    .progress-section {
+      margin: 15px 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #007bff, #0056b3);
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 5px;
+    }
+
+    .roadmap-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 10px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #007bff;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .create-btn {
+      background: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .create-btn:hover {
+      background: #218838;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .success {
+      background: #dcfdf4;
+      color: #065f46;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      background: #007bff;
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 20px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .day-item {
+      background: #f9fafb;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+    }
+
+    .day-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .day-number {
+      background: #007bff;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .status-selector {
+      padding: 5px 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 12px;
+      background: white;
+    }
+
+    .day-content h4 {
+      margin: 0 0 5px 0;
+      color: #1f2937;
+    }
+
+    .day-content p {
+      margin: 5px 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .small {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #6b7280;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .delete-btn:hover {
+      background: #c82333;
+    }
+
+    @media (max-width: 768px) {
+      .roadmap-stats {
+        grid-template-columns: 1fr;
+      }
+      
+      .roadmap-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <div class="brand-title">Lộ Trình Học Tập AI</div>
+        <div class="brand-sub">AI-Powered Learning Path</div>
+      </div>
+
+      <div class="nav-buttons" id="navButtons">
+        <button class="nav-btn active" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+      </div>
+
+      <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
+    </div>
+  </div>
+
+  <main class="content">
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h1>🛣️ Lộ Trình Học Của Tôi</h1>
+          <p class="small" id="subtitle">Đang tải dữ liệu...</p>
+        </div>
+        <button class="create-btn" onclick="window.open('create_roadmap_page.html', '_blank')">
+          <i class="fa-solid fa-plus"></i> Tạo Lộ Trình Mới
+        </button>
+      </div>
+    </div>
+
+    <div id="roadmaps-container">
+      <div class="loading">
+        <i class="fa-solid fa-spinner fa-spin"></i><br><br>
+        Đang tải lộ trình học...
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal Chi tiết lộ trình -->
+  <div class="modal" id="roadmapModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2 id="modalTitle">Chi tiết lộ trình</h2>
+          <p>Chi tiết lộ trình học từng ngày</p>
+        </div>
+        <button class="close-btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <div class="loading">
+          <i class="fa-solid fa-spinner fa-spin"></i><br><br>
+          Đang tải chi tiết...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentRoadmaps = [];
+    let currentUser = null;
+    const API_BASE = '/api';
+
+    // Utility functions
+    function getAuthHeaders() {
+      const token = localStorage.getItem('token');
+      return {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+    }
+
+    function showNotification(message, type = 'info') {
+      const notification = document.createElement('div');
+      notification.className = type === 'success' ? 'success' : 'error';
+      notification.textContent = message;
+      
+      const container = document.getElementById('roadmaps-container');
+      container.insertBefore(notification, container.firstChild);
+      
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 5000);
+    }
+
+    function getStatusClass(status) {
+      switch (status) {
+        case 'ACTIVE': return 'status-active';
+        case 'COMPLETED': return 'status-completed';
+        default: return '';
+      }
+    }
+
+    function getStatusText(status) {
+      switch (status) {
+        case 'ACTIVE': return 'Đang học';
+        case 'COMPLETED': return 'Hoàn thành';
+        case 'PAUSED': return 'Tạm dừng';
+        default: return status;
+      }
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'Chưa xác định';
+      return new Date(dateString).toLocaleDateString('vi-VN');
+    }
+
+    // API functions
+    async function fetchRoadmaps() {
+      try {
+        const response = await fetch(`${API_BASE}/roadmaps`, {
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            window.location.href = 'login.html';
+            return;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching roadmaps:', error);
+        throw error;
+      }
+    }
+
+    async function fetchRoadmapDetails(roadmapId) {
+      try {
+        const response = await fetch(`${API_BASE}/roadmaps/${roadmapId}/details`, {
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data.data;
+      } catch (error) {
+        console.error('Error fetching roadmap details:', error);
+        throw error;
+      }
+    }
+
+    async function updateDetailStatus(detailId, newStatus) {
+      try {
+        const response = await fetch(`${API_BASE}/roadmaps/details/${detailId}/status`, {
+          method: 'PUT',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ completion_status: newStatus })
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error updating status:', error);
+        throw error;
+      }
+    }
+
+    async function deleteRoadmap(roadmapId) {
+      try {
+        const response = await fetch(`${API_BASE}/roadmaps/${roadmapId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error deleting roadmap:', error);
+        throw error;
+      }
+    }
+
+    // Render functions
+    function renderRoadmaps(roadmaps) {
+      const container = document.getElementById('roadmaps-container');
+      const subtitle = document.getElementById('subtitle');
+      
+      subtitle.textContent = `Bạn đang có ${roadmaps.length} lộ trình học. Hãy tiếp tục phát triển bản thân!`;
+
+      if (roadmaps.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-route"></i>
+            <h3>Chưa có lộ trình học nào</h3>
+            <p>Hãy tạo lộ trình đầu tiên của bạn!</p>
+            <button class="create-btn" onclick="window.open('create_roadmap_page.html', '_blank')">
+              Tạo Lộ Trình Ngay
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      const roadmapCards = roadmaps.map(roadmap => `
+        <div class="roadmap-card" onclick="viewDetails(${roadmap.roadmap_id})">
+          <div class="roadmap-header">
+            <div>
+              <div class="roadmap-title">${roadmap.roadmap_name}</div>
+              <div class="roadmap-category">
+                ${roadmap.category}${roadmap.sub_category ? ' • ' + roadmap.sub_category : ''}
+              </div>
+            </div>
+            <div class="status-badge ${getStatusClass(roadmap.status)}">
+              ${getStatusText(roadmap.status)}
+            </div>
+          </div>
+
+          <div class="progress-section">
+            <div class="progress-text">
+              Tiến độ: ${roadmap.progress_percentage || 0}% hoàn thành
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${roadmap.progress_percentage || 0}%"></div>
+            </div>
+          </div>
+
+          <div class="roadmap-stats">
+            <div class="stat-item">
+              <div class="stat-value">${roadmap.duration_days}</div>
+              <div class="stat-label">Ngày học</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${roadmap.total_studied_hours || 0}h</div>
+              <div class="stat-label">Đã học</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${roadmap.start_level}</div>
+              <div class="stat-label">Trình độ</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">${roadmap.duration_hours}h</div>
+              <div class="stat-label">Tổng thời gian</div>
+            </div>
+          </div>
+
+          <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${roadmap.roadmap_id}, '${roadmap.roadmap_name}')">
+            <i class="fa-solid fa-trash"></i> Xóa
+          </button>
+        </div>
+      `).join('');
+
+      container.innerHTML = roadmapCards;
+    }
+
+    function renderRoadmapDetails(details) {
+      const modalBody = document.getElementById('modalBody');
+
+      if (details.length === 0) {
+        modalBody.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-info-circle"></i>
+            <h3>Chưa có chi tiết cho lộ trình này</h3>
+          </div>
+        `;
+        return;
+      }
+
+      const detailsHTML = details.map(detail => `
+        <div class="day-item">
+          <div class="day-header">
+            <div class="day-number">${detail.day_number}</div>
+            <select class="status-selector" onchange="updateStatus(${detail.detail_id}, this.value, this)">
+              <option value="NOT_STARTED" ${detail.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa bắt đầu</option>
+              <option value="IN_PROGRESS" ${detail.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
+              <option value="COMPLETED" ${detail.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+              <option value="SKIPPED" ${detail.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
+            </select>
+          </div>
+          <div class="day-content">
+            <h4>🎯 ${detail.daily_goal}</h4>
+            <p><strong>Nội dung:</strong> ${detail.learning_content}</p>
+            ${detail.practice_exercises ? `
+              <p><strong>Bài tập:</strong> ${detail.practice_exercises}</p>
+            ` : ''}
+            ${detail.learning_materials ? `
+              <p><strong>Tài liệu:</strong> ${detail.learning_materials}</p>
+            ` : ''}
+            <p><strong>Thời gian:</strong> ${detail.study_duration_hours}h
+            ${detail.study_date ? ` • Học ngày: ${formatDate(detail.study_date)}` : ''}
+            </p>
+          </div>
+        </div>
+      `).join('');
+
+      modalBody.innerHTML = detailsHTML;
+    }
+
+    // Event handlers
+    async function viewDetails(roadmapId) {
+      const roadmap = currentRoadmaps.find(r => r.roadmap_id === roadmapId);
+      if (!roadmap) return;
+
+      document.getElementById('modalTitle').textContent = roadmap.roadmap_name;
+      document.getElementById('roadmapModal').classList.add('show');
+
+      document.getElementById('modalBody').innerHTML = `
+        <div class="loading">
+          <i class="fa-solid fa-spinner fa-spin"></i><br><br>
+          Đang tải chi tiết...
+        </div>
+      `;
+
+      try {
+        const details = await fetchRoadmapDetails(roadmapId);
+        renderRoadmapDetails(details);
+      } catch (error) {
+        document.getElementById('modalBody').innerHTML = `
+          <div class="error">
+            ⚠️ Không thể tải chi tiết lộ trình. Vui lòng thử lại.
+            <button onclick="viewDetails(${roadmapId})" style="margin-left: 10px; padding: 5px 10px;">
+              Thử lại
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    async function updateStatus(detailId, newStatus, selectElement) {
+      const originalValue = selectElement.dataset.originalValue || selectElement.value;
+      selectElement.disabled = true;
+
+      try {
+        await updateDetailStatus(detailId, newStatus);
+        selectElement.dataset.originalValue = newStatus;
+        showNotification('✅ Cập nhật trạng thái thành công!', 'success');
+        
+        // Reload roadmaps để cập nhật progress
+        setTimeout(() => {
+          loadRoadmaps();
+        }, 1000);
+
+      } catch (error) {
+        selectElement.value = originalValue;
+        showNotification('❌ Không thể cập nhật trạng thái. Vui lòng thử lại.', 'error');
+      } finally {
+        selectElement.disabled = false;
+      }
+    }
+
+    async function confirmDelete(roadmapId, roadmapName) {
+      if (confirm(`Bạn có chắc muốn xóa lộ trình "${roadmapName}"?\n\nHành động này không thể hoàn tác.`)) {
+        try {
+          await deleteRoadmap(roadmapId);
+          showNotification(`✅ Đã xóa lộ trình "${roadmapName}" thành công!`, 'success');
+          loadRoadmaps();
+        } catch (error) {
+          showNotification('❌ Không thể xóa lộ trình. Vui lòng thử lại.', 'error');
+        }
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('roadmapModal').classList.remove('show');
+    }
+
+    // Main load function
+    async function loadRoadmaps() {
+      const container = document.getElementById('roadmaps-container');
+      
+      try {
+        container.innerHTML = `
+          <div class="loading">
+            <i class="fa-solid fa-spinner fa-spin"></i><br><br>
+            Đang tải lộ trình học...
+          </div>
+        `;
+
+        const data = await fetchRoadmaps();
+        currentRoadmaps = data.data;
+        renderRoadmaps(data.data);
+
+      } catch (error) {
+        console.error('Error loading roadmaps:', error);
+        container.innerHTML = `
+          <div class="error">
+            ⚠️ Không thể tải danh sách lộ trình. Vui lòng thử lại.
+            <button onclick="loadRoadmaps()" style="margin-left: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 5px;">
+              Thử lại
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // Navigation functions
+    function setupNavigation() {
+      const btnPath = document.getElementById('btnPath');
+      const btnProgress = document.getElementById('btnProgress');
+      const btnHome = document.getElementById('btnHome');
+      
+      btnPath.addEventListener('click', () => { 
+        window.location.href = 'path.html?page=path'; 
+      });
+      
+      btnProgress.addEventListener('click', () => { 
+        window.location.href = 'progress.html?page=progress'; 
+      });
+      
+      btnHome.addEventListener('click', () => { 
+        window.location.href = 'main.html'; 
+      });
+
+      // Check for admin role and add admin button
+      const role = localStorage.getItem('role');
+      if (role === 'admin') {
+        const navButtons = document.getElementById('navButtons');
+        const adminBtn = document.createElement('button');
+        adminBtn.className = 'nav-btn';
+        adminBtn.id = 'btnAdmin';
+        adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+        navButtons.appendChild(adminBtn);
+        adminBtn.addEventListener('click', () => { 
+          window.location.href = 'admin.html?page=admin'; 
+        });
+      }
+
+      // Set active state based on current page
+      const params = new URLSearchParams(window.location.search);
+      const page = params.get('page') || 'path';
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+      const btnId = idMap[page];
+      if (btnId) {
+        const el = document.getElementById(btnId);
+        if (el) el.classList.add('active');
+      }
+    }
+
+    // Check authentication
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Modal event handlers
+    document.getElementById('roadmapModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    // Initialize app
+    function initApp() {
+      if (!checkAuth()) return;
+      
+      setupNavigation();
+      loadRoadmaps();
+    }
+
+    // Start the app when page loads
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>

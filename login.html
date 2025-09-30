@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Đăng nhập</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f7faff;
+      --card: #ffffff;
+      --primary: #28a745;
+      --muted: #6c757d;
+      --danger: #dc3545;
+      --radius: 10px;
+      --shadow: 0 6px 18px rgba(20,20,40,0.06);
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(180deg, #f7faff 0%, #eef6ff 100%);
+      color: #111;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+      border: 1px solid rgba(10,20,40,0.03);
+    }
+
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    p.lead {
+      margin: 0 0 18px 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .form-row {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #111;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(10,20,40,0.08);
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+      border-color: rgba(0,0,0,0.12);
+    }
+
+    .inline {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .password-toggle {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    button[type="submit"] {
+      flex: 1;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    .secondary {
+      background: transparent;
+      border: 1px solid rgba(10,20,40,0.06);
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .error-text {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .info-text {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .hint-row {
+      margin-top: 4px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    a.link {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="card" aria-labelledby="login-heading">
+      <header>
+        <h1 id="login-heading">Đăng nhập</h1>
+        <p class="lead">Đăng nhập bằng tên đăng nhập hoặc email. Nhập ít nhất 1 trong 2 (cả hai cũng được) và mật khẩu.</p>
+      </header>
+
+      <form id="loginForm" novalidate>
+        <div class="form-row">
+          <label for="loginUsernameInput">Tên đăng nhập</label>
+          <input id="loginUsernameInput" name="username" type="text" autocomplete="username" placeholder="Tên đăng nhập (tùy chọn)">
+          <div id="usernameError" class="error-text" role="alert" aria-live="polite" hidden></div>
+        </div>
+
+        <div class="form-row">
+          <label for="loginEmailInput">Email</label>
+          <input id="loginEmailInput" name="email" type="email" autocomplete="email" placeholder="Email (tùy chọn)">
+          <div id="emailError" class="error-text" role="alert" aria-live="polite" hidden></div>
+        </div>
+
+        <div class="form-row">
+          <label for="loginPasswordInput">Mật khẩu</label>
+          <div class="inline">
+            <input id="loginPasswordInput" name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu" style="flex:1;" required>
+            <button type="button" id="toggleLoginPasswordButton" class="password-toggle" aria-pressed="false" aria-label="Hiện mật khẩu">Hiện</button>
+          </div>
+          <div id="passwordError" class="error-text" role="alert" aria-live="polite" hidden></div>
+        </div>
+
+        <div class="actions">
+          <button id="loginSubmitButton" type="submit">Đăng nhập</button>
+        </div>
+
+        <div id="loginGeneralMessage" class="info-text" role="status" aria-live="polite" style="min-height:1.2em;"></div>
+
+        <div class="footer">
+          <span>Bạn chưa có tài khoản? <a id="registerLink" class="link" href="/register.html">Đăng ký</a></span>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const inpUser = document.getElementById('loginUsernameInput');
+    const inpEmail = document.getElementById('loginEmailInput');
+    const inpPass = document.getElementById('loginPasswordInput');
+    const errUser = document.getElementById('usernameError');
+    const errEmail = document.getElementById('emailError');
+    const errPass = document.getElementById('passwordError');
+    const submitBtn = document.getElementById('loginSubmitButton');
+    const toggleBtn = document.getElementById('toggleLoginPasswordButton');
+    const genMsg = document.getElementById('loginGeneralMessage');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function clearErrors(){
+      errUser.hidden = true; errUser.textContent = '';
+      errEmail.hidden = true; errEmail.textContent = '';
+      errPass.hidden = true; errPass.textContent = '';
+      genMsg.textContent = ''; genMsg.className = 'info-text';
+    }
+
+    function setGeneralMessage(text, isError=false){
+      genMsg.textContent = text || '';
+      genMsg.className = isError ? 'error-text' : 'info-text';
+    }
+
+    function validateForm(){
+      clearErrors();
+      let ok = true;
+      const username = (inpUser.value||'').trim();
+      const emailRaw = (inpEmail.value||'').trim();
+      const password = inpPass.value || '';
+
+      if (!username && !emailRaw){
+        errUser.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; errUser.hidden = false;
+        errEmail.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; errEmail.hidden = false;
+        ok = false;
+      } else if (emailRaw && !emailRegex.test(emailRaw) && !username){
+        // only fail when email is provided and invalid AND username absent
+        errEmail.textContent = 'Định dạng email không hợp lệ.'; errEmail.hidden = false;
+        ok = false;
+      }
+
+      if (!password){
+        errPass.textContent = 'Vui lòng nhập mật khẩu.'; errPass.hidden = false;
+        ok = false;
+      }
+
+      return ok;
+    }
+
+    function disableSubmit(){ submitBtn.disabled = true; submitBtn.textContent = 'Đang đăng nhập...'; }
+    function enableSubmit(){ submitBtn.disabled = false; submitBtn.textContent = 'Đăng nhập'; }
+
+    function buildPayload(){
+      const username = (inpUser.value||'').trim();
+      const emailRaw = (inpEmail.value||'').trim();
+      // **GHI CHÚ:** không chuyển về toLowerCase — gửi nguyên trạng để áp dụng case-sensitive
+      const email = emailRaw ? emailRaw : '';
+      const password = inpPass.value || '';
+
+      // always include the fields that user expects, not undefined
+      const p = {};
+      if (username) p.username = username;
+      if (email) p.email = email;
+      p.password = password;
+      return p;
+    }
+
+    async function submitHandler(e){
+      e.preventDefault();
+      if (!validateForm()){
+        setGeneralMessage('Vui lòng sửa các lỗi trước khi đăng nhập.', true);
+        return;
+      }
+      disableSubmit();
+      setGeneralMessage('', false);
+
+      const payload = buildPayload();
+      console.log('Sending login payload:', payload);
+
+      // if file:// (opened directly), default to localhost:5000 API (common dev case)
+      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
+      const url = apiBase.replace(/\/$/, '') + '/api/login';
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        let body = null;
+        try { body = await res.json(); } catch(_) { body = null; }
+
+        console.log('Login response status:', res.status, 'body:', body);
+
+        if (res.ok){
+          if (body && body.token) localStorage.setItem('token', body.token);
+          setGeneralMessage((body && body.message) ? body.message : 'Đăng nhập thành công. Đang chuyển...', false);
+
+          try {
+            const token = body && body.token ? body.token : localStorage.getItem('token');
+            if (token){
+              const me = await fetch(apiBase.replace(/\/$/, '') + '/api/me', { headers: { Authorization: 'Bearer ' + token }});
+              if (me.ok){ const meBody = await me.json().catch(()=>null); if (meBody && meBody.user && meBody.user.role) localStorage.setItem('role', meBody.user.role); else localStorage.setItem('role','user'); }
+            }
+          } catch(e){ console.warn('me fetch failed', e); localStorage.setItem('role','user'); }
+
+          // redirect (keep same behavior)
+          window.location.href = '/path.html?page=path';
+          return;
+        } else {
+          const serverMsg = (body && body.message) ? body.message : 'Đăng nhập thất bại.';
+          setGeneralMessage(serverMsg, true);
+          if (body && body.errors){
+            if (body.errors.username){ errUser.textContent = body.errors.username; errUser.hidden = false; }
+            if (body.errors.password){ errPass.textContent = body.errors.password; errPass.hidden = false; }
+            if (body.errors.email){ errEmail.textContent = body.errors.email; errEmail.hidden = false; }
+          }
+        }
+      } catch(err){
+        console.error('Network error during login', err);
+        setGeneralMessage('Không thể kết nối tới server. Vui lòng kiểm tra mạng hoặc server.', true);
+      } finally {
+        enableSubmit();
+      }
+    }
+
+    function togglePassword(e){
+      e && e.preventDefault();
+      const isPass = inpPass.type === 'password';
+      if (isPass){ inpPass.type = 'text'; toggleBtn.textContent = 'Ẩn'; toggleBtn.setAttribute('aria-pressed','true'); toggleBtn.setAttribute('aria-label','Ẩn mật khẩu'); }
+      else { inpPass.type = 'password'; toggleBtn.textContent = 'Hiện'; toggleBtn.setAttribute('aria-pressed','false'); toggleBtn.setAttribute('aria-label','Hiện mật khẩu'); }
+    }
+
+    loginForm.addEventListener('submit', submitHandler);
+    toggleBtn.addEventListener('click', togglePassword);
+    document.getElementById('registerLink').addEventListener('click', (ev)=>{ ev.preventDefault(); window.location.href = '/register.html'; });
+    inpUser.focus();
+  </script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lộ trình học tập AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fixed-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: #007bff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* NEW: center-friendly container used on other pages */
+        .bar-inner {
+            max-width: 1200px;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .brand-title {
+            color: white;
+            font-size: 25px;
+            font-weight: 600;
+        }
+
+        .brand-sub {
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .nav-center {
+            /* reserved for center nav (keeps header consistent across pages) */
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        button {
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            border-radius: 9999px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* move auth buttons into the header's right area (user area) */
+        .userInfo {
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .login-btn {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .login-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .register-btn {
+            background: #28a745;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .register-btn:hover {
+            background: #218838;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .toApp-btn {
+            background: #000;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .toApp-btn:hover {
+            background: #333;
+        }
+
+        .admin-btn {
+            background: #6f42c1;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .admin-btn:hover {
+            background: #5a2fa6;
+        }
+
+        .mainContent {
+            font-size: 60px;
+            font-weight: 700;
+            color: #333;
+            left: 500px;
+            top: 200px;
+            position: absolute;
+        }
+
+        #mainContent2 {
+            top: 275px;
+        }
+
+        /* keep z-index so buttons float above content */
+        .login-btn,
+        .register-btn,
+        .logout-btn,
+        .toApp-btn,
+        .admin-btn {
+            z-index: 3;
+        }
+
+        @media (max-width: 900px) {
+            .brand-title { font-size: 20px; }
+            .brand-sub { font-size: 13px; }
+            .mainContent { left: 40px; font-size: 44px; }
+            #mainContent2 { top: 260px; }
+        }
+
+        @media (max-width: 520px) {
+            .bar-inner { padding: 0 12px; }
+            .mainContent { font-size: 36px; left: 20px; top: 180px; }
+            #mainContent2 { top: 230px; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="fixed-bar">
+        <div class="bar-inner">
+            <div class="brand">
+                <div class="brand-title">Lộ Trình Học Tập AI</div>
+                <div class="brand-sub">AI-Powered Learning Path</div>
+            </div>
+
+            <!-- center nav kept for visual consistency; empty on main page -->
+            <div class="nav-center" aria-hidden="true"></div>
+
+            <!-- user area: login/register (moved here so header matches other pages) -->
+            <div id="userArea" class="userInfo">
+                <button class="login-btn">
+                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+                </button>
+                <button class="register-btn">
+                    <i class="fa-solid fa-user-plus"></i> Đăng ký
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main>
+        <p class="mainContent">Trưởng thành từ</p>
+        <p class="mainContent" id="mainContent2">Những sở thích</p>
+    </main>
+
+    <script>
+        const loginBtn = document.querySelector(".login-btn");
+        const registerBtn = document.querySelector(".register-btn");
+        const userArea = document.getElementById("userArea");
+
+        // token đặc biệt phải khớp với token bạn lưu ở login (client-side backdoor)
+        const ADMIN_TOKEN = 'admin-token';
+
+        function showAuthButtons() {
+            // hiện 2 nút ở góc phải
+            loginBtn.style.display = "inline-flex";
+            registerBtn.style.display = "inline-flex";
+            // XOÁ nội dung vùng userArea (greeting + nút logout/toApp/toAdmin)
+            // (nếu trước đó userArea chứa greeting, replace bằng nút mặc định)
+            // but keep structure (we simply reset contents back to default buttons)
+            // since buttons exist already, just ensure they are visible and there are no extra elements
+            const children = Array.from(userArea.children);
+            children.forEach(c => {
+              if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+                // remove other elements (logout, admin, etc) to restore default
+                userArea.removeChild(c);
+              }
+            });
+        }
+
+        loginBtn.addEventListener("click", () => {
+            window.location.href = "login.html";
+        });
+
+        registerBtn.addEventListener("click", () => {
+            window.location.href = "register.html";
+        });
+
+        function wireLogoutAndNav(logoutEl, toAppEl, adminEl) {
+            if (logoutEl) {
+                logoutEl.addEventListener('click', () => {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('role');
+                    // restore default buttons
+                    // ensure login/register exist
+                    if (!document.querySelector('.login-btn')) {
+                        const b = document.createElement('button');
+                        b.className = 'login-btn';
+                        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+                        b.addEventListener('click', () => window.location.href = 'login.html');
+                        userArea.appendChild(b);
+                    }
+                    if (!document.querySelector('.register-btn')) {
+                        const b2 = document.createElement('button');
+                        b2.className = 'register-btn';
+                        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+                        b2.addEventListener('click', () => window.location.href = 'register.html');
+                        userArea.appendChild(b2);
+                    }
+                    showAuthButtons();
+                });
+            }
+
+            if (toAppEl) {
+                toAppEl.addEventListener('click', () => {
+                    // user thường đi tới path.html?page=path
+                    window.location.href = "path.html?page=path";
+                });
+            }
+
+            if (adminEl) {
+                adminEl.addEventListener('click', () => {
+                    window.location.href = "admin.html?page=admin";
+                });
+            }
+        }
+
+        async function loadUser() {
+            const token = localStorage.getItem('token');
+
+            // mặc định hiển thị 2 nút (tránh trắng trang)
+            showAuthButtons();
+
+            if (!token) {
+                return;
+            }
+
+            // --- Trường hợp admin đặc biệt client-side ---
+            // Nếu token bằng ADMIN_TOKEN, coi là admin
+            if (token === ADMIN_TOKEN) {
+                // hide default buttons
+                if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
+                if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
+
+                // render admin greeting + buttons inside userArea
+                userArea.innerHTML = `
+                    <span>Xin chào <strong style="color:white;">Admin</strong></span>
+                    <button id="logout" class="logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                    <button id="toAdmin" class="admin-btn">
+                        <i class="fa-solid fa-user-shield"></i> Trang admin
+                    </button>
+                `;
+
+                const logoutEl = document.getElementById('logout');
+                const adminEl = document.getElementById('toAdmin');
+
+                // ensure role saved for consistency elsewhere
+                localStorage.setItem('role', 'admin');
+
+                wireLogoutAndNav(logoutEl, null, adminEl);
+                return;
+            }
+
+            // --- Các token khác: hỏi server để lấy thông tin ---
+            try {
+                const res = await fetch('/api/me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+
+                if (!res.ok) {
+                    // token hết hạn hoặc không hợp lệ -> vẫn hiện 2 nút
+                    showAuthButtons();
+                    return;
+                }
+
+                const data = await res.json();
+
+                // lưu role nếu server trả (giúp các trang khác biết role)
+                const serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+                localStorage.setItem('role', serverRole);
+
+                // hide default buttons
+                if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
+                if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
+
+                // nếu admin (server trả) => chỉ hiển thị logout + admin button (KHÔNG có toApp)
+                if (serverRole === 'admin') {
+                    userArea.innerHTML = `
+                        <span>Xin chào <strong style="color:white;">Admin</strong></span>
+                        <button id="logout" class="logout-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                        </button>
+                        <button id="toAdmin" class="admin-btn">
+                            <i class="fa-solid fa-user-shield"></i> Trang admin
+                        </button>
+                    `;
+
+                    const logoutEl = document.getElementById('logout');
+                    const adminEl = document.getElementById('toAdmin');
+
+                    wireLogoutAndNav(logoutEl, null, adminEl);
+                    return;
+                }
+
+                // nếu không phải admin => hiển thị logout + toApp (Trang học)
+                userArea.innerHTML = `
+                    <span>Xin chào <strong style="color:white;">${(data && data.user && data.user.name) ? data.user.name : 'Người dùng'}</strong></span>
+                    <button id="logout" class="logout-btn">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                    <button id="toApp" class="toApp-btn">
+                        <i class="fa-solid fa-arrow-right"></i> Trang học
+                    </button>
+                `;
+
+                const logoutEl = document.getElementById('logout');
+                const toAppEl = document.getElementById('toApp');
+
+                wireLogoutAndNav(logoutEl, toAppEl, null);
+
+            } catch (err) {
+                console.error(err);
+                // lỗi mạng -> hiện 2 nút và xoá greeting
+                showAuthButtons();
+            }
+        }
+
+        // chạy khi DOM sẵn sàng (script ở cuối body nên ổn)
+        loadUser();
+    </script>
+
+</body>
+</html>
