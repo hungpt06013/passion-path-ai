@@ -137,3 +137,38 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+.vscode/
+.idea/
+.history/
+
+# Private keys / certs
+*.pem
+*.key
+*.csr
+*.crt
+*.p12
+*.pfx
+*.jks
+
+# Local DB files (sqlite, etc.)
+*.sqlite
+*.sqlite3
+*.db
+
+# Postgres local auth file
+.pgpass
+
+# Docker / local dev data (optional, nếu bạn dùng)
+postgres-data/
+pgdata/
+docker-compose.override.yml
+
+# Uploads / temp user data (tùy project)
+uploads/
+tmp/
