@@ -136,6 +136,10 @@ const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
 const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
 
+// Temperatures: preferred model must use 1.0; fallback kept at 0.5
+const PREFERRED_OPENAI_TEMPERATURE = parseFloat(process.env.PREFERRED_OPENAI_TEMPERATURE || "1");
+const FALLBACK_OPENAI_TEMPERATURE = parseFloat(process.env.FALLBACK_OPENAI_TEMPERATURE || "0.5");
+
 function buildOpenAIParams({ model, messages, maxCompletionTokens, temperature = 0.5 }) {
   const tokens = Math.max(MIN_COMPLETION_TOKENS, Math.floor(maxCompletionTokens || MIN_COMPLETION_TOKENS));
   return {
@@ -177,11 +181,12 @@ async function callOpenAIWithFallback({ messages, desiredCompletionTokens, tempe
     if (code === "model_not_found" || status === 404 || String(err.message).toLowerCase().includes("model")) {
       console.warn(`⚠️ Preferred model "${PREFERRED_OPENAI_MODEL}" not available. Falling back to ${FALLBACK_OPENAI_MODEL}.`);
       const fallbackTokens = Math.min(capped, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS);
+      // IMPORTANT: use fallback temperature (keep at 0.5 unless overridden by env)
       const fallbackParams = buildOpenAIParams({
         model: FALLBACK_OPENAI_MODEL,
         messages,
         maxCompletionTokens: fallbackTokens,
-        temperature,
+        temperature: FALLBACK_OPENAI_TEMPERATURE,
       });
       return await openai.chat.completions.create(fallbackParams);
     }
@@ -663,7 +668,8 @@ QUAN TRỌNG: Phải tạo đầy đủ ${actualDays} ngày, KHÔNG được vi�
         { role: "user", content: userPrompt }
       ],
       desiredCompletionTokens: desired,
-      temperature: 0.5,
+      // IMPORTANT: preferred model temperature set to 1.0
+      temperature: PREFERRED_OPENAI_TEMPERATURE,
     });
 
     const aiResponse = completion?.choices?.[0]?.message?.content?.trim();
