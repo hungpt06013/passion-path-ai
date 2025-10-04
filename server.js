@@ -922,10 +922,11 @@ app.put("/api/roadmaps/details/:id/status", requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Trạng thái không hợp lệ" });
     }
 
+    // NOTE: Cast $1 explicitly to the column type (VARCHAR) to avoid Postgres inferring inconsistent types
     const result = await pool.query(
       `UPDATE learning_roadmap_details 
-       SET completion_status = $1, 
-           completed_at = CASE WHEN $1 = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE completed_at END,
+       SET completion_status = $1::varchar, 
+           completed_at = CASE WHEN $1::varchar = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE completed_at END,
            updated_at = CURRENT_TIMESTAMP
        WHERE detail_id = $2
        RETURNING *`,
