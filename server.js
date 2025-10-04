@@ -914,6 +914,9 @@ app.get("/api/users/me", requireAuth, async (req, res) => {
 // GET all users (requires admin) - alias for backward compatibility
 app.get("/api/users", requireAdmin, async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const result = await pool.query(
       `SELECT id, name, username, email, role, created_at 
        FROM users 
@@ -956,6 +959,9 @@ app.get("/api/users/:id", requireAdmin, async (req, res) => {
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const result = await pool.query(
       `SELECT id, name, username, email, role, created_at 
        FROM users 
@@ -1081,6 +1087,9 @@ app.put("/api/admin/users/:id", requireAdmin, async (req, res) => {
 
 app.delete("/api/admin/users/:id", requireAdmin, async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const userId = parseInt(req.params.id);
     
     if (isNaN(userId)) {
