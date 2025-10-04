@@ -693,34 +693,102 @@ Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đ�
       throw new Error("AI không trả về phản hồi");
     }
 
-    // Parse JSON response from AI
+    // Robust JSON extraction & parsing. This replaces the previous brittle logic that
+    // failed when AI returned surrounding text like "A. JSON..." or also returned an
+    // object with a 'roadmap' array. We try several strategies before falling back.
     let roadmapData;
-    try {
-      // Remove possible markdown fences
-      const jsonStr = aiResponse.replace(/```json\n?/g, '').replace(/```/g, '').trim();
 
-      if (jsonStr.includes('...') || jsonStr.includes('tiếp tục') || jsonStr.includes('continue')) {
-        throw new Error("AI response bị cắt ngắn hoặc không đầy đủ");
+    function extractJsonSubstring(text) {
+      if (!text) return null;
+      // 1) Try fenced ```json``` block
+      const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (fenceMatch && fenceMatch[1]) return fenceMatch[1].trim();
+
+      // 2) Find first { or [ and attempt to extract a balanced JSON block while
+      // taking string-literals into account (so braces inside strings don't break it).
+      const startIdx = text.search(/[\{\[]/);
+      if (startIdx === -1) return null;
+
+      let stack = [];
+      let inString = false;
+      let stringChar = null;
+      let escape = false;
+
+      for (let i = startIdx; i < text.length; i++) {
+        const ch = text[i];
+        if (escape) { escape = false; continue; }
+        if (ch === '\\') { escape = true; continue; }
+
+        if (inString) {
+          if (ch === stringChar) {
+            inString = false; stringChar = null;
+          }
+          continue;
+        } else {
+          if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+        }
+
+        if (ch === '{' || ch === '[') {
+          stack.push(ch);
+        } else if (ch === '}' || ch === ']') {
+          if (stack.length === 0) return null;
+          const last = stack[stack.length - 1];
+          if ((last === '{' && ch === '}') || (last === '[' && ch === ']')) {
+            stack.pop();
+            if (stack.length === 0) {
+              // return the substring between startIdx and current position inclusive
+              return text.slice(startIdx, i + 1).trim();
+            }
+          } else {
+            return null; // mismatched brackets
+          }
+        }
       }
 
-      roadmapData = JSON.parse(jsonStr);
+      // no complete balanced block found
+      return null;
+    }
+
+    try {
+      const candidate = extractJsonSubstring(aiResponse);
+      if (!candidate) throw new Error("Không tìm thấy JSON hợp lệ trong phản hồi AI");
+
+      // Try parsing candidate JSON
+      try {
+        roadmapData = JSON.parse(candidate);
+      } catch (e) {
+        // If direct parse fails, try to relax some common issues: remove leading non-json garbage
+        // (already tried), or attempt to replace smart quotes, trailing commas etc.
+        const safe = candidate
+          .replace(/[\u2018\u2019\u201C\u201D]/g, '"') // smart quotes -> normal
+          .replace(/,\s*([}\]])/g, '$1'); // remove trailing commas before closing
+        roadmapData = JSON.parse(safe);
+      }
     } catch (parseError) {
       console.error('JSON Parse Error:', parseError);
       console.error('AI Response was:', aiResponse);
-      // Fallback
+      // Fallback to deterministic generator
       roadmapData = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
     }
 
-    // Validate structure
-    if (!Array.isArray(roadmapData) || roadmapData.length === 0) {
-      roadmapData = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
+    // The AI may return either an array (days) or an object with a .roadmap array.
+    // Normalize to the array we expect downstream.
+    let daysArray;
+    if (Array.isArray(roadmapData)) {
+      daysArray = roadmapData;
+    } else if (roadmapData && Array.isArray(roadmapData.roadmap)) {
+      daysArray = roadmapData.roadmap;
+    } else if (roadmapData && Array.isArray(roadmapData.data)) {
+      daysArray = roadmapData.data;
+    } else {
+      daysArray = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
     }
 
-    // Adjust length if needed
-    if (roadmapData.length !== actualDays) {
-      if (roadmapData.length < actualDays) {
-        for (let i = roadmapData.length; i < actualDays; i++) {
-          roadmapData.push({
+    // Ensure the array length matches requested days. If shorter, pad; if longer, truncate.
+    if (daysArray.length !== actualDays) {
+      if (daysArray.length < actualDays) {
+        for (let i = daysArray.length; i < actualDays; i++) {
+          daysArray.push({
             day_number: i + 1,
             daily_goal: `Ôn tập và củng cố kiến thức ngày ${i + 1}`,
             learning_content: `Ôn lại và thực hành các kiến thức đã học trong ${category.toLowerCase()}`,
@@ -730,13 +798,13 @@ Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đ�
           });
         }
       } else {
-        roadmapData = roadmapData.slice(0, actualDays);
+        daysArray = daysArray.slice(0, actualDays);
       }
     }
 
     // Normalize each day to expected keys and types
-    for (let i = 0; i < roadmapData.length; i++) {
-      const day = roadmapData[i] || {};
+    for (let i = 0; i < daysArray.length; i++) {
+      const day = daysArray[i] || {};
       const daily_goal = day.daily_goal || day.goal || day.dailyGoal || '';
       const learning_content = day.learning_content || day.content || day.learningContent || '';
       const practice_exercises = day.practice_exercises || day.exercises || day.practiceExercises || '';
@@ -752,18 +820,18 @@ Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đ�
         study_duration_hours: study_duration_hours,
       };
 
-      roadmapData[i] = fixedDay;
+      daysArray[i] = fixedDay;
     }
 
     // Sort by day_number
-    roadmapData.sort((a, b) => a.day_number - b.day_number);
+    daysArray.sort((a, b) => a.day_number - b.day_number);
 
-    console.log(`✅ Successfully generated ${roadmapData.length} days of roadmap`);
+    console.log(`✅ Successfully generated ${daysArray.length} days of roadmap`);
 
     res.json({
       success: true,
       message: "Tạo lộ trình bằng AI thành công",
-      data: roadmapData
+      data: daysArray
     });
 
   } catch (error) {
