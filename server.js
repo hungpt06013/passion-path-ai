@@ -932,6 +932,9 @@ app.get("/api/users", requireAdmin, async (req, res) => {
 // GET single user by ID (requires admin) - alias for backward compatibility
 app.get("/api/users/:id", requireAdmin, async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     const userId = parseInt(req.params.id);
     if (isNaN(userId)) {
       return res.status(400).json({ success: false, error: "ID không hợp lệ" });
