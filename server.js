@@ -513,57 +513,6 @@ app.get("/api/me", async (req, res) => {
   }
 });
 
-// --- API: Lấy danh sách users (admin only) ---
-app.get("/api/users", requireAdmin, async (req, res) => {
-  try {
-    const result = await pool.query("SELECT id, name, email, created_at FROM users ORDER BY id DESC");
-    return res.json(result.rows);
-  } catch (err) {
-    console.error("SQL Error (get users):", err && err.message ? err.message : err);
-    return res.status(500).json({ message: "Lỗi server khi lấy danh sách users" });
-  }
-});
-
-// --- API: Xóa user theo id (number) hoặc email (string) (admin only) ---
-app.delete("/api/users/:id", requireAdmin, async (req, res) => {
-  const raw = req.params.id;
-  try {
-    let result;
-    if (/^\d+$/.test(raw)) {
-      const id = parseInt(raw, 10);
-      // Protect against deleting self accidentally
-      if (req.user && req.user.id === id) {
-        return res.status(400).json({ message: "Không thể tự xóa tài khoản admin đang đăng nhập" });
-      }
-      // Additional protection: do not allow deleting seeded ADMIN_USERNAME by id
-      const adminName = (process.env.ADMIN_USERNAME || "").trim();
-      if (adminName) {
-        const maybeAdmin = await pool.query("SELECT id, username FROM users WHERE id = $1 LIMIT 1", [id]);
-        if (maybeAdmin.rows.length && maybeAdmin.rows[0].username === adminName) {
-          return res.status(400).json({ message: "Không thể xóa tài khoản admin mặc định" });
-        }
-      }
-      result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
-    } else {
-      const email = decodeURIComponent(raw);
-      // optional: prevent deleting admin by email if it's the seeded admin username's email
-      const adminEmail = process.env.ADMIN_EMAIL || `${process.env.ADMIN_USERNAME || ""}@local`;
-      if (adminEmail && email === adminEmail) {
-        return res.status(400).json({ message: "Không thể xóa tài khoản admin mặc định" });
-      }
-      result = await pool.query("DELETE FROM users WHERE email = $1 RETURNING id", [email]);
-    }
-
-    if (!result || result.rowCount === 0) {
-      return res.status(404).json({ message: "Người dùng không tồn tại" });
-    }
-    return res.json({ message: "Xóa thành công.", deletedId: result.rows[0].id });
-  } catch (err) {
-    console.error("SQL Error (delete user):", err && err.message ? err.message : err);
-    return res.status(500).json({ message: "Lỗi server khi xóa user" });
-  }
-});
-
 // === AI ROADMAP GENERATION API ===
 app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   try {
@@ -696,7 +645,6 @@ Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đ�
     // Robust JSON extraction & parsing. This replaces the previous brittle logic that
     // failed when AI returned surrounding text like "A. JSON..." or also returned an
     // object with a 'roadmap' array. We try several strategies before falling back.
-    let roadmapData;
 
     function extractJsonSubstring(text) {
       if (!text) return null;
@@ -749,26 +697,91 @@ Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đ�
       return null;
     }
 
+    // --- Robust extraction + clear logs (replace the previous single-attempt parse block) ---
+    let roadmapData;
+    let usedFallback = false;
     try {
-      const candidate = extractJsonSubstring(aiResponse);
-      if (!candidate) throw new Error("Không tìm thấy JSON hợp lệ trong phản hồi AI");
+      console.log('🔎 Raw AI response (start 1200 chars):', aiResponse.slice(0, 1200));
+      const triedCandidates = [];
+      let candidate = extractJsonSubstring(aiResponse);
 
-      // Try parsing candidate JSON
-      try {
-        roadmapData = JSON.parse(candidate);
-      } catch (e) {
-        // If direct parse fails, try to relax some common issues: remove leading non-json garbage
-        // (already tried), or attempt to replace smart quotes, trailing commas etc.
-        const safe = candidate
-          .replace(/[\u2018\u2019\u201C\u201D]/g, '"') // smart quotes -> normal
-          .replace(/,\s*([}\]])/g, '$1'); // remove trailing commas before closing
-        roadmapData = JSON.parse(safe);
+      if (candidate) {
+        triedCandidates.push({ method: 'balanced', snippet: candidate.slice(0, 500) });
+        console.log(`🔎 Found JSON candidate via balanced-brackets (len=${candidate.length})`);
+      } else {
+        console.log('🔎 No balanced candidate found; trying alternatives');
+        // alt 1: object containing the word "roadmap"
+        const roadmapMatch = aiResponse.match(/\{[\s\S]*?"roadmap"[\s\S]*?\}/i);
+        if (roadmapMatch) {
+          candidate = roadmapMatch[0];
+          triedCandidates.push({ method: 'roadmap_regex', snippet: candidate.slice(0, 500) });
+          console.log('🔎 Found candidate by roadmap regex');
+        }
       }
-    } catch (parseError) {
-      console.error('JSON Parse Error:', parseError);
-      console.error('AI Response was:', aiResponse);
-      // Fallback to deterministic generator
+
+      if (!candidate) {
+        const arrayMatch = aiResponse.match(/\[[\s\S]*?\]/);
+        if (arrayMatch) {
+          candidate = arrayMatch[0];
+          triedCandidates.push({ method: 'array_regex', snippet: candidate.slice(0, 500) });
+          console.log('🔎 Found array candidate via regex');
+        }
+      }
+
+      if (!candidate) {
+        // try brute-force: first { to last }
+        const firstOpen = aiResponse.indexOf('{');
+        const lastClose = aiResponse.lastIndexOf('}');
+        if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+          candidate = aiResponse.slice(firstOpen, lastClose + 1);
+          triedCandidates.push({ method: 'firstToLastBruteforce', snippet: candidate.slice(0, 500) });
+          console.log('🔎 Extracted candidate from first { to last }');
+        }
+      }
+
+      let lastParseError = null;
+      if (candidate) {
+        try {
+          roadmapData = JSON.parse(candidate);
+          console.log('✅ Parsed JSON candidate successfully');
+        } catch (e) {
+          lastParseError = e;
+          console.warn('⚠️ Direct JSON.parse failed, attempting minor cleanups:', e.message);
+          const safe = candidate
+            .replace(/[\u2018\u2019\u201C\u201D]/g, '"') // smart quotes -> normal
+            .replace(/,\s*([}\]])/g, '$1') // remove trailing commas before closing
+            .replace(/\t/g, ' ') // tabs -> space
+            .trim();
+          try {
+            roadmapData = JSON.parse(safe);
+            console.log('✅ Parsed JSON after cleaning');
+          } catch (e2) {
+            lastParseError = e2;
+            console.error('❌ Parse failed after clean:', e2.message);
+          }
+        }
+      }
+
+      if (!roadmapData) {
+        console.error('❌ All JSON extraction/parsing attempts failed. Candidates tried:', triedCandidates.map(c => c.method));
+        console.error('❌ Last parse error:', lastParseError && lastParseError.message);
+        console.error('🔎 AI response (truncated 2000):', aiResponse.slice(0, 2000));
+        usedFallback = true;
+        roadmapData = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
+      } else {
+        console.log('ℹ️ Using AI JSON as source for roadmap (methods tried):', triedCandidates.map(c => c.method));
+      }
+    } catch (err) {
+      console.error('JSON extraction unexpected error:', err && err.message ? err.message : err);
+      usedFallback = true;
       roadmapData = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
+    }
+
+    // Explicit final log so you can grep quickly in logs
+    if (usedFallback) {
+      console.log('⚠️ Used Fallback roadmap (generated).');
+    } else {
+      console.log('✅ Used AI JSON (no fallback).');
     }
 
     // The AI may return either an array (days) or an object with a .roadmap array.
