@@ -957,7 +957,38 @@ app.get("/api/users/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Không thể lấy thông tin người dùng" });
   }
 });
-
+// DELETE single user (requires admin) - alias for backward compatibility
+app.delete("/api/users/:id", requireAdmin, async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    if (userId === req.user.id) {
+      return res.status(400).json({ success: false, error: "Không thể xóa chính mình" });
+    }
+    
+    const result = await pool.query(
+      `DELETE FROM users WHERE id = $1 RETURNING id, username`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, message: `Đã xóa người dùng ${result.rows[0].username} thành công` });
+  } catch (err) {
+    console.error("Error deleting user:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể xóa người dùng" });
+  }
+});
 // ========== ADMIN USER MANAGEMENT ENDPOINTS ==========
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
