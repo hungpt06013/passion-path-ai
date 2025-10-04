@@ -407,7 +407,7 @@ async function getCandidateLinksFromAIForTopic(topic, category) {
     const usr = `Hãy đề xuất tối đa 8 đường dẫn đáng tin cậy, phù hợp nhất để học về: "${topic}" (danh mục: ${category}). Trả về CHỈ MỘT MẢNG JSON như ["https://...","https://..."].`;
     const comp = await callOpenAIWithFallback({
       messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
-      desiredCompletionTokens: 300,
+      desiredCompletionTokens: 22500,
       temperature: 1
     });
     const text = comp?.choices?.[0]?.message?.content?.trim();
@@ -1046,4 +1046,5 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`ℹ️  Local: http://localhost:${PORT}/`);
 });
+
 
