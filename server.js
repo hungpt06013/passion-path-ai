@@ -408,7 +408,7 @@ async function getCandidateLinksFromAIForTopic(topic, category) {
     const comp = await callOpenAIWithFallback({
       messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
       desiredCompletionTokens: 300,
-      temperature: 0.2
+      temperature: 1
     });
     const text = comp?.choices?.[0]?.message?.content?.trim();
     if (!text) return [];
@@ -568,7 +568,7 @@ async function validateAndEnrichRoadmap(rawDays, requiredDays, hoursPerDay, cate
         const comp = await callOpenAIWithFallback({
           messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
           desiredCompletionTokens: 200,
-          temperature: 0.2,
+          temperature: 1,
         });
         const text = comp?.choices?.[0]?.message?.content?.trim();
         if (text) {
@@ -809,7 +809,7 @@ Yêu cầu: tạo JSON đúng schema, không trùng lặp, mỗi ngày có nội
         const completion = await callOpenAIWithFallback({
           messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
           desiredCompletionTokens: desired,
-          temperature: Math.max(0.2, PREFERRED_OPENAI_TEMPERATURE - 0.4)
+          temperature: Math.max(1, PREFERRED_OPENAI_TEMPERATURE - 0.4)
         });
         const aiResponse = completion?.choices?.[0]?.message?.content?.trim();
         if (!aiResponse) {
@@ -1046,3 +1046,4 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`ℹ️  Local: http://localhost:${PORT}/`);
 });
+
