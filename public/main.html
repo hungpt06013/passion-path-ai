@@ -1,18 +1,33 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Lộ trình học tập AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
     <style>
+        :root {
+            --primary: #2b8cff;
+            --primary-dark: #1e6fe6;
+            --muted: #6b7280;
+            --bg: #f5f8fb;
+        }
+
+        html, 
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background: #f5f5f5;
+            background: var(--bg);
             font-family: 'Inter', sans-serif;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .fixed-bar {
@@ -21,12 +36,11 @@
             left: 0;
             width: 100%;
             height: 80px;
-            background: #007bff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            z-index: 1;
+            background: var(--primary);
+            box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+            z-index: 50;
         }
 
-        /* NEW: center-friendly container used on other pages */
         .bar-inner {
             max-width: 1200px;
             height: 100%;
@@ -41,24 +55,22 @@
         .brand {
             display: flex;
             flex-direction: column;
-            justify-content: center;
             gap: 4px;
         }
 
         .brand-title {
             color: white;
-            font-size: 25px;
-            font-weight: 600;
+            font-size: 20px;
+            font-weight: 700;
         }
 
         .brand-sub {
-            color: white;
-            font-size: 15px;
+            color: rgba(255,255,255,0.9);
+            font-size: 12px;
             font-weight: 600;
         }
 
         .nav-center {
-            /* reserved for center nav (keeps header consistent across pages) */
             display: flex;
             align-items: center;
             gap: 20px;
@@ -73,11 +85,10 @@
             border: none;
             border-radius: 9999px;
             padding: 10px 20px;
-            font-size: 16px;
-            font-weight: 500;
+            font-size: 15px;
+            font-weight: 600;
         }
 
-        /* move auth buttons into the header's right area (user area) */
         .userInfo {
             color: white;
             font-weight: 600;
@@ -89,7 +100,7 @@
         .login-btn {
             background: white;
             color: #333;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .login-btn:hover {
@@ -99,7 +110,7 @@
         .register-btn {
             background: #28a745;
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .register-btn:hover {
@@ -109,70 +120,277 @@
         .logout-btn {
             background: #dc3545;
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .toApp-btn {
             background: #000;
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        }
-
-        .toApp-btn:hover {
-            background: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
         .admin-btn {
             background: #6f42c1;
             color: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.12);
         }
 
-        .admin-btn:hover {
-            background: #5a2fa6;
+        main {
+            margin-top: 135px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            position: relative;
         }
 
-        .mainContent {
-            font-size: 60px;
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 560px;
+            gap: 28px;
+            align-items: start;
+        }
+
+        .hero-left {
+            padding: 24px 12px;
+        }
+
+        .headline {
+            font-size: 56px;
+            line-height: 0.95;
             font-weight: 700;
-            color: #333;
-            left: 500px;
-            top: 200px;
-            position: absolute;
+            margin: 0;
+            color: rgba(15,23,42,0.92);
         }
 
-        #mainContent2 {
-            top: 275px;
+        .headline .accent {
+            color: rgba(43,140,255,0.86);
+            display: block;
+            font-weight: 700;
         }
 
-        /* keep z-index so buttons float above content */
-        .login-btn,
-        .register-btn,
-        .logout-btn,
-        .toApp-btn,
-        .admin-btn {
-            z-index: 3;
+        .subdesc {
+            margin-top: 18px;
+            font-size: 18px;
+            color: var(--muted);
+            max-width: 640px;
         }
 
-        @media (max-width: 900px) {
-            .brand-title { font-size: 20px; }
-            .brand-sub { font-size: 13px; }
-            .mainContent { left: 40px; font-size: 44px; }
-            #mainContent2 { top: 260px; }
+        .cta-row {
+            margin-top: 28px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
-        @media (max-width: 520px) {
-            .bar-inner { padding: 0 12px; }
-            .mainContent { font-size: 36px; left: 20px; top: 180px; }
-            #mainContent2 { top: 230px; }
+        .cta-center {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .cta-main {
+            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 14px 28px;
+            font-size: 18px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(43,140,255,0.18);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(13, 38, 71, 0.08);
+            min-height: 370px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .card-title {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .card-sub {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .progress-bar-wrap {
+            margin-top: 14px;
+            background: #eef2ff;
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 42%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+        }
+
+        .course-list {
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .course {
+            border-radius: 10px;
+            padding: 12px;
+            background: #f8fbff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .course.done {
+            background: #e9f9ef;
+        }
+
+        .card-footer {
+            margin-top: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(12,40,80,0.06);
+        }
+
+        .points {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 18px;
+        }
+
+        .features {
+            margin-top: 28px;
+            display: flex;
+            gap: 22px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            box-sizing: border-box;
+            padding-top: 8px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(12,38,71,0.04);
+            min-width: 180px;
+        }
+
+        .feature i {
+            background: linear-gradient(180deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 8px;
+            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .feature .f-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature .f-title {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .feature .f-sub {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        @media (max-width:1100px) {
+            .hero {
+                grid-template-columns: 1fr 360px;
+            }
+            .headline {
+                font-size: 48px;
+            }
+        }
+
+        @media (max-width:820px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+            .progress-card {
+                order: -1;
+                margin-bottom: 16px;
+            }
+            .headline {
+                font-size: 40px;
+            }
+            .card-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .features {
+                justify-content: flex-start;
+                padding-left: 12px;
+            }
+        }
+
+        @media (max-width:520px) {
+            .headline {
+                font-size: 32px;
+            }
+            .subdesc {
+                font-size: 15px;
+            }
+            .progress-card {
+                padding: 16px;
+            }
+            .feature {
+                min-width: 140px;
+            }
         }
     </style>
 </head>
-
 <body>
     <div class="fixed-bar">
         <div class="bar-inner">
@@ -180,25 +398,100 @@
                 <div class="brand-title">Lộ Trình Học Tập AI</div>
                 <div class="brand-sub">AI-Powered Learning Path</div>
             </div>
-
-            <!-- center nav kept for visual consistency; empty on main page -->
             <div class="nav-center" aria-hidden="true"></div>
-
-            <!-- user area: login/register (moved here so header matches other pages) -->
             <div id="userArea" class="userInfo">
-                <button class="login-btn">
-                    <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-                </button>
-                <button class="register-btn">
-                    <i class="fa-solid fa-user-plus"></i> Đăng ký
-                </button>
+                <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+                <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
             </div>
         </div>
     </div>
 
     <main>
-        <p class="mainContent">Trưởng thành từ</p>
-        <p class="mainContent" id="mainContent2">Những sở thích</p>
+        <div class="hero">
+            <div class="hero-left">
+                <h1 class="headline">Trưởng thành từ <span class="accent">Những Sở Thích</span></h1>
+                <p class="subdesc">Khám phá hệ thống học tập thông minh sử dụng AI để tạo lộ trình học tập cá nhân hoá. Biến đam mê thành kỹ năng, biến sở thích thành thành công.</p>
+
+                <div class="cta-row">
+                    <div class="cta-center" style="width:100%;">
+                        <button class="cta-main" id="startNowBtn"><i class="fa-solid fa-rocket"></i> Bắt Đầu Ngay</button>
+                    </div>
+                </div>
+
+                <div class="features" role="list">
+                    <div class="feature" role="listitem">
+                        <i class="fa-solid fa-brain"></i>
+                        <div class="f-text">
+                            <div class="f-title">AI Thông Minh</div>
+                            <div class="f-sub">Phân tích sở thích</div>
+                        </div>
+                    </div>
+
+                    <div class="feature" role="listitem">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <div class="f-text">
+                            <div class="f-title">Theo Dõi Tiến Độ</div>
+                            <div class="f-sub">Gamification</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="progress-card" aria-hidden="false">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Lộ Trình Học: Lập Trình C++</div>
+                        <div class="card-sub">5% hoàn thành • 30 ngày</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-weight:800; font-size:16px; color:#0f172a;">5%</div>
+                        <div style="font-size:12px; color:var(--muted);">Tiến độ tổng thể</div>
+                    </div>
+                </div>
+
+                <div class="progress-bar-wrap" aria-hidden="true">
+                    <div class="progress-fill" style="width:5%;"></div>
+                </div>
+
+                <div class="course-list">
+                    <div class="course done">
+                        <div class="label">
+                            <i class="fa-solid fa-check-circle" style="color:#16a34a;"></i>
+                            <div>Bài 1: Giới thiệu C++</div>
+                        </div>
+                        <div class="meta">30 phút • 100% hoàn thành</div>
+                    </div>
+
+                    <div class="course">
+                        <div class="label">
+                            <i class="fa-solid fa-play-circle" style="color:#2563eb;"></i>
+                            <div>Bài 2: Lấy, xuất dữ liệu</div>
+                        </div>
+                        <div class="meta">30 phút • 50% hoàn thành</div>
+                    </div>
+
+                    <div class="course">
+                        <div class="label">
+                            <i class="fa-regular fa-clock" style="color:#9ca3af;"></i>
+                            <div>Bài 3: Số nguyên và toán cơ bản</div>
+                        </div>
+                        <div class="meta">30 phút • Sắp tới</div>
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="badges">
+                        <div class="badge" style="background:#fff5f0;"><i class="fa-solid fa-medal" style="color:#fb923c;"></i></div>
+                        <div class="badge" style="background:#f8fafc;"><i class="fa-solid fa-star" style="color:#a78bfa;"></i></div>
+                        <div class="badge" style="background:#f0fdf4;"><i class="fa-solid fa-trophy" style="color:#34d399;"></i></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="points">1/30</div>
+                        <div class="card-sub" style="text-align:right;">Số bài đã làm</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
     </main>
 
     <script>
@@ -210,19 +503,15 @@
         const ADMIN_TOKEN = 'admin-token';
 
         function showAuthButtons() {
-            // hiện 2 nút ở góc phải
             loginBtn.style.display = "inline-flex";
             registerBtn.style.display = "inline-flex";
-            // XOÁ nội dung vùng userArea (greeting + nút logout/toApp/toAdmin)
-            // (nếu trước đó userArea chứa greeting, replace bằng nút mặc định)
-            // but keep structure (we simply reset contents back to default buttons)
-            // since buttons exist already, just ensure they are visible and there are no extra elements
             const children = Array.from(userArea.children);
             children.forEach(c => {
-              if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-                // remove other elements (logout, admin, etc) to restore default
-                userArea.removeChild(c);
-              }
+                if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+                    try {
+                        userArea.removeChild(c);
+                    } catch (e) {}
+                }
             });
         }
 
@@ -239,8 +528,7 @@
                 logoutEl.addEventListener('click', () => {
                     localStorage.removeItem('token');
                     localStorage.removeItem('role');
-                    // restore default buttons
-                    // ensure login/register exist
+
                     if (!document.querySelector('.login-btn')) {
                         const b = document.createElement('button');
                         b.className = 'login-btn';
@@ -248,6 +536,7 @@
                         b.addEventListener('click', () => window.location.href = 'login.html');
                         userArea.appendChild(b);
                     }
+
                     if (!document.querySelector('.register-btn')) {
                         const b2 = document.createElement('button');
                         b2.className = 'register-btn';
@@ -255,13 +544,13 @@
                         b2.addEventListener('click', () => window.location.href = 'register.html');
                         userArea.appendChild(b2);
                     }
+
                     showAuthButtons();
                 });
             }
 
             if (toAppEl) {
                 toAppEl.addEventListener('click', () => {
-                    // user thường đi tới path.html?page=path
                     window.location.href = "path.html?page=path";
                 });
             }
@@ -275,111 +564,86 @@
 
         async function loadUser() {
             const token = localStorage.getItem('token');
-
-            // mặc định hiển thị 2 nút (tránh trắng trang)
             showAuthButtons();
+            if (!token) return;
 
-            if (!token) {
-                return;
-            }
-
-            // --- Trường hợp admin đặc biệt client-side ---
-            // Nếu token bằng ADMIN_TOKEN, coi là admin
             if (token === ADMIN_TOKEN) {
-                // hide default buttons
-                if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
-                if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
+                if (document.querySelector('.login-btn')) {
+                    document.querySelector('.login-btn').style.display = 'none';
+                }
+                if (document.querySelector('.register-btn')) {
+                    document.querySelector('.register-btn').style.display = 'none';
+                }
 
-                // render admin greeting + buttons inside userArea
                 userArea.innerHTML = `
                     <span>Xin chào <strong style="color:white;">Admin</strong></span>
-                    <button id="logout" class="logout-btn">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </button>
-                    <button id="toAdmin" class="admin-btn">
-                        <i class="fa-solid fa-user-shield"></i> Trang admin
-                    </button>
+                    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                    <button id="toAdmin" class="admin-btn"><i class="fa-solid fa-user-shield"></i> Trang admin</button>
                 `;
-
                 const logoutEl = document.getElementById('logout');
                 const adminEl = document.getElementById('toAdmin');
-
-                // ensure role saved for consistency elsewhere
                 localStorage.setItem('role', 'admin');
-
                 wireLogoutAndNav(logoutEl, null, adminEl);
                 return;
             }
 
-            // --- Các token khác: hỏi server để lấy thông tin ---
             try {
-                const res = await fetch('/api/me', {
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    }
-                });
-
-                if (!res.ok) {
-                    // token hết hạn hoặc không hợp lệ -> vẫn hiện 2 nút
-                    showAuthButtons();
-                    return;
+                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+                if (!res.ok) { 
+                    showAuthButtons(); 
+                    return; 
                 }
-
                 const data = await res.json();
-
-                // lưu role nếu server trả (giúp các trang khác biết role)
                 const serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
                 localStorage.setItem('role', serverRole);
 
-                // hide default buttons
-                if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
-                if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
+                if (document.querySelector('.login-btn')) {
+                    document.querySelector('.login-btn').style.display = 'none';
+                }
+                if (document.querySelector('.register-btn')) {
+                    document.querySelector('.register-btn').style.display = 'none';
+                }
 
-                // nếu admin (server trả) => chỉ hiển thị logout + admin button (KHÔNG có toApp)
                 if (serverRole === 'admin') {
                     userArea.innerHTML = `
                         <span>Xin chào <strong style="color:white;">Admin</strong></span>
-                        <button id="logout" class="logout-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                        </button>
-                        <button id="toAdmin" class="admin-btn">
-                            <i class="fa-solid fa-user-shield"></i> Trang admin
-                        </button>
+                        <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                        <button id="toAdmin" class="admin-btn"><i class="fa-solid fa-user-shield"></i> Trang admin</button>
                     `;
-
                     const logoutEl = document.getElementById('logout');
                     const adminEl = document.getElementById('toAdmin');
-
                     wireLogoutAndNav(logoutEl, null, adminEl);
                     return;
                 }
 
-                // nếu không phải admin => hiển thị logout + toApp (Trang học)
                 userArea.innerHTML = `
                     <span>Xin chào <strong style="color:white;">${(data && data.user && data.user.name) ? data.user.name : 'Người dùng'}</strong></span>
-                    <button id="logout" class="logout-btn">
-                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                    </button>
-                    <button id="toApp" class="toApp-btn">
-                        <i class="fa-solid fa-arrow-right"></i> Trang học
-                    </button>
+                    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+                    <button id="toApp" class="toApp-btn"><i class="fa-solid fa-arrow-right"></i> Trang học</button>
                 `;
-
                 const logoutEl = document.getElementById('logout');
                 const toAppEl = document.getElementById('toApp');
-
                 wireLogoutAndNav(logoutEl, toAppEl, null);
 
             } catch (err) {
                 console.error(err);
-                // lỗi mạng -> hiện 2 nút và xoá greeting
                 showAuthButtons();
             }
         }
 
-        // chạy khi DOM sẵn sàng (script ở cuối body nên ổn)
         loadUser();
-    </script>
 
+        const startBtn = document.getElementById('startNowBtn');
+        if (startBtn) {
+            startBtn.addEventListener('click', () => {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                } else {
+                    window.location.href = 'path.html?page=path';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
