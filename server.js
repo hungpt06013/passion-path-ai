@@ -911,6 +911,47 @@ app.get("/api/users/me", requireAuth, async (req, res) => {
   }
 });
 
+// GET all users (requires admin) - alias for backward compatibility
+app.get("/api/users", requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, username, email, role, created_at 
+       FROM users 
+       ORDER BY created_at DESC`
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error("Error fetching users:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể lấy danh sách người dùng" });
+  }
+});
+
+// GET single user by ID (requires admin) - alias for backward compatibility
+app.get("/api/users/:id", requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    const result = await pool.query(
+      `SELECT id, name, username, email, role, created_at 
+       FROM users 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error("Error fetching user:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể lấy thông tin người dùng" });
+  }
+});
+
 // ========== ADMIN USER MANAGEMENT ENDPOINTS ==========
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
