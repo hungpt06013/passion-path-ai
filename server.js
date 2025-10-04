@@ -1,4 +1,4 @@
-// server.js (ESM)
+// server.js (ESM) - Optimized for AI Roadmap Generation
 import express from "express";
 import { Pool } from "pg";
 import path from "path";
@@ -120,7 +120,7 @@ function makeToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET || "dev_local_secret", { expiresIn: "2h" });
 }
 
-// AI config
+// AI config - CRITICAL: Temperature MUST be 1
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
 const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "400000", 10);
 const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "1500", 10);
@@ -128,23 +128,22 @@ const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-nano";
 const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
 const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
-const PREFERRED_OPENAI_TEMPERATURE = parseFloat(process.env.PREFERRED_OPENAI_TEMPERATURE || "1");
-const FALLBACK_OPENAI_TEMPERATURE = parseFloat(process.env.FALLBACK_OPENAI_TEMPERATURE || "0.5");
+const AI_TEMPERATURE = 1; // MUST BE 1
 
-function buildOpenAIParams({ model, messages, maxCompletionTokens, temperature = 0.5 }) {
+function buildOpenAIParams({ model, messages, maxCompletionTokens }) {
   const tokens = Math.max(MIN_COMPLETION_TOKENS, Math.floor(maxCompletionTokens || MIN_COMPLETION_TOKENS));
   return {
     model,
     messages,
     max_completion_tokens: tokens,
-    temperature,
+    temperature: AI_TEMPERATURE, // Always 1
   };
 }
 
-async function callOpenAIWithFallback({ messages, desiredCompletionTokens, temperature = 0.5 }) {
+async function callOpenAIWithFallback({ messages, desiredCompletionTokens }) {
   const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
   try {
-    const params = buildOpenAIParams({ model: PREFERRED_OPENAI_MODEL, messages, maxCompletionTokens: capped, temperature });
+    const params = buildOpenAIParams({ model: PREFERRED_OPENAI_MODEL, messages, maxCompletionTokens: capped });
     const safeLog = { ...params, messages: undefined };
     console.log("📤 Sending params:", JSON.stringify(safeLog, null, 2));
     return await openai.chat.completions.create(params);
@@ -155,14 +154,14 @@ async function callOpenAIWithFallback({ messages, desiredCompletionTokens, tempe
     if (code === "model_not_found" || status === 404 || String(err.message).toLowerCase().includes("model")) {
       console.warn(`⚠️ Preferred model "${PREFERRED_OPENAI_MODEL}" not available. Falling back to ${FALLBACK_OPENAI_MODEL}.`);
       const fallbackTokens = Math.min(capped, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS);
-      const fallbackParams = buildOpenAIParams({ model: FALLBACK_OPENAI_MODEL, messages, maxCompletionTokens: fallbackTokens, temperature: FALLBACK_OPENAI_TEMPERATURE });
+      const fallbackParams = buildOpenAIParams({ model: FALLBACK_OPENAI_MODEL, messages, maxCompletionTokens: fallbackTokens });
       return await openai.chat.completions.create(fallbackParams);
     }
     throw err;
   }
 }
 
-// ---------------- DB init (same schema) ----------------
+// ---------------- DB init ----------------
 async function initDB() {
   try {
     await pool.query(`
@@ -229,7 +228,7 @@ async function initDB() {
 }
 initDB();
 
-// ---------------- Auth middlewares (same) ----------------
+// ---------------- Auth middlewares ----------------
 async function requireAdmin(req, res, next) {
   const auth = req.headers.authorization || "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
@@ -269,504 +268,177 @@ async function requireAuth(req, res, next) {
   }
 }
 
-// ---------------- Utilities: parsing, enrichment, dynamic links ----------------
-function safeTruncate(s, n) { return s ? s.slice(0, n) : s; }
+// ============== OPTIMIZED AI ROADMAP GENERATION ==============
 
-// CATEGORY_LINKS exist but used only as last-resort fallback
-const CATEGORY_LINKS = {
-  programming: ["https://developer.mozilla.org/", "https://www.freecodecamp.org/", "https://stackoverflow.com/"],
-  english: ["https://www.bbc.co.uk/learningenglish", "https://www.cambridge.org/", "https://www.ef.com/wwen/english-resources/"],
-  math: ["https://www.khanacademy.org/", "https://en.wikipedia.org/wiki/Mathematics"],
-  default: ["https://en.wikipedia.org/", "https://www.google.com/search?q="]
-};
-function chooseLinksForCategory(rawCategory) {
-  if (!rawCategory) return CATEGORY_LINKS.default;
-  const k = rawCategory.toLowerCase();
-  if (k.includes("program")) return CATEGORY_LINKS.programming;
-  if (k.includes("english") || k.includes("tiếng anh")) return CATEGORY_LINKS.english;
-  if (k.includes("math") || k.includes("toán")) return CATEGORY_LINKS.math;
-  return CATEGORY_LINKS.default;
-}
+// Link validation with timeout and retry
+const linkCache = new Map();
+const LINK_CACHE_TTL = 3600000; // 1 hour
 
-function makeExerciseVariants(topic) {
-  return [
-    `Bài trắc nghiệm ngắn (10 câu) kiểm tra khái niệm: ${topic}`,
-    `Bài thực hành: xây dựng một ví dụ nhỏ ứng dụng ${topic}`,
-    `Bài luyện phản xạ: mô tả/giải thích ${topic} trong 3 câu`,
-    `Bài tổng hợp: kết hợp ${topic} với 1 khái niệm khác để giải bài tập`
-  ];
-}
-
-// transform human-readable AI output to days (best-effort)
-function transformTextToDays(text, actualDays, hoursPerDay, category) {
-  if (!text) return null;
-  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-  const days = [];
-  let current = { contentLines: [] };
-  const dayRegex = /(^|\b)(day|ngày)\s*[:\-]?\s*(\d{1,3})/i;
-  for (const l of lines) {
-    const m = l.match(dayRegex);
-    if (m) {
-      if (current.contentLines.length > 0) days.push(current.contentLines.join(" "));
-      current = { contentLines: [] };
-      current.contentLines.push(l);
-    } else if (/^🎯|^Goal:|^Mục tiêu/i.test(l)) {
-      if (current.contentLines.length > 0) { days.push(current.contentLines.join(" ")); current = { contentLines: [] }; }
-      current.contentLines.push(l);
-    } else {
-      current.contentLines.push(l);
-    }
-  }
-  if (current.contentLines.length > 0) days.push(current.contentLines.join(" "));
-  let segments = days.filter(Boolean);
-  if (segments.length < actualDays) {
-    const big = text.replace(/\s+/g, " ");
-    const avg = Math.max(1, Math.floor(big.length / actualDays));
-    segments = [];
-    for (let i = 0; i < actualDays; i++) {
-      const start = i * avg;
-      const seg = big.slice(start, start + avg).trim();
-      segments.push(seg || `Nội dung tổng quan cho ngày ${i+1}`);
-    }
-  } else if (segments.length > actualDays) segments = segments.slice(0, actualDays);
-
-  const links = chooseLinksForCategory(category);
-  const seen = new Set();
-  const result = [];
-  for (let i = 0; i < actualDays; i++) {
-    const seg = segments[i] || `Nội dung học tập ngày ${i+1}`;
-    const topic = seg.split(".")[0].slice(0, 80);
-    const exercises = makeExerciseVariants(topic);
-    const ex = [exercises[i % exercises.length], exercises[(i + 1) % exercises.length]];
-    const materials = [links[0], `${links[1] || links[0]}#search?q=${encodeURIComponent(topic)}`];
-    const daily = {
-      day_number: i + 1,
-      daily_goal: `Học: ${safeTruncate(topic, 120)}`,
-      learning_content: seg + " — Chi tiết: đọc kỹ, làm ví dụ và ghi chú.",
-      practice_exercises: ex.join(" | "),
-      learning_materials: materials.join(" | "),
-      study_duration_hours: parseFloat(hoursPerDay || 2)
-    };
-    const fp = `${daily.daily_goal}|${daily.learning_content}`.slice(0, 200);
-    if (!seen.has(fp)) { seen.add(fp); result.push(daily); } else { daily.daily_goal += " (bổ sung)"; result.push(daily); }
-  }
-  while (result.length < actualDays) {
-    const i = result.length;
-    result.push({
-      day_number: i + 1,
-      daily_goal: `Ôn tập và củng cố - Ngày ${i+1}`,
-      learning_content: `Ôn và thực hành các nội dung đã học trước đó.`,
-      practice_exercises: `Bài tập ôn tập tổng hợp`,
-      learning_materials: chooseLinksForCategory(category).join(" | "),
-      study_duration_hours: parseFloat(hoursPerDay || 2)
-    });
-  }
-  return result.slice(0, actualDays);
-}
-
-// --- Dynamic link discovery / validation ---
-// MAX_LINK_ATTEMPTS default 15 (from user)
-const MAX_LINK_ATTEMPTS = parseInt(process.env.MAX_LINK_ATTEMPTS || "15", 10);
-const MIN_VALID_LINKS_PER_DAY = parseInt(process.env.MIN_VALID_LINKS_PER_DAY || "1", 10);
-
-// global cache of validated links: Map<link, {lastValidated: timestamp, topics: Set<string>} >
-// We will try to reuse links validated earlier
-const validatedLinksCache = new Map();
-
-async function validateUrl(url, keyword = "") {
+async function validateUrlQuick(url, timeout = 5000) {
   try {
-    if (!url) return false;
+    if (!url || typeof url !== 'string') return false;
     if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-    // try HEAD
-    try {
-      const head = await fetch(url, { method: "HEAD", redirect: "follow" });
-      if (head && head.status >= 200 && head.status < 400) {
-        if (!keyword) return true;
-      }
-    } catch (e) {
-      // ignore and try GET
+    
+    const cached = linkCache.get(url);
+    if (cached && (Date.now() - cached.timestamp) < LINK_CACHE_TTL) {
+      return cached.valid;
     }
-    // GET and optional keyword check
-    const getResp = await fetch(url, { method: "GET", redirect: "follow" });
-    if (!getResp || getResp.status < 200 || getResp.status >= 400) return false;
-    if (!keyword) return true;
-    const text = await getResp.text();
-    if (!text) return false;
-    // check if page contains keyword token (simple)
-    const token = keyword.split(/\s+/)[0].toLowerCase();
-    return text.toLowerCase().includes(token);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+      const response = await fetch(url, {
+        method: "HEAD",
+        redirect: "follow",
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      const isValid = response && response.status >= 200 && response.status < 400;
+      linkCache.set(url, { valid: isValid, timestamp: Date.now() });
+      return isValid;
+    } catch (e) {
+      clearTimeout(timeoutId);
+      linkCache.set(url, { valid: false, timestamp: Date.now() });
+      return false;
+    }
   } catch (e) {
     return false;
   }
 }
 
-// Ask OpenAI for candidate links (AI may hallucinate; we'll validate)
-async function getCandidateLinksFromAIForTopic(topic, category) {
+// Get specific exercise link from AI
+async function getSpecificExerciseLink(topic, category, dayNumber) {
   try {
-    const sys = `Bạn là chuyên gia cung cấp nguồn học đáng tin cậy. Trả về CHỈ MỘT MẢNG JSON gồm các URL (chuỗi). Không thêm mô tả.`;
-    const usr = `Hãy đề xuất tối đa 8 đường dẫn đáng tin cậy, phù hợp nhất để học về: "${topic}" (danh mục: ${category}). Trả về CHỈ MỘT MẢNG JSON như ["https://...","https://..."].`;
-    const comp = await callOpenAIWithFallback({
-      messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
-      desiredCompletionTokens: 22500,
-      temperature: 1
+    const systemPrompt = `Bạn là chuyên gia tìm kiếm bài tập lập trình. Trả về CHỈ MỘT URL cụ thể (không phải trang chủ) dẫn đến bài tập/challenge trên các trang như HackerRank, LeetCode, Codeforces, GeeksForGeeks. URL phải dẫn trực tiếp đến một bài tập cụ thể, KHÔNG phải dashboard hay trang danh sách.`;
+    
+    const userPrompt = `Tìm 1 URL bài tập cụ thể cho: "${topic}" (Category: ${category}, Day: ${dayNumber}). 
+Ví dụ tốt: https://www.hackerrank.com/challenges/variable-sized-arrays/problem
+Ví dụ XẤU: https://www.hackerrank.com/dashboard
+Trả về CHỈ URL, không giải thích.`;
+
+    const completion = await callOpenAIWithFallback({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      desiredCompletionTokens: 200
     });
-    const text = comp?.choices?.[0]?.message?.content?.trim();
-    if (!text) return [];
-    const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-    const candidate = fenceMatch ? fenceMatch[1] : text;
-    try {
-      const arr = JSON.parse(candidate);
-      if (Array.isArray(arr)) return arr.map((x) => String(x).trim()).filter(Boolean);
-    } catch (e) {
-      // fallback url regex
-      const urls = Array.from(new Set((candidate.match(/https?:\/\/[^\s"'\)\]\s]+/g) || [])));
-      return urls;
+
+    const text = completion?.choices?.[0]?.message?.content?.trim();
+    if (!text) return null;
+
+    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]\s]+/);
+    if (!urlMatch) return null;
+
+    const url = urlMatch[0];
+    
+    if (url.includes('/dashboard') || url.includes('/problems$') || url.endsWith('.com') || url.endsWith('.com/')) {
+      return null;
     }
+
+    const isValid = await validateUrlQuick(url);
+    return isValid ? url : null;
   } catch (e) {
-    console.warn("getCandidateLinksFromAIForTopic error:", e && e.message ? e.message : e);
-    return [];
+    console.warn(`Exercise link error for day ${dayNumber}:`, e.message);
+    return null;
   }
-  return [];
 }
 
-// For a given topic, try to return at least minLinks validated links by repeated AI queries and validation
-async function getValidatedLinksForTopic(topic, category, minLinks = MIN_VALID_LINKS_PER_DAY) {
-  const validated = new Set();
-  const tried = new Set();
+// Get specific learning material link from AI
+async function getSpecificMaterialLink(topic, category, dayNumber) {
+  try {
+    const systemPrompt = `Bạn là chuyên gia tìm kiếm tài liệu học tập. Trả về CHỈ MỘT URL cụ thể (không phải trang chủ) dẫn đến bài học/tutorial chi tiết trên các trang như GeeksForGeeks, MDN, W3Schools, TutorialsPoint. URL phải dẫn trực tiếp đến một bài học cụ thể, KHÔNG phải trang chủ.`;
+    
+    const userPrompt = `Tìm 1 URL tài liệu cụ thể cho: "${topic}" (Category: ${category}, Day: ${dayNumber}).
+Ví dụ tốt: https://www.geeksforgeeks.org/introduction-to-dynamic-programming-data-structures-and-algorithm-tutorials
+Ví dụ XẤU: https://www.geeksforgeeks.org
+Trả về CHỈ URL, không giải thích.`;
 
-  // first attempt reuse of global cache (if any link was validated before)
-  for (const [link, meta] of validatedLinksCache.entries()) {
-    // quick re-check: if previously validated and topic related, test live
-    try {
-      const keyword = topic || "";
-      const ok = await validateUrl(link, keyword);
-      if (ok) {
-        validated.add(link);
-        // tag topic into cache meta
-        meta.topics.add(topic);
-        meta.lastValidated = Date.now();
-        if (validated.size >= minLinks) return Array.from(validated);
-      } else {
-        // remove invalid from cache
-        validatedLinksCache.delete(link);
-      }
-    } catch (e) {
-      // ignore
-    }
-  }
-
-  // iterative attempts with AI suggestions
-  for (let attempt = 1; attempt <= MAX_LINK_ATTEMPTS; attempt++) {
-    const candidates = await getCandidateLinksFromAIForTopic(topic, category);
-    for (const u of candidates) {
-      if (!u || tried.has(u)) continue;
-      tried.add(u);
-      try {
-        const ok = await validateUrl(u, topic);
-        if (ok) {
-          validated.add(u);
-          // cache it
-          validatedLinksCache.set(u, { lastValidated: Date.now(), topics: new Set([topic]) });
-          if (validated.size >= minLinks) return Array.from(validated);
-        }
-      } catch (e) {
-        // ignore single url error
-      }
-    }
-  }
-
-  // if still not enough, fallback to category root links but try validate
-  const picks = chooseLinksForCategory(category);
-  for (const p of picks) {
-    if (validated.size >= minLinks) break;
-    if (tried.has(p)) continue;
-    tried.add(p);
-    try {
-      if (await validateUrl(p, topic)) {
-        validated.add(p);
-        validatedLinksCache.set(p, { lastValidated: Date.now(), topics: new Set([topic]) });
-      }
-    } catch (e) {}
-  }
-
-  return Array.from(validated);
-}
-
-// simple fingerprint
-function simpleFingerprint(s) {
-  return (s || "").replace(/\s+/g, " ").slice(0, 120).toLowerCase();
-}
-
-// Generate fallback enriched roadmap (if AI fails)
-function generateFallbackRoadmap(days, hoursPerDay, roadmapName, category, startLevel) {
-  console.log(`🔧 Generating fallback roadmap (enriched) for ${days} days...`);
-  const linksPool = chooseLinksForCategory(category);
-  const roadmap = [];
-  const topics = ["Nền tảng", "Thực hành", "Áp dụng", "Dự án nhỏ", "Ôn luyện"];
-  for (let i = 1; i <= days; i++) {
-    const phase = topics[(i - 1) % topics.length];
-    const topic = `${phase} - phần ${((i - 1) % 5) + 1}`;
-    const exercises = makeExerciseVariants(topic);
-    const practice = [exercises[i % exercises.length], `Bài kiểm tra ngắn (10 câu) trên ${linksPool[0]}`];
-    roadmap.push({
-      day_number: i,
-      daily_goal: `${phase}: Mục tiêu ngày ${i}`,
-      learning_content: `Nội dung: ${topic}. Hướng dẫn: đọc tài liệu, xem ví dụ, thực hành theo bước.`,
-      practice_exercises: practice.join(" | "),
-      learning_materials: linksPool.join(" | "),
-      study_duration_hours: parseFloat(hoursPerDay || 2),
+    const completion = await callOpenAIWithFallback({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      desiredCompletionTokens: 200
     });
+
+    const text = completion?.choices?.[0]?.message?.content?.trim();
+    if (!text) return null;
+
+    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]\s]+/);
+    if (!urlMatch) return null;
+
+    const url = urlMatch[0];
+    
+    if (url.endsWith('.com') || url.endsWith('.com/') || url.endsWith('.org') || url.endsWith('.org/')) {
+      return null;
+    }
+
+    const isValid = await validateUrlQuick(url);
+    return isValid ? url : null;
+  } catch (e) {
+    console.warn(`Material link error for day ${dayNumber}:`, e.message);
+    return null;
   }
-  return roadmap;
 }
 
-// Strict validate & enrich function: ensures each day has enough detail and at least 1 validated link
-async function validateAndEnrichRoadmap(rawDays, requiredDays, hoursPerDay, category) {
-  const problems = [];
-  if (!Array.isArray(rawDays)) return { ok: false, problems: ["not_array"], days: [] };
-
-  // normalize to exact length
-  let days = rawDays.slice(0, requiredDays);
-  if (days.length < requiredDays) {
-    // pad with fallback skeleton
-    for (let i = days.length; i < requiredDays; i++) {
-      days.push({
-        day_number: i + 1,
-        daily_goal: `Ôn tập và củng cố - Ngày ${i + 1}`,
-        learning_content: `Ôn và thực hành các nội dung đã học.`,
-        practice_exercises: `Bài tập ôn tập`,
-        learning_materials: "",
-        study_duration_hours: parseFloat(hoursPerDay || 2),
-      });
-    }
-    problems.push("padded_missing_days");
+// Fallback links by category
+const FALLBACK_LINKS = {
+  programming: {
+    exercises: [
+      "https://www.hackerrank.com/challenges/solve-me-first/problem",
+      "https://leetcode.com/problems/two-sum/",
+      "https://www.codewars.com/kata/523b4ff7adca849afe000035"
+    ],
+    materials: [
+      "https://www.geeksforgeeks.org/learn-data-structures-and-algorithms-dsa-tutorial/",
+      "https://developer.mozilla.org/en-US/docs/Learn",
+      "https://www.w3schools.com/js/DEFAULT.asp"
+    ]
+  },
+  english: {
+    exercises: [
+      "https://www.englishclub.com/grammar/",
+      "https://www.perfect-english-grammar.com/grammar-exercises.html"
+    ],
+    materials: [
+      "https://www.bbc.co.uk/learningenglish/english/",
+      "https://www.britishcouncil.org/english"
+    ]
+  },
+  math: {
+    exercises: [
+      "https://www.khanacademy.org/math",
+      "https://www.mathsisfun.com/algebra/index.html"
+    ],
+    materials: [
+      "https://www.khanacademy.org/math",
+      "https://en.wikipedia.org/wiki/Mathematics"
+    ]
+  },
+  default: {
+    exercises: [
+      "https://www.khanacademy.org/",
+      "https://www.coursera.org/"
+    ],
+    materials: [
+      "https://en.wikipedia.org/",
+      "https://www.youtube.com/education"
+    ]
   }
+};
 
-  // dedupe and enrich
-  const seen = new Set();
-  for (let i = 0; i < days.length; i++) {
-    const dRaw = days[i] || {};
-    const dd = {
-      day_number: parseInt(dRaw.day_number) || (i + 1),
-      daily_goal: (dRaw.daily_goal || dRaw.goal || "").toString().trim(),
-      learning_content: (dRaw.learning_content || dRaw.content || "").toString().trim(),
-      practice_exercises: (dRaw.practice_exercises || dRaw.exercises || "").toString().trim(),
-      learning_materials: (dRaw.learning_materials || dRaw.materials || "").toString().trim(),
-      study_duration_hours: parseFloat(dRaw.study_duration_hours || dRaw.hours) || hoursPerDay,
-    };
-
-    // ensure minimal lengths
-    if (dd.daily_goal.length < 20) {
-      dd.daily_goal = (dd.daily_goal || `Mục tiêu ngày ${i + 1}`) + ` — chi tiết ${i + 1}`;
-      problems.push(`short_goal_day_${i + 1}`);
-    }
-    if (dd.learning_content.length < 120) {
-      // attempt to expand with AI (small call)
-      try {
-        const sys = `Bạn là chuyên gia giáo dục. Trả về CHỈ MỘT MẢNG JSON gồm 3 bullet ngắn (chuỗi) miêu tả chi tiết cho nội dung học: không thêm text khác.`;
-        const usr = `Mở rộng nội dung: "${dd.learning_content || dd.daily_goal}" thành 3 bullet ngắn (mỗi bullet <=140 ký tự). Trả về CHỈ MỘT MẢNG JSON.`;
-        const comp = await callOpenAIWithFallback({
-          messages: [{ role: "system", content: sys }, { role: "user", content: usr }],
-          desiredCompletionTokens: 200,
-          temperature: 1,
-        });
-        const text = comp?.choices?.[0]?.message?.content?.trim();
-        if (text) {
-          const fence = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-          const cand = fence ? fence[1] : text;
-          try {
-            const arr = JSON.parse(cand);
-            if (Array.isArray(arr) && arr.length > 0) dd.learning_content = arr.join(" | ");
-            else dd.learning_content = (dd.learning_content || "") + " (mở rộng AI)";
-          } catch (e) {
-            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean).slice(0, 3);
-            if (lines.length > 0) dd.learning_content = lines.join(" | ");
-            else dd.learning_content = (dd.learning_content || "") + " (mở rộng fallback)";
-          }
-        } else dd.learning_content = (dd.learning_content || "") + " (mở rộng fallback)";
-      } catch (e) {
-        dd.learning_content = (dd.learning_content || "") + " (mở rộng error)";
-      }
-      problems.push(`expanded_content_day_${i + 1}`);
-    }
-    if (dd.practice_exercises.length < 30) {
-      const topic = dd.daily_goal || dd.learning_content;
-      dd.practice_exercises = makeExerciseVariants(topic).slice(0, 2).join(" | ");
-      problems.push(`generated_practice_day_${i + 1}`);
-    }
-
-    // dedupe exact duplicates
-    const fp = simpleFingerprint(dd.daily_goal + "|" + dd.learning_content);
-    if (seen.has(fp)) {
-      dd.daily_goal += " (mở rộng để tránh trùng lặp)";
-    }
-    seen.add(fp);
-
-    days[i] = dd;
-  }
-
-  // Link discovery per day with reuse policy:
-  // If any link exists in validatedLinksCache that is relevant, reuse it first (we already attempted revalidation in getValidatedLinksForTopic)
-  for (let i = 0; i < days.length; i++) {
-    const d = days[i];
-    // If day has learning_materials with URLs, validate them
-    let urlsInField = (d.learning_materials || "").match(/https?:\/\/[^\s"'\s|]+/g) || [];
-    let validatedForThisDay = [];
-    for (const u of urlsInField) {
-      try {
-        if (await validateUrl(u, d.daily_goal || d.learning_content)) {
-          validatedForThisDay.push(u);
-          validatedLinksCache.set(u, { lastValidated: Date.now(), topics: new Set([d.daily_goal || d.learning_content]) });
-        }
-      } catch (e) {}
-    }
-
-    // If not enough validated links, try to reuse any globally validated link (previous days)
-    if (validatedForThisDay.length < MIN_VALID_LINKS_PER_DAY) {
-      for (const [link, meta] of validatedLinksCache.entries()) {
-        if (validatedForThisDay.length >= MIN_VALID_LINKS_PER_DAY) break;
-        // check quickly if it already validated and still live
-        try {
-          if (await validateUrl(link, d.daily_goal || d.learning_content)) {
-            validatedForThisDay.push(link);
-            meta.lastValidated = Date.now();
-            meta.topics.add(d.daily_goal || d.learning_content);
-          } else {
-            validatedLinksCache.delete(link);
-          }
-        } catch (e) {}
-      }
-    }
-
-    // If still not enough, call getValidatedLinksForTopic to find new validated links (this will ask AI and validate)
-    if (validatedForThisDay.length < MIN_VALID_LINKS_PER_DAY) {
-      const found = await getValidatedLinksForTopic(d.daily_goal || d.learning_content || `${category} ${i+1}`, category, MIN_VALID_LINKS_PER_DAY);
-      if (found && found.length > 0) {
-        for (const f of found) {
-          if (!validatedForThisDay.includes(f)) validatedForThisDay.push(f);
-        }
-      }
-    }
-
-    // As absolute last resort, attach category root links (if any)
-    if (validatedForThisDay.length === 0) {
-      const picks = chooseLinksForCategory(category);
-      for (const p of picks) {
-        try {
-          if (await validateUrl(p, d.daily_goal || d.learning_content)) {
-            validatedForThisDay.push(p);
-            validatedLinksCache.set(p, { lastValidated: Date.now(), topics: new Set([d.daily_goal || d.learning_content]) });
-            break;
-          }
-        } catch (e) {}
-      }
-    }
-
-    d.learning_materials = (validatedForThisDay.length > 0) ? validatedForThisDay.join(" | ") : (d.learning_materials || "");
-  }
-
-  // Final checks: ensure each day has reasonable content; compute OK flag
-  let failing = 0;
-  for (let i = 0; i < days.length; i++) {
-    const d = days[i];
-    if ((d.daily_goal || "").length < 20) failing++;
-    if ((d.learning_content || "").length < 80) failing++;
-    if ((d.practice_exercises || "").length < 20) failing++;
-    // if no validated link, count as problem
-    if (!d.learning_materials || !d.learning_materials.match(/https?:\/\//)) failing++;
-  }
-  const ok = failing === 0 && days.length === requiredDays;
-  return { ok, problems, days };
+function getFallbackLinks(category) {
+  const cat = (category || '').toLowerCase();
+  if (cat.includes('program') || cat.includes('code')) return FALLBACK_LINKS.programming;
+  if (cat.includes('english') || cat.includes('tiếng anh')) return FALLBACK_LINKS.english;
+  if (cat.includes('math') || cat.includes('toán')) return FALLBACK_LINKS.math;
+  return FALLBACK_LINKS.default;
 }
 
-// --------- API endpoints (register/login/me same as existing) ----------
-
-// Register
-app.post("/api/register", async (req, res) => {
-  const { name, username, email, password } = req.body;
-  if (!name || !username || !email || !password) return res.status(400).json({ message: "Thiếu dữ liệu!" });
-  try {
-    const normalizedEmail = String(email).trim();
-    const normalizedUsername = String(username).trim();
-    const pw = String(password);
-    const errors = {};
-    if (pw.length < 8) errors.password = "Mật khẩu phải có ít nhất 8 ký tự.";
-    if (!/[A-Z]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ hoa.";
-    if (!/[a-z]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ thường.";
-    if (!/[0-9]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ số.";
-    if (!/[^A-Za-z0-9]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt.";
-    if (Object.keys(errors).length > 0) return res.status(400).json({ message: "Dữ liệu mật khẩu không hợp lệ.", errors });
-    const existing = await pool.query("SELECT id FROM users WHERE username = $1 OR email = $2", [normalizedUsername, normalizedEmail]);
-    if (existing.rows.length > 0) return res.status(409).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
-    const hashed = await hashPassword(password, 10);
-    const result = await pool.query("INSERT INTO users (name, username, email, password) VALUES ($1,$2,$3,$4) RETURNING id, name, username, email", [name.trim(), normalizedUsername, normalizedEmail, hashed]);
-    const user = result.rows[0];
-    const token = makeToken(user.id);
-    res.json({ message: "Đăng ký thành công!", token, user });
-  } catch (err) {
-    console.error("❌ SQL Error (register):", err && err.message ? err.message : err);
-    if (err.code === "23505") return res.status(409).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
-    res.status(500).json({ message: "Lỗi server khi đăng ký!" });
-  }
-});
-
-// Login
-app.post("/api/login", async (req, res) => {
-  try {
-    console.log("[/api/login] content-type:", req.headers["content-type"]);
-    console.log("[/api/login] body keys:", Object.keys(req.body || {}));
-    const body = (req.body && typeof req.body === "object") ? req.body : {};
-    let username = body.username ? String(body.username).trim() : "";
-    let email = body.email ? String(body.email).trim() : "";
-    let password = body.password ? String(body.password) : "";
-    if (!password || (!username && !email)) return res.status(400).json({ message: "Thiếu tên đăng nhập hoặc email, hoặc mật khẩu!" });
-    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email && !EMAIL_RE.test(email)) return res.status(400).json({ message: "Email không đúng định dạng!" });
-    let result;
-    let user;
-    if (username && email) {
-      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", [username]);
-      if (result.rows.length === 0) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
-      user = result.rows[0];
-      if (String(user.email) !== String(email)) return res.status(401).json({ message: "Tên đăng nhập và email không khớp." });
-    } else if (username) {
-      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", [username]);
-      if (result.rows.length === 0) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
-      user = result.rows[0];
-    } else {
-      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE email = $1 LIMIT 1", [email]);
-      if (result.rows.length === 0) return res.status(401).json({ message: "Sai email hoặc mật khẩu!" });
-      user = result.rows[0];
-    }
-    const match = await comparePassword(password, user.password);
-    if (!match) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
-    const token = makeToken(user.id);
-    return res.json({ message: "Đăng nhập thành công!", token, user: { id: user.id, name: user.name, username: user.username, email: user.email } });
-  } catch (err) {
-    console.error("❌ SQL Error (login):", err && err.message ? err.message : err);
-    return res.status(500).json({ message: "Lỗi server khi đăng nhập!" });
-  }
-});
-
-// me
-app.get("/api/me", async (req, res) => {
-  const auth = req.headers.authorization || "";
-  const token = auth.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return res.status(401).json({ message: "Không có token" });
-  if ((token.match(/\./g) || []).length !== 2) return res.status(401).json({ message: "Token không hợp lệ" });
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_local_secret");
-    const result = await pool.query("SELECT id, name, username, email, role, created_at FROM users WHERE id = $1", [payload.userId]);
-    if (result.rows.length === 0) return res.status(404).json({ message: "Người dùng không tồn tại" });
-    res.json({ user: result.rows[0] });
-  } catch (err) {
-    if (err && err.name === "TokenExpiredError") return res.status(401).json({ message: "Token đã hết hạn, vui lòng đăng nhập lại" });
-    console.error("Auth error:", err && err.message ? err.message : err);
-    return res.status(401).json({ message: "Token không hợp lệ" });
-  }
-});
-
-// === AI ROADMAP GENERATION API (main, strict validation & dynamic links) ===
+// Main AI roadmap generation endpoint
 app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   try {
     if (!process.env.OPENAI_API_KEY) {
@@ -774,150 +446,263 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     }
 
     const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome } = req.body;
+    
     if (!roadmap_name || !category || !start_level || !duration_days || !duration_hours || !expected_outcome) {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc để tạo lộ trình" });
     }
 
-    const maxDays = MAX_AI_DAYS;
-    if (parseInt(duration_days) > maxDays) return res.status(400).json({ success: false, error: `AI chỉ có thể tạo lộ trình tối đa ${maxDays} ngày.` });
-
     const actualDays = parseInt(duration_days);
     const totalHours = parseFloat(duration_hours);
-    if (isNaN(totalHours) || totalHours <= 0) return res.status(400).json({ success: false, error: "duration_hours không hợp lệ" });
+    
+    if (isNaN(actualDays) || actualDays <= 0 || actualDays > MAX_AI_DAYS) {
+      return res.status(400).json({ success: false, error: `Số ngày phải từ 1 đến ${MAX_AI_DAYS}` });
+    }
+    
+    if (isNaN(totalHours) || totalHours <= 0) {
+      return res.status(400).json({ success: false, error: "Tổng số giờ không hợp lệ" });
+    }
 
     const hoursPerDay = Math.round((totalHours / actualDays) * 100) / 100;
 
-    // strong system prompt
-    const systemPrompt = `Bạn là chuyên gia giáo dục. PHẢI TRẢ VỀ CHỈ MỘT CHUỖI JSON duy nhất: { "roadmap": [ ... ] }.
-Mảng 'roadmap' PHẢI có đúng ${actualDays} phần (day objects). Mỗi object phải có các trường: day_number (int), daily_goal (>=20 chars), learning_content (>=120 chars), practice_exercises (>=30 chars), learning_materials (string chứa >=1 URL), study_duration_hours (number). Ngôn ngữ: Tiếng Việt. KHÔNG thêm giải thích ngoài JSON.`;
+    console.log(`🤖 Generating AI roadmap: ${roadmap_name} (${actualDays} days, ${hoursPerDay}h/day)`);
 
-    const userPrompt = `Dữ liệu: roadmap_name="${roadmap_name}", category="${category}${sub_category ? ` / ${sub_category}` : ""}", start_level="${start_level}", duration_days=${actualDays}, duration_hours=${totalHours}, hoursPerDay=${hoursPerDay}, expected_outcome="${expected_outcome}".
-Yêu cầu: tạo JSON đúng schema, không trùng lặp, mỗi ngày có nội dung chi tiết, bài tập phong phú, và nếu có thể kèm link nguồn đúng (AI có thể gợi link nhưng server sẽ validate).`;
+    const systemPrompt = `Bạn là chuyên gia thiết kế lộ trình học tập chuyên nghiệp. 
 
-    const perDayEstimate = TOKENS_PER_DAY;
-    const desired = Math.max(MIN_COMPLETION_TOKENS, actualDays * perDayEstimate);
+NHIỆM VỤ: Tạo lộ trình học ${actualDays} ngày với cấu trúc JSON chính xác.
 
-    // try up to 2 AI attempts to get good main output; else fallback enriched generator
+YÊU CẦU BẮT BUỘC:
+1. Trả về CHỈ MỘT object JSON với key "roadmap" chứa array ${actualDays} phần tử
+2. Mỗi object trong array phải có CHÍNH XÁC các trường:
+   - day_number: số ngày (1 đến ${actualDays})
+   - daily_goal: mục tiêu cụ thể của ngày đó (30-80 ký tự, VD: "Nắm vững cú pháp biến và kiểu dữ liệu trong JavaScript")
+   - learning_content: nội dung chi tiết (150-300 ký tự, bao gồm: khái niệm chính, ví dụ cụ thể, lưu ý quan trọng)
+   - practice_exercises: mô tả bài tập (50-150 ký tự, VD: "Viết 5 chương trình nhỏ sử dụng var, let, const và so sánh khác biệt")
+   - learning_materials: mô tả tài liệu (30-100 ký tự, VD: "Tài liệu MDN về JavaScript variables và scope")
+   - study_duration_hours: ${hoursPerDay}
+
+QUY TẮC:
+- Nội dung phải tuần tự, logic, từ dễ đến khó
+- Mỗi ngày phải khác biệt, không lặp lại
+- daily_goal phải súc tích, rõ ràng
+- learning_content phải chi tiết, có ví dụ cụ thể
+- practice_exercises phải thực tế, có thể làm được
+- KHÔNG đưa URL vào learning_materials (server sẽ tự động thêm)
+- Sử dụng tiếng Việt
+
+ĐỊNH DẠNG XUẤT:
+{
+  "roadmap": [
+    {
+      "day_number": 1,
+      "daily_goal": "Mục tiêu ngày 1...",
+      "learning_content": "Nội dung chi tiết...",
+      "practice_exercises": "Bài tập thực hành...",
+      "learning_materials": "Tài liệu học tập...",
+      "study_duration_hours": ${hoursPerDay}
+    }
+  ]
+}`;
+
+    const userPrompt = `Tạo lộ trình học ${actualDays} ngày cho:
+- Tên lộ trình: ${roadmap_name}
+- Danh mục: ${category}${sub_category ? ` / ${sub_category}` : ''}
+- Trình độ bắt đầu: ${start_level}
+- Mục tiêu cuối khóa: ${expected_outcome}
+- Thời gian mỗi ngày: ${hoursPerDay} giờ
+
+Hãy tạo lộ trình chi tiết, thực tế, dễ theo dõi.`;
+
+    const estimatedTokensPerDay = TOKENS_PER_DAY;
+    const desiredTokens = Math.min(actualDays * estimatedTokensPerDay, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS);
+
+    let aiResponse = null;
     let attempts = 0;
-    const MAX_AI_ATTEMPTS = 2;
-    let finalDays = null;
-    let usedFallback = false;
+    const MAX_ATTEMPTS = 2;
 
-    while (attempts < MAX_AI_ATTEMPTS && !finalDays) {
+    while (attempts < MAX_ATTEMPTS && !aiResponse) {
       attempts++;
       try {
+        console.log(`🔄 AI attempt ${attempts}/${MAX_ATTEMPTS}...`);
         const completion = await callOpenAIWithFallback({
-          messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-          desiredCompletionTokens: desired,
-          temperature: Math.max(1, PREFERRED_OPENAI_TEMPERATURE - 0.4)
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          desiredCompletionTokens: desiredTokens
         });
-        const aiResponse = completion?.choices?.[0]?.message?.content?.trim();
-        if (!aiResponse) {
-          console.warn("AI returned empty on attempt", attempts);
-          continue;
-        }
 
-        // extract JSON robustly
-        function extractJsonSubstring(text) {
-          if (!text) return null;
-          const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-          if (fenceMatch && fenceMatch[1]) return fenceMatch[1].trim();
-          const startIdx = text.search(/[\{\[]/);
-          if (startIdx === -1) return null;
-          let stack = [], inString = false, stringChar = null, escape = false;
-          for (let i = startIdx; i < text.length; i++) {
-            const ch = text[i];
-            if (escape) { escape = false; continue; }
-            if (ch === "\\") { escape = true; continue; }
-            if (inString) {
-              if (ch === stringChar) { inString = false; stringChar = null; }
-              continue;
-            } else {
-              if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
-            }
-            if (ch === "{" || ch === "[") stack.push(ch);
-            else if (ch === "}" || ch === "]") {
-              if (stack.length === 0) return null;
-              const last = stack[stack.length - 1];
-              if ((last === "{" && ch === "}") || (last === "[" && ch === "]")) {
-                stack.pop();
-                if (stack.length === 0) return text.slice(startIdx, i + 1).trim();
-              } else return null;
-            }
-          }
-          return null;
-        }
-
-        const candidate = extractJsonSubstring(aiResponse);
-        let parsed = null;
-        if (candidate) {
-          try {
-            parsed = JSON.parse(candidate);
-          } catch (e) {
-            const clean = candidate.replace(/[\u2018\u2019\u201C\u201D]/g, '"').replace(/,\s*([}\]])/g, "$1");
-            try { parsed = JSON.parse(clean); } catch (e2) { parsed = null; }
-          }
-        }
-        let candidateDays = null;
-        if (parsed && Array.isArray(parsed.roadmap)) candidateDays = parsed.roadmap;
-        else if (parsed && Array.isArray(parsed)) candidateDays = parsed;
-        else {
-          // try transform human readable
-          const transformed = transformTextToDays(aiResponse, actualDays, hoursPerDay, category);
-          if (transformed && transformed.length === actualDays) candidateDays = transformed;
-        }
-
-        if (!candidateDays) {
-          console.warn("AI output not parseable as roadmap on attempt", attempts);
-          continue;
-        }
-
-        // Validate & enrich (this includes dynamic link discovery & reuse)
-        const validation = await validateAndEnrichRoadmap(candidateDays, actualDays, hoursPerDay, category);
-        if (validation.ok) {
-          finalDays = validation.days;
+        const text = completion?.choices?.[0]?.message?.content?.trim();
+        if (text) {
+          aiResponse = text;
           break;
-        } else {
-          console.warn("Validation issues on attempt", attempts, "problems:", validation.problems.slice(0, 10));
-          // try again if attempts remain
-          continue;
         }
       } catch (e) {
-        console.error("Error during AI attempt:", e && e.message ? e.message : e);
+        console.error(`❌ AI attempt ${attempts} failed:`, e.message);
+        if (attempts === MAX_ATTEMPTS) throw e;
       }
     }
 
-    if (!finalDays) {
-      usedFallback = true;
-      const generated = generateFallbackRoadmap(actualDays, hoursPerDay, roadmap_name, category, start_level);
-      const validated = await validateAndEnrichRoadmap(generated, actualDays, hoursPerDay, category);
-      finalDays = validated.days;
+    if (!aiResponse) {
+      throw new Error("AI không trả về kết quả sau nhiều lần thử");
     }
 
-    // Final normalize & ensure day_number order
-    finalDays = finalDays.map((d, idx) => ({
-      day_number: idx + 1,
-      daily_goal: (d.daily_goal || "").replace(/\s+/g, " ").trim(),
-      learning_content: (d.learning_content || "").replace(/\s+/g, " ").trim(),
-      practice_exercises: (d.practice_exercises || "").replace(/\s+/g, " ").trim(),
-      learning_materials: (d.learning_materials || "").trim(),
-      study_duration_hours: parseFloat(d.study_duration_hours) || hoursPerDay
-    }));
+    let roadmapData = null;
+    
+    const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    const jsonText = jsonMatch ? jsonMatch[1] : aiResponse;
+    
+    try {
+      roadmapData = JSON.parse(jsonText);
+    } catch (e) {
+      const cleaned = jsonText
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/,\s*([}\]])/g, '$1');
+      
+      try {
+        roadmapData = JSON.parse(cleaned);
+      } catch (e2) {
+        console.error("Failed to parse AI response as JSON");
+        throw new Error("AI trả về format không hợp lệ");
+      }
+    }
 
-    console.log(`✅ Returning roadmap (usedFallback=${usedFallback}) with ${finalDays.length} days`);
-    return res.json({ success: true, usedFallback, message: usedFallback ? "Tạo lộ trình bằng AI (fallback/enriched)" : "Tạo lộ trình bằng AI (validated main)", data: finalDays });
+    let days = null;
+    if (roadmapData && Array.isArray(roadmapData.roadmap)) {
+      days = roadmapData.roadmap;
+    } else if (Array.isArray(roadmapData)) {
+      days = roadmapData;
+    } else {
+      throw new Error("AI response không chứa mảng roadmap");
+    }
+
+    if (days.length !== actualDays) {
+      console.warn(`⚠️ AI returned ${days.length} days instead of ${actualDays}, padding...`);
+      if (days.length < actualDays) {
+        for (let i = days.length; i < actualDays; i++) {
+          days.push({
+            day_number: i + 1,
+            daily_goal: `Ôn tập và củng cố kiến thức ngày ${i + 1}`,
+            learning_content: `Ôn lại các kiến thức đã học từ đầu khóa. Làm bài tập tổng hợp và kiểm tra hiểu biết.`,
+            practice_exercises: `Làm bài tập tổng hợp các chủ đề đã học`,
+            learning_materials: `Tài liệu ôn tập tổng hợp`,
+            study_duration_hours: hoursPerDay
+          });
+        }
+      } else {
+        days = days.slice(0, actualDays);
+      }
+    }
+
+    const normalizedDays = [];
+    for (let i = 0; i < actualDays; i++) {
+      const d = days[i] || {};
+      const normalized = {
+        day_number: i + 1,
+        daily_goal: String(d.daily_goal || d.goal || `Mục tiêu ngày ${i + 1}`).trim(),
+        learning_content: String(d.learning_content || d.content || `Nội dung học tập ngày ${i + 1}`).trim(),
+        practice_exercises: String(d.practice_exercises || d.exercises || `Bài tập thực hành ngày ${i + 1}`).trim(),
+        learning_materials: String(d.learning_materials || d.materials || `Tài liệu học tập ngày ${i + 1}`).trim(),
+        study_duration_hours: parseFloat(d.study_duration_hours || d.hours || hoursPerDay)
+      };
+
+      if (normalized.daily_goal.length < 20) {
+        normalized.daily_goal = `Ngày ${i + 1}: ${normalized.daily_goal} - ${category}`.slice(0, 80);
+      }
+      if (normalized.learning_content.length < 100) {
+        normalized.learning_content = `${normalized.learning_content} Học và thực hành các khái niệm cơ bản, làm ví dụ minh họa, ghi chú lại kiến thức quan trọng.`;
+      }
+      if (normalized.practice_exercises.length < 30) {
+        normalized.practice_exercises = `Thực hành: ${normalized.daily_goal}. Làm bài tập từ cơ bản đến nâng cao.`;
+      }
+
+      normalizedDays.push(normalized);
+    }
+
+    console.log(`✅ AI generated ${normalizedDays.length} days successfully`);
+
+    console.log(`🔗 Fetching specific exercise and material links...`);
+    
+    const fallbackLinks = getFallbackLinks(category);
+    const enrichmentPromises = normalizedDays.map(async (day, index) => {
+      const topic = day.daily_goal;
+      
+      const [exerciseLink, materialLink] = await Promise.all([
+        getSpecificExerciseLink(topic, category, day.day_number),
+        getSpecificMaterialLink(topic, category, day.day_number)
+      ]);
+
+      let finalExerciseLink = exerciseLink;
+      let finalMaterialLink = materialLink;
+
+      if (!finalExerciseLink) {
+        const fallbackExercise = fallbackLinks.exercises[index % fallbackLinks.exercises.length];
+        const isValid = await validateUrlQuick(fallbackExercise);
+        if (isValid) finalExerciseLink = fallbackExercise;
+      }
+
+      if (!finalMaterialLink) {
+        const fallbackMaterial = fallbackLinks.materials[index % fallbackLinks.materials.length];
+        const isValid = await validateUrlQuick(fallbackMaterial);
+        if (isValid) finalMaterialLink = fallbackMaterial;
+      }
+
+      return {
+        ...day,
+        practice_exercises: finalExerciseLink 
+          ? `${day.practice_exercises} - Link: ${finalExerciseLink}`
+          : day.practice_exercises,
+        learning_materials: finalMaterialLink 
+          ? `${day.learning_materials} - Link: ${finalMaterialLink}`
+          : day.learning_materials
+      };
+    });
+
+    const enrichedDays = await Promise.all(enrichmentPromises);
+
+    console.log(`✅ Successfully enriched roadmap with ${enrichedDays.length} days`);
+
+    return res.json({
+      success: true,
+      message: "Tạo lộ trình AI thành công",
+      data: enrichedDays,
+      metadata: {
+        total_days: enrichedDays.length,
+        hours_per_day: hoursPerDay,
+        total_hours: totalHours
+      }
+    });
+
   } catch (error) {
-    console.error("❌ AI Generation Error:", error && error.message ? error.message : error);
-    const days = Math.max(1, parseInt(req.body.duration_days || 7));
-    const hoursPerDay = parseFloat(req.body.duration_hours || 2) / days;
-    const fallback = generateFallbackRoadmap(days, hoursPerDay, req.body.roadmap_name || "Roadmap", req.body.category || "general", req.body.start_level || "Beginner");
-    return res.status(500).json({ success: false, error: error.message || "Lỗi khi tạo lộ trình", data: fallback });
+    console.error("❌ AI Generation Error:", error.message || error);
+    
+    const days = parseInt(req.body.duration_days) || 7;
+    const hours = parseFloat(req.body.duration_hours) || 14;
+    const hoursPerDay = hours / days;
+    const fallbackLinks = getFallbackLinks(req.body.category || 'default');
+    
+    const fallbackRoadmap = [];
+    for (let i = 0; i < days; i++) {
+      fallbackRoadmap.push({
+        day_number: i + 1,
+        daily_goal: `Ngày ${i + 1}: Học ${req.body.roadmap_name || 'chủ đề'}`,
+        learning_content: `Nội dung học tập chi tiết cho ngày ${i + 1}. Tìm hiểu các khái niệm cơ bản, thực hành qua ví dụ và làm bài tập.`,
+        practice_exercises: `Bài tập thực hành ngày ${i + 1} - Link: ${fallbackLinks.exercises[i % fallbackLinks.exercises.length]}`,
+        learning_materials: `Tài liệu học tập ngày ${i + 1} - Link: ${fallbackLinks.materials[i % fallbackLinks.materials.length]}`,
+        study_duration_hours: hoursPerDay
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Lỗi khi tạo lộ trình AI",
+      data: fallbackRoadmap
+    });
   }
 });
 
-// --- Roadmap CRUD endpoints (reuse your existing implementations) ---
+// ========== ROADMAP CRUD ENDPOINTS ==========
 
-// GET all roadmaps for user
 app.get("/api/roadmaps", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`SELECT * FROM learning_roadmaps WHERE user_id = $1 ORDER BY created_at DESC`, [req.user.id]);
@@ -928,7 +713,6 @@ app.get("/api/roadmaps", requireAuth, async (req, res) => {
   }
 });
 
-// POST create roadmap (store days)
 app.post("/api/roadmaps", requireAuth, async (req, res) => {
   try {
     const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome, days } = req.body;
@@ -967,7 +751,6 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
   }
 });
 
-// GET roadmap details
 app.get("/api/roadmaps/:id/details", requireAuth, async (req, res) => {
   try {
     const roadmapId = parseInt(req.params.id);
@@ -982,7 +765,6 @@ app.get("/api/roadmaps/:id/details", requireAuth, async (req, res) => {
   }
 });
 
-// PUT update detail status
 app.put("/api/roadmaps/details/:id/status", requireAuth, async (req, res) => {
   try {
     const detailId = parseInt(req.params.id);
@@ -1008,7 +790,6 @@ app.put("/api/roadmaps/details/:id/status", requireAuth, async (req, res) => {
   }
 });
 
-// DELETE roadmap
 app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
   try {
     const roadmapId = parseInt(req.params.id);
@@ -1023,7 +804,269 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
   }
 });
 
-// root / SPA fallback
+// ========== AUTHENTICATION ENDPOINTS ==========
+
+app.post("/api/register", async (req, res) => {
+  const { name, username, email, password } = req.body;
+  if (!name || !username || !email || !password) return res.status(400).json({ message: "Thiếu dữ liệu!" });
+  try {
+    const normalizedEmail = String(email).trim();
+    const normalizedUsername = String(username).trim();
+    const pw = String(password);
+    const errors = {};
+    if (pw.length < 8) errors.password = "Mật khẩu phải có ít nhất 8 ký tự.";
+    if (!/[A-Z]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ hoa.";
+    if (!/[a-z]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ thường.";
+    if (!/[0-9]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 chữ số.";
+    if (!/[^A-Za-z0-9]/.test(pw)) errors.password = "Mật khẩu phải bao gồm ít nhất 1 ký tự đặc biệt.";
+    if (Object.keys(errors).length > 0) return res.status(400).json({ message: "Dữ liệu mật khẩu không hợp lệ.", errors });
+    const existing = await pool.query("SELECT id FROM users WHERE username = $1 OR email = $2", [normalizedUsername, normalizedEmail]);
+    if (existing.rows.length > 0) return res.status(409).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
+    const hashed = await hashPassword(password, 10);
+    const result = await pool.query("INSERT INTO users (name, username, email, password) VALUES ($1,$2,$3,$4) RETURNING id, name, username, email", [name.trim(), normalizedUsername, normalizedEmail, hashed]);
+    const user = result.rows[0];
+    const token = makeToken(user.id);
+    res.json({ message: "Đăng ký thành công!", token, user });
+  } catch (err) {
+    console.error("❌ SQL Error (register):", err && err.message ? err.message : err);
+    if (err.code === "23505") return res.status(409).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
+    res.status(500).json({ message: "Lỗi server khi đăng ký!" });
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  try {
+    console.log("[/api/login] content-type:", req.headers["content-type"]);
+    console.log("[/api/login] body keys:", Object.keys(req.body || {}));
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    let username = body.username ? String(body.username).trim() : "";
+    let email = body.email ? String(body.email).trim() : "";
+    let password = body.password ? String(body.password) : "";
+    if (!password || (!username && !email)) return res.status(400).json({ message: "Thiếu tên đăng nhập hoặc email, hoặc mật khẩu!" });
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !EMAIL_RE.test(email)) return res.status(400).json({ message: "Email không đúng định dạng!" });
+    let result;
+    let user;
+    if (username && email) {
+      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", [username]);
+      if (result.rows.length === 0) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
+      user = result.rows[0];
+      if (String(user.email) !== String(email)) return res.status(401).json({ message: "Tên đăng nhập và email không khớp." });
+    } else if (username) {
+      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", [username]);
+      if (result.rows.length === 0) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
+      user = result.rows[0];
+    } else {
+      result = await pool.query("SELECT id, name, username, email, password FROM users WHERE email = $1 LIMIT 1", [email]);
+      if (result.rows.length === 0) return res.status(401).json({ message: "Sai email hoặc mật khẩu!" });
+      user = result.rows[0];
+    }
+    const match = await comparePassword(password, user.password);
+    if (!match) return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
+    const token = makeToken(user.id);
+    return res.json({ message: "Đăng nhập thành công!", token, user: { id: user.id, name: user.name, username: user.username, email: user.email } });
+  } catch (err) {
+    console.error("❌ SQL Error (login):", err && err.message ? err.message : err);
+    return res.status(500).json({ message: "Lỗi server khi đăng nhập!" });
+  }
+});
+
+app.get("/api/me", async (req, res) => {
+  const auth = req.headers.authorization || "";
+  const token = auth.replace(/^Bearer\s+/i, "").trim();
+  if (!token) return res.status(401).json({ message: "Không có token" });
+  if ((token.match(/\./g) || []).length !== 2) return res.status(401).json({ message: "Token không hợp lệ" });
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_local_secret");
+    const result = await pool.query("SELECT id, name, username, email, role, created_at FROM users WHERE id = $1", [payload.userId]);
+    if (result.rows.length === 0) return res.status(404).json({ message: "Người dùng không tồn tại" });
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    if (err && err.name === "TokenExpiredError") return res.status(401).json({ message: "Token đã hết hạn, vui lòng đăng nhập lại" });
+    console.error("Auth error:", err && err.message ? err.message : err);
+    return res.status(401).json({ message: "Token không hợp lệ" });
+  }
+});
+
+// ========== ADMIN USER MANAGEMENT ENDPOINTS ==========
+
+app.get("/api/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, username, email, role, created_at 
+       FROM users 
+       ORDER BY created_at DESC`
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error("Error fetching users:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể lấy danh sách người dùng" });
+  }
+});
+
+app.get("/api/admin/users/:id", requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    const result = await pool.query(
+      `SELECT id, name, username, email, role, created_at 
+       FROM users 
+       WHERE id = $1`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error("Error fetching user:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể lấy thông tin người dùng" });
+  }
+});
+
+app.put("/api/admin/users/:id/role", requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { role } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    if (!role || !["user", "admin"].includes(role.toLowerCase())) {
+      return res.status(400).json({ success: false, error: "Role không hợp lệ. Chỉ chấp nhận 'user' hoặc 'admin'" });
+    }
+    
+    const result = await pool.query(
+      `UPDATE users 
+       SET role = $1 
+       WHERE id = $2 
+       RETURNING id, name, username, email, role`,
+      [role.toLowerCase(), userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, message: "Cập nhật role thành công", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error updating user role:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể cập nhật role" });
+  }
+});
+
+app.put("/api/admin/users/:id", requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const { name, email } = req.body;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+    
+    if (name) {
+      updates.push(`name = ${paramCount++}`);
+      values.push(name.trim());
+    }
+    if (email) {
+      const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!EMAIL_RE.test(email)) {
+        return res.status(400).json({ success: false, error: "Email không đúng định dạng" });
+      }
+      updates.push(`email = ${paramCount++}`);
+      values.push(email.trim());
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, error: "Không có dữ liệu để cập nhật" });
+    }
+    
+    values.push(userId);
+    
+    const result = await pool.query(
+      `UPDATE users 
+       SET ${updates.join(", ")}
+       WHERE id = ${paramCount}
+       RETURNING id, name, username, email, role`,
+      values
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, message: "Cập nhật thông tin thành công", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error updating user:", err?.message || err);
+    if (err.code === "23505") {
+      return res.status(409).json({ success: false, error: "Email đã được sử dụng" });
+    }
+    res.status(500).json({ success: false, error: "Không thể cập nhật thông tin người dùng" });
+  }
+});
+
+app.delete("/api/admin/users/:id", requireAdmin, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ success: false, error: "ID không hợp lệ" });
+    }
+    
+    if (userId === req.user.id) {
+      return res.status(400).json({ success: false, error: "Không thể xóa chính mình" });
+    }
+    
+    const result = await pool.query(
+      `DELETE FROM users WHERE id = $1 RETURNING id, username`,
+      [userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+    
+    res.json({ success: true, message: `Đã xóa người dùng ${result.rows[0].username} thành công` });
+  } catch (err) {
+    console.error("Error deleting user:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể xóa người dùng" });
+  }
+});
+
+app.get("/api/admin/stats", requireAdmin, async (req, res) => {
+  try {
+    const totalUsers = await pool.query("SELECT COUNT(*) as count FROM users");
+    const totalRoadmaps = await pool.query("SELECT COUNT(*) as count FROM learning_roadmaps");
+    const activeRoadmaps = await pool.query("SELECT COUNT(*) as count FROM learning_roadmaps WHERE status = 'ACTIVE'");
+    const completedRoadmaps = await pool.query("SELECT COUNT(*) as count FROM learning_roadmaps WHERE status = 'COMPLETED'");
+    
+    res.json({
+      success: true,
+      data: {
+        totalUsers: parseInt(totalUsers.rows[0].count),
+        totalRoadmaps: parseInt(totalRoadmaps.rows[0].count),
+        activeRoadmaps: parseInt(activeRoadmaps.rows[0].count),
+        completedRoadmaps: parseInt(completedRoadmaps.rows[0].count)
+      }
+    });
+  } catch (err) {
+    console.error("Error fetching stats:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể lấy thống kê" });
+  }
+});
+
+// ========== FRONTEND ROUTES ==========
+
 app.get("/", (req, res) => {
   const tryFiles = ["main.html", "login.html", "index.html", "app.html", "register.html"];
   for (const f of tryFiles) {
@@ -1032,6 +1075,7 @@ app.get("/", (req, res) => {
   }
   return res.status(200).send("Welcome. No frontend found in " + publicDir);
 });
+
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) return next();
   const indexPath = path.join(publicDir, "index.html");
@@ -1040,11 +1084,10 @@ app.use((req, res, next) => {
   return res.status(404).send("No frontend found in " + publicDir);
 });
 
-// start server
+// ========== START SERVER ==========
+
 const PORT = parseInt(process.env.PORT || "5000", 10);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`ℹ️  Local: http://localhost:${PORT}/`);
 });
-
-
