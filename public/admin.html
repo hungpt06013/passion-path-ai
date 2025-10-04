@@ -129,7 +129,6 @@
       font-weight: 700;
     }
 
-    /* Table styles */
     .users-table {
       width: 100%;
       border-collapse: collapse;
@@ -201,7 +200,6 @@
       <div class="nav-buttons" id="navButtons">
         <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
         <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-        <!-- admin button appended by script if needed (we append below to ensure active state) -->
       </div>
 
       <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
@@ -223,20 +221,15 @@
           </button>
         </div>
 
-        <div id="usersArea">
-          <!-- Bảng sẽ render ở đây -->
-        </div>
-
+        <div id="usersArea"></div>
         <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
       </section>
     </div>
   </main>
 
   <script>
-    // If not admin on client, redirect to path (UX only)
     const storedRole = localStorage.getItem('role');
     if (storedRole !== 'admin') {
-      // UX guard only; server enforces real rules.
       // window.location.replace('path.html?page=path');
     }
 
@@ -252,7 +245,6 @@
     btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
     btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
 
-    // add admin button to the nav (this page is admin so show it)
     const adminBtn = document.createElement('button');
     adminBtn.className = 'nav-btn';
     adminBtn.id = 'btnAdmin';
@@ -348,7 +340,12 @@
       try {
         const res = await fetch(`/api/users/${encodeURIComponent(id)}`, {
           method: 'DELETE',
-          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+          headers: {
+            ...(token && { 'Authorization': 'Bearer ' + token }),
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          cache: 'no-store'
         });
 
         if (res.ok) {
@@ -376,7 +373,12 @@
       try {
         const token = localStorage.getItem('token');
         const res = await fetch('/api/users', {
-          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+          headers: {
+            ...(token && { 'Authorization': 'Bearer ' + token }),
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          cache: 'no-store'
         });
 
         if (!res.ok) {
@@ -388,7 +390,9 @@
           return;
         }
 
-        const users = await res.json().catch(() => null);
+        const data = await res.json().catch(() => null);
+        const users = data && data.data ? data.data : (Array.isArray(data) ? data : null);
+        
         if (!Array.isArray(users)) {
           usersMessage.textContent = 'Dữ liệu server không hợp lệ. Dùng dữ liệu mẫu.';
           const sample = sampleUsers();
@@ -417,25 +421,17 @@
       ];
     }
 
-    // ----- Special behaviour: open/close on odd/even clicks -----
     let fetchClickCount = 0;
     fetchUsersBtn.addEventListener('click', async function() {
       fetchClickCount++;
-      // if odd -> open (load and show)
       if (fetchClickCount % 2 === 1) {
-        // show (open)
         await fetchUsersFromServerOrFallback();
       } else {
-        // even -> close (clear content)
         usersArea.innerHTML = '';
         usersMessage.textContent = 'Danh sách đã đóng.';
-        // small UX: re-hide message after a moment
         setTimeout(() => { usersMessage.textContent = ''; }, 1400);
       }
     });
-
-    // Option: auto-load on open (uncomment if you want automatic load)
-    // window.addEventListener('load', fetchUsersFromServerOrFallback);
   </script>
 </body>
 </html>
