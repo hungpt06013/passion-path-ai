@@ -610,47 +610,63 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     // Calculate hours per day
     const hoursPerDay = Math.round((totalHours / actualDays) * 100) / 100;
 
-    const systemPrompt = `Bạn là một chuyên gia thiết kế lộ trình học tập. Nhiệm vụ của bạn là tạo ra một lộ trình học chi tiết, thực tế và có thể thực hiện được.
+    const systemPrompt = `Bạn là một chuyên gia giáo dục tiếng Anh có nhiều kinh nghiệm, nhiệm vụ của bạn là THIẾT KẾ LỘ TRÌNH HỌC tiếng Anh CÁ NHÂN HÓA (personalized roadmap) dựa trên thông tin học viên cung cấp.
 
-QUAN TRỌNG:
-- Trả lời CHÍNH XÁC bằng định dạng JSON array
-- KHÔNG thêm bất kỳ text nào khác ngoài JSON
-- KHÔNG sử dụng "..." hay "tiếp tục" - phải tạo đầy đủ tất cả ngày
-- Mỗi ngày phải có đầy đủ tất cả các trường bắt buộc
-- Nội dung phải phù hợp với trình độ và thời gian học
-- Sử dụng tiếng Việt cho tất cả nội dung
+YÊU CẦU CHÍNH (bắt buộc):
+- Trả về định dạng JSON (mảng các object) hoặc văn bản có cấu trúc rõ ràng khi được yêu cầu — nhưng trong API này ưu tiên JSON để dễ lưu vào DB.
+- Sử dụng tiếng Việt cho mọi phần giải thích và nội dung.
+- KHÔNG thêm phần mô tả ngoài JSON khi endpoint yêu cầu trả về JSON.
 
-Định dạng JSON trả về (BẮT BUỘC tạo đầy đủ ${actualDays} ngày):
-[
-  {
-    "day_number": 1,
-    "daily_goal": "Mục tiêu cụ thể của ngày",
-    "learning_content": "Nội dung kiến thức chi tiết cần học",
-    "practice_exercises": "Bài tập thực hành cụ thể",
-    "learning_materials": "Công cụ, tài liệu cần thiết",
-    "study_duration_hours": 2.5
-  }
-]`;
+LƯU Ý VỀ SỐ/THÔNG SỐ: nếu trong mẫu Word có các con số cố định (ví dụ: 3 tháng, 6 tháng, 12 tháng, 60 ngày, 3 giờ/ngày...), bạn PHẢI thay các con số cố định đó bằng các biến runtime cung cấp bởi server: ${'${actualDays}'} (số ngày), ${'${totalHours}'} (tổng giờ), ${'${hoursPerDay}'} (giờ/ngày), ${'${planMonths}'} (mảng các mốc tháng như [3,6,12] tuỳ gói). Không cố gắng ghi cứng các số.
 
-    const userPrompt = `Tạo lộ trình học "${roadmap_name}" với các thông số sau:
+NỘI DUNG MẪU (bắt buộc bao gồm các phần sau; khi trả về JSON, mỗi phần có thể là một trường string hoặc object):
+1) Vai trò AI: mô tả ngắn (1-2 câu) nói rằng AI là chuyên gia giáo dục tiếng Anh và sẽ cá nhân hoá lộ trình.
+2) Thông tin cần thu thập từ học viên: liệt kê các mục (Mục tiêu học tập, Trình độ hiện tại, Cam kết thời gian, Phong cách học, Khúc mắc & động lực, Tài liệu & đánh giá) — giữ đúng các trường trong file Word.
+3) Phân tích hiện trạng: đánh giá trình độ, điểm mạnh/yếu, khả thi của mục tiêu.
+4) Lộ trình chi tiết theo giai đoạn: Sử dụng biến ${'${planMonths}'} để thay cho mốc thời gian cố định. Mỗi giai đoạn (ví dụ: Giai đoạn 1: Tháng ${'${planMonths[0]}'} — Giai đoạn 2: Tháng ${'${planMonths[1]}'} — Giai đoạn 3: Tháng ${'${planMonths[2]}'} ) phải có: mục tiêu kỹ năng, tài liệu chính + phụ, lịch học hàng tuần, milestone.
+5) Kế hoạch hàng tuần mẫu: đưa ra lịch học theo từng ngày, phân bổ thời gian cho các kỹ năng.
+6) Danh sách tài liệu: sách, app, podcast, video, công cụ luyện tập.
+7) Hệ thống theo dõi tiến độ: cách đo lường, tần suất kiểm tra, tiêu chí thành công.
+8) Giải pháp cho khó khăn: cách duy trì động lực, xử lý vấn đề thường gặp, cách điều chỉnh lộ trình.
+9) Lời khuyên cá nhân hoá: mẹo, tối ưu hoá thời gian, chiến lược dài hạn.
 
-📚 THÔNG TIN LỘ TRÌNH:
-- Tên lộ trình: ${roadmap_name}
-- Danh mục: ${category}${sub_category ? ` / ${sub_category}` : ''}
-- Trình độ hiện tại: ${start_level}
-- Thời gian: ${actualDays} ngày
-- Tổng số giờ: ${totalHours} giờ (trung bình ${hoursPerDay} giờ/ngày)
-- Kết quả mong đợi: ${expected_outcome}
+ĐỊNH DẠNG JSON BẮT BUỘC (khi API yêu cầu trả JSON):
+{
+  "analysis": "...",
+  "roadmap": [ /* mảng các giai đoạn / tuần / ngày tùy yêu cầu */ ],
+  "weekly_plan_sample": [ /* mảng 7 ngày hoặc number-of-days */ ],
+  "materials": { /* tài liệu chính / phụ */ },
+  "tracking": { /* hệ thống theo dõi */ },
+  "personal_tips": "..."
+}
 
-🎯 YÊU CẦU CHI TIẾT:
-1. Tạo ĐÚNG ${actualDays} ngày học (từ 1 đến ${actualDays})
-2. Mỗi ngày khoảng ${hoursPerDay} giờ học
-3. Nội dung phù hợp với trình độ ${start_level}
-4. Có sự liên kết và tiến triển giữa các ngày
-5. Bài tập thực hành cụ thể, có thể làm được
-6. Tài liệu học tập thực tế và dễ tìm
+Các chuỗi mô tả phải ngắn gọn, cụ thể và có thể dễ dàng chuyển thành trường trong DB.
+`;
 
-QUAN TRỌNG: Phải tạo đầy đủ ${actualDays} ngày, KHÔNG được viết "..." hay "tiếp tục"!`;
+    const userPrompt = `Bạn nhận được dữ liệu đầu vào sau từ user (hãy đọc kỹ và sử dụng các biến tương ứng để thay cho mọi số cố định):
+
+- Tên lộ trình: ${'${roadmap_name}'}
+- Danh mục: ${'${category}'}${'${sub_category ? ` / ${sub_category}` : ""}'}
+- Trình độ hiện tại: ${'${start_level}'}
+- Thời gian yêu cầu: ${'${actualDays}'} ngày
+- Tổng số giờ: ${'${totalHours}'} giờ (trung bình ${'${hoursPerDay}'} giờ/ngày)
+- Kết quả mong đợi: ${'${expected_outcome}'}
+
+YÊU CẦU CỤ THỂ:
+1) Dựa trên biểu mẫu Word có sẵn (mình đã gửi), tạo một báo cáo/ lộ trình học tiếng Anh cá nhân hoá bao gồm các mục: Phân tích hiện trạng, Lộ trình chi tiết theo các mốc thời gian ${'${planMonths.join(" tháng, ") + " tháng"}'}, Kế hoạch hàng tuần mẫu (7 ngày), Danh sách tài liệu, Hệ thống theo dõi tiến độ, Giải pháp cho các khó khăn, và Lời khuyên cá nhân hoá.
+
+2) Khi đề cập tới mốc thời gian trong Word (ví dụ: "Giai đoạn 1 (Tháng 1-3): Nền tảng"), THAY bằng biến runtime: ví dụ Giai đoạn 1: Tháng ${'${planMonths[0]}'} — Giai đoạn 2: Tháng ${'${planMonths[1]}'} — Giai đoạn 3: Tháng ${'${planMonths[2]}'} (nếu có). Nếu số mốc không phù hợp với tổng số ngày ${'${actualDays}'}, hãy điều chỉnh tỉ lệ và ghi rõ giả định bạn dùng (ví dụ: "Giả sử 1 tháng = 30 ngày; vì ${'${actualDays}'} ngày tương đương ~${'${Math.round(actualDays/30)}'} tháng, nên ta chọn mốc ...").
+
+3) Trả về cả 2 dạng:
+- A: JSON chuẩn (để lưu vào DB) với cấu trúc tối thiểu đã nêu ở "ĐỊNH DẠNG JSON BẮT BUỘC".
+- B: Văn bản có cấu trúc (human-readable) tóm tắt chính để hiển thị cho user.
+
+4) Ngôn ngữ: Tiếng Việt. Trình bày rõ ràng, dùng bullet points và bảng nhỏ nếu cần.
+
+5) Nếu có phần con số không chắc chắn (ví dụ: số buổi/tuần), hãy gợi ý các option và để placeholder biến (ví dụ: ${'${sessionsPerWeekOptions}'}).
+
+Gợi ý kỹ thuật: output JSON phải dễ parse; tránh dùng ký tự đặc biệt không cần thiết; mọi con số nhúng phải đến từ các biến sau: ${'${actualDays}'}, ${'${totalHours}'}, ${'${hoursPerDay}'}, ${'${planMonths}'}.
+`;
 
     // SAFE debug: do not print API key or its length
     console.log('🤖 Sending request to OpenAI...');
