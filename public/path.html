@@ -240,6 +240,19 @@
       background: #218838;
     }
 
+    .upload-btn {
+      background: #17a2b8;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      margin-left: 10px;
+    }
+
+    .upload-btn:hover {
+      background: #138496;
+    }
+
     .loading {
       text-align: center;
       padding: 40px;
@@ -390,6 +403,28 @@
     }
 
     @media (max-width: 768px) {
+      .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+      }
+
+      .fixed-bar {
+        height: auto;
+      }
+
+      .nav-buttons {
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .content {
+        margin-top: 180px;
+        padding: 15px;
+      }
+
       .roadmap-stats {
         grid-template-columns: 1fr;
       }
@@ -400,11 +435,124 @@
         gap: 10px;
       }
 
-      .content {
-        padding: 20px;
+      .card {
+        padding: 15px;
+      }
+
+      .roadmap-card {
+        padding: 15px;
+      }
+
+      .modal-content {
+        width: 95%;
+      }
+
+      .modal-body {
+        padding: 15px;
+      }
+
+      .upload-btn {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      .create-btn {
+        width: 100%;
       }
     }
-  </style>
+
+    @media (max-width: 480px) {
+      .brand-title {
+        font-size: 16px;
+      }
+
+      .brand-sub {
+        font-size: 11px;
+      }
+
+      .nav-btn {
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .roadmap-title {
+        font-size: 16px;
+      }
+
+      .stat-value {
+        font-size: 16px;
+      }
+
+      .day-item {
+        padding: 12px;
+      }
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .submit-btn {
+      background: #007bff;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      background: #0056b3;
+    }
+
+    .submit-btn:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .create-btn {
+      background: #28a745;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+    }
+
+    .create-btn:hover {
+      background: #218838;
+    }
+</style>
 </head>
 <body>
   <div class="fixed-bar">
@@ -432,6 +580,9 @@
         </div>
         <button class="create-btn" onclick="window.open('create_roadmap_page.html', '_blank')">
           <i class="fa-solid fa-plus"></i> Tạo Lộ Trình Mới
+        </button>
+        <button class="upload-btn" onclick="openUploadModal()">
+          <i class="fa-solid fa-upload"></i> Upload Excel
         </button>
       </div>
     </div>
@@ -462,7 +613,72 @@
       </div>
     </div>
   </div>
+  <!-- ============ THÊM MODAL UPLOAD ============ -->
+  <div class="modal" id="uploadModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h2>📤 Upload Lộ Trình từ Excel</h2>
+          <p>File Excel phải có đúng 6 cột theo thứ tự</p>
+        </div>
+        <button class="close-btn" onclick="closeUploadModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="card" style="background: #fff3cd; padding: 15px; margin-bottom: 20px;">
+          <strong>⚠️ Lưu ý:</strong> File Excel phải có <strong>đúng 6 cột</strong> theo thứ tự:
+          <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
+            <li><code>day_number</code> - Số ngày (1, 2, 3...)</li>
+            <li><code>daily_goal</code> - Mục tiêu ngày</li>
+            <li><code>learning_content</code> - Nội dung học</li>
+            <li><code>practice_exercises</code> - Bài tập</li>
+            <li><code>learning_materials</code> - Tài liệu</li>
+            <li><code>study_duration_hours</code> - Số giờ (vd: 2.5)</li>
+          </ol>
+        </div>
 
+        <form id="uploadForm" enctype="multipart/form-data">
+          <div class="form-group">
+            <label>Tên lộ trình *</label>
+            <input type="text" name="roadmap_name" required placeholder="Ví dụ: Học Python cơ bản">
+          </div>
+          
+          <div class="form-group">
+            <label>Danh mục *</label>
+            <input type="text" name="category" required placeholder="Ví dụ: Lập trình">
+          </div>
+          
+          <div class="form-group">
+            <label>Danh mục chi tiết</label>
+            <input type="text" name="sub_category" placeholder="Ví dụ: Python Programming">
+          </div>
+          
+          <div class="form-group">
+            <label>Trình độ *</label>
+            <select name="start_level" required>
+              <option value="">-- Chọn trình độ --</option>
+              <option value="Beginner">Beginner (Mới bắt đầu)</option>
+              <option value="Intermediate">Intermediate (Trung bình)</option>
+              <option value="Advanced">Advanced (Nâng cao)</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>Kết quả mong đợi *</label>
+            <textarea name="expected_outcome" required placeholder="Mô tả những gì bạn muốn đạt được sau khi hoàn thành lộ trình này..." rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>File Excel * (.xlsx hoặc .xls)</label>
+            <input type="file" name="file" accept=".xlsx,.xls" required>
+          </div>
+          
+          <button type="submit" class="submit-btn">
+            <i class="fa-solid fa-upload"></i> Upload Lộ Trình
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
   <script>
     // Global variables
     let currentRoadmaps = [];
@@ -864,7 +1080,58 @@
         closeModal();
       }
     });
+    function openUploadModal() {
+      document.getElementById('uploadModal').classList.add('show');
+    }
 
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.remove('show');
+      document.getElementById('uploadForm').reset();
+    }
+
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<div class="loading"><div class="spinner"></div> Đang upload...</div>';
+      
+      const formData = new FormData(e.target);
+      
+      try {
+        const response = await fetch('/api/roadmaps/upload', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showNotification('✅ ' + result.message, 'success');
+          closeUploadModal();
+          setTimeout(() => loadRoadmaps(), 500);
+        } else {
+          showNotification('❌ ' + result.error, 'error');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        showNotification('❌ Lỗi khi upload file. Vui lòng thử lại.', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+
+    // Đóng modal khi click bên ngoài
+    document.getElementById('uploadModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeUploadModal();
+      }
+    });
     // Initialize app
     function initApp() {
       if (!checkAuth()) return;
