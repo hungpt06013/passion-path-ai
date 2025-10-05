@@ -365,6 +365,50 @@
         border: 2px solid #ef4444;
     }
 
+    /* ======================== */
+    /* Styles for "Khác" box   */
+    /* ======================== */
+    .other-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      min-width: 160px;
+      box-sizing: border-box;
+    }
+
+    .other-box .other-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .other-box .other-input {
+      display: none;
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.15s;
+    }
+
+    .other-box .other-input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+    }
+
+    .other-box:hover {
+      border-color: #4f46e5;
+      background: #f0f9ff;
+    }
+
     @media (max-width: 768px) {
         body {
             padding: 10px;
@@ -629,14 +673,19 @@
                         <input type="checkbox" name="category[]" value="Kỹ năng mềm">
                         <span>Kỹ năng mềm</span>
                     </label>
-
-                    <!-- Khác -->
-                    <label id="other-category-label" style="display:flex;gap:8px;align-items:center;">
-                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-                        <span>Khác</span>
-                        <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
-                    </label>
                 `;
+                // append "Khác" styled box
+                container.insertAdjacentHTML('beforeend', `
+                  <div class="other-box" id="other-category-box">
+                    <div class="other-row">
+                      <label style="display:flex;align-items:center;gap:8px;width:100%;">
+                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
+                        <span style="font-weight:600;color:#374151;">Khác</span>
+                      </label>
+                    </div>
+                    <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
+                  </div>
+                `);
                 setupOtherCategoryToggle();
             }
         }
@@ -648,12 +697,17 @@
                 container.innerHTML = '<p style="color: #6b7280;">Chưa có danh mục nào</p>';
                 // still append "Khác"
                 container.insertAdjacentHTML('beforeend', `
-                    <label id="other-category-label" style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                  <div class="other-box" id="other-category-box">
+                    <div class="other-row">
+                      <label style="display:flex;align-items:center;gap:8px;width:100%;">
                         <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-                        <span>Khác</span>
-                        <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
-                    </label>
+                        <span style="font-weight:600;color:#374151;">Khác</span>
+                      </label>
+                    </div>
+                    <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
+                  </div>
                 `);
+                setupOtherCategoryToggle();
                 return;
             }
             
@@ -666,25 +720,38 @@
             
             container.innerHTML = html;
 
-            // append "Khác" control
+            // append "Khác" control styled
             container.insertAdjacentHTML('beforeend', `
-<label id="other-category-label" style="display:flex;gap:8px;align-items:center;">
-    <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-    <span>Khác</span>
-    <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
-</label>
+              <div class="other-box" id="other-category-box">
+                <div class="other-row">
+                  <label style="display:flex;align-items:center;gap:8px;width:100%;">
+                    <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
+                    <span style="font-weight:600;color:#374151;">Khác</span>
+                  </label>
+                </div>
+                <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
+              </div>
             `);
+
+            setupOtherCategoryToggle();
         }
 
-        // show/hide input khi check "Khác"
+        // show/hide input khi check "Khác", autofocus khi mở
         function setupOtherCategoryToggle() {
             const otherCheckbox = document.getElementById('category-other-checkbox');
             const otherInput = document.getElementById('category-other-input');
             if (!otherCheckbox || !otherInput) return;
             otherCheckbox.addEventListener('change', () => {
-                otherInput.style.display = otherCheckbox.checked ? 'inline-block' : 'none';
-                if (!otherCheckbox.checked) otherInput.value = '';
+                if (otherCheckbox.checked) {
+                    otherInput.style.display = 'block'; // show block so it goes to next line
+                    setTimeout(() => otherInput.focus(), 60); // focus after render
+                } else {
+                    otherInput.style.display = 'none';
+                    otherInput.value = '';
+                }
             });
+            // If already checked (rare), show input
+            if (otherCheckbox.checked) otherInput.style.display = 'block';
         }
 
         function validateDays() {
