@@ -123,7 +123,211 @@
       color: #666;
       font-size: 14px;
     }
-  </style>
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      border-radius: 0;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .tab:hover {
+      color: #007bff;
+      background: #f0f9ff;
+    }
+
+    .tab.active {
+      color: #007bff;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #007bff;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px 0;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .task-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .task-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+
+    .task-card h4 {
+      margin: 0 0 8px 0;
+      color: #1f2937;
+      font-size: 16px;
+    }
+
+    .task-card p {
+      margin: 0 0 10px 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+
+    .task-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-not-started {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    .status-in-progress {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-completed {
+      background: #dcfdf4;
+      color: #065f46;
+    }
+
+    .status-overdue {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .empty-tasks {
+      text-align: center;
+      padding: 40px;
+      color: #9ca3af;
+    }
+
+    .empty-tasks i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      opacity: 0.5;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-radius: 50%;
+      border-top-color: #007bff;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+      }
+
+      .fixed-bar {
+        height: auto;
+      }
+
+      .nav-buttons {
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .content {
+        margin-top: 180px;
+        padding: 15px;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+      .tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .tab {
+        white-space: nowrap;
+        padding: 10px 15px;
+        font-size: 13px;
+      }
+
+      .task-card {
+        padding: 12px;
+      }
+
+      .task-card h4 {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand-title {
+        font-size: 16px;
+      }
+
+      .brand-sub {
+        font-size: 11px;
+      }
+
+      .nav-btn {
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .empty-tasks i {
+        font-size: 36px;
+      }
+    }
+</style>
 </head>
 <body>
   <div class="fixed-bar">
@@ -143,16 +347,44 @@
   </div>
 
   <main class="content">
-    <div class="card">
-      <h1>📈 Tiến Độ</h1>
-      <p class="small">Trang Hiển Thị Tiến Độ của học viên: điểm, tiến độ module, badges...</p>
+      <div class="card">
+        <h1>📈 Tiến Độ Học Tập</h1>
+        <p class="small">Theo dõi tiến độ học tập hàng ngày của bạn</p>
 
-      <section style="margin-top:16px;">
-        <h3>Tiến độ cá nhân</h3>
-        <p>Hoàn thành: 3 / 12 bài</p>
-      </section>
-    </div>
-  </main>
+        <div class="tabs">
+          <button class="tab active" data-tab="today">
+            <i class="fa-solid fa-calendar-day"></i> Hôm nay
+          </button>
+          <button class="tab" data-tab="upcoming">
+            <i class="fa-solid fa-calendar-plus"></i> Sắp đến
+          </button>
+          <button class="tab" data-tab="overdue">
+            <i class="fa-solid fa-calendar-xmark"></i> Quá hạn
+          </button>
+        </div>
+
+        <div class="tab-content active" id="today">
+          <div class="loading">
+            <div class="spinner"></div>
+            Đang tải...
+          </div>
+        </div>
+        
+        <div class="tab-content" id="upcoming">
+          <div class="loading">
+            <div class="spinner"></div>
+            Đang tải...
+          </div>
+        </div>
+        
+        <div class="tab-content" id="overdue">
+          <div class="loading">
+            <div class="spinner"></div>
+            Đang tải...
+          </div>
+        </div>
+      </div>
+    </main>
 
   <script>
     const navButtonsWrapper = document.getElementById('navButtons');
@@ -164,7 +396,7 @@
     btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
     btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
 
-    // show admin button if admin
+    // Show admin button if admin
     const role = localStorage.getItem('role');
     if (role === 'admin') {
       const adminBtn = document.createElement('button');
@@ -175,7 +407,7 @@
       adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
     }
 
-    // active state
+    // Active state
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'progress';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -184,6 +416,138 @@
     if (btnId) {
       const el = document.getElementById(btnId);
       if (el) el.classList.add('active');
+    }
+
+    // ============ XỬ LÝ PROGRESS ============
+    function getAuthHeaders() {
+      const token = localStorage.getItem('token');
+      return {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+    }
+
+    function getStatusBadgeClass(status) {
+      const map = {
+        'NOT_STARTED': 'status-not-started',
+        'IN_PROGRESS': 'status-in-progress',
+        'COMPLETED': 'status-completed',
+        'SKIPPED': 'status-not-started'
+      };
+      return map[status] || 'status-not-started';
+    }
+
+    function getStatusText(status) {
+      const map = {
+        'NOT_STARTED': 'Chưa bắt đầu',
+        'IN_PROGRESS': 'Đang học',
+        'COMPLETED': 'Hoàn thành',
+        'SKIPPED': 'Bỏ qua'
+      };
+      return map[status] || status;
+    }
+
+    function renderTasks(containerId, tasks) {
+      const container = document.getElementById(containerId);
+      
+      if (tasks.length === 0) {
+        container.innerHTML = `
+          <div class="empty-tasks">
+            <i class="fa-solid fa-check-circle"></i>
+            <h3>Không có nhiệm vụ nào</h3>
+            <p>${containerId === 'today' ? 'Chưa có bài học cho hôm nay' : 
+                 containerId === 'upcoming' ? 'Chưa có bài học sắp tới' : 
+                 'Tuyệt vời! Bạn không có bài nào quá hạn'}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      const html = tasks.map(task => `
+        <div class="task-card" onclick="viewTaskDetail(${task.roadmap_id})">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+              <h4>${task.daily_goal || 'Không có tiêu đề'}</h4>
+              <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
+                <i class="fa-solid fa-book"></i> ${task.roadmap_name} • Ngày ${task.day_number}
+              </p>
+            </div>
+            <span class="task-status ${getStatusBadgeClass(task.completion_status)}">
+              ${getStatusText(task.completion_status)}
+            </span>
+          </div>
+          
+          <p style="margin: 10px 0; color: #374151; font-size: 14px;">
+            ${task.learning_content ? task.learning_content.substring(0, 100) + '...' : 'Không có nội dung'}
+          </p>
+          
+          <div style="display: flex; gap: 15px; margin-top: 10px; color: #6b7280; font-size: 13px;">
+            <span><i class="fa-solid fa-clock"></i> ${task.study_duration_hours}h</span>
+            ${task.study_date ? `<span><i class="fa-solid fa-calendar"></i> ${new Date(task.study_date).toLocaleDateString('vi-VN')}</span>` : ''}
+            <span><i class="fa-solid fa-tag"></i> ${task.category}</span>
+          </div>
+        </div>
+      `).join('');
+      
+      container.innerHTML = html;
+    }
+
+    function viewTaskDetail(roadmapId) {
+      window.location.href = `path.html?page=path&roadmap=${roadmapId}`;
+    }
+
+    async function loadProgress() {
+      try {
+        const response = await fetch('/api/roadmaps/progress', {
+          headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            window.location.href = 'login.html';
+            return;
+          }
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        renderTasks('today', data.today || []);
+        renderTasks('upcoming', data.upcoming || []);
+        renderTasks('overdue', data.overdue || []);
+        
+      } catch (error) {
+        console.error('Error loading progress:', error);
+        ['today', 'upcoming', 'overdue'].forEach(id => {
+          document.getElementById(id).innerHTML = `
+            <div class="error">
+              ⚠️ Không thể tải dữ liệu. Vui lòng thử lại.
+              <button onclick="loadProgress()" style="margin-left: 10px; padding: 5px 10px;">
+                Thử lại
+              </button>
+            </div>
+          `;
+        });
+      }
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Check auth và load dữ liệu
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = 'login.html';
+    } else {
+      loadProgress();
     }
   </script>
 </body>
