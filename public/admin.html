@@ -418,40 +418,79 @@
       // window.location.replace('path.html?page=path');
     }
 
+    // ============ DOM ELEMENTS ============
     const navButtonsWrapper = document.getElementById('navButtons');
     const btnPath = document.getElementById('btnPath');
     const btnProgress = document.getElementById('btnProgress');
     const btnHome = document.getElementById('btnHome');
+    const btnAIHistory = document.getElementById('btnAIHistory');
+    const btnCategories = document.getElementById('btnCategories');
+    
+    const adminCard = document.getElementById('adminCard');
+    const aiHistorySection = document.getElementById('aiHistorySection');
+    const categoriesSection = document.getElementById('categoriesSection');
+    
     const fetchUsersBtn = document.getElementById('fetchUsersBtn');
     const usersArea = document.getElementById('usersArea');
     const usersMessage = document.getElementById('usersMessage');
+    
+    const fetchAIHistoryBtn = document.getElementById('fetchAIHistoryBtn');
+    const aiHistoryArea = document.getElementById('aiHistoryArea');
+    const aiHistoryMessage = document.getElementById('aiHistoryMessage');
+    
+    const fetchCategoriesBtn = document.getElementById('fetchCategoriesBtn');
+    const createCategoryBtn = document.getElementById('createCategoryBtn');
+    const categoriesArea = document.getElementById('categoriesArea');
+    const categoriesMessage = document.getElementById('categoriesMessage');
 
-    btnPath.addEventListener('click', () => { window.location.href = 'path.html?page=path'; });
-    btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
-    btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-
+    // ============ NAVIGATION ============
     const adminBtn = document.createElement('button');
     adminBtn.className = 'nav-btn';
     adminBtn.id = 'btnAdmin';
     adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
     navButtonsWrapper.appendChild(adminBtn);
-    adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
 
+    function showSection(sectionId, activeBtn) {
+      // Ẩn tất cả sections
+      adminCard.style.display = 'none';
+      aiHistorySection.style.display = 'none';
+      categoriesSection.style.display = 'none';
+      
+      // Hiện section được chọn
+      document.getElementById(sectionId).style.display = 'block';
+      
+      // Update active button
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    btnPath.addEventListener('click', () => { window.location.href = 'path.html?page=path'; });
+    btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
+    btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+    
+    adminBtn.addEventListener('click', () => {
+      showSection('adminCard', adminBtn);
+    });
+
+    btnAIHistory.addEventListener('click', () => {
+      showSection('aiHistorySection', btnAIHistory);
+    });
+
+    btnCategories.addEventListener('click', () => {
+      showSection('categoriesSection', btnCategories);
+    });
+
+    // Set active state from URL
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'admin';
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { 
-      path: 'btnPath', 
-      progress: 'btnProgress', 
-      admin: 'btnAdmin',
-      aihistory: 'btnAIHistory' 
-    };
+    const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory' };
     const btnId = idMap[page];
     if (btnId) {
       const el = document.getElementById(btnId);
       if (el) el.classList.add('active');
     }
 
+    // ============ UTILITY FUNCTIONS ============
     function fmtDate(iso) {
       try {
         if (!iso) return '-';
@@ -463,6 +502,17 @@
       }
     }
 
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    // ============ USER MANAGEMENT ============
     function renderUsersTable(users) {
       if (!Array.isArray(users) || users.length === 0) {
         usersArea.innerHTML = '<div class="muted">Không có user nào.</div>';
@@ -493,7 +543,7 @@
             <tr>
               <th>Tên</th>
               <th>Email</th>
-              <th>Thời gian đăng kí</th>
+              <th>Thời gian đăng ký</th>
               <th>Hành động</th>
             </tr>
           </thead>
@@ -506,16 +556,6 @@
       document.querySelectorAll('.btn-delete').forEach(btn => {
         btn.addEventListener('click', onDeleteUserClick);
       });
-    }
-
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#39;');
     }
 
     async function onDeleteUserClick(evt) {
@@ -611,6 +651,7 @@
       ];
     }
 
+    // Toggle user list on/off
     let fetchClickCount = 0;
     fetchUsersBtn.addEventListener('click', async function() {
       fetchClickCount++;
@@ -622,48 +663,8 @@
         setTimeout(() => { usersMessage.textContent = ''; }, 1400);
       }
     });
-    const btnAIHistory = document.getElementById('btnAIHistory');
-    const aiHistorySection = document.getElementById('aiHistorySection');
-    const fetchAIHistoryBtn = document.getElementById('fetchAIHistoryBtn');
-    const aiHistoryArea = document.getElementById('aiHistoryArea');
-    const aiHistoryMessage = document.getElementById('aiHistoryMessage');
 
-    btnAIHistory.addEventListener('click', () => {
-      document.getElementById('adminCard').style.display = 'none';
-      aiHistorySection.style.display = 'block';
-      
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btnAIHistory.classList.add('active');
-    });
-
-    fetchAIHistoryBtn.addEventListener('click', async function() {
-      aiHistoryMessage.textContent = 'Đang tải...';
-      fetchAIHistoryBtn.disabled = true;
-      
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/ai-history', {
-          headers: { 
-            'Authorization': 'Bearer ' + token,
-            'Cache-Control': 'no-cache'
-          }
-        });
-        
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        const data = await res.json();
-        renderAIHistory(data.data, data.total);
-        aiHistoryMessage.textContent = `Đã tải ${data.data.length} bản ghi`;
-      } catch (err) {
-        console.error(err);
-        aiHistoryMessage.textContent = 'Lỗi khi tải lịch sử';
-        aiHistoryArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
-      } finally {
-        fetchAIHistoryBtn.disabled = false;
-        setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
-      }
-    });
-
+    // ============ AI HISTORY ============
     function renderAIHistory(records, total) {
       if (!records || records.length === 0) {
         aiHistoryArea.innerHTML = '<div class="muted">Chưa có lịch sử nào</div>';
@@ -704,57 +705,48 @@
       
       aiHistoryArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${total} bản ghi</strong></div>` + html;
     }
-    // ============ THÊM XỬ LÝ CATEGORIES ============
-    const btnCategories = document.getElementById('btnCategories');
-    const categoriesSection = document.getElementById('categoriesSection');
-    const fetchCategoriesBtn = document.getElementById('fetchCategoriesBtn');
-    const createCategoryBtn = document.getElementById('createCategoryBtn');
-    const categoriesArea = document.getElementById('categoriesArea');
-    const categoriesMessage = document.getElementById('categoriesMessage');
 
-    btnCategories.addEventListener('click', () => {
-      document.getElementById('adminCard').style.display = 'none';
-      aiHistorySection.style.display = 'none';
-      categoriesSection.style.display = 'block';
+    // Toggle AI history on/off
+    let fetchAIClickCount = 0;
+    fetchAIHistoryBtn.addEventListener('click', async function() {
+      fetchAIClickCount++;
       
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btnCategories.classList.add('active');
-    });
-
-    fetchCategoriesBtn.addEventListener('click', loadCategories);
-    createCategoryBtn.addEventListener('click', () => {
-      const name = prompt('Tên danh mục mới:');
-      if (!name || !name.trim()) return;
-      
-      const description = prompt('Mô tả (có thể để trống):');
-      createCategory(name.trim(), description?.trim());
-    });
-
-    async function loadCategories() {
-      categoriesMessage.textContent = 'Đang tải...';
-      fetchCategoriesBtn.disabled = true;
-      
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/categories', {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
+      if (fetchAIClickCount % 2 === 1) {
+        // Show
+        aiHistoryMessage.textContent = 'Đang tải...';
+        fetchAIHistoryBtn.disabled = true;
         
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        const data = await res.json();
-        renderCategories(data.data);
-        categoriesMessage.textContent = `Đã tải ${data.data.length} danh mục`;
-      } catch (err) {
-        console.error(err);
-        categoriesMessage.textContent = 'Lỗi khi tải danh mục';
-        categoriesArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
-      } finally {
-        fetchCategoriesBtn.disabled = false;
-        setTimeout(() => { categoriesMessage.textContent = ''; }, 2500);
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/admin/ai-history', {
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Cache-Control': 'no-cache'
+            }
+          });
+          
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          
+          const data = await res.json();
+          renderAIHistory(data.data, data.total);
+          aiHistoryMessage.textContent = `Đã tải ${data.data.length} bản ghi`;
+        } catch (err) {
+          console.error(err);
+          aiHistoryMessage.textContent = 'Lỗi khi tải lịch sử';
+          aiHistoryArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+        } finally {
+          fetchAIHistoryBtn.disabled = false;
+          setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
+        }
+      } else {
+        // Hide
+        aiHistoryArea.innerHTML = '';
+        aiHistoryMessage.textContent = 'Danh sách đã đóng.';
+        setTimeout(() => { aiHistoryMessage.textContent = ''; }, 1400);
       }
-    }
+    });
 
+    // ============ CATEGORIES MANAGEMENT ============
     function renderCategories(categories) {
       if (!categories || categories.length === 0) {
         categoriesArea.innerHTML = '<div class="muted">Chưa có danh mục nào</div>';
@@ -800,6 +792,56 @@
       
       categoriesArea.innerHTML = html;
     }
+
+    async function loadCategories() {
+      categoriesMessage.textContent = 'Đang tải...';
+      fetchCategoriesBtn.disabled = true;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/categories', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        renderCategories(data.data);
+        categoriesMessage.textContent = `Đã tải ${data.data.length} danh mục`;
+      } catch (err) {
+        console.error(err);
+        categoriesMessage.textContent = 'Lỗi khi tải danh mục';
+        categoriesArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+      } finally {
+        fetchCategoriesBtn.disabled = false;
+        setTimeout(() => { categoriesMessage.textContent = ''; }, 2500);
+      }
+    }
+
+    // Toggle categories on/off
+    let fetchCatClickCount = 0;
+    fetchCategoriesBtn.addEventListener('click', async function() {
+      fetchCatClickCount++;
+      
+      if (fetchCatClickCount % 2 === 1) {
+        // Show
+        await loadCategories();
+      } else {
+        // Hide
+        categoriesArea.innerHTML = '';
+        categoriesMessage.textContent = 'Danh sách đã đóng.';
+        setTimeout(() => { categoriesMessage.textContent = ''; }, 1400);
+      }
+    });
+
+    createCategoryBtn.addEventListener('click', () => {
+      const name = prompt('Tên danh mục mới:');
+      if (!name || !name.trim()) return;
+      
+      const description = prompt('Mô tả (có thể để trống):');
+      createCategory(name.trim(), description?.trim());
+    });
+
     async function createCategory(name, description) {
       try {
         const token = localStorage.getItem('token');
@@ -816,7 +858,10 @@
         
         if (data.success) {
           alert('✅ ' + data.message);
-          loadCategories();
+          // Reload if currently showing
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
         } else {
           alert('❌ ' + data.error);
         }
@@ -851,7 +896,9 @@
         
         if (data.success) {
           alert('✅ ' + data.message);
-          loadCategories();
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
         } else {
           alert('❌ ' + data.error);
         }
@@ -875,7 +922,9 @@
         
         if (data.success) {
           alert('✅ ' + data.message);
-          loadCategories();
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
         } else {
           alert('❌ ' + data.error);
         }
@@ -899,7 +948,9 @@
         
         if (data.success) {
           alert('✅ ' + data.message);
-          loadCategories();
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
         } else {
           alert('❌ ' + data.error);
         }
