@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Đăng ký tài khoản</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>
+<style>
     :root {
       --bg: #f7faff;
       --card: #ffffff;
@@ -181,15 +181,38 @@
     }
 
     @media (max-width: 520px) {
+      .page-wrapper {
+        padding: 12px;
+      }
+
       .card {
         padding: 18px;
         border-radius: 10px;
       }
-      .page-wrapper {
-        padding: 12px;
+
+      h1 {
+        font-size: 18px;
+      }
+
+      input[type="text"],
+      input[type="email"],
+      input[type="password"] {
+        font-size: 16px;
+      }
+
+      button[type="submit"] {
+        font-size: 14px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      .actions button {
+        width: 100%;
       }
     }
-  </style>
+</style>
 </head>
 <body>
   <div class="page-wrapper">
