@@ -129,6 +129,47 @@
       font-weight: 700;
     }
 
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .tab {
+      background: none;
+      border: none;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      border-radius: 0;
+      position: relative;
+    }
+
+    .tab.active {
+      color: #007bff;
+    }
+
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #007bff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .users-table {
       width: 100%;
       border-collapse: collapse;
@@ -187,7 +228,119 @@
       font-size: 14px;
       color: #374151;
     }
-  </style>
+
+    .history-card {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-success {
+      background: #dcfdf4;
+      color: #065f46;
+    }
+
+    .status-fail {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-timeout {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    @media (max-width: 768px) {
+      .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+      }
+
+      .fixed-bar {
+        height: auto;
+      }
+
+      .nav-buttons {
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .content {
+        margin-top: 180px;
+        padding: 15px;
+      }
+
+      .users-table {
+        font-size: 12px;
+      }
+
+      .users-table th,
+      .users-table td {
+        padding: 8px 6px;
+      }
+
+      .actions-cell {
+        flex-direction: column;
+      }
+
+      .tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+      }
+
+      .tab {
+        white-space: nowrap;
+        padding: 10px 15px;
+        font-size: 13px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .brand-title {
+        font-size: 16px;
+      }
+
+      .brand-sub {
+        font-size: 11px;
+      }
+
+      .nav-btn {
+        font-size: 13px;
+        padding: 8px 12px;
+      }
+
+      .card {
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+
+      .history-card {
+        padding: 12px;
+      }
+    }
+</style>
 </head>
 <body>
   <div class="fixed-bar">
@@ -198,8 +351,10 @@
       </div>
 
       <div class="nav-buttons" id="navButtons">
-        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+          <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+          <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+          <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+          <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh mục</button>
       </div>
 
       <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
@@ -224,7 +379,37 @@
         <div id="usersArea"></div>
         <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
       </section>
-    </div>
+          </div>
+          <section id="aiHistorySection" style="display:none;" class="card">
+        <h2>🤖 Lịch Sử Hỏi AI</h2>
+        <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
+        
+        <div style="margin: 15px 0;">
+          <button id="fetchAIHistoryBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Lịch Sử
+          </button>
+        </div>
+        
+        <div id="aiHistoryArea"></div>
+        <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
+      </section>
+            <!-- ============ THÊM CATEGORIES SECTION ============ -->
+      <section id="categoriesSection" style="display:none;" class="card">
+        <h2>📁 Quản Lý Danh Mục</h2>
+        <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
+        
+        <div style="margin: 15px 0;">
+          <button id="fetchCategoriesBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Danh Mục
+          </button>
+          <button id="createCategoryBtn" class="create-btn" style="margin-left: 10px;">
+            <i class="fa-solid fa-plus"></i> Thêm Danh Mục
+          </button>
+        </div>
+        
+        <div id="categoriesArea"></div>
+        <div id="categoriesMessage" role="status" aria-live="polite"></div>
+      </section>
   </main>
 
   <script>
@@ -255,7 +440,12 @@
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'admin';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+    const idMap = { 
+      path: 'btnPath', 
+      progress: 'btnProgress', 
+      admin: 'btnAdmin',
+      aihistory: 'btnAIHistory' 
+    };
     const btnId = idMap[page];
     if (btnId) {
       const el = document.getElementById(btnId);
@@ -432,6 +622,292 @@
         setTimeout(() => { usersMessage.textContent = ''; }, 1400);
       }
     });
+    const btnAIHistory = document.getElementById('btnAIHistory');
+    const aiHistorySection = document.getElementById('aiHistorySection');
+    const fetchAIHistoryBtn = document.getElementById('fetchAIHistoryBtn');
+    const aiHistoryArea = document.getElementById('aiHistoryArea');
+    const aiHistoryMessage = document.getElementById('aiHistoryMessage');
+
+    btnAIHistory.addEventListener('click', () => {
+      document.getElementById('adminCard').style.display = 'none';
+      aiHistorySection.style.display = 'block';
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btnAIHistory.classList.add('active');
+    });
+
+    fetchAIHistoryBtn.addEventListener('click', async function() {
+      aiHistoryMessage.textContent = 'Đang tải...';
+      fetchAIHistoryBtn.disabled = true;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/ai-history', {
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        renderAIHistory(data.data, data.total);
+        aiHistoryMessage.textContent = `Đã tải ${data.data.length} bản ghi`;
+      } catch (err) {
+        console.error(err);
+        aiHistoryMessage.textContent = 'Lỗi khi tải lịch sử';
+        aiHistoryArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+      } finally {
+        fetchAIHistoryBtn.disabled = false;
+        setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
+      }
+    });
+
+    function renderAIHistory(records, total) {
+      if (!records || records.length === 0) {
+        aiHistoryArea.innerHTML = '<div class="muted">Chưa có lịch sử nào</div>';
+        return;
+      }
+      
+      const html = records.map(r => {
+        const statusClass = r.status === 'SUCCESS' ? 'status-success' : 
+                          r.status === 'FAIL' ? 'status-fail' : 
+                          r.status === 'TIMEOUT' ? 'status-timeout' : '';
+        
+        let promptPreview = '';
+        try {
+          const parsed = JSON.parse(r.prompt_content);
+          promptPreview = parsed.roadmap_name || parsed.userPrompt?.substring(0, 100) || '';
+        } catch (e) {
+          promptPreview = String(r.prompt_content).substring(0, 100);
+        }
+        
+        return `
+          <div class="history-card">
+            <div class="history-header">
+              <div>
+                <strong>ID #${r.id}</strong> - ${new Date(r.query_time).toLocaleString('vi-VN')}
+              </div>
+              <span class="status-badge ${statusClass}">${r.status}</span>
+            </div>
+            <div style="margin-top: 10px;">
+              <strong>Người hỏi:</strong> ${escapeHtml(r.username || 'N/A')} (${escapeHtml(r.email || '')})<br>
+              <strong>Nội dung:</strong> ${escapeHtml(promptPreview)}...<br>
+              ${r.roadmap_name ? `<strong>Lộ trình:</strong> ${escapeHtml(r.roadmap_name)} (#${r.roadmap_id})<br>` : ''}
+              ${r.response_tokens ? `<strong>Tokens:</strong> ${r.response_tokens}<br>` : ''}
+              ${r.error_message ? `<strong style="color:#dc3545;">Lỗi:</strong> ${escapeHtml(r.error_message)}<br>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      aiHistoryArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${total} bản ghi</strong></div>` + html;
+    }
+    // ============ THÊM XỬ LÝ CATEGORIES ============
+    const btnCategories = document.getElementById('btnCategories');
+    const categoriesSection = document.getElementById('categoriesSection');
+    const fetchCategoriesBtn = document.getElementById('fetchCategoriesBtn');
+    const createCategoryBtn = document.getElementById('createCategoryBtn');
+    const categoriesArea = document.getElementById('categoriesArea');
+    const categoriesMessage = document.getElementById('categoriesMessage');
+
+    btnCategories.addEventListener('click', () => {
+      document.getElementById('adminCard').style.display = 'none';
+      aiHistorySection.style.display = 'none';
+      categoriesSection.style.display = 'block';
+      
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btnCategories.classList.add('active');
+    });
+
+    fetchCategoriesBtn.addEventListener('click', loadCategories);
+    createCategoryBtn.addEventListener('click', () => {
+      const name = prompt('Tên danh mục mới:');
+      if (!name || !name.trim()) return;
+      
+      const description = prompt('Mô tả (có thể để trống):');
+      createCategory(name.trim(), description?.trim());
+    });
+
+    async function loadCategories() {
+      categoriesMessage.textContent = 'Đang tải...';
+      fetchCategoriesBtn.disabled = true;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/categories', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        renderCategories(data.data);
+        categoriesMessage.textContent = `Đã tải ${data.data.length} danh mục`;
+      } catch (err) {
+        console.error(err);
+        categoriesMessage.textContent = 'Lỗi khi tải danh mục';
+        categoriesArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+      } finally {
+        fetchCategoriesBtn.disabled = false;
+        setTimeout(() => { categoriesMessage.textContent = ''; }, 2500);
+      }
+    }
+
+    function renderCategories(categories) {
+      if (!categories || categories.length === 0) {
+        categoriesArea.innerHTML = '<div class="muted">Chưa có danh mục nào</div>';
+        return;
+      }
+      
+      const html = categories.map(cat => {
+        const subCats = cat.sub_categories || [];
+        return `
+          <div class="history-card">
+            <div class="history-header">
+              <div>
+                <strong style="font-size: 16px;">${escapeHtml(cat.name)}</strong><br>
+                <span style="color: #6b7280; font-size: 13px;">${escapeHtml(cat.description || '')}</span>
+              </div>
+              <div>
+                <button class="btn-refresh" onclick="addSubCategory(${cat.id}, '${escapeHtml(cat.name)}')" style="margin-right: 5px;">
+                  <i class="fa-solid fa-plus"></i> Thêm con
+                </button>
+                <button class="btn-delete" onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')">
+                  <i class="fa-solid fa-trash"></i> Xóa
+                </button>
+              </div>
+            </div>
+            ${subCats.length > 0 ? `
+              <div style="margin-top: 10px; padding-left: 20px;">
+                <strong>Danh mục con:</strong>
+                <ul style="margin: 5px 0 0 20px;">
+                  ${subCats.map(sub => `
+                    <li style="margin: 5px 0;">
+                      ${escapeHtml(sub.name)}
+                      <button class="btn-delete" onclick="deleteSubCategory(${sub.id})" style="margin-left: 10px; padding: 2px 8px; font-size: 11px;">
+                        Xóa
+                      </button>
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+      
+      categoriesArea.innerHTML = html;
+    }
+    async function createCategory(name, description) {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/categories', {
+          method: 'POST',
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ name, description })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          loadCategories();
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi tạo danh mục');
+      }
+    }
+
+    window.addSubCategory = async function(categoryId, categoryName) {
+      const name = prompt(`Tên danh mục con cho "${categoryName}":`);
+      if (!name || !name.trim()) return;
+      
+      const description = prompt('Mô tả (có thể để trống):');
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/sub-categories', {
+          method: 'POST',
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            category_id: categoryId, 
+            name: name.trim(), 
+            description: description?.trim() 
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          loadCategories();
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi tạo danh mục con');
+      }
+    };
+
+    window.deleteCategory = async function(id, name) {
+      if (!confirm(`Xóa danh mục "${name}"?\n\nCảnh báo: Tất cả danh mục con cũng sẽ bị xóa!`)) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/categories/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          loadCategories();
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi xóa danh mục');
+      }
+    };
+
+    window.deleteSubCategory = async function(id) {
+      if (!confirm('Xóa danh mục con này?')) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/sub-categories/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          loadCategories();
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi xóa');
+      }
+    };
   </script>
 </body>
 </html>
