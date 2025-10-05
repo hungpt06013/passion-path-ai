@@ -597,12 +597,13 @@
                 if (data.success && data.data) {
                     categoriesData = data.data;
                     renderCategories(data.data);
+                    setupOtherCategoryToggle();
                 } else {
                     throw new Error('Invalid data format');
                 }
             } catch (error) {
                 console.error('Error loading categories:', error);
-                // Fallback to default categories
+                // Fallback to default categories (có "Khác")
                 container.innerHTML = `
                     <label>
                         <input type="checkbox" name="category[]" value="Lập trình">
@@ -628,7 +629,15 @@
                         <input type="checkbox" name="category[]" value="Kỹ năng mềm">
                         <span>Kỹ năng mềm</span>
                     </label>
+
+                    <!-- Khác -->
+                    <label id="other-category-label" style="display:flex;gap:8px;align-items:center;">
+                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
+                        <span>Khác</span>
+                        <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
+                    </label>
                 `;
+                setupOtherCategoryToggle();
             }
         }
 
@@ -637,6 +646,14 @@
             
             if (!categories || categories.length === 0) {
                 container.innerHTML = '<p style="color: #6b7280;">Chưa có danh mục nào</p>';
+                // still append "Khác"
+                container.insertAdjacentHTML('beforeend', `
+                    <label id="other-category-label" style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
+                        <span>Khác</span>
+                        <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
+                    </label>
+                `);
                 return;
             }
             
@@ -648,6 +665,26 @@
             `).join('');
             
             container.innerHTML = html;
+
+            // append "Khác" control
+            container.insertAdjacentHTML('beforeend', `
+<label id="other-category-label" style="display:flex;gap:8px;align-items:center;">
+    <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
+    <span>Khác</span>
+    <input id="category-other-input" type="text" placeholder="Ghi rõ..." style="display:none;padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;">
+</label>
+            `);
+        }
+
+        // show/hide input khi check "Khác"
+        function setupOtherCategoryToggle() {
+            const otherCheckbox = document.getElementById('category-other-checkbox');
+            const otherInput = document.getElementById('category-other-input');
+            if (!otherCheckbox || !otherInput) return;
+            otherCheckbox.addEventListener('change', () => {
+                otherInput.style.display = otherCheckbox.checked ? 'inline-block' : 'none';
+                if (!otherCheckbox.checked) otherInput.value = '';
+            });
         }
 
         function validateDays() {
@@ -691,10 +728,18 @@
             const form = document.getElementById('roadmapForm');
             const formData = new FormData(form);
 
+            // ==== thu selected categories (hỗ trợ "Khác") ====
             const selectedCategories = [];
             document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
-                selectedCategories.push(cb.value);
+                if (cb.value === 'Khác') {
+                    const otherValEl = document.getElementById('category-other-input');
+                    const v = otherValEl && otherValEl.value.trim() ? otherValEl.value.trim() : 'Khác';
+                    selectedCategories.push(v);
+                } else {
+                    selectedCategories.push(cb.value);
+                }
             });
+            // ==================================================
 
             const startLevel = formData.get('startLevel');
 
@@ -880,10 +925,18 @@
             try {
                 const formData = new FormData(this);
 
+                // ==== thu selected categories (hỗ trợ "Khác") ====
                 const selectedCategories = [];
                 document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
-                    selectedCategories.push(cb.value);
+                    if (cb.value === 'Khác') {
+                        const otherValEl = document.getElementById('category-other-input');
+                        const v = otherValEl && otherValEl.value.trim() ? otherValEl.value.trim() : 'Khác';
+                        selectedCategories.push(v);
+                    } else {
+                        selectedCategories.push(cb.value);
+                    }
                 });
+                // ==================================================
 
                 const startLevel = formData.get('startLevel');
 
