@@ -4,350 +4,450 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tạo Lộ Trình Học Mới</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .header {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+    }
+
+    .back-btn {
+        position: absolute;
+        left: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        backdrop-filter: blur(10px);
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+
+    .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .form-container {
+        padding: 40px;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+        padding: 25px;
+        background: #f9fafb;
+        border-radius: 16px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .form-section:hover {
+        border-color: #4f46e5;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .checkbox-group label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .checkbox-group label:hover {
+        border-color: #4f46e5;
+        background: #f0f9ff;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .checkbox-group input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #4f46e5;
+    }
+
+    .checkbox-group input[type="checkbox"]:checked + span,
+    .checkbox-group input[type="radio"]:checked + span {
+        font-weight: 700;
+        color: #4f46e5;
+    }
+    
+    .ai-generate-section {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 2px solid #0ea5e9;
+    }
+
+    .ai-notice {
+        background: #fff3cd;
+        color: #856404;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ffeaa7;
+        font-size: 0.9rem;
+    }
+
+    .ai-notice strong {
+        font-weight: 700;
+    }
+
+    .ai-btn {
+        padding: 15px 30px;
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+        width: 100%;
+    }
+
+    .ai-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+    }
+
+    .ai-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .days-container {
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 10px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+    }
+
+    .day-item {
+        background: #f9fafb;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border: 2px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .day-item:hover {
+        border-color: #4f46e5;
+    }
+
+    .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+    .day-number {
+        background: #4f46e5;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+    }
+
+    .remove-day-btn {
+        background: #ef4444;
+        color: white;
+        border: none;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .remove-day-btn:hover {
+        background: #dc2626;
+        transform: scale(1.1);
+    }
+
+    .add-day-btn {
+        width: 100%;
+        padding: 15px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 15px;
+    }
+
+    .add-day-btn:hover {
+        background: #059669;
+        transform: translateY(-1px);
+    }
+
+    .submit-section {
+        text-align: center;
+        padding: 30px;
+        background: #f9fafb;
+        border-radius: 16px;
+        margin-top: 30px;
+    }
+
+    .submit-btn {
+        padding: 18px 40px;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 200px;
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
+    }
+
+    .submit-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: #6b7280;
+    }
+
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 50%;
+        border-top-color: #4f46e5;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    .success-message {
+        background: #dcfdf4;
+        color: #065f46;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 2px solid #10b981;
+    }
+
+    .error-message {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 2px solid #ef4444;
+    }
+
+    @media (max-width: 768px) {
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            padding: 10px;
         }
 
         .header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .back-btn {
-            position: absolute;
-            left: 30px;
-            top: 50%;
-            transform: translateY(-50%);
-            padding: 10px 20px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            backdrop-filter: blur(10px);
-        }
-
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
+            padding: 20px 15px;
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+            font-size: 1.8rem;
+            margin-top: 50px;
         }
 
         .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .back-btn {
+            position: static;
+            margin-bottom: 15px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            transform: none;
         }
 
         .form-container {
-            padding: 40px;
+            padding: 20px;
         }
 
         .form-section {
-            margin-bottom: 30px;
-            padding: 25px;
-            background: #f9fafb;
-            border-radius: 16px;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
+            padding: 15px;
         }
 
-        .form-section:hover {
-            border-color: #4f46e5;
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .checkbox-group {
+            grid-template-columns: 1fr;
         }
 
         .section-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 1.1rem;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .submit-btn {
+            width: 100%;
+            font-size: 1rem;
+            padding: 15px 20px;
         }
 
-        .form-label {
-            display: block;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+        .ai-btn {
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header h1 {
+            font-size: 1.5rem;
         }
 
         .form-input,
         .form-select,
         .form-textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        .form-textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .ai-generate-section {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid #0ea5e9;
-        }
-
-        .ai-notice {
-            background: #fff3cd;
-            color: #856404;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #ffeaa7;
-            font-size: 0.9rem;
-        }
-
-        .ai-notice strong {
-            font-weight: 700;
-        }
-
-        .ai-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
-            width: 100%;
-        }
-
-        .ai-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
-        }
-
-        .ai-btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .days-container {
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            background: white;
+            font-size: 14px;
+            padding: 10px 12px;
         }
 
         .day-item {
-            background: #f9fafb;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-        }
-
-        .day-item:hover {
-            border-color: #4f46e5;
-        }
-
-        .day-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .day-number {
-            background: #4f46e5;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-        }
-
-        .remove-day-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .remove-day-btn:hover {
-            background: #dc2626;
-            transform: scale(1.1);
-        }
-
-        .add-day-btn {
-            width: 100%;
             padding: 15px;
-            background: #10b981;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
         }
 
-        .add-day-btn:hover {
-            background: #059669;
-            transform: translateY(-1px);
+        .days-container {
+            max-height: 300px;
         }
-
-        .submit-section {
-            text-align: center;
-            padding: 30px;
-            background: #f9fafb;
-            border-radius: 16px;
-            margin-top: 30px;
-        }
-
-        .submit-btn {
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            min-width: 200px;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.4);
-        }
-
-        .submit-btn:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #6b7280;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #e5e7eb;
-            border-radius: 50%;
-            border-top-color: #4f46e5;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .success-message {
-            background: #dcfdf4;
-            color: #065f46;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 2px solid #10b981;
-        }
-
-        .error-message {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 2px solid #ef4444;
-        }
-
-        @media (max-width: 768px) {
-            .form-container {
-                padding: 20px;
-            }
-            
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .back-btn {
-                position: static;
-                margin-bottom: 20px;
-                display: inline-block;
-            }
-            
-            .header h1 {
-                font-size: 2rem;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     
@@ -370,16 +470,40 @@
                                    placeholder="Ví dụ: Học Python từ cơ bản đến nâng cao">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Danh mục *</label>
-                            <select class="form-select" name="category" required>
-                                <option value="">Chọn danh mục</option>
-                                <option value="Lập trình">Lập trình</option>
-                                <option value="Marketing">Marketing</option>
-                                <option value="Thiết kế">Thiết kế</option>
-                                <option value="Ngoại ngữ">Ngoại ngữ</option>
-                                <option value="Kinh doanh">Kinh doanh</option>
-                                <option value="Kỹ năng mềm">Kỹ năng mềm</option>
-                            </select>
+                            <label class="form-label">Danh mục * (có thể chọn nhiều)</label>
+                            <div class="checkbox-group">
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Lập trình">
+                                    <span>Lập trình</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Marketing">
+                                    <span>Marketing</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Thiết kế">
+                                    <span>Thiết kế</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Ngoại ngữ">
+                                    <span>Ngoại ngữ</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Kinh doanh">
+                                    <span>Kinh doanh</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="Kỹ năng mềm">
+                                    <span>Kỹ năng mềm</span>
+                                </label>
+                                <label>
+                                    <input type="checkbox" name="category[]" value="other" id="categoryOther">
+                                    <span>Khác</span>
+                                </label>
+                            </div>
+                            <input type="text" class="form-input" id="categoryOtherText" 
+                                placeholder="Nhập danh mục khác..." 
+                                style="display:none; margin-top:10px;">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Danh mục chi tiết</label>
@@ -388,12 +512,27 @@
                         </div>
                         <div class="form-group">
                             <label class="form-label">Trình độ hiện tại *</label>
-                            <select class="form-select" name="startLevel" required>
-                                <option value="">Chọn trình độ</option>
-                                <option value="Beginner">Beginner (Mới bắt đầu)</option>
-                                <option value="Intermediate">Intermediate (Trung bình)</option>
-                                <option value="Advanced">Advanced (Nâng cao)</option>
-                            </select>
+                            <div class="checkbox-group">
+                                <label>
+                                    <input type="radio" name="startLevel" value="Beginner" required>
+                                    <span>Beginner (Mới bắt đầu)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="startLevel" value="Intermediate">
+                                    <span>Intermediate (Trung bình)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="startLevel" value="Advanced">
+                                    <span>Advanced (Nâng cao)</span>
+                                </label>
+                                <label>
+                                    <input type="radio" name="startLevel" value="other" id="levelOther">
+                                    <span>Khác</span>
+                                </label>
+                            </div>
+                            <input type="text" class="form-input" id="levelOtherText" 
+                                placeholder="Mô tả trình độ của bạn..." 
+                                style="display:none; margin-top:10px;">
                         </div>
                     </div>
                 </div>
@@ -522,7 +661,6 @@
                 }
                 return;
             }
-
             if (daysVal > MAX_AI_DAYS) {
                 if (warning) warning.style.display = 'block';
                 if (aiBtn) {
@@ -539,15 +677,71 @@
                 }
             }
         }
+        // === XỬ LÝ CHECKBOX "KHÁC" CHO CATEGORY ===
+        document.getElementById('categoryOther').addEventListener('change', function() {
+            const textbox = document.getElementById('categoryOtherText');
+            if (this.checked) {
+                textbox.style.display = 'block';
+                textbox.required = true;
+            } else {
+                textbox.style.display = 'none';
+                textbox.required = false;
+                textbox.value = '';
+            }
+        });
 
+        // === XỬ LÝ RADIO "KHÁC" CHO START LEVEL ===
+        document.getElementById('levelOther').addEventListener('change', function() {
+            const textbox = document.getElementById('levelOtherText');
+            if (this.checked) {
+                textbox.style.display = 'block';
+                textbox.required = true;
+            } else {
+                textbox.style.display = 'none';
+                textbox.required = false;
+                textbox.value = '';
+            }
+        });
+
+        // Ẩn textbox khi chọn level khác
+        document.querySelectorAll('input[name="startLevel"]:not(#levelOther)').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const textbox = document.getElementById('levelOtherText');
+                textbox.style.display = 'none';
+                textbox.required = false;
+                textbox.value = '';
+            });
+        });
         async function generateRoadmapWithAI() {
             if (isGenerating) return;
 
             const form = document.getElementById('roadmapForm');
             const formData = new FormData(form);
 
+            const selectedCategories = [];
+            document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
+                if (cb.value === 'other') {
+                    const otherText = document.getElementById('categoryOtherText').value.trim();
+                    if (otherText) selectedCategories.push(otherText);
+                } else {
+                    selectedCategories.push(cb.value);
+                }
+            });
+
+            // === THU THẬP START LEVEL ===
+            let startLevel = '';
+            const levelRadio = document.querySelector('input[name="startLevel"]:checked');
+            if (levelRadio) {
+                if (levelRadio.value === 'other') {
+                    startLevel = document.getElementById('levelOtherText').value.trim();
+                } else {
+                    startLevel = levelRadio.value;
+                }
+            }
+
             // Validate required fields
-            if (!formData.get('roadmapName') || !formData.get('category') || !formData.get('durationDays') || !formData.get('hoursPerDay')) {
+            if (!formData.get('roadmapName') || selectedCategories.length === 0 || 
+                !formData.get('durationDays') || !formData.get('hoursPerDay') || !startLevel) {
                 showNotification('Vui lòng điền đầy đủ thông tin cơ bản trước khi sử dụng AI!', 'error');
                 return;
             }
@@ -569,9 +763,9 @@
             try {
                 const roadmapData = {
                     roadmap_name: formData.get('roadmapName'),
-                    category: formData.get('category'),
+                    category: selectedCategories.join(', '), // Ghép nhiều category bằng dấu phẩy
                     sub_category: formData.get('subCategory') || '',
-                    start_level: formData.get('startLevel'),
+                    start_level: startLevel,
                     duration_days: parseInt(formData.get('durationDays')),
                     duration_hours: parseFloat(formData.get('hoursPerDay')) * parseInt(formData.get('durationDays')),
                     expected_outcome: formData.get('expectedOutcome')
@@ -735,16 +929,39 @@
             try {
                 const formData = new FormData(this);
 
+                // === THU THẬP CATEGORIES ===
+                const selectedCategories = [];
+                document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
+                    if (cb.value === 'other') {
+                        const otherText = document.getElementById('categoryOtherText').value.trim();
+                        if (otherText) selectedCategories.push(otherText);
+                    } else {
+                        selectedCategories.push(cb.value);
+                    }
+                });
+
+                // === THU THẬP START LEVEL ===
+                let startLevel = '';
+                const levelRadio = document.querySelector('input[name="startLevel"]:checked');
+                if (levelRadio) {
+                    if (levelRadio.value === 'other') {
+                        startLevel = document.getElementById('levelOtherText').value.trim();
+                    } else {
+                        startLevel = levelRadio.value;
+                    }
+                }
+
                 // Collect basic roadmap data
                 const roadmapData = {
                     roadmap_name: formData.get('roadmapName'),
-                    category: formData.get('category'),
+                    category: selectedCategories.join(', '),
                     sub_category: formData.get('subCategory') || null,
-                    start_level: formData.get('startLevel'),
+                    start_level: startLevel,
                     duration_days: parseInt(formData.get('durationDays')),
                     duration_hours: parseFloat(formData.get('hoursPerDay')) * parseInt(formData.get('durationDays')),
                     expected_outcome: formData.get('expectedOutcome')
                 };
+
 
                 // Collect days data
                 const days = [];
@@ -804,22 +1021,29 @@
         });
 
         // Auto-populate sub-category based on category
-        document.querySelector('select[name="category"]').addEventListener('change', function() {
-            const subCategoryInput = document.querySelector('input[name="subCategory"]');
-            const suggestions = {
-                'Lập trình': 'Web Development',
-                'Marketing': 'Digital Marketing',
-                'Thiết kế': 'UI/UX Design',
-                'Ngoại ngữ': 'English Communication',
-                'Kinh doanh': 'Business Strategy',
-                'Kỹ năng mềm': 'Communication Skills'
-            };
+        // Auto-populate sub-category based on selected categories
+        document.querySelectorAll('input[name="category[]"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const subCategoryInput = document.querySelector('input[name="subCategory"]');
+                const suggestions = {
+                    'Lập trình': 'Web Development',
+                    'Marketing': 'Digital Marketing',
+                    'Thiết kế': 'UI/UX Design',
+                    'Ngoại ngữ': 'English Communication',
+                    'Kinh doanh': 'Business Strategy',
+                    'Kỹ năng mềm': 'Communication Skills'
+                };
 
-            if (suggestions[this.value]) {
-                subCategoryInput.placeholder = `Ví dụ: ${suggestions[this.value]}`;
-            } else {
-                subCategoryInput.placeholder = 'Ví dụ: Web Development, Data Science';
-            }
+                // Lấy checkbox đầu tiên được chọn (không phải "other")
+                const firstSelected = Array.from(document.querySelectorAll('input[name="category[]"]:checked'))
+                    .find(cb => cb.value !== 'other');
+
+                if (firstSelected && suggestions[firstSelected.value]) {
+                    subCategoryInput.placeholder = `Ví dụ: ${suggestions[firstSelected.value]}`;
+                } else {
+                    subCategoryInput.placeholder = 'Ví dụ: Web Development, Data Science';
+                }
+            });
         });
 
         // Auto-calculate total hours
