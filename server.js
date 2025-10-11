@@ -372,154 +372,282 @@ async function validateUrlQuick(url, timeout = 8000) {
 
 // ✅ SIMPLIFIED: 1 PROMPT CHUNG CHO MỌI CATEGORY - KHÔNG VALIDATE
 async function getSpecificExerciseLink(topic, category, dayNumber, learningContent) {
-  try {
-    const systemPrompt = `You are an expert at finding specific practice exercise URLs for any subject.
+  const MAX_ATTEMPTS = 2;
+  
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const systemPrompt = `You are an expert at finding SPECIFIC exercise URLs.
 
-TASK: Find 1 URL to a SPECIFIC exercise/practice problem page.
+CRITICAL: Return a URL with FULL PATH to ONE specific exercise.
 
-CRITICAL RULES:
-1. Return ONLY a URL - nothing else, no explanation
-2. URL must lead to a SPECIFIC exercise page with full path
-3. DO NOT return:
-   - Homepage URLs (ending with .com/ or .org/)
-   - Dashboard pages (/dashboard)
-   - General lists (/problems, /exercises)
-4. Choose appropriate difficulty for Day ${dayNumber}
+REQUIRED FORMAT: https://domain.com/section/specific-exercise-name
 
-GOOD EXAMPLES:
-✅ https://leetcode.com/problems/two-sum/
-✅ https://www.perfect-english-grammar.com/present-simple-exercise-1.html
-✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:solving-equations
+GOOD EXAMPLES (at least 2 path segments):
+✅ https://leetcode.com/problems/two-sum/description/
+✅ https://www.codewars.com/kata/5270d0d18625160ada0000e4/train
+✅ https://exercism.org/tracks/python/exercises/hello-world
 ✅ https://www.hackerrank.com/challenges/solve-me-first/problem
+✅ https://www.perfect-english-grammar.com/present-simple-exercise-1.html
+✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:linear-equations-functions/solving-equations/e/one-step-equations
 
-BAD EXAMPLES (DO NOT RETURN):
-❌ https://leetcode.com/
-❌ https://www.khanacademy.org/
-❌ https://example.com/problems
+WRONG EXAMPLES - DO NOT RETURN:
+❌ https://leetcode.com (homepage)
+❌ https://leetcode.com/problems (list of problems)
+❌ https://www.codewars.com/kata (list of kata)
+❌ https://exercism.org/tracks (list of tracks)
+❌ https://www.khanacademy.org/math (category page)
 
-OUTPUT: Just the URL, nothing else.`;
+RULES:
+1. URL must have at least 2 path parts after domain
+2. Must point to ONE specific exercise, not a list
+3. Return ONLY the URL, no explanation
 
-    const userPrompt = `Find specific exercise URL for Day ${dayNumber}:
+For Day ${dayNumber}, choose appropriate difficulty level.`;
+
+      const userPrompt = `Find ONE specific exercise URL for Day ${dayNumber}:
 Topic: "${topic}"
 Category: ${category}
-Content: "${learningContent.substring(0, 100)}..."`;
+Content: "${learningContent.substring(0, 100)}..."
 
-    console.log(`🔍 Day ${dayNumber} - AI finding exercise...`);
+Return format: https://site.com/category/specific-exercise-name`;
 
-    const completion = await callOpenAIWithFallback({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      desiredCompletionTokens: 100
-    });
+      console.log(`🔍 Day ${dayNumber} - Exercise attempt ${attempt}/${MAX_ATTEMPTS}`);
 
-    const text = completion?.choices?.[0]?.message?.content?.trim();
-    
-    if (!text) {
-      console.warn(`❌ Day ${dayNumber}: AI empty response (exercise)`);
+      const completion = await callOpenAIWithFallback({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        desiredCompletionTokens: 150
+      });
+
+      const text = completion?.choices?.[0]?.message?.content?.trim();
+      
+      if (!text) {
+        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: Empty AI response`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+      console.log(`📥 Day ${dayNumber} attempt ${attempt}: "${text.substring(0, 100)}"`);
+
+      const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+      if (!urlMatch) {
+        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: No URL found`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+      let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
+      
+      // ✅ VALIDATION NGHIÊM NGẶT
+      try {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+        
+        console.log(`🔎 Day ${dayNumber} attempt ${attempt}: Validating "${url}"`);
+        console.log(`   → ${pathParts.length} path segments: [${pathParts.join(', ')}]`);
+        
+        // Rule 1: Must have at least 2 path segments
+        if (pathParts.length < 2) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Too few segments (${pathParts.length})`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+        
+        // Rule 2: Last segment must NOT be a list/category keyword
+        const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
+        const bannedWords = ['problems', 'exercises', 'challenges', 'kata', 'practice', 'lessons', 'courses', 'blog', 'articles', 'learn', 'tutorials', 'dashboard', 'tracks'];
+        
+        if (bannedWords.includes(lastSegment)) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment is banned word "${lastSegment}"`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+        
+        // Rule 3: If only 2 segments, last one must be meaningful (>4 chars)
+        if (pathParts.length === 2 && lastSegment.length < 5) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment too short "${lastSegment}"`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+
+        console.log(`✅ Day ${dayNumber} attempt ${attempt}: VALID exercise link`);
+        return url;
+        
+      } catch (urlError) {
+        console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Invalid URL format`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+    } catch (error) {
+      console.error(`❌ Day ${dayNumber} attempt ${attempt} error:`, error.message);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
       return null;
     }
-
-    console.log(`📥 Day ${dayNumber} AI said: "${text.substring(0, 120)}"`);
-
-    // Extract URL
-    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
-    if (!urlMatch) {
-      console.warn(`❌ Day ${dayNumber}: No URL found in response`);
-      return null;
-    }
-
-    let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
-    
-    // ONLY reject pure homepage (no path at all)
-    if (/^https?:\/\/[^/]+\/?$/.test(url)) {
-      console.warn(`❌ Day ${dayNumber}: Rejected homepage: ${url}`);
-      return null;
-    }
-
-    console.log(`✅ Day ${dayNumber} exercise: ${url}`);
-    return url;
-
-  } catch (e) {
-    console.error(`❌ Day ${dayNumber} exercise error:`, e.message);
-    return null;
   }
+  
+  return null;
 }
 
 async function getSpecificMaterialLink(topic, category, dayNumber, learningContent) {
-  try {
-    const systemPrompt = `You are an expert at finding specific learning material URLs for any subject.
+  const MAX_ATTEMPTS = 2;
+  
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const systemPrompt = `You are an expert at finding SPECIFIC tutorial/article URLs.
 
-TASK: Find 1 URL to a SPECIFIC tutorial/article/lesson page.
+CRITICAL: Return a URL with FULL PATH to ONE specific tutorial or article.
 
-CRITICAL RULES:
-1. Return ONLY a URL - nothing else, no explanation
-2. URL must lead to a SPECIFIC article/tutorial with full path
-3. DO NOT return:
-   - Homepage URLs (ending with .com/ or .org/)
-   - General category pages
-   - Article lists (/blog, /articles)
-4. Choose appropriate level for Day ${dayNumber}
+REQUIRED FORMAT: https://domain.com/section/specific-article-name
 
-GOOD EXAMPLES:
+GOOD EXAMPLES (at least 2 path segments):
 ✅ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions
-✅ https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate/unit-1
+✅ https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate/unit-1/session-1
 ✅ https://www.geeksforgeeks.org/dynamic-programming/
-✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:foundation-algebra
+✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:foundation-algebra/x2f8bb11595b61c86:variables
+✅ https://www.freecodecamp.org/news/javascript-closures-explained/
+✅ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 
-BAD EXAMPLES (DO NOT RETURN):
-❌ https://developer.mozilla.org/
-❌ https://www.bbc.co.uk/learningenglish/
-❌ https://example.com/blog
+WRONG EXAMPLES - DO NOT RETURN:
+❌ https://developer.mozilla.org (homepage)
+❌ https://developer.mozilla.org/docs (category)
+❌ https://www.bbc.co.uk/learningenglish (homepage)
+❌ https://www.geeksforgeeks.org (homepage)
+❌ https://www.khanacademy.org/math (category page)
 
-OUTPUT: Just the URL, nothing else.`;
+RULES:
+1. URL must have at least 2 path parts after domain
+2. Must point to ONE specific tutorial/article, not a list
+3. Return ONLY the URL, no explanation
 
-    const userPrompt = `Find specific learning material URL for Day ${dayNumber}:
+For Day ${dayNumber}, choose appropriate level.`;
+
+      const userPrompt = `Find ONE specific tutorial/article URL for Day ${dayNumber}:
 Topic: "${topic}"
 Category: ${category}
-Content: "${learningContent.substring(0, 100)}..."`;
+Content: "${learningContent.substring(0, 100)}..."
 
-    console.log(`🔍 Day ${dayNumber} - AI finding material...`);
+Return format: https://site.com/category/specific-article-name`;
 
-    const completion = await callOpenAIWithFallback({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      desiredCompletionTokens: 100
-    });
+      console.log(`🔍 Day ${dayNumber} - Material attempt ${attempt}/${MAX_ATTEMPTS}`);
 
-    const text = completion?.choices?.[0]?.message?.content?.trim();
-    
-    if (!text) {
-      console.warn(`❌ Day ${dayNumber}: AI empty response (material)`);
+      const completion = await callOpenAIWithFallback({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        desiredCompletionTokens: 150
+      });
+
+      const text = completion?.choices?.[0]?.message?.content?.trim();
+      
+      if (!text) {
+        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: Empty AI response`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+      console.log(`📥 Day ${dayNumber} attempt ${attempt}: "${text.substring(0, 100)}"`);
+
+      const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+      if (!urlMatch) {
+        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: No URL found`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+      let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
+      
+      // ✅ VALIDATION NGHIÊM NGẶT
+      try {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+        
+        console.log(`🔎 Day ${dayNumber} attempt ${attempt}: Validating "${url}"`);
+        console.log(`   → ${pathParts.length} path segments: [${pathParts.join(', ')}]`);
+        
+        if (pathParts.length < 2) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Too few segments (${pathParts.length})`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+        
+        const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
+        const bannedWords = ['blog', 'articles', 'tutorials', 'learn', 'docs', 'guides', 'courses', 'lessons', 'posts', 'news'];
+        
+        if (bannedWords.includes(lastSegment)) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment is banned word "${lastSegment}"`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+        
+        if (pathParts.length === 2 && lastSegment.length < 5) {
+          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment too short "${lastSegment}"`);
+          if (attempt < MAX_ATTEMPTS) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          return null;
+        }
+
+        console.log(`✅ Day ${dayNumber} attempt ${attempt}: VALID material link`);
+        return url;
+        
+      } catch (urlError) {
+        console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Invalid URL format`);
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        return null;
+      }
+
+    } catch (error) {
+      console.error(`❌ Day ${dayNumber} attempt ${attempt} error:`, error.message);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
       return null;
     }
-
-    console.log(`📥 Day ${dayNumber} AI said: "${text.substring(0, 120)}"`);
-
-    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
-    if (!urlMatch) {
-      console.warn(`❌ Day ${dayNumber}: No URL found in response`);
-      return null;
-    }
-
-    let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
-    
-    // ONLY reject pure homepage
-    if (/^https?:\/\/[^/]+\/?$/.test(url)) {
-      console.warn(`❌ Day ${dayNumber}: Rejected homepage: ${url}`);
-      return null;
-    }
-
-    console.log(`✅ Day ${dayNumber} material: ${url}`);
-    return url;
-
-  } catch (e) {
-    console.error(`❌ Day ${dayNumber} material error:`, e.message);
-    return null;
   }
+  
+  return null;
 }
 // Fallback links by category - ĐẦY ĐỦ CHO MỌI CATEGORY
 const FALLBACK_LINKS = {
@@ -885,67 +1013,35 @@ Hãy tạo lộ trình chi tiết, thực tế, dễ theo dõi.`;
     console.log(`🔗 Fetching specific links for ${normalizedDays.length} days...`);
     
     const fallbackLinks = getFallbackLinks(category);
-    console.log(`\n🔗 ===== STARTING LINK ENRICHMENT FOR ${normalizedDays.length} DAYS =====\n`);
-
+    console.log(`🔗 ===== LINK ENRICHMENT START (${normalizedDays.length} days) =====`);
+        
     const enrichmentPromises = normalizedDays.map(async (day, index) => {
-      console.log(`\n--- Day ${day.day_number} START ---`);
-      console.log(`Topic: "${day.daily_goal}"`);
-      console.log(`Category: ${category}`);
+      console.log(`\n━━━ Day ${day.day_number} START ━━━`);
       
       const topic = day.daily_goal;
       const content = day.learning_content;
-      
-      // Retry logic: thử 2 lần cho mỗi link
-      let exerciseLink = null;
-      let materialLink = null;
-      
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        if (!exerciseLink) {
-          console.log(`\n🔄 Day ${day.day_number} - Exercise attempt ${attempt}/2`);
-          exerciseLink = await getSpecificExerciseLink(topic, category, day.day_number, content);
-          if (exerciseLink) {
-            console.log(`✅ Day ${day.day_number} GOT exercise on attempt ${attempt}: ${exerciseLink}`);
-          } else {
-            console.log(`⚠️ Day ${day.day_number} NO exercise on attempt ${attempt}`);
-          }
-        }
-        
-        if (!materialLink) {
-          console.log(`\n🔄 Day ${day.day_number} - Material attempt ${attempt}/2`);
-          materialLink = await getSpecificMaterialLink(topic, category, day.day_number, content);
-          if (materialLink) {
-            console.log(`✅ Day ${day.day_number} GOT material on attempt ${attempt}: ${materialLink}`);
-          } else {
-            console.log(`⚠️ Day ${day.day_number} NO material on attempt ${attempt}`);
-          }
-        }
-        
-        if (exerciseLink && materialLink) {
-          console.log(`🎉 Day ${day.day_number} - BOTH links found!`);
-          break;
-        }
-        
-        // Delay between attempts
-        if (attempt === 1 && (!exerciseLink || !materialLink)) {
-          console.log(`⏳ Day ${day.day_number} - Waiting 500ms before retry...`);
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-      }
-
-      // Fallback if needed
       const fallbackLinks = getFallbackLinks(category);
       
+      // Try to get AI-generated links (with 2 attempts each)
+      let exerciseLink = await getSpecificExerciseLink(topic, category, day.day_number, content);
+      let materialLink = await getSpecificMaterialLink(topic, category, day.day_number, content);
+      
+      // Use smart fallback if AI failed
       if (!exerciseLink) {
         exerciseLink = fallbackLinks.exercises[index % fallbackLinks.exercises.length];
-        console.log(`⚠️ Day ${day.day_number} using FALLBACK exercise: ${exerciseLink}`);
+        console.log(`⚠️ Day ${day.day_number}: Using FALLBACK exercise → ${exerciseLink}`);
+      } else {
+        console.log(`🎉 Day ${day.day_number}: AI exercise SUCCESS → ${exerciseLink}`);
       }
 
       if (!materialLink) {
         materialLink = fallbackLinks.materials[index % fallbackLinks.materials.length];
-        console.log(`⚠️ Day ${day.day_number} using FALLBACK material: ${materialLink}`);
+        console.log(`⚠️ Day ${day.day_number}: Using FALLBACK material → ${materialLink}`);
+      } else {
+        console.log(`🎉 Day ${day.day_number}: AI material SUCCESS → ${materialLink}`);
       }
 
-      console.log(`--- Day ${day.day_number} END ---\n`);
+      console.log(`━━━ Day ${day.day_number} END ━━━\n`);
 
       return {
         ...day,
@@ -955,6 +1051,9 @@ Hãy tạo lộ trình chi tiết, thực tế, dễ theo dõi.`;
     });
 
     const enrichedDays = await Promise.all(enrichmentPromises);
+
+    console.log(`\n✅ ===== LINK ENRICHMENT COMPLETE =====`);
+    console.log(`📊 Total days processed: ${enrichedDays.length}`);
 
     console.log(`✅ Successfully enriched roadmap with ${enrichedDays.length} days`);
 
