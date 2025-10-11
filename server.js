@@ -372,283 +372,332 @@ async function validateUrlQuick(url, timeout = 8000) {
 
 // ✅ SIMPLIFIED: 1 PROMPT CHUNG CHO MỌI CATEGORY - KHÔNG VALIDATE
 async function getSpecificExerciseLink(topic, category, dayNumber, learningContent) {
-  const MAX_ATTEMPTS = 2;
-  
+  const MAX_ATTEMPTS = 5;
+  const DEBUG = true; // Bật log cho test
+  const USE_PUPPETEER = true; // Nếu GET trả HTML rỗng/JS-heavy thì thử Puppeteer
+  const ENFORCE_WHITELIST = false; // true => chỉ chấp nhận domains trong WHITELIST_DOMAINS
+  const WHITELIST_DOMAINS = [
+    'leetcode.com','codeforces.com','atcoder.jp','geeksforgeeks.org',
+    'hackerrank.com','freecodecamp.org','edabit.com','uva.onlinejudge.org',
+    'interviewbit.com','cses.fi'
+  ];
+
+  const KEYWORD_TOKENS = topic.toLowerCase().split(/\W+/).filter(Boolean).slice(0, 4);
+
+  const fetchWithTimeout = async (url, opts = {}, timeout = 5000) => {
+    if (typeof fetch === 'undefined') {
+      // If Node <18 you must polyfill fetch in your project (node-fetch)
+      throw new Error('fetch not available - polyfill required for fetchWithTimeout');
+    }
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const res = await fetch(url, { ...opts, signal: controller.signal });
+      clearTimeout(id);
+      return res;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
+    }
+  };
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      const systemPrompt = `You are an expert at finding SPECIFIC exercise URLs.
+      const systemPrompt = `You are an expert at finding ONE SPECIFIC exercise URL for a given topic.
+OUTPUT EXACT FORMAT (single line): <URL> --- keyword: <one_word_from_topic>
+Rules:
+- Return a URL that points directly to a single exercise/problem page (not a category, course, or listing).
+- URL must have at least 2 non-empty path segments.
+- Avoid pages that are generic landing/overview/course lists.
+- Include exactly one short keyword after '--- keyword:' that is clearly related to the topic.`;
 
-CRITICAL: Return a URL with FULL PATH to ONE specific exercise.
-
-REQUIRED FORMAT: https://domain.com/section/specific-exercise-name
-
-GOOD EXAMPLES (at least 2 path segments):
-✅ https://leetcode.com/problems/two-sum/description/
-✅ https://www.codewars.com/kata/5270d0d18625160ada0000e4/train
-✅ https://exercism.org/tracks/python/exercises/hello-world
-✅ https://www.hackerrank.com/challenges/solve-me-first/problem
-✅ https://www.perfect-english-grammar.com/present-simple-exercise-1.html
-✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:linear-equations-functions/solving-equations/e/one-step-equations
-
-WRONG EXAMPLES - DO NOT RETURN:
-❌ https://leetcode.com (homepage)
-❌ https://leetcode.com/problems (list of problems)
-❌ https://www.codewars.com/kata (list of kata)
-❌ https://exercism.org/tracks (list of tracks)
-❌ https://www.khanacademy.org/math (category page)
-
-RULES:
-1. URL must have at least 2 path parts after domain
-2. Must point to ONE specific exercise, not a list
-3. Return ONLY the URL, no explanation
-
-For Day ${dayNumber}, choose appropriate difficulty level.`;
-
-      const userPrompt = `Find ONE specific exercise URL for Day ${dayNumber}:
-Topic: "${topic}"
-Category: ${category}
-Content: "${learningContent.substring(0, 100)}..."
-
-Return format: https://site.com/category/specific-exercise-name`;
-
-      console.log(`🔍 Day ${dayNumber} - Exercise attempt ${attempt}/${MAX_ATTEMPTS}`);
+      const userPrompt = `Day ${dayNumber}. Topic: "${topic}". Category: "${category}".
+Focus: "${learningContent.substring(0, 300)}".
+Return a concrete exercise URL and one short keyword (format above).`;
 
       const completion = await callOpenAIWithFallback({
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        desiredCompletionTokens: 150
+        model: "gpt-5-nano",
+        temperature: 1,
+        desiredCompletionTokens: 220
       });
 
       const text = completion?.choices?.[0]?.message?.content?.trim();
-      
       if (!text) {
-        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: Empty AI response`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          continue;
-        }
-        return null;
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] no text from model`);
+        continue;
       }
 
-      console.log(`📥 Day ${dayNumber} attempt ${attempt}: "${text.substring(0, 100)}"`);
-
-      const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+      const urlMatch = text.match(/https?:\/\/[^\s"'()<>\]]+/i);
+      const kwMatch = text.match(/keyword:\s*([^\s]+)/i);
       if (!urlMatch) {
-        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: No URL found`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          continue;
-        }
-        return null;
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] no URL in model output:`, text);
+        continue;
       }
 
       let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
-      
-      // ✅ VALIDATION NGHIÊM NGẶT
+      // whitelist enforcement
       try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
-        
-        console.log(`🔎 Day ${dayNumber} attempt ${attempt}: Validating "${url}"`);
-        console.log(`   → ${pathParts.length} path segments: [${pathParts.join(', ')}]`);
-        
-        // Rule 1: Must have at least 2 path segments
-        if (pathParts.length < 2) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Too few segments (${pathParts.length})`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-        
-        // Rule 2: Last segment must NOT be a list/category keyword
-        const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
-        const bannedWords = ['problems', 'exercises', 'challenges', 'kata', 'practice', 'lessons', 'courses', 'blog', 'articles', 'learn', 'tutorials', 'dashboard', 'tracks'];
-        
-        if (bannedWords.includes(lastSegment)) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment is banned word "${lastSegment}"`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-        
-        // Rule 3: If only 2 segments, last one must be meaningful (>4 chars)
-        if (pathParts.length === 2 && lastSegment.length < 5) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment too short "${lastSegment}"`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-
-        console.log(`✅ Day ${dayNumber} attempt ${attempt}: VALID exercise link`);
-        return url;
-        
-      } catch (urlError) {
-        console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Invalid URL format`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        const hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+        if (ENFORCE_WHITELIST && !WHITELIST_DOMAINS.some(d => hostname.endsWith(d))) {
+          if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] domain not in whitelist:`, hostname);
           continue;
         }
-        return null;
-      }
-
-    } catch (error) {
-      console.error(`❌ Day ${dayNumber} attempt ${attempt} error:`, error.message);
-      if (attempt < MAX_ATTEMPTS) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (e) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] invalid URL parse`, e.message);
         continue;
       }
-      return null;
+
+      const quickOk = await validateUrlQuick(url, 4000).catch(e => { if (DEBUG) console.log('validateUrlQuick err', e.message); return false; });
+      if (!quickOk) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] validateUrlQuick failed for`, url);
+        continue;
+      }
+
+      // path check
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+      if (pathParts.length < 2) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] path too short:`, url);
+        continue;
+      }
+
+      const bannedWords = ['problems','exercises','challenges','kata','practice','lessons','courses','blog','articles','learn','tutorials','dashboard','tracks','overview','topics'];
+      const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
+      if (bannedWords.includes(lastSegment)) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] banned last segment:`, lastSegment);
+        continue;
+      }
+
+      // fetch page and inspect title/meta/body for topic tokens
+      let pageText = '';
+      try {
+        // HEAD quick check
+        try {
+          const head = await fetchWithTimeout(url, { method: 'HEAD', headers: { 'User-Agent': 'Mozilla/5.0' } }, 2500);
+          const ct = (head.headers.get('content-type') || '').toLowerCase();
+          if (!ct.includes('text/html') && !ct.includes('application/xhtml+xml')) {
+            // still continue to GET once - some sites mis-report
+          }
+        } catch (e) {
+          // ignore HEAD failure
+        }
+        const getRes = await fetchWithTimeout(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' } }, 5000);
+        if (!getRes.ok) {
+          if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] GET failed status`, getRes.status);
+          continue;
+        }
+        pageText = await getRes.text();
+      } catch (e) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] fetch failed`, e.message);
+        // try puppeteer below if allowed
+        pageText = '';
+      }
+
+      // if pageText is empty or doesn't contain tokens, optionally try Puppeteer (for JS-heavy pages)
+      const loweredFetch = (pageText || '').toLowerCase();
+      const reportedKw = kwMatch ? kwMatch[1].toLowerCase() : '';
+      let tokenMatch = KEYWORD_TOKENS.some(t => t && loweredFetch.includes(t));
+      let reportedPresent = reportedKw && loweredFetch.includes(reportedKw);
+
+      if ((!tokenMatch && !reportedPresent) && USE_PUPPETEER) {
+        // attempt puppeteer render once
+        try {
+          if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] trying puppeteer for`, url);
+          let puppeteer;
+          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
+          if (puppeteer) {
+            const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
+            const page = await browser.newPage();
+            await page.setUserAgent('Mozilla/5.0');
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 8000 }).catch(()=>{});
+            const content = await page.content();
+            await browser.close();
+            const lowered = content.toLowerCase();
+            tokenMatch = KEYWORD_TOKENS.some(t => t && lowered.includes(t));
+            reportedPresent = reportedKw && lowered.includes(reportedKw);
+            pageText = content;
+          }
+        } catch (e) {
+          if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] puppeteer error`, e.message);
+        }
+      }
+
+      if (!(tokenMatch || reportedPresent)) {
+        if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] keyword not found in page/title/meta`, { url, reportedKw, KEYWORD_TOKENS });
+        continue;
+      }
+
+      if (DEBUG) console.log(`[Exercise][Accepted] attempt ${attempt} -> ${url}`);
+      return url;
+    } catch (err) {
+      if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] exception`, err && err.message);
+      continue;
     }
   }
-  
+
   return null;
 }
+
 
 async function getSpecificMaterialLink(topic, category, dayNumber, learningContent) {
-  const MAX_ATTEMPTS = 2;
-  
+  const MAX_ATTEMPTS = 5;
+  const DEBUG = true;
+  const USE_PUPPETEER = true;
+  const ENFORCE_WHITELIST = false;
+  const WHITELIST_DOMAINS = [
+    'developer.mozilla.org','freecodecamp.org','geeksforgeeks.org','w3schools.com',
+    'tutorialspoint.com','medium.com','dev.to','stackabuse.com'
+  ];
+
+  const KEYWORD_TOKENS = topic.toLowerCase().split(/\W+/).filter(Boolean).slice(0, 4);
+
+  const fetchWithTimeout = async (url, opts = {}, timeout = 5000) => {
+    if (typeof fetch === 'undefined') throw new Error('fetch not available - polyfill required');
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const res = await fetch(url, { ...opts, signal: controller.signal });
+      clearTimeout(id);
+      return res;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
+    }
+  };
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      const systemPrompt = `You are an expert at finding SPECIFIC tutorial/article URLs.
+      const systemPrompt = `You are an expert at finding ONE SPECIFIC tutorial/article/document URL for a given topic.
+OUTPUT EXACT FORMAT (single line): <URL> --- keyword: <one_word_from_topic>
+Rules:
+- Return a URL that points directly to a single article/tutorial/page (not a list or course landing).
+- URL must have at least 2 non-empty path segments.`;
 
-CRITICAL: Return a URL with FULL PATH to ONE specific tutorial or article.
-
-REQUIRED FORMAT: https://domain.com/section/specific-article-name
-
-GOOD EXAMPLES (at least 2 path segments):
-✅ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions
-✅ https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate/unit-1/session-1
-✅ https://www.geeksforgeeks.org/dynamic-programming/
-✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:foundation-algebra/x2f8bb11595b61c86:variables
-✅ https://www.freecodecamp.org/news/javascript-closures-explained/
-✅ https://css-tricks.com/snippets/css/a-guide-to-flexbox/
-
-WRONG EXAMPLES - DO NOT RETURN:
-❌ https://developer.mozilla.org (homepage)
-❌ https://developer.mozilla.org/docs (category)
-❌ https://www.bbc.co.uk/learningenglish (homepage)
-❌ https://www.geeksforgeeks.org (homepage)
-❌ https://www.khanacademy.org/math (category page)
-
-RULES:
-1. URL must have at least 2 path parts after domain
-2. Must point to ONE specific tutorial/article, not a list
-3. Return ONLY the URL, no explanation
-
-For Day ${dayNumber}, choose appropriate level.`;
-
-      const userPrompt = `Find ONE specific tutorial/article URL for Day ${dayNumber}:
-Topic: "${topic}"
-Category: ${category}
-Content: "${learningContent.substring(0, 100)}..."
-
-Return format: https://site.com/category/specific-article-name`;
-
-      console.log(`🔍 Day ${dayNumber} - Material attempt ${attempt}/${MAX_ATTEMPTS}`);
+      const userPrompt = `Day ${dayNumber}. Topic: "${topic}". Category: "${category}".
+Focus: "${learningContent.substring(0, 300)}".
+Return one concrete material URL and one short keyword (format above).`;
 
       const completion = await callOpenAIWithFallback({
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        desiredCompletionTokens: 150
+        model: "gpt-5-nano",
+        temperature: 1,
+        desiredCompletionTokens: 220
       });
 
       const text = completion?.choices?.[0]?.message?.content?.trim();
-      
       if (!text) {
-        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: Empty AI response`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          continue;
-        }
-        return null;
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] no text`);
+        continue;
       }
 
-      console.log(`📥 Day ${dayNumber} attempt ${attempt}: "${text.substring(0, 100)}"`);
-
-      const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+      const urlMatch = text.match(/https?:\/\/[^\s"'()<>\]]+/i);
+      const kwMatch = text.match(/keyword:\s*([^\s]+)/i);
       if (!urlMatch) {
-        console.warn(`⚠️ Day ${dayNumber} attempt ${attempt}: No URL found`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
-          continue;
-        }
-        return null;
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] no url in output`, text);
+        continue;
       }
 
       let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
-      
-      // ✅ VALIDATION NGHIÊM NGẶT
+      // whitelist enforcement
       try {
-        const urlObj = new URL(url);
-        const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
-        
-        console.log(`🔎 Day ${dayNumber} attempt ${attempt}: Validating "${url}"`);
-        console.log(`   → ${pathParts.length} path segments: [${pathParts.join(', ')}]`);
-        
-        if (pathParts.length < 2) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Too few segments (${pathParts.length})`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-        
-        const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
-        const bannedWords = ['blog', 'articles', 'tutorials', 'learn', 'docs', 'guides', 'courses', 'lessons', 'posts', 'news'];
-        
-        if (bannedWords.includes(lastSegment)) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment is banned word "${lastSegment}"`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-        
-        if (pathParts.length === 2 && lastSegment.length < 5) {
-          console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Last segment too short "${lastSegment}"`);
-          if (attempt < MAX_ATTEMPTS) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-            continue;
-          }
-          return null;
-        }
-
-        console.log(`✅ Day ${dayNumber} attempt ${attempt}: VALID material link`);
-        return url;
-        
-      } catch (urlError) {
-        console.warn(`❌ Day ${dayNumber} attempt ${attempt}: Invalid URL format`);
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        const hostname = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+        if (ENFORCE_WHITELIST && !WHITELIST_DOMAINS.some(d => hostname.endsWith(d))) {
+          if (DEBUG) console.log(`[Material][Attempt ${attempt}] domain not in whitelist:`, hostname);
           continue;
         }
-        return null;
-      }
-
-    } catch (error) {
-      console.error(`❌ Day ${dayNumber} attempt ${attempt} error:`, error.message);
-      if (attempt < MAX_ATTEMPTS) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (e) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] invalid url parse`, e.message);
         continue;
       }
-      return null;
+
+      const quickOk = await validateUrlQuick(url, 4000).catch(e => { if (DEBUG) console.log('validateUrlQuick err', e.message); return false; });
+      if (!quickOk) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] validateUrlQuick failed`, url);
+        continue;
+      }
+
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/').filter(p => p.length > 0);
+      if (pathParts.length < 2) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] path too short`);
+        continue;
+      }
+
+      const bannedWords = ['blog','articles','learn','tutorials','overview','guide','dashboard','topics','courses'];
+      const lastSegment = pathParts[pathParts.length - 1].toLowerCase();
+      if (bannedWords.includes(lastSegment)) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] banned last segment`, lastSegment);
+        continue;
+      }
+
+      // fetch and inspect page
+      let pageText = '';
+      try {
+        try {
+          await fetchWithTimeout(url, { method: 'HEAD', headers: { 'User-Agent': 'Mozilla/5.0' } }, 2500);
+        } catch (e) { /* ignore HEAD failure */ }
+        const getRes = await fetchWithTimeout(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' } }, 5000);
+        if (!getRes.ok) {
+          if (DEBUG) console.log(`[Material][Attempt ${attempt}] GET not ok`, getRes.status);
+          continue;
+        }
+        pageText = await getRes.text();
+      } catch (e) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] fetch failed`, e.message);
+        pageText = '';
+      }
+
+      const loweredFetch = (pageText || '').toLowerCase();
+      const reportedKw = kwMatch ? kwMatch[1].toLowerCase() : '';
+      let tokenMatch = KEYWORD_TOKENS.some(t => t && loweredFetch.includes(t));
+      let reportedPresent = reportedKw && loweredFetch.includes(reportedKw);
+
+      if ((!tokenMatch && !reportedPresent) && USE_PUPPETEER) {
+        try {
+          if (DEBUG) console.log(`[Material][Attempt ${attempt}] trying puppeteer for`, url);
+          let puppeteer;
+          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
+          if (puppeteer) {
+            const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
+            const page = await browser.newPage();
+            await page.setUserAgent('Mozilla/5.0');
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 8000 }).catch(()=>{});
+            const content = await page.content();
+            await browser.close();
+            const lowered = content.toLowerCase();
+            tokenMatch = KEYWORD_TOKENS.some(t => t && lowered.includes(t));
+            reportedPresent = reportedKw && lowered.includes(reportedKw);
+            pageText = content;
+          }
+        } catch (e) {
+          if (DEBUG) console.log(`[Material][Attempt ${attempt}] puppeteer error`, e.message);
+        }
+      }
+
+      if (!(tokenMatch || reportedPresent)) {
+        if (DEBUG) console.log(`[Material][Attempt ${attempt}] keyword not found in page/title/meta`, { url, reportedKw, KEYWORD_TOKENS });
+        continue;
+      }
+
+      if (DEBUG) console.log(`[Material][Accepted] attempt ${attempt} -> ${url}`);
+      return url;
+    } catch (err) {
+      if (DEBUG) console.log(`[Material][Attempt ${attempt}] exception`, err && err.message);
+      continue;
     }
   }
-  
+
   return null;
 }
+
+
 // Fallback links by category - ĐẦY ĐỦ CHO MỌI CATEGORY
 const FALLBACK_LINKS = {
   programming: {
