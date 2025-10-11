@@ -370,184 +370,158 @@ async function validateUrlQuick(url, timeout = 8000) {
   }
 }
 
-// ✅ LỖI 2: CẢI THIỆN AI TÌM LINK CỤ THỂ - TĂNG ACCURACY LÊN 95%+
+// ✅ SIMPLIFIED: 1 PROMPT CHUNG CHO MỌI CATEGORY - KHÔNG VALIDATE
 async function getSpecificExerciseLink(topic, category, dayNumber, learningContent) {
   try {
-    const systemPrompt = `Bạn là chuyên gia tìm kiếm bài tập lập trình chính xác. 
-    
-QUY TẮC BẮT BUỘC:
-1. Trả về CHỈ MỘT URL cụ thể dẫn đến BÀI TẬP cụ thể
-2. URL PHẢI dẫn trực tiếp đến bài tập, KHÔNG phải trang chủ/dashboard/danh sách
-3. Ưu tiên các trang: HackerRank, LeetCode, GeeksForGeeks, Codeforces, CodeChef, CSES
-4. URL phải có path cụ thể với tên bài tập hoặc ID
+    const systemPrompt = `You are an expert at finding specific practice exercise URLs for any subject.
 
-VÍ DỤ URL TỐT:
-✅ https://www.hackerrank.com/challenges/solve-me-first/problem
+TASK: Find 1 URL to a SPECIFIC exercise/practice problem page.
+
+CRITICAL RULES:
+1. Return ONLY a URL - nothing else, no explanation
+2. URL must lead to a SPECIFIC exercise page with full path
+3. DO NOT return:
+   - Homepage URLs (ending with .com/ or .org/)
+   - Dashboard pages (/dashboard)
+   - General lists (/problems, /exercises)
+4. Choose appropriate difficulty for Day ${dayNumber}
+
+GOOD EXAMPLES:
 ✅ https://leetcode.com/problems/two-sum/
-✅ https://www.geeksforgeeks.org/problems/kadanes-algorithm
-✅ https://codeforces.com/problemset/problem/4/A
+✅ https://www.perfect-english-grammar.com/present-simple-exercise-1.html
+✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:solving-equations
+✅ https://www.hackerrank.com/challenges/solve-me-first/problem
 
-VÍ DỤ URL XẤU (TUYỆT ĐỐI KHÔNG TRẢ VỀ):
-❌ https://www.hackerrank.com/dashboard
-❌ https://leetcode.com/problemset/
-❌ https://www.geeksforgeeks.org/
-❌ Bất kỳ URL nào kết thúc bằng .com hoặc .com/ hoặc .org hoặc .org/
+BAD EXAMPLES (DO NOT RETURN):
+❌ https://leetcode.com/
+❌ https://www.khanacademy.org/
+❌ https://example.com/problems
 
-CÁCH TÌM:
-- Phân tích chủ đề để xác định khái niệm/thuật toán chính
-- Tìm bài tập phù hợp với độ khó (${category} - Day ${dayNumber})
-- Trả về URL của BÀI TẬP cụ thể nhất có thể`;
-    
-    const userPrompt = `Tìm 1 URL bài tập cụ thể cho chủ đề sau:
-    
-Chủ đề: "${topic}"
-Nội dung học: "${learningContent.substring(0, 200)}"
+OUTPUT: Just the URL, nothing else.`;
+
+    const userPrompt = `Find specific exercise URL for Day ${dayNumber}:
+Topic: "${topic}"
 Category: ${category}
-Ngày học: ${dayNumber}
+Content: "${learningContent.substring(0, 100)}..."`;
 
-YÊU CẦU: Trả về CHỈ 1 URL dẫn trực tiếp đến bài tập, KHÔNG giải thích gì thêm.`;
+    console.log(`🔍 Day ${dayNumber} - AI finding exercise...`);
 
     const completion = await callOpenAIWithFallback({
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      desiredCompletionTokens: 150
+      desiredCompletionTokens: 100
     });
 
     const text = completion?.choices?.[0]?.message?.content?.trim();
-    if (!text) return null;
+    
+    if (!text) {
+      console.warn(`❌ Day ${dayNumber}: AI empty response (exercise)`);
+      return null;
+    }
+
+    console.log(`📥 Day ${dayNumber} AI said: "${text.substring(0, 120)}"`);
 
     // Extract URL
-    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]\s<>]+/);
-    if (!urlMatch) return null;
-
-    let url = urlMatch[0];
-    
-    // Remove trailing punctuation
-    url = url.replace(/[.,;:!?]+$/, '');
-    
-    // KIỂM TRA BLACKLIST (URL không cụ thể)
-    const blacklistPatterns = [
-      /\/dashboard\/?$/i,
-      /\/problems?\/?$/i,
-      /\/problemset\/?$/i,
-      /\/challenges?\/?$/i,
-      /\.com\/?$/,
-      /\.org\/?$/,
-      /\.net\/?$/,
-      /\/explore\/?$/i,
-      /\/learn\/?$/i
-    ];
-    
-    if (blacklistPatterns.some(pattern => pattern.test(url))) {
-      console.warn(`❌ Rejected generic URL: ${url}`);
-      return null;
-    }
-    
-    // URL phải có path đủ dài (ít nhất 2 segments)
-    const urlObj = new URL(url);
-    const pathSegments = urlObj.pathname.split('/').filter(s => s.length > 0);
-    if (pathSegments.length < 2) {
-      console.warn(`❌ URL too short: ${url}`);
+    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+    if (!urlMatch) {
+      console.warn(`❌ Day ${dayNumber}: No URL found in response`);
       return null;
     }
 
-    console.log(`✅ Got specific exercise link: ${url}`);
+    let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
+    
+    // ONLY reject pure homepage (no path at all)
+    if (/^https?:\/\/[^/]+\/?$/.test(url)) {
+      console.warn(`❌ Day ${dayNumber}: Rejected homepage: ${url}`);
+      return null;
+    }
+
+    console.log(`✅ Day ${dayNumber} exercise: ${url}`);
     return url;
-    
+
   } catch (e) {
-    console.warn(`Exercise link error for day ${dayNumber}:`, e.message);
+    console.error(`❌ Day ${dayNumber} exercise error:`, e.message);
     return null;
   }
 }
 
-// ✅ LỖI 2: CẢI THIỆN AI TÌM TÀI LIỆU CỤ THỂ
 async function getSpecificMaterialLink(topic, category, dayNumber, learningContent) {
   try {
-    const systemPrompt = `Bạn là chuyên gia tìm kiếm tài liệu học tập chính xác.
+    const systemPrompt = `You are an expert at finding specific learning material URLs for any subject.
 
-QUY TẮC BẮT BUỘC:
-1. Trả về CHỈ MỘT URL cụ thể dẫn đến BÀI HỌC/TUTORIAL chi tiết
-2. URL PHẢI dẫn trực tiếp đến bài viết/tutorial cụ thể, KHÔNG phải trang chủ
-3. Ưu tiên: GeeksForGeeks, MDN, W3Schools, TutorialsPoint, freeCodeCamp, documentation chính thức
-4. URL phải có path cụ thể với tên bài học hoặc concept
+TASK: Find 1 URL to a SPECIFIC tutorial/article/lesson page.
 
-VÍ DỤ URL TỐT:
-✅ https://www.geeksforgeeks.org/introduction-to-arrays-data-structure-and-algorithm-tutorials/
+CRITICAL RULES:
+1. Return ONLY a URL - nothing else, no explanation
+2. URL must lead to a SPECIFIC article/tutorial with full path
+3. DO NOT return:
+   - Homepage URLs (ending with .com/ or .org/)
+   - General category pages
+   - Article lists (/blog, /articles)
+4. Choose appropriate level for Day ${dayNumber}
+
+GOOD EXAMPLES:
 ✅ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions
-✅ https://www.w3schools.com/python/python_lists.asp
-✅ https://www.tutorialspoint.com/data_structures_algorithms/binary_search_tree.htm
+✅ https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate/unit-1
+✅ https://www.geeksforgeeks.org/dynamic-programming/
+✅ https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:foundation-algebra
 
-VÍ DỤ URL XẤU (TUYỆT ĐỐI KHÔNG TRẢ VỀ):
-❌ https://www.geeksforgeeks.org/
+BAD EXAMPLES (DO NOT RETURN):
 ❌ https://developer.mozilla.org/
-❌ https://www.w3schools.com/
-❌ Bất kỳ URL nào kết thúc bằng .com hoặc .org (không có path cụ thể)
+❌ https://www.bbc.co.uk/learningenglish/
+❌ https://example.com/blog
 
-CÁCH TÌM:
-- Phân tích chủ đề để xác định concept chính cần học
-- Tìm tutorial/guide phù hợp với trình độ
-- Trả về URL của BÀI VIẾT cụ thể nhất`;
-    
-    const userPrompt = `Tìm 1 URL tài liệu cụ thể cho chủ đề:
+OUTPUT: Just the URL, nothing else.`;
 
-Chủ đề: "${topic}"
-Nội dung: "${learningContent.substring(0, 200)}"
+    const userPrompt = `Find specific learning material URL for Day ${dayNumber}:
+Topic: "${topic}"
 Category: ${category}
-Ngày: ${dayNumber}
+Content: "${learningContent.substring(0, 100)}..."`;
 
-YÊU CẦU: Trả về CHỈ 1 URL dẫn trực tiếp đến bài học, KHÔNG giải thích.`;
+    console.log(`🔍 Day ${dayNumber} - AI finding material...`);
 
     const completion = await callOpenAIWithFallback({
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      desiredCompletionTokens: 150
+      desiredCompletionTokens: 100
     });
 
     const text = completion?.choices?.[0]?.message?.content?.trim();
-    if (!text) return null;
-
-    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]\s<>]+/);
-    if (!urlMatch) return null;
-
-    let url = urlMatch[0];
-    url = url.replace(/[.,;:!?]+$/, '');
     
-    // KIỂM TRA BLACKLIST
-    const blacklistPatterns = [
-      /\.com\/?$/,
-      /\.org\/?$/,
-      /\.net\/?$/,
-      /\/docs?\/?$/i,
-      /\/learn\/?$/i,
-      /\/tutorials?\/?$/i
-    ];
-    
-    if (blacklistPatterns.some(pattern => pattern.test(url))) {
-      console.warn(`❌ Rejected generic material URL: ${url}`);
-      return null;
-    }
-    
-    const urlObj = new URL(url);
-    const pathSegments = urlObj.pathname.split('/').filter(s => s.length > 0);
-    if (pathSegments.length < 1) {
-      console.warn(`❌ Material URL too short: ${url}`);
+    if (!text) {
+      console.warn(`❌ Day ${dayNumber}: AI empty response (material)`);
       return null;
     }
 
-    console.log(`✅ Got specific material link: ${url}`);
+    console.log(`📥 Day ${dayNumber} AI said: "${text.substring(0, 120)}"`);
+
+    const urlMatch = text.match(/https?:\/\/[^\s"'\)\]<>\n]+/);
+    if (!urlMatch) {
+      console.warn(`❌ Day ${dayNumber}: No URL found in response`);
+      return null;
+    }
+
+    let url = urlMatch[0].replace(/[.,;:!?]+$/, '');
+    
+    // ONLY reject pure homepage
+    if (/^https?:\/\/[^/]+\/?$/.test(url)) {
+      console.warn(`❌ Day ${dayNumber}: Rejected homepage: ${url}`);
+      return null;
+    }
+
+    console.log(`✅ Day ${dayNumber} material: ${url}`);
     return url;
-    
+
   } catch (e) {
-    console.warn(`Material link error for day ${dayNumber}:`, e.message);
+    console.error(`❌ Day ${dayNumber} material error:`, e.message);
     return null;
   }
 }
-
-// Fallback links by category (CHUYÊN BIỆT HƠN)
+// Fallback links by category - ĐẦY ĐỦ CHO MỌI CATEGORY
 const FALLBACK_LINKS = {
   programming: {
     exercises: [
@@ -567,43 +541,143 @@ const FALLBACK_LINKS = {
   english: {
     exercises: [
       "https://www.perfect-english-grammar.com/present-simple-exercise-1.html",
-      "https://www.englishpage.com/verbpage/presentperfect.html"
+      "https://www.englishpage.com/verbpage/presentperfect.html",
+      "https://learnenglish.britishcouncil.org/grammar/beginner-to-pre-intermediate/present-simple",
+      "https://www.englishclub.com/grammar/verb-tenses_simple-present_quiz.htm"
     ],
     materials: [
-      "https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate",
-      "https://learnenglish.britishcouncil.org/grammar/english-grammar-reference"
+      "https://www.bbc.co.uk/learningenglish/english/course/lower-intermediate/unit-1",
+      "https://learnenglish.britishcouncil.org/grammar/english-grammar-reference",
+      "https://www.englishclub.com/grammar/sentence/",
+      "https://www.perfect-english-grammar.com/grammar-explanations.html"
     ]
   },
   math: {
     exercises: [
       "https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:linear-equations-functions",
-      "https://www.mathsisfun.com/algebra/index-practice.html"
+      "https://www.mathsisfun.com/algebra/index-practice.html",
+      "https://brilliant.org/practice/algebra-equations/",
+      "https://www.ixl.com/math/algebra-1"
     ],
     materials: [
-      "https://www.khanacademy.org/math/algebra",
-      "https://www.mathsisfun.com/algebra/index.html"
+      "https://www.khanacademy.org/math/algebra/x2f8bb11595b61c86:foundation-algebra",
+      "https://www.mathsisfun.com/algebra/index.html",
+      "https://brilliant.org/wiki/algebra/",
+      "https://mathworld.wolfram.com/Algebra.html"
+    ]
+  },
+  marketing: {
+    exercises: [
+      "https://academy.hubspot.com/lessons/creating-buyer-personas",
+      "https://learndigital.withgoogle.com/digitalgarage/course/digital-marketing",
+      "https://www.coursera.org/learn/wharton-marketing/quiz/",
+      "https://www.semrush.com/academy/courses/seo-fundamentals-with-greg-gifford/"
+    ],
+    materials: [
+      "https://blog.hubspot.com/marketing/what-is-marketing",
+      "https://neilpatel.com/blog/beginners-guide-to-digital-marketing/",
+      "https://moz.com/learn/seo/what-is-seo",
+      "https://contentmarketinginstitute.com/what-is-content-marketing/"
+    ]
+  },
+  design: {
+    exercises: [
+      "https://www.dailyui.co/",
+      "https://designercize.com/challenge/design-a-landing-page",
+      "https://uxchallenge.co/",
+      "https://sharpen.design/challenges"
+    ],
+    materials: [
+      "https://www.nngroup.com/articles/ten-usability-heuristics/",
+      "https://www.interaction-design.org/literature/article/what-is-user-experience-ux-design",
+      "https://uxdesign.cc/ux-design-methods-deliverables-657f54ce3c7d",
+      "https://www.smashingmagazine.com/2018/01/comprehensive-guide-ux-design/"
+    ]
+  },
+  softskills: {
+    exercises: [
+      "https://www.mindtools.com/a0aqrse/how-good-are-your-communication-skills",
+      "https://www.themuse.com/advice/self-assessment-examples",
+      "https://www.indeed.com/career-advice/career-development/team-building-activities",
+      "https://hbr.org/2022/03/what-self-awareness-really-is-and-how-to-cultivate-it"
+    ],
+    materials: [
+      "https://www.mindtools.com/auc6xrk/communication-skills",
+      "https://www.indeed.com/career-advice/career-development/interpersonal-skills",
+      "https://www.themuse.com/advice/emotional-intelligence-skills",
+      "https://hbr.org/2017/02/how-to-build-a-culture-of-learning"
+    ]
+  },
+  business: {
+    exercises: [
+      "https://www.coursera.org/learn/wharton-introduction-financial-accounting/quiz/",
+      "https://academy.hubspot.com/lessons/sales-fundamentals",
+      "https://learndigital.withgoogle.com/digitalgarage/course/business-strategy",
+      "https://www.linkedin.com/learning/business-analysis-foundations/quiz/"
+    ],
+    materials: [
+      "https://hbr.org/topic/business-management",
+      "https://www.investopedia.com/financial-term-dictionary-4769738",
+      "https://www.mindtools.com/amtbj63/porters-five-forces",
+      "https://blog.hubspot.com/sales/business-strategy"
     ]
   },
   default: {
     exercises: [
       "https://www.khanacademy.org/",
-      "https://www.coursera.org/search"
+      "https://www.coursera.org/courses",
+      "https://www.edx.org/learn",
+      "https://www.udemy.com/"
     ],
     materials: [
       "https://en.wikipedia.org/wiki/Main_Page",
-      "https://www.youtube.com/education"
+      "https://www.khanacademy.org/",
+      "https://www.youtube.com/education",
+      "https://www.coursera.org/"
     ]
   }
 };
 
 function getFallbackLinks(category) {
   const cat = (category || '').toLowerCase();
-  if (cat.includes('program') || cat.includes('code') || cat.includes('lập trình')) return FALLBACK_LINKS.programming;
-  if (cat.includes('english') || cat.includes('tiếng anh')) return FALLBACK_LINKS.english;
-  if (cat.includes('math') || cat.includes('toán')) return FALLBACK_LINKS.math;
+  
+  // Lập trình
+  if (cat.includes('lập trình') || cat.includes('program') || cat.includes('code')) {
+    return FALLBACK_LINKS.programming;
+  }
+  
+  // Tiếng Anh
+  if (cat.includes('tiếng anh') || cat.includes('english') || cat.includes('ngoại ngữ')) {
+    return FALLBACK_LINKS.english;
+  }
+  
+  // Toán
+  if (cat.includes('toán') || cat.includes('math')) {
+    return FALLBACK_LINKS.math;
+  }
+  
+  // Marketing
+  if (cat.includes('marketing')) {
+    return FALLBACK_LINKS.marketing;
+  }
+  
+  // Thiết kế
+  if (cat.includes('thiết kế') || cat.includes('design') || cat.includes('ui') || cat.includes('ux')) {
+    return FALLBACK_LINKS.design;
+  }
+  
+  // Kỹ năng mềm
+  if (cat.includes('kỹ năng mềm') || cat.includes('soft skill')) {
+    return FALLBACK_LINKS.softskills;
+  }
+  
+  // Kinh doanh
+  if (cat.includes('kinh doanh') || cat.includes('business') || cat.includes('quản lý')) {
+    return FALLBACK_LINKS.business;
+  }
+  
   return FALLBACK_LINKS.default;
 }
-
 // Main AI roadmap generation endpoint
 app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   let historyId = null;
@@ -811,7 +885,13 @@ Hãy tạo lộ trình chi tiết, thực tế, dễ theo dõi.`;
     console.log(`🔗 Fetching specific links for ${normalizedDays.length} days...`);
     
     const fallbackLinks = getFallbackLinks(category);
+    console.log(`\n🔗 ===== STARTING LINK ENRICHMENT FOR ${normalizedDays.length} DAYS =====\n`);
+
     const enrichmentPromises = normalizedDays.map(async (day, index) => {
+      console.log(`\n--- Day ${day.day_number} START ---`);
+      console.log(`Topic: "${day.daily_goal}"`);
+      console.log(`Category: ${category}`);
+      
       const topic = day.daily_goal;
       const content = day.learning_content;
       
@@ -821,33 +901,51 @@ Hãy tạo lộ trình chi tiết, thực tế, dễ theo dõi.`;
       
       for (let attempt = 1; attempt <= 2; attempt++) {
         if (!exerciseLink) {
+          console.log(`\n🔄 Day ${day.day_number} - Exercise attempt ${attempt}/2`);
           exerciseLink = await getSpecificExerciseLink(topic, category, day.day_number, content);
-          if (exerciseLink) console.log(`✅ Day ${day.day_number} exercise (attempt ${attempt}): ${exerciseLink}`);
+          if (exerciseLink) {
+            console.log(`✅ Day ${day.day_number} GOT exercise on attempt ${attempt}: ${exerciseLink}`);
+          } else {
+            console.log(`⚠️ Day ${day.day_number} NO exercise on attempt ${attempt}`);
+          }
         }
         
         if (!materialLink) {
+          console.log(`\n🔄 Day ${day.day_number} - Material attempt ${attempt}/2`);
           materialLink = await getSpecificMaterialLink(topic, category, day.day_number, content);
-          if (materialLink) console.log(`✅ Day ${day.day_number} material (attempt ${attempt}): ${materialLink}`);
+          if (materialLink) {
+            console.log(`✅ Day ${day.day_number} GOT material on attempt ${attempt}: ${materialLink}`);
+          } else {
+            console.log(`⚠️ Day ${day.day_number} NO material on attempt ${attempt}`);
+          }
         }
         
-        if (exerciseLink && materialLink) break;
+        if (exerciseLink && materialLink) {
+          console.log(`🎉 Day ${day.day_number} - BOTH links found!`);
+          break;
+        }
         
-        // Delay nhỏ giữa các attempts
+        // Delay between attempts
         if (attempt === 1 && (!exerciseLink || !materialLink)) {
+          console.log(`⏳ Day ${day.day_number} - Waiting 500ms before retry...`);
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
-      // Nếu vẫn không có link, dùng fallback
+      // Fallback if needed
+      const fallbackLinks = getFallbackLinks(category);
+      
       if (!exerciseLink) {
         exerciseLink = fallbackLinks.exercises[index % fallbackLinks.exercises.length];
-        console.log(`⚠️ Day ${day.day_number} using fallback exercise: ${exerciseLink}`);
+        console.log(`⚠️ Day ${day.day_number} using FALLBACK exercise: ${exerciseLink}`);
       }
 
       if (!materialLink) {
         materialLink = fallbackLinks.materials[index % fallbackLinks.materials.length];
-        console.log(`⚠️ Day ${day.day_number} using fallback material: ${materialLink}`);
+        console.log(`⚠️ Day ${day.day_number} using FALLBACK material: ${materialLink}`);
       }
+
+      console.log(`--- Day ${day.day_number} END ---\n`);
 
       return {
         ...day,
