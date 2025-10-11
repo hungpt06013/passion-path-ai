@@ -327,7 +327,7 @@
         font-size: 36px;
       }
     }
-</style>
+  </style>
 </head>
 <body>
   <div class="fixed-bar">
@@ -347,44 +347,44 @@
   </div>
 
   <main class="content">
-      <div class="card">
-        <h1>📈 Tiến Độ Học Tập</h1>
-        <p class="small">Theo dõi tiến độ học tập hàng ngày của bạn</p>
+    <div class="card">
+      <h1>📈 Tiến Độ Học Tập</h1>
+      <p class="small">Theo dõi tiến độ học tập hàng ngày của bạn</p>
 
-        <div class="tabs">
-          <button class="tab active" data-tab="today">
-            <i class="fa-solid fa-calendar-day"></i> Hôm nay
-          </button>
-          <button class="tab" data-tab="upcoming">
-            <i class="fa-solid fa-calendar-plus"></i> Sắp đến
-          </button>
-          <button class="tab" data-tab="overdue">
-            <i class="fa-solid fa-calendar-xmark"></i> Quá hạn
-          </button>
-        </div>
+      <div class="tabs">
+        <button class="tab active" data-tab="today">
+          <i class="fa-solid fa-calendar-day"></i> Hôm nay
+        </button>
+        <button class="tab" data-tab="upcoming">
+          <i class="fa-solid fa-calendar-plus"></i> Sắp đến
+        </button>
+        <button class="tab" data-tab="overdue">
+          <i class="fa-solid fa-calendar-xmark"></i> Quá hạn
+        </button>
+      </div>
 
-        <div class="tab-content active" id="today">
-          <div class="loading">
-            <div class="spinner"></div>
-            Đang tải...
-          </div>
-        </div>
-        
-        <div class="tab-content" id="upcoming">
-          <div class="loading">
-            <div class="spinner"></div>
-            Đang tải...
-          </div>
-        </div>
-        
-        <div class="tab-content" id="overdue">
-          <div class="loading">
-            <div class="spinner"></div>
-            Đang tải...
-          </div>
+      <div class="tab-content active" id="today">
+        <div class="loading">
+          <div class="spinner"></div>
+          Đang tải...
         </div>
       </div>
-    </main>
+      
+      <div class="tab-content" id="upcoming">
+        <div class="loading">
+          <div class="spinner"></div>
+          Đang tải...
+        </div>
+      </div>
+      
+      <div class="tab-content" id="overdue">
+        <div class="loading">
+          <div class="spinner"></div>
+          Đang tải...
+        </div>
+      </div>
+    </div>
+  </main>
 
   <script>
     const navButtonsWrapper = document.getElementById('navButtons');
