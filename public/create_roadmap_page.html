@@ -13,10 +13,30 @@
 
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #85ccff);
         min-height: 100vh;
         padding: 20px;
     }
+
+    .analysis-section {
+            background: #f0fdf4;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #10b981;
+        }
+
+        .analysis-section h3 {
+            color: #065f46;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .analysis-content {
+            color: #374151;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
 
     .container {
         max-width: 1000px;
@@ -28,7 +48,7 @@
     }
 
     .header {
-        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        background: linear-gradient(135deg,  #007bff 0%,  #007bff 100%);
         color: white;
         padding: 30px;
         text-align: center;
@@ -81,7 +101,7 @@
     }
 
     .form-section:hover {
-        border-color: #4f46e5;
+        border-color:  #007bff;
     }
 
     .section-title {
@@ -122,7 +142,7 @@
     .form-select:focus,
     .form-textarea:focus {
         outline: none;
-        border-color: #4f46e5;
+        border-color:  #007bff;
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
@@ -165,13 +185,13 @@
         width: 18px;
         height: 18px;
         cursor: pointer;
-        accent-color: #4f46e5;
+        accent-color:#007bff;
     }
 
     .checkbox-group input[type="checkbox"]:checked + span,
     .checkbox-group input[type="radio"]:checked + span {
         font-weight: 700;
-        color: #4f46e5;
+        color:#007bff;
     }
     
     .ai-generate-section {
@@ -193,29 +213,43 @@
         font-weight: 700;
     }
 
-    .ai-btn {
+    .ai-btn, .prompt-btn {
         padding: 15px 30px;
-        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        background: linear-gradient(135deg,#007bff,#007bff);
         color: white;
         border: none;
         border-radius: 12px;
         font-size: 1.1rem;
-        font-weight: 600;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.3s ease;
         margin-top: 15px;
         width: 100%;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
     }
 
-    .ai-btn:hover {
+    .ai-btn:hover, .prompt-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+        background: linear-gradient(135deg, #007bff, #007bff);
     }
 
-    .ai-btn:disabled {
-        background: #9ca3af;
+    .ai-btn:disabled, .prompt-btn:disabled {
+        background: linear-gradient(135deg, #9ca3af, #6b7280);
         cursor: not-allowed;
         transform: none;
+        box-shadow: none;
+        opacity: 0.6;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .prompt-btn {
+        width: 50%;
     }
 
     .days-container {
@@ -237,7 +271,7 @@
     }
 
     .day-item:hover {
-        border-color: #4f46e5;
+        border-color: #007bff;
     }
 
     .day-header {
@@ -248,7 +282,7 @@
     }
 
     .day-number {
-        background: #4f46e5;
+        background: #007bff;
         color: white;
         width: 35px;
         height: 35px;
@@ -304,7 +338,7 @@
 
     .submit-btn {
         padding: 18px 40px;
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        background: linear-gradient(135deg, #007bff, #007bff);
         color: white;
         border: none;
         border-radius: 12px;
@@ -339,7 +373,7 @@
         height: 20px;
         border: 2px solid #e5e7eb;
         border-radius: 50%;
-        border-top-color: #4f46e5;
+        border-top-color: #007bff;
         animation: spin 1s linear infinite;
     }
 
@@ -400,15 +434,151 @@
 
     .other-box .other-input:focus {
       outline: none;
-      border-color: #4f46e5;
+      border-color:#007bff;
       box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
     }
 
     .other-box:hover {
-      border-color: #4f46e5;
+      border-color: #007bff;
       background: #f0f9ff;
     }
+    /* Q4 - Main Purpose */
+    #q4_other_text {
+        margin-top: 10px;
+    }
 
+    /* Q12 - Learning Styles */
+    #q12_other_text {
+        margin-top: 10px;
+    }
+
+    /* Q13 - Learning Combinations */
+    #q13_other_text {
+        margin-top: 10px;
+    }
+
+    /* Q14 - Challenges */
+    #q14_other_text {
+        margin-top: 10px;
+    }
+
+    /* Q15 - Motivation */
+    #q15_other_text {
+        margin-top: 10px;
+    }
+
+    /* Q16 - Material Types */
+    #q16_other_text {
+        margin-top: 10px;
+    }
+
+    /* Q20 - Assessment Frequency */
+    #q20_other_text {
+        margin-top: 10px;
+    }
+    /* =============== MODAL STYLES =============== */
+    .modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    }
+
+    .modal.show {
+    display: flex;
+    }
+
+    .modal-content {
+    background: white;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+    background: linear-gradient(135deg,#007bff, #007bff);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    }
+
+    .modal-header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    }
+
+    .modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    }
+
+    .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+    }
+
+    .close-btn:hover {
+    opacity: 0.8;
+    }
+
+    pre {
+    background: #f3f4f6;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 13px;
+    line-height: 1.4;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    }
+
+    #customPromptContent {
+    width: 100%;
+    min-height: 400px;
+    padding: 15px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+    box-sizing: border-box;
+    }
+
+    #customPromptContent:focus {
+    outline: none;
+    border-color:#007bff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
     @media (max-width: 768px) {
         body {
             padding: 10px;
@@ -487,42 +657,132 @@
             max-height: 300px;
         }
     }
+
+    @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
+
+        .header {
+            padding: 20px 15px;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-top: 50px;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+        }
+
+        .back-btn {
+            position: static;
+            margin-bottom: 15px;
+            display: block;
+            width: 100%;
+            text-align: center;
+            transform: none;
+        }
+
+        .form-container {
+            padding: 20px;
+        }
+
+        .form-section {
+            padding: 15px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .checkbox-group {
+            grid-template-columns: 1fr;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            font-size: 1rem;
+            padding: 15px 20px;
+        }
+
+        .ai-btn {
+            font-size: 1rem;
+        }
+
+        .modal-content {
+            width: 95%;
+            max-height: 95vh;
+        }
+
+        .modal-body {
+            max-height: 70vh;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .header h1 {
+            font-size: 1.5rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            font-size: 14px;
+            padding: 10px 12px;
+        }
+
+        .day-item {
+            padding: 15px;
+        }
+
+        .days-container {
+            max-height: 300px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.1rem;
+        }
+
+        .btn {
+            font-size: 0.9rem;
+            padding: 10px 15px;
+        }
+    }
 </style>
 </head>
 <body>
-    
     <div class="container">
         <div class="header">
-            <a href="path.html?page=path" class="back-btn">← Quay lại</a>
+            <a href="path.html" class="back-btn">← Quay lại</a>
             <h1>Tạo Lộ Trình Học Mới</h1>
             <p>Sử dụng AI để tạo lộ trình học cá nhân hóa cho bạn</p>
         </div>
 
         <div class="form-container">
             <form id="roadmapForm">
-                <!-- Thông tin cơ bản -->
+                <!-- =============== PHẦN HỎI 20 CÂU =============== -->
+
+                <!-- PHẦN 1: THÔNG TIN CƠ BẢN -->
                 <div class="form-section">
-                    <h3 class="section-title">📋 Thông Tin Cơ Bản</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Tên lộ trình *</label>
-                            <input type="text" class="form-input" name="roadmapName" required
-                                   placeholder="Ví dụ: Học Python từ cơ bản đến nâng cao">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Trình độ hiện tại *</label>
-                            <select class="form-select" name="startLevel" required>
-                                <option value="">-- Chọn trình độ --</option>
-                                <option value="Beginner">Beginner (Mới bắt đầu)</option>
-                                <option value="Intermediate">Intermediate (Trung bình)</option>
-                                <option value="Advanced">Advanced (Nâng cao)</option>
-                            </select>
-                        </div>
+                    <h3 class="section-title">🛣️ Thông Tin Cơ Bản</h3>
+                    
+                    <!-- Q1: Tên lộ trình -->
+                    <div class="form-group">
+                        <label class="form-label">Tên lộ trình *</label>
+                        <input type="text" class="form-input" name="q1_roadmap_name" required 
+                            placeholder="VD: Học Python từ cơ bản đến nâng cao">
                     </div>
 
+                    <!-- Q2: Danh mục (Radio, chỉ 1 chọn) - LẤY TỪ API -->
                     <div class="form-group">
-                        <label class="form-label">Danh mục * (có thể chọn nhiều)</label>
-                        <div class="checkbox-group" id="categoryCheckboxes">
+                        <label class="form-label">Danh mục *</label>
+                        <div class="checkbox-group" id="q2_categoryGroup">
                             <div class="loading">
                                 <div class="spinner"></div>
                                 <span>Đang tải danh mục...</span>
@@ -530,88 +790,356 @@
                         </div>
                     </div>
 
+                    <!-- Q3: Danh mục chi tiết (ghi rõ) -->
                     <div class="form-group">
-                        <label class="form-label">Danh mục chi tiết</label>
-                        <input type="text" class="form-input" name="subCategory"
-                               placeholder="Ví dụ: Web Development, Data Science">
+                        <label class="form-label">Danh mục chi tiết (ghi rõ) *</label>
+                        <input type="text" name="q3_category_detail" class="form-input" required
+                            placeholder="Mô tả chi tiết danh mục...">
                     </div>
                 </div>
-
-                <!-- Thông tin thời gian -->
                 <div class="form-section">
-                    <h3 class="section-title">⏰ Thời Gian Học</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label class="form-label">Số ngày học *</label>
-                            <input type="number" class="form-input" name="durationDays" required
-                                   min="1" max="365" placeholder="30" onchange="validateDays()">
-                            <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
-                                ⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.
-                            </small>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Số giờ mỗi ngày *</label>
-                            <input type="number" class="form-input" name="hoursPerDay" required
-                                   min="0.5" max="12" step="0.5" placeholder="2">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kết quả mong đợi -->
-                <div class="form-section">
-                    <h3 class="section-title">🎯 Mục Tiêu & Kết Quả</h3>
+                    <h3 class="section-title">📋 Phần 1: Mục tiêu học tập</h3>
+                    <!-- Q1: Mục đích chính -->
                     <div class="form-group">
-                        <label class="form-label">Kết quả mong đợi *</label>
-                        <textarea class="form-textarea" name="expectedOutcome" required
-                                  placeholder="Mô tả những gì bạn muốn đạt được sau khi hoàn thành lộ trình này..."></textarea>
+                        <label class="form-label">1. Mục đích chính của bạn là gì? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="radio" name="q4_main_purpose" value="Giao tiếp hàng ngày" required> Giao tiếp hàng ngày</label>
+                            <label><input type="radio" name="q4_main_purpose" value="Công việc"> Công việc</label>
+                            <label><input type="radio" name="q4_main_purpose" value="Học tập"> Học tập</label>
+                            <label><input type="radio" name="q4_main_purpose" value="Thi chứng chỉ"> Thi chứng chỉ</label>
+                            <label><input type="radio" name="q4_main_purpose" value="Du lịch-định cư"> Du lịch-định cư</label>
+                            <label><input type="radio" name="q4_main_purpose" value="Khác" id="q4_other_radio"> Khác</label>
+                        </div>
+                        <input type="text" id="q4_other_text" class="form-input other-input" name="q4_main_purpose_other"
+                            placeholder="Ghi rõ mục đích...">
+                    </div>
+
+                    <!-- Q2: Mục tiêu cụ thể -->
+                    <div class="form-group">
+                        <label class="form-label">2. Mục tiêu cụ thể của bạn? *</label>
+                        <textarea class="form-textarea" name="q5_specific_goal" required
+                                placeholder="VD: IELTS 6.5 sau 1 năm, TOEIC 800 trong 6 tháng..."></textarea>
                     </div>
                 </div>
 
-                <!-- AI Generate Section -->
+                <!-- PHẦN 2: TRÌNH ĐỘ HIỆN TẠI -->
+                <div class="form-section">
+                    <h3 class="section-title">📊 Phần 2: Trình Độ Hiện Tại</h3>
+                    <!-- Q3: Công việc hiện tại -->
+                    <div class="form-group">
+                        <label class="form-label">3. Công việc hiện tại của bạn? *</label>
+                        <input type="text"  name="q5_current_job" class="form-input" required
+                            placeholder="VD: Nhân viên văn phòng, Giáo viên, Kỹ sư...">        
+                    </div>
+                    <!-- Q4: Thời gian đã học -->
+                    <div class="form-group">
+                        <label class="form-label">4. Bạn đã học lĩnh vực này được bao lâu? *</label>
+                        <select class="form-select" name="q6_learning_duration" required>
+                            <option value="">---- Chọn --</option>
+                            <option value="Chưa từng">Chưa từng</option>
+                            <option value="<6 tháng">Dưới 6 tháng</option>
+                            <option value="6 tháng-2 năm">6 tháng - 2 năm</option>
+                            <option value=">2 năm">Trên 2 năm</option>
+                        </select>
+                    </div>
+
+                    <!-- Q5: Trình độ hiện tại -->
+                    <div class="form-group">
+                        <label class="form-label">5. Trình độ hiện tại của bạn? *</label>
+                        <select class="form-select" name="q7_current_level" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="Mới bắt đầu">Mới bắt đầu</option>
+                            <option value="Cơ bản">Cơ bản</option>
+                            <option value="Trung bình">Trung bình</option>
+                            <option value="Khá tốt">Khá tốt</option>
+                            <option value="Nâng cao">Nâng cao</option>
+                        </select>
+                    </div>
+
+                    <!-- Q6: Kỹ năng muốn cải thiện -->
+                    <div class="form-group">
+                        <label class="form-label">6. Kỹ năng nào bạn muốn cải thiện? (ghi rõ) *</label>
+                        <input type="text" name="q8_skills_text" class="form-input" required
+                            placeholder="VD: Nghe, Nói, Viết, Lập trình Python...">
+                    </div>
+                </div>
+
+                <!-- PHẦN 3: CAM KẾT THỜI GIAN -->
+                <div class="form-section">
+                    <h3 class="section-title">⏰ Phần 3: Cam Kết Thời Gian</h3>
+
+                    <!-- Q7: Thời gian học mỗi ngày -->
+                    <div class="form-group">
+                        <label class="form-label">7. Bạn có thể dành bao nhiêu thời gian học mỗi ngày? *</label>
+                        <select class="form-select" name="q9_daily_time" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="30 phút">30 phút</option>
+                            <option value="60 phút">60 phút</option>
+                            <option value="2 giờ">2 giờ</option>
+                            <option value=">2 giờ">Trên 2 giờ</option>
+                        </select>
+                    </div>
+
+                    <!-- Q8: Số buổi mỗi tuần -->
+                    <div class="form-group">
+                        <label class="form-label">8. Bạn học bao nhiêu buổi mỗi tuần? *</label>
+                        <select class="form-select" name="q10_weekly_sessions" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="1 buổi">1 buổi</option>
+                            <option value="2 buổi">2 buổi</option>
+                            <option value="3 buổi">3 buổi</option>
+                            <option value="4 buổi">4 buổi</option>
+                            <option value="5 buổi">5 buổi</option>
+                            <option value="6 buổi">6 buổi</option>
+                            <option value="7 buổi">7 buổi</option>
+                        </select>
+                    </div>
+
+                    <!-- Q9: Thời gian lộ trình (ngày) -->
+                    <div class="form-group">
+                        <label class="form-label">9. Thời gian (ngày) của lộ trình (15 - 180 ngày) *</label>
+                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="180" required
+                            placeholder="Nhập số ngày (15 - 180)">
+                        <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
+                            ⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.
+                        </small>
+                    </div>
+                </div>
+
+                <!-- PHẦN 4: PHONG CÁCH HỌC TẬP -->
+                <div class="form-section">
+                    <h3 class="section-title">🎨 Phần 4: Phong Cách Học Tập</h3>
+
+                    <!-- Q10: Phương pháp học -->
+                    <div class="form-group">
+                        <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
+                            placeholder="Ghi rõ phương pháp...">
+                    </div>
+
+                    <!-- Q11: Kết hợp học -->
+                    <div class="form-group">
+                        <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
+                            placeholder="Ghi rõ...">
+                    </div>
+                </div>
+                 <!-- PHẦN 5: KHÓ KHĂN & ĐỘNG LỰC -->
+                <div class="form-section">
+                    <h3 class="section-title">📅 Phần 5: Khó Khăn & Động Lực</h3>
+                    <!-- Q12: Thách thức -->
+                    <div class="form-group">
+                        <label class="form-label">12. Thách thức bạn gặp phải? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q14_challenges[]" value="Thiếu động lực"> Thiếu động lực</label>
+                            <label><input type="checkbox" name="q14_challenges[]" value="Thiếu thời gian"> Thiếu thời gian</label>
+                            <label><input type="checkbox" name="q14_challenges[]" value="Tài liệu khó"> Tài liệu khó</label>
+                            <label><input type="checkbox" name="q14_challenges[]" value="Khó tập trung"> Khó tập trung</label>
+                            <label><input type="checkbox" name="q14_challenges[]" value="Khác" id="q14_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q14_other_text" class="form-input other-input" name="q14_challenges_other"
+                            placeholder="Ghi rõ...">
+                    </div>
+
+                    <!-- Q13: Động lực -->
+                    <div class="form-group">
+                        <label class="form-label">13. Điều gì giữ động lực cho bạn? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q15_motivation[]" value="Phần thưởng"> Phần thưởng</label>
+                            <label><input type="checkbox" name="q15_motivation[]" value="Tiến bộ rõ ràng"> Tiến bộ rõ ràng</label>
+                            <label><input type="checkbox" name="q15_motivation[]" value="Mục tiêu lớn"> Mục tiêu lớn</label>
+                            <label><input type="checkbox" name="q15_motivation[]" value="Cộng đồng học tập"> Cộng đồng học tập</label>
+                            <label><input type="checkbox" name="q15_motivation[]" value="Khác" id="q15_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q15_other_text" class="form-input other-input" name="q15_motivation_other"
+                            placeholder="Ghi rõ...">
+                    </div>
+                </div>     
+                 <!-- PHẦN 6: TÀI LIỆU & ĐÁNH GIÁ -->
+                <div class="form-section">
+                    <h3 class="section-title">📊 Phần 6: Tài Liệu & Đánh Giá</h3>   
+                    <!-- Q14: Loại tài liệu -->
+                    <div class="form-group">
+                        <label class="form-label">14. Loại tài liệu bạn thích? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q16_material_types[]" value="Sách"> Sách</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Video hướng dẫn"> Video hướng dẫn</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Bài tập online"> Bài tập online</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Podcast"> Podcast</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="App học tập"> App học tập</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Tài liệu theo chủ đề"> Tài liệu theo chủ đề</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Phim ảnh"> Phim ảnh</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Nhạc"> Nhạc</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Khóa học online"> Khóa học online</label>
+                            <label><input type="checkbox" name="q16_material_types[]" value="Khác" id="q16_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q16_other_text" class="form-input other-input" name="q16_material_types_other"
+                            placeholder="Bạn hãy ghi rõ tên sách & tác giả/link dẫn đến nguồn tài liệu cụ thể">
+                    </div>
+
+                    <!-- Q15: Ngôn ngữ tài liệu -->
+                    <div class="form-group">
+                        <label class="form-label">15. Ngôn ngữ tài liệu? *</label>
+                        <select class="form-select" name="q17_material_language" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="Việt Nam">Việt Nam</option>
+                            <option value="English">English</option>
+                            <option value="Việt Nam & English">Việt Nam & English</option>
+                        </select>
+                    </div>
+
+                    <!-- Q16: Loại đánh giá -->
+                    <div class="form-group">
+                        <label class="form-label">16. Loại đánh giá bạn thích? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q18_assessment_types[]" value="Quiz ngắn"> Quiz ngắn</label>
+                            <label><input type="checkbox" name="q18_assessment_types[]" value="Dự án nhỏ"> Dự án nhỏ</label>
+                            <label><input type="checkbox" name="q18_assessment_types[]" value="Bài kiểm tra"> Bài kiểm tra</label>
+                            <label><input type="checkbox" name="q18_assessment_types[]" value="Đề thi chuẩn"> Đề thi chuẩn</label>
+                        </div>
+                    </div>
+
+                    <!-- Q17: Hiển thị kết quả -->
+                    <div class="form-group">
+                        <label class="form-label">17. Hiển thị kết quả như thế nào? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q19_result_display[]" value="Biểu đồ"> Tiến độ</label>
+                            <label><input type="checkbox" name="q19_result_display[]" value="Biểu đồ"> Biểu đồ</label>
+                            <label><input type="checkbox" name="q19_result_display[]" value="Số điểm"> Số điểm</label>
+                            <label><input type="checkbox" name="q19_result_display[]" value="Phản hồi chi tiết"> Phản hồi chi tiết</label>
+                        </div>
+                    </div>
+
+                    <!-- Q18: Tần suất đánh giá -->
+                    <div class="form-group">
+                        <label class="form-label">18. Tần suất đánh giá? *</label>
+                        <div class="checkbox-group">
+                            <label><input type="radio" name="q20_assessment_frequency" value="Hàng tuần"> Hàng tuần</label>
+                            <label><input type="radio" name="q20_assessment_frequency" value="Hàng tháng"> Hàng tháng</label>
+                            <label><input type="radio" name="q20_assessment_frequency" value="2 tuần/lần"> 2 tuần/lần</label>
+                            <label><input type="radio" name="q20_assessment_frequency" value="Khác" id="q20_other_radio"> Khác</label>
+                        </div>
+                        <input type="text" id="q20_other_text" class="form-input other-input" name="q20_assessment_frequency_other"
+                            placeholder="Ghi rõ...">
+                    </div>
+                </div>
+
+                <!-- PHẦN TẠO VỚI AI -->
                 <div class="form-section ai-generate-section">
-                    <h3 class="section-title">🤖 Tạo Lộ Trình Với AI</h3>
-                    <p style="margin-bottom: 15px; color: #0369a1;">
-                        Sử dụng AI để tự động tạo lộ trình học chi tiết dựa trên thông tin bạn đã nhập ở trên.
-                    </p>
-                    
+                    <h3 class="section-title">🤖 Tạo Với AI</h3>
                     <div class="ai-notice">
-                        <strong>📌 Lưu ý:</strong> AI hiện chỉ hỗ trợ tạo lộ trình tối đa <strong>180 ngày</strong>. 
-                        Nếu bạn cần lộ trình dài hơn, vui lòng:
-                        <ul style="margin: 8px 0 0 20px;">
-                            <li>Giảm số ngày xuống ≤ 180 ngày để dùng AI</li>
-                            <li>Hoặc tạo thủ công bằng nút "Thêm Ngày Học" bên dưới</li>
-                        </ul>
+                        <strong>Lưu ý:</strong> AI sẽ tạo lộ trình dựa trên câu trả lời của bạn. Bạn có thể chỉnh sửa sau.
                     </div>
-                    
-                    <button type="button" class="ai-btn" onclick="generateRoadmapWithAI()">
-                        <span id="ai-btn-text">✨ Tạo Lộ Trình Với AI</span>
-                    </button>
+                    <button type="button" id="generateAI" class="ai-btn">🤖 Tạo lộ trình với AI</button>
+                    <!--<div class="btn-group">
+                        <button type="button" id="viewPromptBtn" class="prompt-btn">👁️ Xem Prompt</button>
+                        <button type="button" id="customizePromptBtn" class="prompt-btn">✏️ Sửa Prompt</button>
+                    </div>-->
                 </div>
-
-                <!-- Chi tiết từng ngày -->
+                <div class="analysis-section">
+                    <h3>📊 1. PHÂN TÍCH HIỆN TRẠNG</h3>
+                    <div class="analysis-content" id="analysisContent">
+                        <!-- AI generated analysis will be displayed here -->
+                    </div>
+                </div>
+                <!-- PHẦN CHI TIẾT NGÀY HỌC -->
                 <div class="form-section">
-                    <h3 class="section-title">📚 Chi Tiết Từng Ngày Học</h3>
-                    <div id="daysContainer" class="days-container">
-                        <p style="text-align: center; color: #6b7280; padding: 20px;">
-                            Chưa có ngày học nào. Hãy sử dụng AI hoặc thêm thủ công.
-                        </p>
-                    </div>
-                    <button type="button" class="add-day-btn" onclick="addDay()">
-                        ➕ Thêm Ngày Học Thủ Công
-                    </button>
+                    <h3 class="section-title">📅 Chi Tiết Lộ Trình</h3>
+                    <div id="daysContainer" class="days-container"></div>
+                    <button type="button" id="addDayBtn" class="add-day-btn">➕ Thêm Ngày Học</button>
                 </div>
 
-                <!-- Submit -->
+                <!-- NÚT SUBMIT -->
                 <div class="submit-section">
-                    <button type="submit" class="submit-btn">
-                        <span id="submit-btn-text">🎉 Tạo Lộ Trình</span>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span id="submit-btn-text">&#127881; Tạo Lộ Trình</span>
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- MODAL XEM PROMPT -->
+    <div id="promptModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Prompt AI</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre id="promptContent"></pre>
+            </div>
+            <div class="btn-group" style="padding: 20px; display: flex; gap: 10px;">
+                <button onclick="copyPrompt()" class="prompt-btn">📋 Copy Prompt</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SỬA PROMPT -->
+    <div id="customizeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sửa Prompt AI</h2>
+                <button class="close-btn" onclick="closeCustomizeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="customPromptContent"></textarea>
+            </div>
+            <div class="btn-group" style="padding: 20px; display: flex; gap: 10px;">
+                <button onclick="resetPrompt()" class="prompt-btn">🔄 Khôi Phục Mặc Định</button>
+                <button onclick="saveCustomPrompt()" class="prompt-btn">💾 Lưu Prompt</button>
+            </div>
+        </div>
+    </div>
     <script>
+        //document.getElementById('viewPromptBtn').addEventListener('click', viewPrompt);
+        //document.getElementById('customizePromptBtn').addEventListener('click', customizePrompt);
+function attachOtherEventsForQ2() {
+    const q2_other_radio = document.getElementById('q2_other_radio');
+    const q2_other_text = document.getElementById('q2_other_text');
+    
+    if (!q2_other_radio || !q2_other_text) {
+        console.warn('Q2 elements not found');
+        return;
+    }
+
+    // Ban đầu ẩn input
+    q2_other_text.style.display = 'none';
+    
+    // Khi chọn "Khác" - hiển thị input
+    q2_other_radio.addEventListener('change', () => {
+        if (q2_other_radio.checked) {
+            q2_other_text.style.display = 'block';
+            setTimeout(() => q2_other_text.focus(), 60);
+        }
+    });
+    
+    // Khi chọn radio khác - ẩn input và clear
+    document.querySelectorAll('input[name="q2_category"]').forEach(radio => {
+        if (radio !== q2_other_radio) {
+            radio.addEventListener('change', () => {
+                q2_other_text.style.display = 'none';
+                q2_other_text.value = '';
+            });
+        }
+    });
+}
         const MAX_AI_DAYS = 180;
         let dayCount = 0;
         let isGenerating = false;
@@ -623,319 +1151,629 @@
             if (token) headers['Authorization'] = `Bearer ${token}`;
             return headers;
         }
+async function loadCategories() {
+    const categoryGroup = document.getElementById('q2_categoryGroup');
+    categoryGroup.innerHTML = `
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>Đang tải danh mục...</span>
+        </div>
+    `;
 
-        // ============ LOAD CATEGORIES FROM API ============
-        async function loadCategories() {
-            const container = document.getElementById('categoryCheckboxes');
-            
-            try {
-                const token = localStorage.getItem('token');
-                const res = await fetch('/api/categories', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                
-                const data = await res.json();
-                
-                if (data.success && data.data) {
-                    categoriesData = data.data;
-                    renderCategories(data.data);
-                    setupOtherCategoryToggle();
-                } else {
-                    throw new Error('Invalid data format');
-                }
-            } catch (error) {
-                console.error('Error loading categories:', error);
-                // Fallback to default categories (có "Khác")
-                container.innerHTML = `
-                    <label>
-                        <input type="checkbox" name="category[]" value="Lập trình">
-                        <span>Lập trình</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" name="category[]" value="Marketing">
-                        <span>Marketing</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" name="category[]" value="Thiết kế">
-                        <span>Thiết kế</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" name="category[]" value="Ngoại ngữ">
-                        <span>Ngoại ngữ</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" name="category[]" value="Kinh doanh">
-                        <span>Kinh doanh</span>
-                    </label>
-                    <label>
-                        <input type="checkbox" name="category[]" value="Kỹ năng mềm">
-                        <span>Kỹ năng mềm</span>
-                    </label>
-                `;
-                // append "Khác" styled box
-                container.insertAdjacentHTML('beforeend', `
-                  <div class="other-box" id="other-category-box">
-                    <div class="other-row">
-                      <label style="display:flex;align-items:center;gap:8px;width:100%;">
-                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-                        <span style="font-weight:600;color:#374151;">Khác</span>
-                      </label>
-                    </div>
-                    <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
-                  </div>
-                `);
-                setupOtherCategoryToggle();
-            }
+    try {
+        const response = await fetch('/api/categories', getAuthHeaders());
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        if (!data?.success || !Array.isArray(data.data)) {
+            throw new Error('Dữ liệu không hợp lệ từ server');
         }
 
-        function renderCategories(categories) {
-            const container = document.getElementById('categoryCheckboxes');
-            
-            if (!categories || categories.length === 0) {
-                container.innerHTML = '<p style="color: #6b7280;">Chưa có danh mục nào</p>';
-                // still append "Khác"
-                container.insertAdjacentHTML('beforeend', `
-                  <div class="other-box" id="other-category-box">
-                    <div class="other-row">
-                      <label style="display:flex;align-items:center;gap:8px;width:100%;">
-                        <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-                        <span style="font-weight:600;color:#374151;">Khác</span>
-                      </label>
-                    </div>
-                    <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
-                  </div>
-                `);
-                setupOtherCategoryToggle();
-                return;
-            }
-            
-            const html = categories.map(cat => `
-                <label>
-                    <input type="checkbox" name="category[]" value="${escapeHtml(cat.name)}">
-                    <span>${escapeHtml(cat.name)}</span>
-                </label>
-            `).join('');
-            
-            container.innerHTML = html;
-
-            // append "Khác" control styled
-            container.insertAdjacentHTML('beforeend', `
-              <div class="other-box" id="other-category-box">
-                <div class="other-row">
-                  <label style="display:flex;align-items:center;gap:8px;width:100%;">
-                    <input type="checkbox" id="category-other-checkbox" name="category[]" value="Khác">
-                    <span style="font-weight:600;color:#374151;">Khác</span>
-                  </label>
-                </div>
-                <input id="category-other-input" class="other-input" type="text" placeholder="Ghi rõ..." />
-              </div>
-            `);
-
-            setupOtherCategoryToggle();
-        }
-
-        // show/hide input khi check "Khác", autofocus khi mở
-        function setupOtherCategoryToggle() {
-            const otherCheckbox = document.getElementById('category-other-checkbox');
-            const otherInput = document.getElementById('category-other-input');
-            if (!otherCheckbox || !otherInput) return;
-            otherCheckbox.addEventListener('change', () => {
-                if (otherCheckbox.checked) {
-                    otherInput.style.display = 'block'; // show block so it goes to next line
-                    setTimeout(() => otherInput.focus(), 60); // focus after render
-                } else {
-                    otherInput.style.display = 'none';
-                    otherInput.value = '';
-                }
+        let html = '';
+        if (data.data.length === 0) {
+            html += '<div class="error-message">⚠️ Không có danh mục nào. Vui lòng liên hệ admin.</div>';
+        } else {
+            data.data.forEach(cat => {
+                html += `<label><input type="radio" name="q2_category" value="${escapeHtmlAttr(cat.name)}" required> ${escapeHtml(cat.name)}</label>`;
             });
-            // If already checked (rare), show input
-            if (otherCheckbox.checked) otherInput.style.display = 'block';
         }
 
-        function validateDays() {
-            const daysInput = document.querySelector('input[name="durationDays"]');
-            const warning = document.getElementById('daysWarning');
-            const aiBtn = document.querySelector('.ai-btn');
+        // Thêm "Khác" với format giống Q4, Q12, etc.
+        html += `
+            <label><input type="radio" name="q2_category" value="Khác" id="q2_other_radio" required> Khác</label>
+        `;
+        
+        categoryGroup.innerHTML = html;
+        
+        // Thêm input "Khác" bên ngoài checkbox-group (sau)
+        const otherInput = document.createElement('input');
+        otherInput.type = 'text';
+        otherInput.id = 'q2_other_text';
+        otherInput.className = 'form-input other-input';
+        otherInput.name = 'q2_category_other';
+        otherInput.placeholder = 'Ghi rõ danh mục...';
+        otherInput.style.display = 'none';
+        
+        categoryGroup.appendChild(otherInput);
 
-            const daysVal = parseInt(daysInput.value);
-            const invalid = Number.isNaN(daysVal) || daysVal < 1;
+        // Attach events cho "Khác"
+        attachOtherEventsForQ2();
 
-            if (invalid) {
-                if (warning) warning.style.display = 'none';
-                if (aiBtn) {
-                    aiBtn.disabled = true;
-                    aiBtn.style.opacity = '0.6';
-                    aiBtn.style.cursor = 'not-allowed';
-                }
-                return;
-            }
-            
-            if (daysVal > MAX_AI_DAYS) {
-                if (warning) warning.style.display = 'block';
-                if (aiBtn) {
-                    aiBtn.disabled = true;
-                    aiBtn.style.opacity = '0.6';
-                    aiBtn.style.cursor = 'not-allowed';
-                }
-            } else {
-                if (warning) warning.style.display = 'none';
-                if (aiBtn) {
-                    aiBtn.disabled = false;
-                    aiBtn.style.opacity = '1';
-                    aiBtn.style.cursor = 'pointer';
-                }
-            }
+    } catch (err) {
+        console.error('Lỗi tải danh mục:', err.message || err);
+        categoryGroup.innerHTML = `<div class="error-message">❌ Không thể tải danh mục: ${err.message || 'Vui lòng kiểm tra kết nối mạng hoặc đăng nhập lại.'}. Thử lại sau.</div>`;
+    }
+}
+function renderCategories(categories) {
+    const container = document.getElementById('q2_categoryGroup'); // ✅ FIXED: Đúng ID
+    
+    if (!categories || categories.length === 0) {
+        container.innerHTML = '<p style="color: #6b7280;">Chưa có danh mục nào</p>';
+        container.insertAdjacentHTML('beforeend', `
+          <label>
+            <input type="radio" name="q2_category" value="Khác" id="q2_other_radio">
+            <span>Khác</span>
+          </label>
+          <input type="text" id="q2_other_text" class="form-input other-input" 
+                 placeholder="Ghi rõ danh mục..." style="display:none; margin-top:10px;">
+        `);
+        setupCategoryOtherToggle(); // ✅ FIXED: Setup riêng cho Q2
+        return;
+    }
+    
+    // ✅ FIXED: Tạo RADIO (không phải checkbox)
+    const html = categories.map(cat => `
+        <label>
+            <input type="radio" name="q2_category" value="${escapeHtml(cat.name)}" required>
+            <span>${escapeHtml(cat.name)}</span>
+        </label>
+    `).join('');
+    
+    container.innerHTML = html;
+
+    // ✅ FIXED: Thêm radio "Khác" cho Q2
+    container.insertAdjacentHTML('beforeend', `
+      <label>
+        <input type="radio" name="q2_category" value="Khác" id="q2_other_radio">
+        <span>Khác</span>
+      </label>
+      <input type="text" id="q2_other_text" class="form-input other-input" 
+             placeholder="Ghi rõ danh mục..." style="display:none; margin-top:10px;">
+    `);
+
+    setupCategoryOtherToggle(); // ✅ FIXED
+}
+function setupCategoryOtherToggle() {
+    const otherRadio = document.getElementById('q2_other_radio');
+    const otherInput = document.getElementById('q2_other_text');
+    if (!otherRadio || !otherInput) return;
+    
+    // Khi chọn "Khác" → hiện input
+    otherRadio.addEventListener('change', () => {
+        if (otherRadio.checked) {
+            otherInput.style.display = 'block';
+            setTimeout(() => otherInput.focus(), 60);
         }
-
-        async function generateRoadmapWithAI() {
-            if (isGenerating) return;
-
-            const form = document.getElementById('roadmapForm');
-            const formData = new FormData(form);
-
-            // ==== thu selected categories (hỗ trợ "Khác") ====
-            const selectedCategories = [];
-            document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
-                if (cb.value === 'Khác') {
-                    const otherValEl = document.getElementById('category-other-input');
-                    const v = otherValEl && otherValEl.value.trim() ? otherValEl.value.trim() : 'Khác';
-                    selectedCategories.push(v);
-                } else {
-                    selectedCategories.push(cb.value);
-                }
+    });
+    
+    // Khi chọn option khác → ẩn input
+    document.querySelectorAll('input[name="q2_category"]').forEach(radio => {
+        if (radio !== otherRadio) {
+            radio.addEventListener('change', () => {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
             });
-            // ==================================================
+        }
+    });
+}
 
-            const startLevel = formData.get('startLevel');
+function validateDays() {
+        const daysInput = document.getElementById('q11_program_days');
+        const aiBtn = document.getElementById('aiGenerateBtn'); // Sửa: dùng getElementById
+        const warning = document.getElementById('daysWarning');
 
-            if (!formData.get('roadmapName') || selectedCategories.length === 0 || 
-                !formData.get('durationDays') || !formData.get('hoursPerDay') || !startLevel || !formData.get('expectedOutcome')) {
-                showNotification('Vui lòng điền đầy đủ thông tin cơ bản trước khi sử dụng AI!', 'error');
-                return;
-            }
+        // Check riêng lẻ
+        if (!daysInput) {
+            console.warn('daysInput not found');
+            return;
+        }
+        if (!aiBtn) {
+            console.warn('aiBtn not found');
+            return;
+        }
+        if (!warning) {
+            console.warn('warning not found');
+            return;
+        }
 
-            const days = parseInt(formData.get('durationDays'));
-            if (days > MAX_AI_DAYS) {
-                showNotification(`AI chỉ có thể tạo lộ trình tối đa ${MAX_AI_DAYS} ngày. Vui lòng giảm số ngày hoặc tạo thủ công.`, 'error');
-                return;
-            }
-
-            isGenerating = true;
-            const aiBtn = document.querySelector('.ai-btn');
-            const btnText = document.getElementById('ai-btn-text');
-
+        const days = parseInt(daysInput.value);
+        if (isNaN(days) || days < 15 || days > 180) {
             aiBtn.disabled = true;
-            btnText.innerHTML = '<div class="loading"><div class="spinner"></div> AI đang tạo lộ trình...</div>';
+            warning.style.display = 'block';
+            if (days > 180) warning.textContent = '⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.';
+            else if (days < 15) warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 đến 180.';
+            else warning.textContent = '';
+        } else {
+            aiBtn.disabled = false;
+            warning.style.display = 'none';
+        }
+    }
 
-            try {
-                const roadmapData = {
-                    roadmap_name: formData.get('roadmapName'),
-                    category: selectedCategories.join(', '),
-                    sub_category: formData.get('subCategory') || '',
-                    start_level: startLevel,
-                    duration_days: parseInt(formData.get('durationDays')),
-                    duration_hours: parseFloat(formData.get('hoursPerDay')) * parseInt(formData.get('durationDays')),
-                    expected_outcome: formData.get('expectedOutcome')
-                };
+function updateTotalHours() {
+        const daysInput = document.getElementById('q11_program_days');
+        const hoursInput = document.querySelector('select[name="q9_daily_time"]');
 
-                const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
-                const apiUrl = apiBase.replace(/\/$/, '') + '/api/generate-roadmap-ai';
+        if (daysInput && daysInput.value && hoursInput && hoursInput.value) {
+            const hours = parseFloat(hoursInput.value.split('-')[0] || '2');
+            const total = parseInt(daysInput.value) * hours;
+            console.log(`Total hours: ${total}`);
+        }
+    }
+async function generateRoadmapWithAI() {
+    const generateBtn = document.getElementById('generateAI');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submit-btn-text');
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify(roadmapData)
-                });
+    // Disable buttons
+    generateBtn.disabled = true;
+    submitBtn.disabled = true;  // Unclickable khi đang generate
+    generateBtn.innerHTML = '<div class="loading"><div class="spinner"></div> Đang tạo...</div>';
+    submitText.innerHTML = '<div class="loading"><div class="spinner"></div> Đang chờ AI...</div>';
+    
+    if (typeof isGenerating !== 'undefined' && isGenerating) return;
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP ${response.status}`);
+    const form = document.getElementById('roadmapForm');
+    if (!form) {
+        showNotification('Không tìm thấy form roadmap.', 'error');
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    // helpers
+    const getField = (fd, name, fallback = '') => {
+        const v = fd.get(name);
+        return v == null ? fallback : String(v).trim();
+    };
+    const extractFirstNumber = (str, fallback = 2) => {
+        if (!str) return fallback;
+        const s = String(str).trim();
+        const m = s.match(/(\d+(?:\.\d+)?)/);
+        if (m) {
+            const num = parseFloat(m[1]);
+            if (s.toLowerCase().includes('phút')) return num / 60;
+            return num;
+        }
+        return fallback;
+    };
+    const collectChecked = (selectorNames) => {
+        const values = [];
+        selectorNames.forEach(sel => {
+            document.querySelectorAll(sel).forEach(cb => {
+                if (cb.checked) values.push(cb.value);
+            });
+        });
+        return values;
+    };
+    const collectCheckedWithOther = (selectorNames, otherInputId) => {
+        const values = [];
+        let other = '';
+        selectorNames.forEach(sel => {
+            document.querySelectorAll(sel).forEach(cb => {
+                if (!cb.checked) return;
+                if (cb.value === 'Khác' || cb.value === 'Khac' || cb.value === 'Other') {
+                    const el = document.getElementById(otherInputId);
+                    if (el) other = (el.value || '').trim();
+                } else {
+                    values.push(cb.value);
                 }
+            });
+        });
+        return { values, other };
+    };
 
-                const result = await response.json();
+    // THU THẬP & XỬ LÝ CÁC TRƯỜNG (Q1..Q20)
+    
+    // Q1
+    const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
-                if (!result.success || !result.data) {
-                    throw new Error('AI response không hợp lệ');
-                }
+    // Q2 category (radio single) + other
+    let q2_category = getField(formData, 'q2_category');
+    let q2_category_other = '';
+    if (q2_category === 'Khác' || q2_category === 'Khac' || q2_category === 'Other') {
+        const otherInput = document.getElementById('q2_other_text');
+        q2_category_other = otherInput ? (otherInput.value || '').trim() : '';
+        if (!q2_category_other) {
+            showNotification('Vui lòng nhập danh mục khi chọn "Khác"', 'error');
+            generateBtn.disabled = false;
+            submitBtn.disabled = false;
+            generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+            submitText.innerHTML = '🎉 Tạo Lộ Trình';
+            return;
+        }
+        q2_category = q2_category_other;
+    }
 
-                dayCount = 0;
-                document.getElementById('daysContainer').innerHTML = '';
+    // Q3
+    const q3_category_detail = getField(formData, 'q3_category_detail');
 
-                result.data.forEach((aiDay, index) => {
-                    const dayData = {
-                        day: aiDay.day_number || (index + 1),
-                        goal: aiDay.daily_goal || '',
-                        content: aiDay.learning_content || '',
-                        exercises: aiDay.practice_exercises || '',
-                        materials: aiDay.learning_materials || '',
-                        hours: aiDay.study_duration_hours || 2
-                    };
-                    addDay(dayData);
-                });
+    // Q4 main purpose + other
+    let q4_main_purpose = getField(formData, 'q4_main_purpose');
+    let q4_main_purpose_other = '';
+    if (q4_main_purpose === 'Khác' || q4_main_purpose === 'Khac' || q4_main_purpose === 'Other') {
+        q4_main_purpose_other = getField(formData, 'q4_main_purpose_other');
+    }
 
-                showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể chỉnh sửa nếu cần.', 'success');
+    // Q5
+    const q5_specific_goal = getField(formData, 'q5_specific_goal');
+    const q5_current_job = getField(formData, 'q5_current_job');
 
-            } catch (error) {
-                console.error('AI generation error:', error);
-                showNotification(`⚠️ ${error.message || 'Có lỗi xảy ra khi gọi AI. Vui lòng thử lại.'}`, 'error');
-            } finally {
-                isGenerating = false;
-                aiBtn.disabled = false;
-                btnText.textContent = '✨ Tạo Lộ Trình Với AI';
-                validateDays();
+    // Q6-Q8
+    const q6_learning_duration = getField(formData, 'q6_learning_duration');
+    const q7_current_level = getField(formData, 'q7_current_level');
+    const q8_skills_text = getField(formData, 'q8_skills_text');
+
+    // Q9-Q11
+    const q9_daily_time = getField(formData, 'q9_daily_time');
+    const q10_weekly_sessions = getField(formData, 'q10_weekly_sessions');
+    const q11_program_days = parseInt(getField(formData, 'q11_program_days') || '0', 10) || 0;
+
+    // Q12..Q16 (checkbox groups with possible "Khác")
+    const q12 = collectCheckedWithOther(['input[name="q12_learning_styles[]"]', 'input[name="q12_learning_styles"]'], 'q12_other_text');
+    const q12_learning_styles = q12.values;
+    const q12_learning_styles_other = q12.other;
+
+    const q13 = collectCheckedWithOther(['input[name="q13_learning_combinations[]"]', 'input[name="q13_learning_combinations"]'], 'q13_other_text');
+    const q13_learning_combinations = q13.values;
+    const q13_learning_combinations_other = q13.other;
+
+    const q14 = collectCheckedWithOther(['input[name="q14_challenges[]"]', 'input[name="q14_challenges"]'], 'q14_other_text');
+    const q14_challenges = q14.values;
+    const q14_challenges_other = q14.other;
+
+    const q15 = collectCheckedWithOther(['input[name="q15_motivation[]"]', 'input[name="q15_motivation"]'], 'q15_other_text');
+    const q15_motivation = q15.values;
+    const q15_motivation_other = q15.other;
+
+    const q16 = collectCheckedWithOther(['input[name="q16_material_types[]"]', 'input[name="q16_material_types"]'], 'q16_other_text');
+    const q16_material_types = q16.values;
+    const q16_material_types_other = q16.other;
+
+    // Q17-Q19
+    const q17_material_language = getField(formData, 'q17_material_language');
+    const q18_assessment_types = collectChecked(['input[name="q18_assessment_types[]"]', 'input[name="q18_assessment_types"]']);
+    const q19_result_display = collectChecked(['input[name="q19_result_display[]"]', 'input[name="q19_result_display"]']);
+
+    // Q20
+    let q20_assessment_frequency = getField(formData, 'q20_assessment_frequency');
+    let q20_assessment_frequency_other = '';
+    if (q20_assessment_frequency === 'Khác' || q20_assessment_frequency === 'Khac' || q20_assessment_frequency === 'Other') {
+        q20_assessment_frequency_other = getField(formData, 'q20_assessment_frequency_other');
+    }
+
+    // VALIDATION CƠ BẢN TRƯỚC KHI GỌI AI
+    console.log('🔍 Validation Check:', {
+        q1_roadmap_name,
+        q2_category,
+        q5_specific_goal,
+        q7_current_level,
+        q9_daily_time,
+        q11_program_days
+    });
+
+    if (!q1_roadmap_name) {
+        alert('❌ Thiếu: Tên lộ trình');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q2_category) {
+        alert('❌ Thiếu: Danh mục');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q5_specific_goal) {
+        alert('❌ Thiếu: Mục tiêu cụ thể (Q2)');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q5_current_job) {
+        alert('❌ Thiếu: Công việc hiện tại (Q3)');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q7_current_level) {
+        alert('❌ Thiếu: Trình độ hiện tại (Q5)');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q9_daily_time) {
+        alert('❌ Thiếu: Thời gian học mỗi ngày (Q7)');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 180) {
+        alert('❌ Thiếu hoặc không hợp lệ: Số ngày (Q9) - phải từ 15-180');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+
+    console.log('✅ Validation passed!');
+
+    // days limit
+    const MAX = (typeof MAX_AI_DAYS !== 'undefined') ? MAX_AI_DAYS : 60;
+    if (q11_program_days > MAX) {
+        showNotification(`AI chỉ có thể tạo lộ trình tối đa ${MAX} ngày. Vui lòng giảm số ngày hoặc tạo thủ công.`, 'error');
+        generateBtn.disabled = false;
+        submitBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        return;
+    }
+
+    // UI: bật trạng thái đang tạo
+    isGenerating = true;
+
+    try {
+        // Tạo payload đầy đủ
+        const roadmapData = {
+            roadmap_name: q1_roadmap_name,
+            category: q2_category,
+            sub_category: q3_category_detail || null,
+            start_level: q7_current_level,
+            duration_days: q11_program_days,
+            duration_hours: extractFirstNumber(q9_daily_time, 2) * q11_program_days,
+            expected_outcome: q5_specific_goal,
+
+            // full Qs
+            q1_roadmap_name,
+            q2_category,
+            q3_category_detail,
+            q4_main_purpose,
+            q4_main_purpose_other,
+            q5_specific_goal,
+            q5_current_job,
+            q6_learning_duration,
+            q7_current_level,
+            q8_skills_text,
+            q9_daily_time,
+            q10_weekly_sessions,
+            q11_program_days,
+            q12_learning_styles,
+            q12_learning_styles_other,
+            q13_learning_combinations,
+            q13_learning_combinations_other,
+            q14_challenges,
+            q14_challenges_other,
+            q15_motivation,
+            q15_motivation_other,
+            q16_material_types,
+            q16_material_types_other,
+            q17_material_language,
+            q18_assessment_types,
+            q19_result_display,
+            q20_assessment_frequency,
+            q20_assessment_frequency_other
+        };
+
+        // prepare API URL
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
+        const apiUrl = apiBase.replace(/\/$/, '') + '/api/generate-roadmap-ai';
+
+        // prepare headers
+        let headers = {};
+        try {
+            const h = (typeof getAuthHeaders === 'function') ? getAuthHeaders() : {};
+            if (h instanceof Headers) {
+                h.set('Content-Type', 'application/json');
+                headers = h;
+            } else {
+                headers = Object.assign({}, h || {}, { 'Content-Type': 'application/json' });
             }
+        } catch (err) {
+            headers = { 'Content-Type': 'application/json' };
         }
 
-        function addDay(dayData = null) {
-            dayCount++;
-            const container = document.getElementById('daysContainer');
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(roadmapData)
+        });
 
-            if (container.querySelector('p')) {
-                container.innerHTML = '';
-            }
+        console.log('📡 API Response Status:', response.status);
+        console.log('📡 API Response OK?:', response.ok);
 
-            const dayElement = document.createElement('div');
-            dayElement.className = 'day-item';
-            dayElement.innerHTML = `
-                <div class="day-header">
-                    <div class="day-number">${dayData?.day || dayCount}</div>
-                    <button type="button" class="remove-day-btn" onclick="removeDay(this)">✕</button>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Mục tiêu ngày ${dayData?.day || dayCount}</label>
-                    <input type="text" class="form-input" name="days[${dayCount-1}][goal]" required
-                           placeholder="Mục tiêu cần đạt được trong ngày này"
-                           value="${escapeHtmlAttr(dayData?.goal || '')}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Nội dung học tập</label>
-                    <textarea class="form-textarea" name="days[${dayCount-1}][content]" required
-                              placeholder="Chi tiết nội dung kiến thức sẽ học">${escapeHtmlAttr(dayData?.content || '')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Bài tập thực hành</label>
-                    <textarea class="form-textarea" name="days[${dayCount-1}][exercises]"
-                              placeholder="Bài tập để rèn luyện kỹ năng">${escapeHtmlAttr(dayData?.exercises || '')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Tài liệu học tập</label>
-                    <input type="text" class="form-input" name="days[${dayCount-1}][materials]"
-                           placeholder="Công cụ, tài liệu cần thiết"
-                           value="${escapeHtmlAttr(dayData?.materials || '')}">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Thời gian học (giờ)</label>
-                    <input type="number" class="form-input" name="days[${dayCount-1}][hours]" required
-                           min="0.5" max="12" step="0.5"
-                           value="${escapeHtmlAttr(dayData?.hours || 2)}">
-                </div>
-            `;
-
-            container.appendChild(dayElement);
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ API Error Response:', errorText);
+            alert('LỖI API: ' + errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
+        const result = await response.json().catch(() => ({}));
+        if (!result || !result.success || !result.data) {
+            throw new Error('AI response không hợp lệ');
+        }
+
+        // CLEAR EXISTING DAYS & RENDER AI DAYS
+        if (typeof dayCount !== 'undefined') dayCount = 0;
+        const daysContainer = document.getElementById('daysContainer');
+        if (daysContainer) daysContainer.innerHTML = '';
+
+        result.data.forEach((aiDay, index) => {
+            const dayData = {
+                day_number: aiDay.day_number || aiDay.day || (index + 1),
+                study_date: aiDay.study_date || aiDay.study_date_iso || null,
+                study_date_iso: aiDay.study_date || aiDay.study_date_iso || null,
+                daily_goal: aiDay.daily_goal || aiDay.goal || '',
+                learning_content: aiDay.learning_content || aiDay.content || '',
+                practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
+                learning_materials: aiDay.learning_materials || aiDay.materials || '',
+                study_guide: aiDay.study_guide || '',
+                study_duration_hours: (typeof aiDay.study_duration_hours !== 'undefined') ? aiDay.study_duration_hours : (aiDay.hours || 2),
+                completion_status: aiDay.completion_status || 'NOT_STARTED'
+            };
+            
+            if (typeof addDay === 'function') {
+                addDay(dayData);
+            } else {
+                const container = document.getElementById('daysContainer');
+                if (container) {
+                    const row = document.createElement('div');
+                    row.className = 'day-item';
+                    row.textContent = `Ngày ${dayData.day_number}: ${dayData.daily_goal}`;
+                    container.appendChild(row);
+                }
+            }
+        });
+        
+         // Display analysis
+        document.getElementById('analysisContent').textContent = result.analysis;
+        submitBtn.disabled = false;
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+        showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể chỉnh sửa nếu cần.', 'success');
+
+    } catch (error) {
+        console.error('❌ AI ERROR FULL:', error);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        alert('LỖI AI: ' + (error.message || 'Unknown error'));
+        showNotification(`⚠️ ${error.message || 'Có lỗi xảy ra khi gọi AI. Vui lòng thử lại.'}`, 'error');
+        submitBtn.disabled = false;
+        submitText.innerHTML = '🎉 Tạo Lộ Trình';
+    } finally {
+        isGenerating = false;
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
+        
+        if (typeof validateDays === 'function') validateDays();
+    }
+}
+document.getElementById('generateAI').addEventListener('click', generateRoadmapWithAI);
+function addDay(dayData = null) {
+    dayCount++;
+    const container = document.getElementById('daysContainer');
+
+    if (container.querySelector('p')) {
+        container.innerHTML = '';
+    }
+
+    // ✅ Tính study_date (ngày thực tế)
+    const today = new Date();
+    const studyDate = new Date(today);
+    studyDate.setDate(today.getDate() + (dayCount - 1));
+    const formattedDate = studyDate.toLocaleDateString('vi-VN', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric' 
+    });
+
+    const dayElement = document.createElement('div');
+    dayElement.className = 'day-item';
+    dayElement.innerHTML = `
+        <div class="day-header">
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div class="day-number">${dayData?.day_number || dayCount}</div>
+                <div style="color: #6b7280; font-size: 0.9rem;">
+                    📅 ${dayData?.study_date || formattedDate}
+                </div>
+            </div>
+            <button type="button" class="remove-day-btn" onclick="removeDay(this)">✕</button>
+        </div>
+        
+        <!-- Hidden field: study_date ISO -->
+        <input type="hidden" name="days[${dayCount-1}][study_date]" 
+               value="${dayData?.study_date_iso || studyDate.toISOString().split('T')[0]}">
+        
+        <!-- Hidden field: completion_status -->
+        <input type="hidden" name="days[${dayCount-1}][completion_status]" 
+               value="${dayData?.completion_status || 'NOT_STARTED'}">
+        
+        <div class="form-group">
+            <label class="form-label">Mục tiêu ngày ${dayData?.day_number || dayCount}</label>
+            <input type="text" class="form-input" name="days[${dayCount-1}][goal]" required
+                   placeholder="Mục tiêu cần đạt được trong ngày này"
+                   value="${escapeHtmlAttr(dayData?.daily_goal || '')}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Nội dung học tập</label>
+            <textarea class="form-textarea" name="days[${dayCount-1}][content]" required
+                      placeholder="Chi tiết nội dung kiến thức sẽ học">${escapeHtmlAttr(dayData?.learning_content || '')}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Bài tập thực hành</label>
+            <textarea class="form-textarea" name="days[${dayCount-1}][exercises]"
+                      placeholder="Bài tập để rèn luyện kỹ năng">${escapeHtmlAttr(dayData?.practice_exercises || '')}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Công cụ/Tài liệu học tập</label>
+            <input type="text" class="form-input" name="days[${dayCount-1}][materials]"
+                   placeholder="Công cụ, tài liệu cần thiết"
+                   value="${escapeHtmlAttr(dayData?.learning_materials || '')}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Hướng dẫn sử dụng</label>
+            <textarea class="form-textarea" name="days[${dayCount-1}][study_guide]"
+                      placeholder="Hướng dẫn sử dụng tài liệu và cách học">${escapeHtmlAttr(dayData?.study_guide || '')}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Thời gian học (giờ)</label>
+            <input type="number" class="form-input" name="days[${dayCount-1}][hours]" required
+                   min="0.5" max="12" step="0.5"
+                   value="${escapeHtmlAttr(dayData?.study_duration_hours || 2)}">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" name="days[${dayCount-1}][completion_status_display]" disabled>
+                <option value="NOT_STARTED" ${(!dayData || dayData.completion_status === 'NOT_STARTED') ? 'selected' : ''}>
+                    Chưa hoàn thành
+                </option>
+                <option value="IN_PROGRESS" ${dayData?.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>
+                    Đang thực hiện
+                </option>
+                <option value="COMPLETED" ${dayData?.completion_status === 'COMPLETED' ? 'selected' : ''}>
+                    Đã hoàn thành
+                </option>
+                <option value="SKIPPED" ${dayData?.completion_status === 'SKIPPED' ? 'selected' : ''}>
+                    Không làm
+                </option>
+            </select>
+            <small style="color: #6b7280; font-size: 0.85rem; display: block; margin-top: 5px;">
+                ℹ️ Trạng thái sẽ được cập nhật khi bạn học
+            </small>
+        </div>
+    `;
+
+    container.appendChild(dayElement);
+}
         function removeDay(button) {
             const dayItem = button.closest('.day-item');
             if (!dayItem) return;
@@ -979,127 +1817,474 @@
                 }
             }, 5000);
         }
+document.getElementById('roadmapForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
 
-        document.getElementById('roadmapForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
+  const form = this;
+  const submitBtn = document.querySelector('.submit-btn');
+  const btnText = document.getElementById('submit-btn-text');
 
-            const submitBtn = document.querySelector('.submit-btn');
-            const btnText = document.getElementById('submit-btn-text');
+  // UI: disable + loading
+  if (submitBtn) submitBtn.disabled = true;
+  if (btnText) btnText.innerHTML = '<div class="loading"><div class="spinner"></div> Đang tạo...</div>';
 
-            submitBtn.disabled = true;
-            btnText.innerHTML = '<div class="loading"><div class="spinner"></div> Đang tạo...</div>';
+  // helpers
+  const getField = (fd, name) => {
+    const v = fd.get(name);
+    return v == null ? '' : String(v).trim();
+  };
+  const getCheckedList = (names) => {
+    // names: array of possible name attributes, e.g. ['q12_learning_styles[]','q12_learning_styles']
+    const values = [];
+    names.forEach(name => {
+      document.querySelectorAll(`input[name="${name}"]:checked`).forEach(cb => values.push(cb.value));
+    });
+    return values;
+  };
+  const getCheckedListWithOther = (names, otherInputId) => {
+    const vals = [];
+    let other = '';
+    names.forEach(name => {
+      document.querySelectorAll(`input[name="${name}"]:checked`).forEach(cb => {
+        if (cb.value === 'Khác' || cb.value === 'Khac' || cb.value === 'Other') {
+          const el = document.getElementById(otherInputId);
+          other = el ? (el.value || '').trim() : other;
+        } else {
+          vals.push(cb.value);
+        }
+      });
+    });
+    return { values: vals, other: other };
+  };
+  const extractFirstNumber = (str, fallback = 2) => {
+    if (!str) return fallback;
+    const s = String(str).trim();
+    const m = s.match(/(\d+(?:\.\d+)?)/);
+    if (m) {
+      const num = parseFloat(m[1]);
+      if (s.toLowerCase().includes('phút')) return num / 60;
+      return num;
+    }
+    return fallback;
+  };
 
-            try {
-                const formData = new FormData(this);
+  try {
+    const formData = new FormData(form);
 
-                // ==== thu selected categories (hỗ trợ "Khác") ====
-                const selectedCategories = [];
-                document.querySelectorAll('input[name="category[]"]:checked').forEach(cb => {
-                    if (cb.value === 'Khác') {
-                        const otherValEl = document.getElementById('category-other-input');
-                        const v = otherValEl && otherValEl.value.trim() ? otherValEl.value.trim() : 'Khác';
-                        selectedCategories.push(v);
-                    } else {
-                        selectedCategories.push(cb.value);
-                    }
-                });
-                // ==================================================
+    // =========================================
+    // BƯỚC 1: THU THẬP DỮ LIỆU TỪ FORM (Q1..Q20)
+    // =========================================
 
-                const startLevel = formData.get('startLevel');
+    // Q1
+    const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
-                const roadmapData = {
-                    roadmap_name: formData.get('roadmapName'),
-                    category: selectedCategories.join(', '),
-                    sub_category: formData.get('subCategory') || null,
-                    start_level: startLevel,
-                    duration_days: parseInt(formData.get('durationDays')),
-                    duration_hours: parseFloat(formData.get('hoursPerDay')) * parseInt(formData.get('durationDays')),
-                    expected_outcome: formData.get('expectedOutcome')
-                };
+    // Q2 (category) - xử lý "Khác"
+    let q2_category = getField(formData, 'q2_category');
+    if (q2_category === 'Khác' || q2_category === 'Khac' || q2_category === 'Other') {
+      const other = document.getElementById('q2_other_text');
+      q2_category = other ? (other.value || '').trim() : '';
+    }
 
-                const days = [];
-                const dayItems = document.querySelectorAll('.day-item');
-                dayItems.forEach((dayItem, index) => {
-                    const inputs = dayItem.querySelectorAll('input, textarea');
-                    const dayData = {};
-                    inputs.forEach(input => {
-                        const m = input.name.match(/\[(\w+)\]$/);
-                        const fieldName = m ? m[1] : null;
-                        if (fieldName) {
-                            dayData[fieldName] = input.value;
-                        }
-                    });
-                    if (dayData.goal && dayData.content) {
-                        days.push(dayData);
-                    }
-                });
+    // Q3
+    const q3_category_detail = getField(formData, 'q3_category_detail');
 
-                if (days.length === 0) {
-                    throw new Error('Vui lòng thêm ít nhất một ngày học');
-                }
+    // Q4 main purpose (radio/select) + other
+    let q4_main_purpose = getField(formData, 'q4_main_purpose');
+    let q4_main_purpose_other = '';
+    if (q4_main_purpose === 'Khác' || q4_main_purpose === 'Khac' || q4_main_purpose === 'Other') {
+      q4_main_purpose_other = getField(formData, 'q4_main_purpose_other');
+      if (!q4_main_purpose_other) q4_main_purpose_other = '';
+    }
 
-                roadmapData.days = days;
+    // Q5
+    const q5_specific_goal = getField(formData, 'q5_specific_goal');
+    const q5_current_job = getField(formData, 'q5_current_job');
 
-                const response = await fetch('/api/roadmaps', {
+    // Q6-Q8
+    const q6_learning_duration = getField(formData, 'q6_learning_duration'); // e.g., "3 months"
+    const q7_current_level = getField(formData, 'q7_current_level');
+    const q8_skills_text = getField(formData, 'q8_skills_text');
+
+    // Q9-Q11
+    const q9_daily_time = getField(formData, 'q9_daily_time'); // e.g., "2-3 giờ"
+    const q10_weekly_sessions = getField(formData, 'q10_weekly_sessions');
+    const q11_program_days = Number(getField(formData, 'q11_program_days')) || 0;
+
+    // Q12 (learning styles) - checkbox array + other
+    const q12 = getCheckedListWithOther(['q12_learning_styles[]','q12_learning_styles'], 'q12_other_text');
+    const q12_learning_styles = q12.values;
+    const q12_learning_styles_other = q12.other;
+
+    // Q13 (learning combinations)
+    const q13 = getCheckedListWithOther(['q13_learning_combinations[]','q13_learning_combinations'], 'q13_other_text');
+    const q13_learning_combinations = q13.values;
+    const q13_learning_combinations_other = q13.other;
+
+    // Q14 (challenges)
+    const q14 = getCheckedListWithOther(['q14_challenges[]','q14_challenges'], 'q14_other_text');
+    const q14_challenges = q14.values;
+    const q14_challenges_other = q14.other;
+
+    // Q15 (motivation)
+    const q15 = getCheckedListWithOther(['q15_motivation[]','q15_motivation'], 'q15_other_text');
+    const q15_motivation = q15.values;
+    const q15_motivation_other = q15.other;
+
+    // Q16 (material types)
+    const q16 = getCheckedListWithOther(['q16_material_types[]','q16_material_types'], 'q16_other_text');
+    const q16_material_types = q16.values;
+    const q16_material_types_other = q16.other;
+
+    // Q17-Q19
+    const q17_material_language = getField(formData, 'q17_material_language');
+
+    const q18_assessment_types = getCheckedList(['q18_assessment_types[]','q18_assessment_types']);
+    const q19_result_display = getCheckedList(['q19_result_display[]','q19_result_display']);
+
+    // Q20 - assessment frequency (other)
+    let q20_assessment_frequency = getField(formData, 'q20_assessment_frequency');
+    let q20_assessment_frequency_other = '';
+    if (q20_assessment_frequency === 'Khác' || q20_assessment_frequency === 'Khac' || q20_assessment_frequency === 'Other') {
+      q20_assessment_frequency_other = getField(formData, 'q20_assessment_frequency_other');
+    }
+
+    // =========================================
+    // BƯỚC 2: VALIDATION CƠ BẢN
+    // =========================================
+    console.log('🔍 Validation Check:', {
+      q1_roadmap_name, 
+      q2_category, 
+      q3_category_detail,
+      q5_specific_goal, 
+      q7_current_level, 
+      q9_daily_time,
+      q11_program_days
+    });
+
+    if (!q1_roadmap_name) throw new Error('❌ Vui lòng nhập tên lộ trình ');
+    if (!q2_category) throw new Error('❌ Vui lòng chọn danh mục');
+    if (!q3_category_detail) throw new Error('❌ Vui lòng nhập danh mục chi tiết ');
+    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
+    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
+    if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
+    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 180) {
+      throw new Error('❌ Số ngày phải từ 15 đến 180 (Q9)');
+    }
+
+    // =========================================
+    // BƯỚC 3: TẠO OBJECT GỬI LÊN SERVER
+    // =========================================
+
+    // =========================================
+    // BƯỚC 4: THU THẬP DAYS (9 trường mỗi day)
+    // =========================================
+    const days = [];
+    const dayItems = document.querySelectorAll('.day-item');
+    dayItems.forEach((dayItem, idx) => {
+      const inputs = dayItem.querySelectorAll('input, textarea, select');
+      const dayData = {
+        day_number: idx + 1,
+        study_date: null,
+        completion_status: 'NOT_STARTED',
+        daily_goal: '',
+        learning_content: '',
+        practice_exercises: '',
+        learning_materials: '',
+        study_guide: '',
+        study_duration_hours: 2
+      };
+
+      inputs.forEach(input => {
+        // match last bracket name like name="day[goal]" -> capture 'goal'
+        const m = input.name ? input.name.match(/\[(\w+)\]$/) : null;
+        const fieldName = m ? m[1] : (input.name || '');
+        if (!fieldName) return;
+
+        const val = (input.type === 'checkbox' || input.type === 'radio') ? (input.checked ? input.value : null) : (input.value || '');
+
+        switch (fieldName) {
+          case 'goal':
+            dayData.daily_goal = val || dayData.daily_goal;
+            break;
+          case 'content':
+            dayData.learning_content = val || dayData.learning_content;
+            break;
+          case 'exercises':
+            dayData.practice_exercises = val || dayData.practice_exercises;
+            break;
+          case 'materials':
+            dayData.learning_materials = val || dayData.learning_materials;
+            break;
+          case 'study_guide':
+            dayData.study_guide = val || dayData.study_guide;
+            break;
+          case 'hours':
+            dayData.study_duration_hours = parseFloat(val) || dayData.study_duration_hours;
+            break;
+          case 'study_date':
+            dayData.study_date = val || dayData.study_date;
+            break;
+          case 'completion_status':
+            dayData.completion_status = val || dayData.completion_status;
+            break;
+          default:
+            // ignore unknown
+            break;
+        }
+      });
+
+      // only push if minimal useful content
+      if ((dayData.daily_goal && dayData.learning_content) || dayData.study_date) {
+        days.push(dayData);
+      }
+    });
+
+    // =========================================
+    // TÍNH duration_hours
+    // - nếu có days: tổng study_duration_hours
+    // - else: lấy số đầu tiên trong q9_daily_time × q11_program_days
+    // =========================================
+    let duration_hours = 0;
+    if (days.length > 0) {
+      duration_hours = days.reduce((s, d) => s + (Number(d.study_duration_hours) || 0), 0);
+    } else {
+      const hoursPerDay = extractFirstNumber(q9_daily_time, 2);
+      duration_hours = hoursPerDay * q11_program_days;
+    }
+    
+    // ✅ Final check for duration_hours
+    if (isNaN(duration_hours) || duration_hours <= 0) {
+      console.error('❌ Duration calculation failed:', {
+        q9_daily_time,
+        q11_program_days,
+        hoursPerDay: extractFirstNumber(q9_daily_time, 2),
+        calculated: duration_hours
+      });
+      throw new Error('❌ Không thể tính tổng giờ học. Vui lòng chọn thời gian học mỗi ngày (Q9)');
+    }
+
+    // build payload
+    const roadmapData = {
+      // basic normalized fields
+      roadmap_name: q1_roadmap_name,
+      category: q2_category,
+      sub_category: q3_category_detail || null,
+      start_level: q7_current_level,
+      duration_days: q11_program_days,
+      duration_hours: duration_hours,
+      expected_outcome: q5_specific_goal,
+
+      // full Qs for server
+      q1_roadmap_name,
+      q2_category,
+      q3_category_detail,
+      q4_main_purpose,
+      q4_main_purpose_other,
+      q5_specific_goal,
+      q5_current_job,
+      q6_learning_duration,
+      q7_current_level,
+      q8_skills_text,
+      q9_daily_time,
+      q10_weekly_sessions,
+      q11_program_days,
+      q12_learning_styles,
+      q12_learning_styles_other,
+      q13_learning_combinations,
+      q13_learning_combinations_other,
+      q14_challenges,
+      q14_challenges_other,
+      q15_motivation,
+      q15_motivation_other,
+      q16_material_types,
+      q16_material_types_other,
+      q17_material_language,
+      q18_assessment_types,
+      q19_result_display,
+      q20_assessment_frequency,
+      q20_assessment_frequency_other
+    };
+
+    if (days.length > 0) roadmapData.days = days;
+
+    console.log('📤 Sending data:', roadmapData);
+
+    // =========================================
+    // BƯỚC 5: GỬI REQUEST (gộp headers)
+    // =========================================
+    // getAuthHeaders may return object or Headers instance
+    let headers = {};
+    try {
+      const h = typeof getAuthHeaders === 'function' ? getAuthHeaders() : {};
+      if (h instanceof Headers) {
+        h.set('Content-Type', 'application/json');
+        headers = h;
+      } else {
+        headers = Object.assign({}, h, { 'Content-Type': 'application/json' });
+      }
+    } catch (err) {
+      headers = { 'Content-Type': 'application/json' };
+    }
+
+    const response = await fetch('/api/roadmaps', {
                     method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify(roadmapData)
-                });
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        roadmapData: roadmapData,
+                        roadmap_analyst: document.getElementById('analysisContent').textContent
+                    })
+                })
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP ${response.status}`);
-                }
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error || (`HTTP ${response.status}`));
+    }
 
-                const result = await response.json();
+    const result = await response.json().catch(() => ({}));
+    showNotification('✅ Lộ trình đã được tạo thành công!', 'success');
 
-                showNotification('✅ Lộ trình đã được tạo thành công!', 'success');
+    // redirect/close: giữ hành vi cũ
+    setTimeout(() => {
+      if (window.opener) {
+        window.opener.location.href = 'path.html';
+        window.close();
+      } else {
+        window.location.href = 'path.html';
+      }
+    }, 1200);
 
-                setTimeout(() => {
-                    if (window.opener) {
-                        window.opener.location.href = 'path.html?page=path';
-                        window.close();
-                    } else {
-                        window.location.href = 'path.html?page=path';
-                    }
-                }, 1200);
+  } catch (error) {
+    console.error('❌ Error creating roadmap:', error);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showNotification(`⚠️ ${error.message || 'Có lỗi xảy ra khi tạo lộ trình. Vui lòng thử lại.'}`, 'error');
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+    if (btnText) btnText.innerHTML = '&#127881; Tạo Lộ Trình';
+  }
+});
 
-            } catch (error) {
-                console.error('Error creating roadmap:', error);
-                showNotification(`⚠️ ${error.message || 'Có lỗi xảy ra khi tạo lộ trình. Vui lòng thử lại.'}`, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                btnText.textContent = '🎉 Tạo Lộ Trình';
-            }
-        });
+function updateTotalHours() {
+    const daysInput = document.querySelector('input[name="q11_program_days"]');
+    const hoursInput = document.querySelector('select[name="q9_daily_time"]');
 
-        function updateTotalHours() {
-            const daysInput = document.querySelector('input[name="durationDays"]');
-            const hoursInput = document.querySelector('input[name="hoursPerDay"]');
-
-            if (daysInput.value && hoursInput.value) {
-                const total = parseInt(daysInput.value) * parseFloat(hoursInput.value);
-                console.log(`Total hours: ${total}`);
+    if (daysInput?.value && hoursInput?.value) {
+        const str = String(hoursInput.value).trim();
+        const m = str.match(/(\d+(?:\.\d+)?)/);
+        let hours = 2; // default
+        if (m) {
+            hours = parseFloat(m[1]);
+            if (str.toLowerCase().includes('phút')) {
+                hours = hours / 60;
             }
         }
+        const total = parseInt(daysInput.value) * hours;
+        console.log(`✅ Total hours: ${total.toFixed(2)} (${hours}h/day × ${daysInput.value} days)`);
+    }
+}
 
-        document.querySelector('input[name="durationDays"]').addEventListener('input', function() {
+const daysInputEl = document.querySelector('input[name="q11_program_days"]');
+if (daysInputEl) {
+    daysInputEl.addEventListener('input', function() {
+        updateTotalHours();
+        validateDays();
+    });
+}
+
+const hoursInputEl = document.querySelector('select[name="q9_daily_time"]');
+if (hoursInputEl) {
+    hoursInputEl.addEventListener('change', updateTotalHours);
+}
+// ============ MODAL FUNCTIONS ============
+    let customizedPrompt = null;
+
+    function viewPrompt() {
+        const prompt = customizedPrompt || generatePrompt();
+        document.getElementById('promptContent').textContent = prompt;
+        document.getElementById('promptModal').classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('promptModal').classList.remove('show');
+    }
+
+    function copyPrompt() {
+        const text = document.getElementById('promptContent').textContent || '';
+        navigator.clipboard.writeText(text)
+            .then(() => alert('✅ Đã copy prompt vào clipboard!'))
+            .catch(() => alert('❌ Không thể copy.'));
+    }
+
+    function customizePrompt() {
+        const prompt = customizedPrompt || generatePrompt();
+        document.getElementById('customPromptContent').value = prompt;
+        document.getElementById('customizeModal').classList.add('show');
+    }
+
+    function closeCustomizeModal() {
+        document.getElementById('customizeModal').classList.remove('show');
+    }
+
+    function resetPrompt() {
+        if (confirm('Bạn có chắc muốn khôi phục prompt mặc định?')) {
+            customizedPrompt = null;
+            document.getElementById('customPromptContent').value = generatePrompt();
+            alert('✅ Đã khôi phục prompt mặc định!');
+        }
+    }
+
+    function saveCustomPrompt() {
+        customizedPrompt = document.getElementById('customPromptContent').value;
+        alert('✅ Đã lưu prompt tùy biến!');
+        closeCustomizeModal();
+    }
+
+    // Close modals khi click outside
+    window.addEventListener('click', function(e) {
+        const promptModal = document.getElementById('promptModal');
+        const customizeModal = document.getElementById('customizeModal');
+        
+        if (e.target === promptModal) closeModal();
+        if (e.target === customizeModal) closeCustomizeModal();
+    });
+window.addEventListener('load', function() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Bạn cần đăng nhập để tạo lộ trình học');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    loadCategories();
+    validateDays();
+
+    const daysInputEl = document.getElementById('q11_program_days');
+    if (daysInputEl) {
+        daysInputEl.addEventListener('input', function() {
             updateTotalHours();
             validateDays();
         });
-        document.querySelector('input[name="hoursPerDay"]').addEventListener('input', updateTotalHours);
+    }
 
-        window.addEventListener('load', function() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Bạn cần đăng nhập để tạo lộ trình học');
-                window.location.href = 'login.html';
-                return;
-            }
-            
-            loadCategories();
-            validateDays();
+    const hoursInputEl = document.querySelector('select[name="q9_daily_time"]');
+    if (hoursInputEl) {
+        hoursInputEl.addEventListener('change', updateTotalHours);
+    }
+
+    // ✅ THÊM SAU CÙNG - đảm bảo ẩn tất cả "Khác"
+    setTimeout(() => {
+        ['q2_other_text', 'q4_other_text', 'q12_other_text', 'q13_other_text', 
+         'q14_other_text', 'q15_other_text', 'q16_other_text', 'q20_other_text'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
         });
+    }, 100);
+    setTimeout(() => {
+        attachOtherEventsForQ2();
+    }, 500);
+});
 
         function escapeHtmlAttr(s) {
             if (s === null || s === undefined) return '';
@@ -1120,6 +2305,120 @@
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#39;');
         }
+    // Q4 - Main Purpose
+const q4_other_radio = document.getElementById('q4_other_radio');
+const q4_other_text = document.getElementById('q4_other_text');
+if (q4_other_radio && q4_other_text) {
+    q4_other_radio.addEventListener('change', () => {
+        if (q4_other_radio.checked) {
+            q4_other_text.style.display = 'block';
+            setTimeout(() => q4_other_text.focus(), 60);
+        }
+    });
+    document.querySelectorAll('input[name="q4_main_purpose"]').forEach(radio => {
+        if (radio !== q4_other_radio) {
+            radio.addEventListener('change', () => {
+                q4_other_text.style.display = 'none';
+                q4_other_text.value = '';
+            });
+        }
+    });
+}
+
+// Q12 - Learning Styles
+const q12_other_checkbox = document.getElementById('q12_other_checkbox');
+const q12_other_text = document.getElementById('q12_other_text');
+if (q12_other_checkbox && q12_other_text) {
+    q12_other_checkbox.addEventListener('change', () => {
+        if (q12_other_checkbox.checked) {
+            q12_other_text.style.display = 'block';
+            setTimeout(() => q12_other_text.focus(), 60);
+        } else {
+            q12_other_text.style.display = 'none';
+            q12_other_text.value = '';
+        }
+    });
+}
+
+// Q13 - Learning Combinations
+const q13_other_checkbox = document.getElementById('q13_other_checkbox');
+const q13_other_text = document.getElementById('q13_other_text');
+if (q13_other_checkbox && q13_other_text) {
+    q13_other_checkbox.addEventListener('change', () => {
+        if (q13_other_checkbox.checked) {
+            q13_other_text.style.display = 'block';
+            setTimeout(() => q13_other_text.focus(), 60);
+        } else {
+            q13_other_text.style.display = 'none';
+            q13_other_text.value = '';
+        }
+    });
+}
+
+// Q14 - Challenges
+const q14_other_checkbox = document.getElementById('q14_other_checkbox');
+const q14_other_text = document.getElementById('q14_other_text');
+if (q14_other_checkbox && q14_other_text) {
+    q14_other_checkbox.addEventListener('change', () => {
+        if (q14_other_checkbox.checked) {
+            q14_other_text.style.display = 'block';
+            setTimeout(() => q14_other_text.focus(), 60);
+        } else {
+            q14_other_text.style.display = 'none';
+            q14_other_text.value = '';
+        }
+    });
+}
+
+// Q15 - Motivation
+const q15_other_checkbox = document.getElementById('q15_other_checkbox');
+const q15_other_text = document.getElementById('q15_other_text');
+if (q15_other_checkbox && q15_other_text) {
+    q15_other_checkbox.addEventListener('change', () => {
+        if (q15_other_checkbox.checked) {
+            q15_other_text.style.display = 'block';
+            setTimeout(() => q15_other_text.focus(), 60);
+        } else {
+            q15_other_text.style.display = 'none';
+            q15_other_text.value = '';
+        }
+    });
+}
+
+// Q16 - Material Types
+const q16_other_checkbox = document.getElementById('q16_other_checkbox');
+const q16_other_text = document.getElementById('q16_other_text');
+if (q16_other_checkbox && q16_other_text) {
+    q16_other_checkbox.addEventListener('change', () => {
+        if (q16_other_checkbox.checked) {
+            q16_other_text.style.display = 'block';
+            setTimeout(() => q16_other_text.focus(), 60);
+        } else {
+            q16_other_text.style.display = 'none';
+            q16_other_text.value = '';
+        }
+    });
+}
+
+// Q20 - Assessment Frequency
+const q20_other_radio = document.getElementById('q20_other_radio');
+const q20_other_text = document.getElementById('q20_other_text');
+if (q20_other_radio && q20_other_text) {
+    q20_other_radio.addEventListener('change', () => {
+        if (q20_other_radio.checked) {
+            q20_other_text.style.display = 'block';
+            setTimeout(() => q20_other_text.focus(), 60);
+        }
+    });
+    document.querySelectorAll('input[name="q20_assessment_frequency"]').forEach(radio => {
+        if (radio !== q20_other_radio) {
+            radio.addEventListener('change', () => {
+                q20_other_text.style.display = 'none';
+                q20_other_text.value = '';
+            });
+        }
+    });
+}
     </script>
 </body>
 </html>
