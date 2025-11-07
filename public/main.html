@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Lộ trình học tập AI</title>
+    <title>Con đường đam mê</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
     :root {
-        --primary: #2b8cff;
+        --primary:#007bff;
         --primary-dark: #1e6fe6;
         --muted: #6b7280;
         --bg: #f5f8fb;
@@ -17,7 +17,8 @@
     html, 
     body {
         height: 100%;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     body {
@@ -54,6 +55,25 @@
 
     .brand {
         display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .brand-text {
+        display: flex;
         flex-direction: column;
         gap: 4px;
     }
@@ -70,10 +90,29 @@
         font-weight: 600;
     }
 
-    .nav-center {
+    .nav-buttons {
         display: flex;
+        gap: 22px;
         align-items: center;
-        gap: 20px;
+    }
+
+    .nav-btn {
+        background: none;
+        color: #fff;
+        padding: 0;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 9999px;
+    }
+
+    .nav-btn .fa {
+        margin-right: 8px;
+        opacity: 0.95;
+    }
+
+    .nav-btn.active {
+        color: #e6f2ff;
+        text-decoration: underline;
     }
 
     button {
@@ -118,7 +157,7 @@
     }
 
     .logout-btn {
-        background: #dc3545;
+        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
         color: white;
         box-shadow: 0 2px 5px rgba(0,0,0,0.12);
     }
@@ -313,8 +352,15 @@
         border-radius: 12px;
         box-shadow: 0 8px 20px rgba(12,38,71,0.04);
         min-width: 180px;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
+    .feature:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 18px 40px rgba(12,38,71,0.08);
+    }
+
+    /* default icon style (kept for other features) */
     .feature i {
         background: linear-gradient(180deg, var(--primary), var(--primary-dark));
         color: white;
@@ -326,6 +372,22 @@
         align-items: center;
         justify-content: center;
         font-size: 18px;
+        box-shadow: 0 8px 20px rgba(43,140,255,0.12);
+    }
+
+    /* custom styles for the two target features */
+    .feature.ai i {
+        /* purple -> teal gradient to be distinct from primary blue */
+        background: linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%);
+        box-shadow: 0 10px 26px rgba(124,58,237,0.16);
+        transform: translateZ(0);
+    }
+
+    .feature.progress i {
+        /* warm orange -> yellow gradient for progress/gamification */
+        background: linear-gradient(135deg, #11a811 0%, #15c051 100%);
+        box-shadow: 0 10px 26px rgba(249,115,22,0.14);
+        transform: translateZ(0);
     }
 
     .feature .f-text {
@@ -343,12 +405,251 @@
         color: var(--muted);
     }
 
+    /* Phần Lĩnh Vực Phổ Biến */
+    .categories-section {
+        /* kéo lên một chút so với trước, vẫn giữ khoảng trống thoáng */
+        margin-top: 8px;
+        padding: 30px 20px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .section-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 42px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 12px 0;
+    }
+
+    .section-subtitle {
+        font-size: 18px;
+        color: var(--muted);
+    }
+
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 24px;
+    }
+
+    .category-card {
+        background: white;
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 4px 20px rgba(13, 38, 71, 0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .category-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(13, 38, 71, 0.12);
+    }
+
+    .category-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+    }
+
+    .category-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-bottom: 18px;
+        color: white;
+    }
+
+    .category-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0 0 8px 0;
+    }
+
+    .category-desc {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0 0 16px 0;
+        line-height: 1.6;
+    }
+
+    .category-stats {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .category-count {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .category-btn {
+        background: transparent;
+        color: var(--primary);
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 2px solid var(--primary);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .category-btn:hover {
+        background: var(--primary);
+        color: white;
+    }
+
+    /* Footer (rút gọn chiều cao) */
+    footer {
+        background: #1a202c;
+        color: #e5e7eb;
+        padding: 28px 20px 16px;
+        margin-top: 40px;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    .footer-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .footer-logo-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+
+    .footer-logo-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .footer-logo-sub {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .footer-desc {
+        color: #9ca3af;
+        line-height: 1.5;
+        font-size: 13px;
+    }
+
+    .footer-social {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .social-icon {
+        width: 36px;
+        height: 36px;
+        background: #374151;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .social-icon:hover {
+        background: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .footer-section h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 12px 0;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .footer-link {
+        color: #9ca3af;
+        text-decoration: none;
+        font-size: 13px;
+        transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+        color: var(--primary);
+    }
+
+    .footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 16px;
+        border-top: 1px solid #374151;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
     @media (max-width:1100px) {
         .hero {
             grid-template-columns: 1fr 360px;
         }
         .headline {
             font-size: 48px;
+        }
+        .categories-grid {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         }
     }
 
@@ -397,6 +698,11 @@
             padding-left: 12px;
             flex-wrap: wrap;
         }
+
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
     }
 
     @media (max-width:520px) {
@@ -444,6 +750,14 @@
             font-size: 16px;
             padding: 12px 24px;
         }
+
+        .section-title {
+            font-size: 32px;
+        }
+
+        .categories-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 </head>
@@ -451,10 +765,17 @@
     <div class="fixed-bar">
         <div class="bar-inner">
             <div class="brand">
-                <div class="brand-title">Lộ Trình Học Tập AI</div>
-                <div class="brand-sub">AI-Powered Learning Path</div>
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">Con đường đam mê</div>
+                    <div class="brand-sub">AI-Powered Learning Path</div>
+                </div>
             </div>
-            <div class="nav-center" aria-hidden="true"></div>
+            <div class="nav-buttons" id="mainNavButtons">
+            <!-- Buttons sẽ được thêm bằng JavaScript -->
+            </div>
             <div id="userArea" class="userInfo">
                 <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
                 <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
@@ -466,7 +787,7 @@
         <div class="hero">
             <div class="hero-left">
                 <h1 class="headline">Trưởng thành từ <span class="accent">Những Sở Thích</span></h1>
-                <p class="subdesc">Khám phá hệ thống học tập thông minh sử dụng AI để tạo lộ trình học tập cá nhân hoá. Biến đam mê thành kỹ năng, biến sở thích thành thành công.</p>
+                <p class="subdesc">Khám phá hệ thống học tập thông minh sử dụng AI để tạo lộ trình học tập cá nhân hóa. Biến đam mê thành kỹ năng, biến sở thích thành thành công.</p>
 
                 <div class="cta-row">
                     <div class="cta-center" style="width:100%;">
@@ -475,7 +796,7 @@
                 </div>
 
                 <div class="features" role="list">
-                    <div class="feature" role="listitem">
+                    <div class="feature ai" role="listitem">
                         <i class="fa-solid fa-brain"></i>
                         <div class="f-text">
                             <div class="f-title">AI Thông Minh</div>
@@ -483,7 +804,7 @@
                         </div>
                     </div>
 
-                    <div class="feature" role="listitem">
+                    <div class="feature progress" role="listitem">
                         <i class="fa-solid fa-chart-line"></i>
                         <div class="f-text">
                             <div class="f-title">Theo Dõi Tiến Độ</div>
@@ -550,13 +871,77 @@
         </div>
     </main>
 
+    <!-- Phần Lĩnh Vực Phổ Biến -->
+    <section class="categories-section">
+        <div class="section-header">
+            <h2 class="section-title">Lĩnh Vực Phổ Biến</h2>
+            <p class="section-subtitle">Khám phá các lộ trình học tập được yêu thích nhất</p>
+        </div>
+        <div class="categories-grid" id="categoriesGrid">
+            <!-- Categories will be loaded here -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">
+                        <div class="footer-logo-title">Con đường đam mê</div>
+                        <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                    </div>
+                </div>
+                <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+                <!--<div class="footer-social">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>-->
+            </div>
+
+            <div class="footer-section">
+                <h3>Tính Năng</h3>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Phân tích AI</a>
+                    <a href="#" class="footer-link">Lộ trình cá nhân</a>
+                    <a href="#" class="footer-link">Theo dõi tiến độ</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Hỗ Trợ</h3>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Trung tâm trợ giúp</a>
+                    <a href="#" class="footer-link">Liên hệ</a>
+                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+        </div>
+    </footer>
+
     <script>
         const loginBtn = document.querySelector(".login-btn");
         const registerBtn = document.querySelector(".register-btn");
         const userArea = document.getElementById("userArea");
-
-        // token đặc biệt phải khớp với token bạn lưu ở login (client-side backdoor)
         const ADMIN_TOKEN = 'admin-token';
+
+        // Color schemes for categories
+        const categoryColors = [
+            { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
+            { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
+            { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
+            { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
+            { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
+            { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' }
+        ];
 
         function showAuthButtons() {
             loginBtn.style.display = "inline-flex";
@@ -579,7 +964,7 @@
             window.location.href = "register.html";
         });
 
-        function wireLogoutAndNav(logoutEl, toAppEl, adminEl) {
+        function wireLogoutAndNav(logoutEl) {
             if (logoutEl) {
                 logoutEl.addEventListener('click', () => {
                     localStorage.removeItem('token');
@@ -604,90 +989,134 @@
                     showAuthButtons();
                 });
             }
-
-            if (toAppEl) {
-                toAppEl.addEventListener('click', () => {
-                    window.location.href = "path.html?page=path";
-                });
-            }
-
-            if (adminEl) {
-                adminEl.addEventListener('click', () => {
-                    window.location.href = "admin.html?page=admin";
-                });
-            }
         }
-
         async function loadUser() {
             const token = localStorage.getItem('token');
+            const navButtons = document.getElementById('mainNavButtons');
+            
+            // Reset navigation buttons
+            if (navButtons) {
+                navButtons.innerHTML = '';
+            }
+            
             showAuthButtons();
             if (!token) return;
 
+            let name = 'Người dùng';
+            let serverRole = 'user';
+
             if (token === ADMIN_TOKEN) {
-                if (document.querySelector('.login-btn')) {
-                    document.querySelector('.login-btn').style.display = 'none';
-                }
-                if (document.querySelector('.register-btn')) {
-                    document.querySelector('.register-btn').style.display = 'none';
-                }
-
-                userArea.innerHTML = `
-                    <span>Xin chào <strong style="color:white;">Admin</strong></span>
-                    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    <button id="toAdmin" class="admin-btn"><i class="fa-solid fa-user-shield"></i> Trang admin</button>
-                `;
-                const logoutEl = document.getElementById('logout');
-                const adminEl = document.getElementById('toAdmin');
+                name = 'Admin';
+                serverRole = 'admin';
                 localStorage.setItem('role', 'admin');
-                wireLogoutAndNav(logoutEl, null, adminEl);
-                return;
-            }
-
-            try {
-                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-                if (!res.ok) { 
-                    showAuthButtons(); 
-                    return; 
-                }
-                const data = await res.json();
-                const serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-                localStorage.setItem('role', serverRole);
-
-                if (document.querySelector('.login-btn')) {
-                    document.querySelector('.login-btn').style.display = 'none';
-                }
-                if (document.querySelector('.register-btn')) {
-                    document.querySelector('.register-btn').style.display = 'none';
-                }
-
-                if (serverRole === 'admin') {
-                    userArea.innerHTML = `
-                        <span>Xin chào <strong style="color:white;">Admin</strong></span>
-                        <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                        <button id="toAdmin" class="admin-btn"><i class="fa-solid fa-user-shield"></i> Trang admin</button>
-                    `;
-                    const logoutEl = document.getElementById('logout');
-                    const adminEl = document.getElementById('toAdmin');
-                    wireLogoutAndNav(logoutEl, null, adminEl);
+            } else {
+                try {
+                    const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+                    if (!res.ok) { 
+                        showAuthButtons(); 
+                        return; 
+                    }
+                    const data = await res.json();
+                    serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+                    name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+                    localStorage.setItem('role', serverRole);
+                } catch (err) {
+                    console.error(err);
+                    showAuthButtons();
                     return;
                 }
+            }
 
-                userArea.innerHTML = `
-                    <span>Xin chào <strong style="color:white;">${(data && data.user && data.user.name) ? data.user.name : 'Người dùng'}</strong></span>
-                    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-                    <button id="toApp" class="toApp-btn"><i class="fa-solid fa-arrow-right"></i> Trang học</button>
+            if (document.querySelector('.login-btn')) {
+                document.querySelector('.login-btn').style.display = 'none';
+            }
+            if (document.querySelector('.register-btn')) {
+                document.querySelector('.register-btn').style.display = 'none';
+            }
+
+            userArea.innerHTML = `
+                <span>Xin chào <strong style="color:white;">${name}</strong></span>
+                <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+            `;
+            const logoutEl = document.getElementById('logout');
+            wireLogoutAndNav(logoutEl);
+
+            // Thêm navigation buttons
+            let navHtml = `
+                <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
+                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+            `;
+            if (serverRole === 'admin') {
+                navHtml += `
+                    <button class="nav-btn" id="btnAdmin"><i class="fa-solid fa-user-shield"></i> Quản Trị</button>
                 `;
-                const logoutEl = document.getElementById('logout');
-                const toAppEl = document.getElementById('toApp');
-                wireLogoutAndNav(logoutEl, toAppEl, null);
+            }
+            navButtons.innerHTML = navHtml;
 
+            // Add event listeners
+            document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
+            document.getElementById('btnPath').addEventListener('click', () => { window.location.href = 'path.html'; });
+            document.getElementById('btnProgress').addEventListener('click', () => { window.location.href = 'progress.html'; });
+            if (serverRole === 'admin') {
+                document.getElementById('btnAdmin').addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+            }
+
+            // Active state
+            const params = new URLSearchParams(window.location.search);
+            const page = params.get('page') || 'home';
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+            const btnId = idMap[page];
+            if (btnId) {
+                const el = document.getElementById(btnId);
+                if (el) el.classList.add('active');
+            }
+        }
+        // Load top categories
+        async function loadTopCategories() {
+            try {
+                const res = await fetch('/api/categories/top', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!res.ok) throw new Error('Failed to load categories');
+                
+                const categories = await res.json();
+                const grid = document.getElementById('categoriesGrid');
+                
+                categories.forEach((cat, index) => {
+                    const colorScheme = categoryColors[index % categoryColors.length];
+                    const card = document.createElement('div');
+                    card.className = 'category-card';
+                    card.onclick = () => {
+                        window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
+                    };
+                    
+                    card.innerHTML = `
+                        <div class="category-icon" style="background: ${colorScheme.bg};">
+                            <i class="fa-solid ${colorScheme.icon}"></i>
+                        </div>
+                        <h3 class="category-name">${cat.name}</h3>
+                        <p class="category-desc">${cat.description}</p>
+                        <div class="category-stats">
+                            <span class="category-count">${cat.roadmap_count}+ lộ trình</span>
+                            <button class="category-btn">Xem chi tiết</button>
+                        </div>
+                    `;
+                    
+                    grid.appendChild(card);
+                });
             } catch (err) {
-                console.error(err);
-                showAuthButtons();
+                console.error('Error loading categories:', err);
             }
         }
 
         loadUser();
+        loadTopCategories();
 
         const startBtn = document.getElementById('startNowBtn');
         if (startBtn) {
@@ -696,7 +1125,7 @@
                 if (!token) {
                     window.location.href = 'login.html';
                 } else {
-                    window.location.href = 'path.html?page=path';
+                    window.location.href = 'path.html';
                 }
             });
         }
