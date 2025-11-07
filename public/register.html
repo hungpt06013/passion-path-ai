@@ -457,7 +457,7 @@
           const roleFromServer = (responseBody && responseBody.role) ? responseBody.role : 'user';
           localStorage.setItem('role', roleFromServer);
           showGeneralMessage((responseBody && responseBody.message) ? responseBody.message : 'Đăng ký thành công. Chuyển tới Lộ Trình Học...', 'success');
-          window.location.href = '/path.html?page=path';
+          window.location.href = '/path.html';
         } else {
           let messageFromServer = 'Đã xảy ra lỗi khi đăng ký.';
           if (responseBody && responseBody.message) {
