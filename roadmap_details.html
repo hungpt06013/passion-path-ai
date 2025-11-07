@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chi Tiết Lộ Trình - Học Tập Thông Minh</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1f2937; }
+
+    /* Header - replaced with fixed-bar styles */
+    .fixed-bar { position: fixed; top: 0; left: 0; width: 100%; height: 80px; background: #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 10; }
+    .bar-inner { max-width: 1200px; height: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: flex-start; gap: 40px; padding: 0 20px; box-sizing: border-box; }
+
+    /* Brand is NOT clickable */
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 48px; height: 48px; background: rgba(255,255,255,0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; flex-shrink: 0; }
+    .brand-text { display: flex; flex-direction: column; gap: 4px; }
+    .brand-title { color: white; font-size: 20px; font-weight: 700; }
+    .brand-sub { color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 600; }
+
+    .nav-buttons { display: flex; gap: 22px; align-items: center; margin-left: 40px; }
+    .nav-btn, .nav-item { background: none; color: #fff; padding: 0; font-size: 15px; font-weight: 600; border-radius: 9999px; text-decoration: none; cursor: pointer; border: none; }
+    .nav-btn:hover, .nav-item:hover { color: #e6f2ff; }
+
+    .page-offset { padding-top: 100px; /* header height + spacing */ }
+
+    /* (rest of styles same as previous roadmap_details) */
+    .analysis-section { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; border-left: 5px solid #10b981; }
+    .analysis-section h3 { color: #065f46; margin-bottom: 15px; font-size: 1.3rem; }
+    .analysis-content { color: #374151; line-height: 1.8; white-space: pre-wrap; }
+    .roadmap-section h3 { color: #1f2937; margin-bottom: 20px; font-size: 1.3rem; }
+    table { width: 100%; border-collapse: collapse; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; margin-bottom: 40px; }
+    thead { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; position: sticky; top: 0; z-index: 10; }
+    th { padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; }
+    td { padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    tbody tr:hover { background: #f9fafb; }
+    .day-cell { text-align: center; font-weight: 700; color: #4f46e5; background: #f0f9ff; }
+
+    .breadcrumb { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; }
+    .breadcrumb a { color: #6b7280; text-decoration: none; }
+    .breadcrumb a:hover { color: #4f46e5; }
+
+    .container { max-width: 1200px; margin: 32px auto 80px; padding: 0 24px; }
+    .roadmap-overview { background: white; border-radius: 20px; padding: 40px; margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .overview-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; gap: 24px; }
+    .overview-title h1 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+    .overview-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+    .badge { padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+    .badge-level { background: #dbeafe; color: #1e40af; }
+    .badge-duration { background: #dcfdf4; color: #065f46; }
+    .badge-learners { background: #fef3c7; color: #92400e; }
+    .overview-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding-top: 24px; border-top: 2px solid #e5e7eb; }
+    .stat-box { text-align: center; }
+    .stat-value { font-size: 32px; font-weight: 700; color: #4f46e5; display: block; margin-bottom: 8px; }
+    .stat-label { font-size: 14px; color: #6b7280; font-weight: 500; }
+    .rating-box { display: flex; align-items: center; gap: 8px; font-size: 24px; }
+    .rating-stars { color: #fbbf24; }
+    .days-section { margin-top: 32px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .section-header h2 { font-size: 28px; font-weight: 700; }
+    .progress-indicator { display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .progress-bar-mini { width: 120px; height: 8px; background: #e5e7eb; border-radius: 10px; overflow: hidden; }
+    .progress-fill-mini { height: 100%; background: linear-gradient(90deg, #4f46e5, #7c3aed); }
+    .day-card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 2px solid #e5e7eb; transition: all 0.3s; cursor: pointer; }
+    .day-card:hover { border-color: #4f46e5; box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15); }
+    .day-card.completed { border-color: #10b981; background: linear-gradient(to right, #f0fdf4 0%, white 20%); }
+    .day-card.in-progress { border-color: #f59e0b; background: linear-gradient(to right, #fffbeb 0%, white 20%); }
+    .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .day-number { display: flex; align-items: center; gap: 16px; }
+    .day-badge { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+    .day-card.completed .day-badge { background: linear-gradient(135deg, #10b981, #059669); }
+    .day-card.in-progress .day-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .day-info h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .day-meta { display: flex; gap: 16px; font-size: 13px; color: #6b7280; }
+    .meta-tag { display: flex; align-items: center; gap: 4px; }
+    .status-badge { padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .status-completed { background: #dcfdf4; color: #065f46; }
+    .status-progress { background: #fef3c7; color: #92400e; }
+    .status-not-started { background: #f3f4f6; color: #6b7280; }
+    .day-content { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+    .content-section { margin-bottom: 20px; }
+    .content-section h4 { font-size: 15px; font-weight: 700; color: #4b5563; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .content-section p { font-size: 15px; line-height: 1.7; color: #1f2937; margin-bottom: 12px; }
+    .content-section ul { list-style: none; padding-left: 0; }
+    .content-section li { padding: 8px 0; padding-left: 24px; position: relative; font-size: 14px; line-height: 1.6; }
+    .content-section li:before { content: "✓"; position: absolute; left: 0; color: #10b981; font-weight: 700; }
+    .expand-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #f3f4f6; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 12px; }
+    .expand-btn:hover { background: #e5e7eb; }
+    .loading { text-align: center; padding: 60px 24px; color: #6b7280; }
+    .spinner { width: 48px; height: 48px; margin: 0 auto 20px; border: 4px solid #e5e7eb; border-top-color: #4f46e5; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .overview-stats { grid-template-columns: repeat(2, 1fr); }
+      .overview-header { flex-direction: column; }
+      .day-meta { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (brand NOT clickable) -->
+  <div class="fixed-bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Con đường đam mê</div>
+          <div class="brand-sub">AI-Powered Learning Path</div>
+        </div>
+      </div>
+
+      <div class="nav-buttons" id="mainNavButtons">
+        <!-- Buttons sẽ được thêm bằng JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <div class="page-offset">
+    <div class="breadcrumb">
+      <a href="main.html"><i class="fas fa-home"></i></a>
+      <span>/</span>
+      <a href="#" id="categoryLink">Lĩnh vực</a>
+      <span>/</span>
+      <span class="current">Chi tiết lộ trình</span>
+    </div>
+
+    <div class="container">
+      <div id="loadingState" class="loading">
+        <div class="spinner"></div>
+        <p>Đang tải thông tin lộ trình...</p>
+      </div>
+
+      <div id="roadmapContent" style="display: none;">
+        <div class="roadmap-overview">
+          <div class="overview-header">
+            <div class="overview-title">
+              <h1 id="roadmapTitle">Lộ Trình Học</h1>
+              <div class="overview-badges" id="badgesContainer"></div>
+              <div class="day-meta" id="metaContainer"></div>
+            </div>
+          </div>
+
+          <div class="overview-stats" id="statsContainer"></div>
+        </div>
+        <div id="promptMessage" role="status" aria-live="polite"></div>
+        <div class="days-section">
+          <div class="section-header">
+            <h2>Lộ Trình Chi Tiết Theo Ngày</h2>
+            <div class="progress-indicator">
+              <button class="create-btn" onclick="createRoadmap()"><i class="fa-solid fa-plus"></i> Học lộ trình này</button>
+              <span style="font-size: 14px; font-weight: 600; color: #4b5563;">Tiến độ:</span>
+              <div class="progress-bar-mini"><div class="progress-fill-mini" id="progressFill" style="width: 0%"></div></div>
+              <span style="font-size: 14px; font-weight: 700; color: #4f46e5;" id="progressText">0%</span>
+            </div>
+          </div>
+
+          <div id="daysContainer"></div>
+
+          <div class="modal-overlay" id="detailsModal">
+              <div class="modal-content">
+                  <div class="modal-body" id="modal-body">
+                      <div class="loading">
+                          <div class="spinner"></div>
+                          <br><br>
+                          Đang tải chi tiết...
+                      </div>
+                  </div>
+              </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer (copied) -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">
+                        <div class="footer-logo-title">Con đường đam mê</div>
+                        <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                    </div>
+                </div>
+                <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+                <!--<div class="footer-social">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>-->
+            </div>
+
+            <div class="footer-section">
+                <h3>Tính Năng</h3>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Phân tích AI</a>
+                    <a href="#" class="footer-link">Lộ trình cá nhân</a>
+                    <a href="#" class="footer-link">Theo dõi tiến độ</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Hỗ Trợ</h3>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">Trung tâm trợ giúp</a>
+                    <a href="#" class="footer-link">Liên hệ</a>
+                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+        </div>
+    </footer>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000/api';
+    const urlParams = new URLSearchParams(window.location.search);
+    const roadmapId = urlParams.get('id');
+
+    let roadmapData = null;
+    let details = null;
+    let daysData = [];
+    const days = [];
+
+    async function createRoadmap(){
+      try {
+        const roadmapDataSystem = {
+          roadmap_name: roadmapData.roadmap_name,
+          category: roadmapData.category,
+          sub_category: roadmapData.sub_category || null,
+          start_level: roadmapData.start_level,
+          duration_days: roadmapData.duration_days,
+          duration_hours: roadmapData.duration_hours,
+          expected_outcome: roadmapData.expected_outcome,
+          study_guide: roadmapData.usage_instructions
+        };
+
+        details.forEach((onerow, idx) => {
+          const dayData = {
+            day_number: idx + 1,
+            study_date: null,
+            completion_status: 'NOT_STARTED',
+            daily_goal: onerow.daily_goal || '',
+            learning_content: onerow.learning_content || '',
+            practice_exercises: onerow.practice_exercises || '',
+            learning_materials: onerow.learning_materials || '',
+            study_guide: onerow.usage_instructions || '',
+            study_duration_hours: onerow.study_duration_hours || 2
+          };
+          days.push(dayData);
+        });
+
+        if (days.length > 0) roadmapDataSystem.days = days;
+
+        const response = await fetch('/api/roadmap_from_system', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+          body: JSON.stringify({ roadmapDataSystem: roadmapDataSystem, roadmap_analyst: roadmapData.roadmap_analyst })
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || (`HTTP ${response.status}`));
+        }
+        showMessage('✅ Lộ trình đã được tạo thành công!' , 'success');
+        setTimeout(() => {
+          if (window.opener) { window.opener.location.href = 'path.html'; window.close(); }
+          else { window.location.href = 'path.html'; }
+        }, 1200);
+      } catch (error) {
+        console.error('createRoadmap:', error);
+      }
+    }
+
+    function showMessage(message, type = 'info') {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
+      msgDiv.textContent = message;
+      promptMessage.innerHTML = '';
+      promptMessage.appendChild(msgDiv);
+      setTimeout(() => { msgDiv.remove(); }, 3000);
+    }
+
+    async function viewRoadmapDetails(roadmapId, roadmap_analyst) {
+      const modal = document.getElementById('detailsModal');
+      modal.classList.add('active');
+      const modalBody = document.getElementById('modal-body');
+      modalBody.innerHTML = `<div class="loading"><div class="spinner"></div><br><br>Đang tải chi tiết...</div>`;
+      try {
+        const response = await fetch(`/api/roadmapsystem/${roadmapId}/details`, {
+          method: 'GET', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (!response.ok) throw new Error('Failed to fetch roadmap details');
+        const result = await response.json();
+        details = result.data;
+        displayRoadmapDetails(roadmap_analyst, details);
+      } catch (error) {
+        console.error('Error fetching details:', error);
+        modalBody.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Không thể tải chi tiết</div><button class="empty-btn" onclick="closeModal()">Đóng</button></div>`;
+      }
+    }
+
+    function displayRoadmapDetails(roadmap, details) {
+      const analysisHTML = `<div class="analysis-section"><h3>📊 Phân Tích AI</h3><div class="analysis-content">${roadmap}</div></div>`;
+      const tableHTML = `<div class="roadmap-section"><h3>📅 Lộ Trình Chi Tiết</h3><table><thead><tr><th style="width: 60px;">Ngày</th><th style="min-width: 150px;">Mục tiêu</th><th style="min-width: 150px;">Nội dung</th><th style="min-width: 120px;">Bài tập</th><th style="min-width: 100px;">Tài liệu</th><th style="min-width: 100px;">Hướng dẫn</th><th style="width: 80px;">Thời lượng</th><th style="width: 120px;">Trạng thái</th></tr></thead><tbody>${details.map(d => `<tr><td class="day-cell">${d.day_number}</td><td><strong>${d.daily_goal}</strong></td><td>${d.learning_content}</td><td>${d.practice_exercises || '-'}</td><td><a href="${d.learning_materials}" target="_blank" style="color: #4f46e5;">Xem</a></td><td>${d.usage_instructions || '-'}</td><td style="text-align: center;"><strong>${d.study_duration_hours}h</strong></td><td>Chưa bắt đầu</td></tr>`).join('')}</tbody></table></div>`;
+      document.getElementById('modal-body').innerHTML = analysisHTML + tableHTML ;
+    }
+
+    async function loadRoadmapDetails() {
+      if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
+      try {
+        const roadmapResponse = await fetch(`/api/roadmapsystem/${roadmapId}`, { method: 'GET', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const roadmapResult = await roadmapResponse.json();
+        if (!roadmapResult.success) throw new Error('Không thể tải thông tin lộ trình');
+        roadmapData = roadmapResult.data;
+        viewRoadmapDetails(roadmapId, roadmapData.roadmap_analyst)
+        renderRoadmap();
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Không thể tải dữ liệu: ' + error.message);
+      } finally {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('roadmapContent').style.display = 'block';
+      }
+    }
+
+    function renderRoadmap() {
+      document.getElementById('roadmapTitle').textContent = roadmapData.roadmap_name;
+      const categoryLink = document.getElementById('categoryLink');
+      categoryLink.textContent = roadmapData.category;
+      categoryLink.href = `main_category.html?category=${encodeURIComponent(roadmapData.category)}`;
+      const badgesHTML = `<span class="badge badge-level"><i class="fas fa-signal"></i> ${getLevelText(roadmapData.start_level)}</span><span class="badge badge-duration"><i class="fas fa-calendar"></i> ${roadmapData.duration_days} ngày</span><span class="badge badge-learners"><i class="fas fa-users"></i> ${roadmapData.total_user_learning || 0} học viên</span>`;
+      document.getElementById('badgesContainer').innerHTML = badgesHTML;
+      const metaHTML = `<div class="meta-tag"><i class="fas fa-clock"></i><span>${roadmapData.duration_hours} giờ học</span></div>${roadmapData.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(roadmapData.sub_category)}</span></div>` : ''}`;
+      document.getElementById('metaContainer').innerHTML = metaHTML;
+      const statsHTML = `<div class="stat-box"><span class="stat-value">${roadmapData.duration_days}</span><span class="stat-label">Ngày học</span></div><div class="stat-box"><span class="stat-value">${roadmapData.duration_hours}h</span><span class="stat-label">Tổng thời gian</span></div><div class="stat-box"><div class="rating-box"><span class="rating-stars">⭐</span><span class="stat-value" style="font-size: 28px;">${roadmapData.overall_rating ? roadmapData.overall_rating.toFixed(1) : 'N/A'}</span></div><span class="stat-label">Đánh giá</span></div><div class="stat-box"><span class="stat-value">${roadmapData.total_user_learning || 0}+</span><span class="stat-label">Học viên</span></div>`;
+      document.getElementById('statsContainer').innerHTML = statsHTML;
+    }
+
+    function renderDays() {
+      const container = document.getElementById('daysContainer');
+      if (daysData.length === 0) { container.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">Chưa có thông tin chi tiết</p>'; return; }
+      const completedDays = daysData.filter(d => d.completion_status === 'COMPLETED').length;
+      const progressPercent = Math.round((completedDays / daysData.length) * 100);
+      document.getElementById('progressFill').style.width = progressPercent + '%';
+      document.getElementById('progressText').textContent = progressPercent + '%';
+      container.innerHTML = daysData.map(day => {
+        const statusClass = day.completion_status === 'COMPLETED' ? 'completed' : day.completion_status === 'IN_PROGRESS' ? 'in-progress' : '';
+        const statusBadge = day.completion_status === 'COMPLETED' ? '<span class="status-badge status-completed">✓ Hoàn thành</span>' : day.completion_status === 'IN_PROGRESS' ? '<span class="status-badge status-progress">Đang học</span>' : '<span class="status-badge status-not-started">Chưa bắt đầu</span>';
+        return `
+          <div class="day-card ${statusClass}" id="day-${day.detail_id}">
+            <div class="day-header">
+              <div class="day-number">
+                <div class="day-badge">${day.day_number}</div>
+                <div class="day-info">
+                  <h3>Ngày ${day.day_number}: ${escapeHtml(day.daily_goal)}</h3>
+                  <div class="day-meta">
+                    <div class="meta-tag"><i class="fas fa-clock"></i><span>${day.study_duration_hours}h học tập</span></div>
+                    ${day.study_date ? `<div class="meta-tag"><i class="fas fa-calendar"></i><span>${formatDate(day.study_date)}</span></div>` : ''}
+                  </div>
+                </div>
+              </div>
+              ${statusBadge}
+            </div>
+            <div class="day-content" id="content-${day.detail_id}" style="display: none;">
+              <div class="content-section"><h4><i class="fas fa-bullseye"></i> Mục tiêu học tập</h4><p>${escapeHtml(day.daily_goal)}</p></div>
+              <div class="content-section"><h4><i class="fas fa-book"></i> Nội dung học</h4><p>${escapeHtml(day.learning_content)}</p></div>
+              ${day.practice_exercises ? `<div class="content-section"><h4><i class="fas fa-tasks"></i> Bài tập thực hành</h4><p>${escapeHtml(day.practice_exercises)}</p></div>` : ''}
+              ${day.learning_materials ? `<div class="content-section"><h4><i class="fas fa-folder-open"></i> Tài liệu học tập</h4><p>${escapeHtml(day.learning_materials)}</p></div>` : ''}
+              ${day.usage_instructions ? `<div class="content-section"><h4><i class="fas fa-info-circle"></i> Hướng dẫn sử dụng</h4><p>${escapeHtml(day.usage_instructions)}</p></div>` : ''}
+            </div>
+            <button class="expand-btn" onclick="toggleDay(${day.detail_id})"><i class="fas fa-chevron-down" id="icon-${day.detail_id}"></i><span id="text-${day.detail_id}">Xem chi tiết</span></button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleDay(dayId) {
+      const content = document.getElementById(`content-${dayId}`);
+      const icon = document.getElementById(`icon-${dayId}`);
+      const text = document.getElementById(`text-${dayId}`);
+      if (content.style.display === 'none') {
+        content.style.display = 'block'; icon.className = 'fas fa-chevron-up'; text.textContent = 'Thu gọn';
+      } else {
+        content.style.display = 'none'; icon.className = 'fas fa-chevron-down'; text.textContent = 'Xem chi tiết';
+      }
+    }
+
+    function getLevelText(level) { const levels = { 'Beginner': 'Cơ bản', 'Intermediate': 'Trung cấp', 'Advanced': 'Nâng cao' }; return levels[level] || level; }
+    function formatDate(dateString) { if (!dateString) return ''; const date = new Date(dateString); return date.toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' }); }
+    function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+    document.addEventListener('DOMContentLoaded', () => { loadRoadmapDetails(); });
+
+    // Load navigation buttons based on user role — updated to create actual Home button like main.html
+    async function loadNavButtons() {
+      const navButtons = document.getElementById('mainNavButtons');
+      if (!navButtons) return;
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role') || 'user';
+      let navHtml = `<button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>`;
+      if (token) {
+        navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
+        navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
+        if (role === 'admin') navHtml += `<button class="nav-btn" id="btnAdmin"><i class="fa-solid fa-user-shield"></i> Quản Trị</button>`;
+      } else {
+        navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
+        navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
+      }
+      navButtons.innerHTML = navHtml;
+      const btnHome = document.getElementById('btnHome'); if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+      const btnPath = document.getElementById('btnPath'); if (btnPath) btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
+      const btnProgress = document.getElementById('btnProgress'); if (btnProgress) btnProgress.addEventListener('click', () => { window.location.href = 'progress.html'; });
+      const btnAdmin = document.getElementById('btnAdmin'); if (btnAdmin) btnAdmin.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+    }
+
+    // Call on page load
+    document.addEventListener('DOMContentLoaded', loadNavButtons);
+  </script>
+  
+</body>
+</html>

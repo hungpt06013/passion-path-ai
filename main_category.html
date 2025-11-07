@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lộ Trình Học - Học Tập Thông Minh</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1f2937; }
+
+    /* Header - replaced with fixed-bar styles */
+    .fixed-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: #007bff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 10;
+    }
+
+    .bar-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 40px;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    /* Brand is NOT clickable (div, not anchor) */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand-title { color: white; font-size: 20px; font-weight: 700; }
+    .brand-sub { color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 600; }
+
+    .nav-buttons { display: flex; gap: 22px; align-items: center; margin-left: 40px; }
+    .nav-btn, .nav-item {
+      background: none;
+      color: #fff;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 9999px;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+    }
+    .nav-btn:hover, .nav-item:hover { color: #e6f2ff; }
+
+    /* Adjust page content to account for fixed header */
+    .page-offset { padding-top: 100px; /* header height + spacing */ }
+
+    /* ... the rest of styles unchanged (kept for brevity) ... */
+    /* Breadcrumb, page header, grid, cards, footer styles follow (same as before) */
+    /* For completeness they are included below (kept identical to previous version) */
+
+    /* Breadcrumb */
+    .breadcrumb { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; }
+    .breadcrumb a { color: #6b7280; text-decoration: none; transition: color 0.2s; }
+    .breadcrumb a:hover { color: #4f46e5; }
+    .breadcrumb .current { color: #1f2937; font-weight: 600; }
+
+    .page-header { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
+    .page-header h1 { font-size: 40px; font-weight: 700; margin-bottom: 12px; }
+    .page-header p { font-size: 18px; color: #6b7280; margin-bottom: 24px; }
+
+    .category-stats { display: flex; gap: 32px; align-items: center; }
+    .stat-badge { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .stat-badge i { color: #4f46e5; font-size: 18px; }
+    .stat-badge span { font-weight: 600; color: #1f2937; }
+
+    .filters { max-width: 1200px; margin: 0 auto 32px; padding: 0 24px; display: flex; gap: 16px; align-items: center; }
+    .filter-group { display: flex; gap: 8px; align-items: center; }
+    .filter-label { font-size: 14px; font-weight: 600; color: #4b5563; }
+    .filter-select { padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: border-color 0.2s; }
+    .filter-select:focus { outline: none; border-color: #4f46e5; }
+
+    .roadmaps { max-width: 1200px; margin: 0 auto 80px; padding: 0 24px; }
+    .roadmaps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
+    .roadmap-card { background: white; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+    .roadmap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: #4f46e5; }
+    .roadmap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+    .roadmap-level { padding: 6px 12px; background: #dbeafe; color: #1e40af; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .roadmap-level.intermediate { background: #fef3c7; color: #92400e; }
+    .roadmap-level.advanced { background: #fee2e2; color: #991b1b; }
+    .roadmap-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 12px; color: #1f2937; line-height: 1.3; }
+    .roadmap-meta { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+    .meta-item { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; }
+    .meta-item i { color: #9ca3af; }
+    .roadmap-rating { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px; }
+    .rating-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+    .rating-stars { color: #fbbf24; }
+    .rating-value { font-weight: 700; color: #1f2937; }
+    .roadmap-footer { display: flex; justify-content: space-between; align-items: center; }
+    .learner-count { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; }
+    .learner-avatars { display: flex; margin-left: -4px; }
+    .learner-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; background: linear-gradient(135deg, #667eea, #764ba2); margin-left: -8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
+    .view-btn { padding: 10px 20px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+    .view-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
+
+    .loading { text-align: center; padding: 60px 24px; color: #6b7280; }
+    .spinner { width: 48px; height: 48px; margin: 0 auto 20px; border: 4px solid #e5e7eb; border-top-color: #4f46e5; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state { text-align: center; padding: 80px 24px; }
+    .empty-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+    .empty-state h3 { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #1f2937; }
+    .empty-state p { color: #6b7280; font-size: 16px; }
+
+    /* Footer */
+    footer {
+        background: #1a202c;
+        color: #e5e7eb;
+        padding: 28px 20px 16px;
+        margin-top: 40px;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 24px;
+        margin-bottom: 20px;
+    }
+
+    .footer-brand {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .footer-logo-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--primary);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+    }
+
+    .footer-logo-text {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .footer-logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .footer-logo-sub {
+        font-size: 11px;
+        color: #9ca3af;
+    }
+
+    .footer-desc {
+        color: #9ca3af;
+        line-height: 1.5;
+        font-size: 13px;
+    }
+
+    .footer-social {
+        display: flex;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .social-icon {
+        width: 36px;
+        height: 36px;
+        background: #374151;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .social-icon:hover {
+        background: var(--primary);
+        transform: translateY(-2px);
+    }
+
+    .footer-section h3 {
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        margin: 0 0 12px 0;
+    }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .footer-link {
+        color: #9ca3af;
+        text-decoration: none;
+        font-size: 13px;
+        transition: color 0.3s ease;
+    }
+
+    .footer-link:hover {
+        color: var(--primary);
+    }
+
+    .footer-bottom {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 16px;
+        border-top: 1px solid #374151;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .page-header h1 { font-size: 28px; }
+      .category-stats { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .roadmaps-grid { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; gap: 32px; }
+      .nav-menu { display: none; }
+      .nav-buttons { gap: 12px; padding-right: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header (brand is NOT clickable) -->
+  <div class="fixed-bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Con đường đam mê</div>
+          <div class="brand-sub">AI-Powered Learning Path</div>
+        </div>
+      </div>
+
+      <div class="nav-buttons" id="mainNavButtons">
+        <!-- Buttons sẽ được thêm bằng JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <div class="page-offset">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="main.html"><i class="fas fa-home"></i></a>
+      <span>/</span>
+      <span class="current" id="categoryBreadcrumb">Lĩnh vực</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <p id="categoryDescription">Khám phá các lộ trình học tập chất lượng cao</p>
+      <div class="category-stats">
+        <div class="stat-badge">
+          <i class="fas fa-route"></i>
+          <span id="totalRoadmaps">0 lộ trình</span>
+        </div>
+        <div class="stat-badge">
+          <i class="fas fa-users"></i>
+          <span id="totalLearners">0 học viên</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <span class="filter-label">Cấp độ:</span>
+        <select class="filter-select" id="filterLevel">
+          <option value="">Tất cả</option>
+          <option value="Beginner">Cơ bản</option>
+          <option value="Intermediate">Trung cấp</option>
+          <option value="Advanced">Nâng cao</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <span class="filter-label">Sắp xếp:</span>
+        <select class="filter-select" id="filterSort">
+          <option value="newest">Mới nhất</option>
+          <option value="popular">Phổ biến nhất</option>
+          <option value="rating">Đánh giá cao</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Roadmaps Grid -->
+    <div class="roadmaps">
+      <div id="loadingState" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <p>Đang tải lộ trình học tập...</p>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-icon">📚</div>
+        <h3>Chưa có lộ trình nào</h3>
+        <p>Hiện tại chưa có lộ trình học tập cho lĩnh vực này</p>
+      </div>
+
+      <div id="roadmapsGrid" class="roadmaps-grid"></div>
+    </div>
+  </div>
+
+  <!-- Footer (copied) -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="footer-logo-text">
+            <div class="footer-logo-title">Học Tập Thông Minh</div>
+            <div class="footer-logo-sub">AI-Powered Learning Platform</div>
+          </div>
+        </div>
+        <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+      </div>
+
+      <div class="footer-section">
+        <h3>Tính Năng</h3>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Phân tích AI</a>
+          <a href="#" class="footer-link">Lộ trình cá nhân</a>
+          <a href="#" class="footer-link">Theo dõi tiến độ</a>
+        </div>
+      </div>
+
+      <div class="footer-section">
+        <h3>Hỗ Trợ</h3>
+        <div class="footer-links">
+          <a href="#" class="footer-link">Trung tâm trợ giúp</a>
+          <a href="#" class="footer-link">Liên hệ</a>
+          <a href="#" class="footer-link">Thu thập ý kiến</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+    </div>
+  </footer>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000/api';
+    let currentPage = 1;
+    let currentCategory = '';
+    let allRoadmaps = [];
+    let filteredRoadmaps = [];
+
+    // Get category from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    currentCategory = urlParams.get('category') || '';
+
+    async function loadCategoryData() {
+      if (!currentCategory) {
+        showError('Không tìm thấy thông tin lĩnh vực');
+        return;
+      }
+
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('roadmapsGrid').innerHTML = '';
+      document.getElementById('categoryBreadcrumb').textContent = currentCategory;
+
+      try {
+        const categoryResponse = await fetch(`/api/categories/${currentCategory}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (categoryResponse.ok) {
+          const categoryData = await categoryResponse.json();
+          if (categoryData.success) {
+            document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name;
+            document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
+          }
+        }
+
+        const roadmapsResponse = await fetch(`/api/roadmapsystem/category/${currentCategory}?limit=100`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        const roadmapsData = await roadmapsResponse.json();
+
+        if (roadmapsData.success) {
+          if (roadmapsData.data && roadmapsData.data.length > 0) {
+            allRoadmaps = roadmapsData.data;
+            filteredRoadmaps = allRoadmaps;
+            updateStats();
+            renderRoadmaps();
+          } else {
+            showEmptyState();
+          }
+        } else {
+          showError(roadmapsData.error || 'Không thể tải dữ liệu');
+        }
+      } catch (error) {
+        showError('Không thể tải dữ liệu: ' + error.message);
+      } finally {
+        document.getElementById('loadingState').style.display = 'none';
+      }
+    }
+
+    function updateStats() {
+      document.getElementById('totalRoadmaps').textContent = `${allRoadmaps.length} lộ trình`;
+      const totalLearners = allRoadmaps.reduce((sum, r) => sum + (r.total_user_learning || 0), 0);
+      document.getElementById('totalLearners').textContent = `${totalLearners.toLocaleString()} học viên`;
+    }
+
+    function renderRoadmaps() {
+      const grid = document.getElementById('roadmapsGrid');
+      if (!filteredRoadmaps || filteredRoadmaps.length === 0) {
+        showEmptyState();
+        return;
+      }
+      document.getElementById('emptyState').style.display = 'none';
+      grid.innerHTML = filteredRoadmaps.map(roadmap => {
+        const levelClass = roadmap.start_level === 'Intermediate' ? 'intermediate' : roadmap.start_level === 'Advanced' ? 'advanced' : '';
+        const levelText = roadmap.start_level === 'Beginner' ? 'Cơ bản' : roadmap.start_level === 'Intermediate' ? 'Trung cấp' : roadmap.start_level === 'Advanced' ? 'Nâng cao' : roadmap.start_level;
+        return `
+          <div class="roadmap-card" onclick="viewRoadmapDetails(${roadmap.roadmap_id})">
+            <div class="roadmap-header">
+              <span class="roadmap-level ${levelClass}">${levelText}</span>
+            </div>
+            <h3>${escapeHtml(roadmap.roadmap_name)}</h3>
+            <div class="roadmap-meta">
+              <div class="meta-item"><i class="fas fa-calendar"></i><span>${roadmap.duration_days} ngày</span></div>
+              <div class="meta-item"><i class="fas fa-clock"></i><span>${roadmap.duration_hours}h</span></div>
+              ${roadmap.sub_category ? `<div class="meta-item"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
+            </div>
+            ${roadmap.overall_rating || roadmap.learning_effectiveness ? `
+              <div class="roadmap-rating">
+                ${roadmap.overall_rating ? `<div class="rating-item"><span class="rating-stars">⭐</span><span class="rating-value">${roadmap.overall_rating.toFixed(1)}</span><span style="color: #9ca3af;">Tổng thể</span></div>` : ''}
+                ${roadmap.learning_effectiveness ? `<div class="rating-item"><span class="rating-stars">📈</span><span class="rating-value">${roadmap.learning_effectiveness.toFixed(1)}</span><span style="color: #9ca3af;">Hiệu quả</span></div>` : ''}
+              </div>
+            ` : ''}
+            <div class="roadmap-footer">
+              <div class="learner-count">
+                <div class="learner-avatars">
+                  <div class="learner-avatar">👤</div>
+                  <div class="learner-avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">👤</div>
+                  <div class="learner-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">👤</div>
+                </div>
+                <span>${roadmap.total_user_learning || 0}+ đang học</span>
+              </div>
+              <button class="view-btn" onclick="event.stopPropagation(); viewRoadmapDetails(${roadmap.roadmap_id})">Xem chi tiết</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function viewRoadmapDetails(roadmapId) {
+      window.location.href = `roadmap_details.html?id=${roadmapId}`;
+    }
+
+    function showEmptyState() {
+      document.getElementById('roadmapsGrid').innerHTML = '';
+      document.getElementById('emptyState').style.display = 'block';
+    }
+
+    function showError(message) {
+      document.getElementById('categoryDescription').textContent = message;
+      showEmptyState();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Filters
+    document.getElementById('filterLevel').addEventListener('change', (e) => {
+      const level = e.target.value;
+      filteredRoadmaps = level ? allRoadmaps.filter(r => r.start_level === level) : allRoadmaps;
+      renderRoadmaps();
+    });
+
+    document.getElementById('filterSort').addEventListener('change', (e) => {
+      const sort = e.target.value;
+      if (sort === 'popular') {
+        filteredRoadmaps.sort((a, b) => (b.total_user_learning || 0) - (a.total_user_learning || 0));
+      } else if (sort === 'rating') {
+        filteredRoadmaps.sort((a, b) => (b.overall_rating || 0) - (a.overall_rating || 0));
+      } else {
+        filteredRoadmaps.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      }
+      renderRoadmaps();
+    });
+
+    // Load data on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCategoryData();
+    });
+
+    // Load navigation buttons based on user role — updated to create actual Home button like main.html
+    async function loadNavButtons() {
+      const navButtons = document.getElementById('mainNavButtons');
+      if (!navButtons) return;
+
+      const token = localStorage.getItem('token');
+      const role = localStorage.getItem('role') || 'user';
+
+      // Always show Home button (so it behaves like main.html)
+      let navHtml = `<button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>`;
+      // If token exists, include Path / Progress and Admin (if role)
+      if (token) {
+        navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
+        navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
+        if (role === 'admin') {
+          navHtml += `<button class="nav-btn" id="btnAdmin"><i class="fa-solid fa-user-shield"></i> Quản Trị</button>`;
+        }
+      } else {
+        // When not logged in, we still optionally show Path/Progress as links (you can change this behavior)
+        navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
+        navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
+      }
+
+      navButtons.innerHTML = navHtml;
+
+      // Attach event listeners
+      const btnHome = document.getElementById('btnHome');
+      if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+
+      const btnPath = document.getElementById('btnPath');
+      if (btnPath) btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
+
+      const btnProgress = document.getElementById('btnProgress');
+      if (btnProgress) btnProgress.addEventListener('click', () => { window.location.href = 'progress.html'; });
+
+      const btnAdmin = document.getElementById('btnAdmin');
+      if (btnAdmin) btnAdmin.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+    }
+
+    // Call on page load
+    document.addEventListener('DOMContentLoaded', loadNavButtons);
+  </script>
+</body>
+</html>
