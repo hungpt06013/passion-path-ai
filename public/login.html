@@ -343,7 +343,7 @@
           } catch(e){ console.warn('me fetch failed', e); localStorage.setItem('role','user'); }
 
           // redirect (keep same behavior)
-          window.location.href = '/path.html?page=path';
+          window.location.href = '/path.html';
           return;
         } else {
           const serverMsg = (body && body.message) ? body.message : 'Đăng nhập thất bại.';
