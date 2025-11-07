@@ -43,7 +43,8 @@
       margin: 0 auto;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 40px;
       padding: 0 20px;
       box-sizing: border-box;
     }
@@ -338,11 +339,10 @@
       </div>
 
       <div class="nav-buttons" id="navButtons">
+        <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
         <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
         <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
       </div>
-
-      <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
     </div>
   </div>
 
@@ -392,7 +392,7 @@
     const btnProgress = document.getElementById('btnProgress');
     const btnHome = document.getElementById('btnHome');
 
-    btnPath.addEventListener('click', () => { window.location.href = 'path.html?page=path'; });
+    btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
     btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
     btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
 
@@ -411,7 +411,7 @@
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'progress';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
     const btnId = idMap[page];
     if (btnId) {
       const el = document.getElementById(btnId);
@@ -493,7 +493,7 @@
     }
 
     function viewTaskDetail(roadmapId) {
-      window.location.href = `path.html?page=path&roadmap=${roadmapId}`;
+      window.location.href = `path.html&roadmap=${roadmapId}`;
     }
 
     async function loadProgress() {
