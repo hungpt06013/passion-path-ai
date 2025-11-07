@@ -25,6 +25,55 @@
       font-size: 15px;
       font-weight: 600;
     }
+    
+    .json-format {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed #d1d5db;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #374151;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .var-badge {
+            display: inline-block;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 4px;
+        }
+
+        .var-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .var-list li {
+            list-style: none;
+        }
+
+        .warning {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #dc2626;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+
 
     .fixed-bar {
       position: fixed;
@@ -43,7 +92,8 @@
       margin: 0 auto;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 40px;
       padding: 0 20px;
       box-sizing: border-box;
     }
@@ -129,47 +179,6 @@
       font-weight: 700;
     }
 
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid #e5e7eb;
-    }
-
-    .tab {
-      background: none;
-      border: none;
-      padding: 12px 20px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #6b7280;
-      cursor: pointer;
-      border-radius: 0;
-      position: relative;
-    }
-
-    .tab.active {
-      color: #007bff;
-    }
-
-    .tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: #007bff;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
     .users-table {
       width: 100%;
       border-collapse: collapse;
@@ -216,6 +225,14 @@
       border-radius: 8px;
       font-size: 14px;
       margin-left: 8px;
+    }
+
+    .create-btn {
+      background: #28a745;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
     }
 
     .muted {
@@ -266,6 +283,83 @@
       color: #92400e;
     }
 
+    /* Prompt Template Styles */
+    .prompt-editor {
+      width: 100%;
+      min-height: 400px;
+      padding: 15px;
+      border: 2px solid #d1d5db;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      resize: vertical;
+      box-sizing: border-box;
+      background: #f9fafb;
+    }
+
+    .prompt-editor:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .prompt-preview {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 13px;
+      line-height: 1.6;
+      max-height: 500px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+    }
+
+    .btn-save {
+      background: #10b981;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+
+    .btn-save:hover {
+      background: #059669;
+    }
+
+    .btn-reset {
+      background: #6b7280;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .btn-reset:hover {
+      background: #4b5563;
+    }
+
+    .success-message {
+      background: #dcfdf4;
+      color: #065f46;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #10b981;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ef4444;
+    }
+
     @media (max-width: 768px) {
       .bar-inner {
         flex-direction: column;
@@ -301,17 +395,6 @@
       .actions-cell {
         flex-direction: column;
       }
-
-      .tabs {
-        overflow-x: auto;
-        flex-wrap: nowrap;
-      }
-
-      .tab {
-        white-space: nowrap;
-        padding: 10px 15px;
-        font-size: 13px;
-      }
     }
 
     @media (max-width: 480px) {
@@ -340,7 +423,7 @@
         padding: 12px;
       }
     }
-</style>
+  </style>
 </head>
 <body>
   <div class="fixed-bar">
@@ -351,13 +434,13 @@
       </div>
 
       <div class="nav-buttons" id="navButtons">
+          <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
           <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
           <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
           <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
           <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh mục</button>
+          <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
       </div>
-
-      <button class="toMain" id="btnHome"><i class="fa-solid fa-right-to-bracket"></i> Quay về trang chủ</button>
     </div>
   </div>
 
@@ -379,37 +462,105 @@
         <div id="usersArea"></div>
         <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
       </section>
-          </div>
-          <section id="aiHistorySection" style="display:none;" class="card">
-        <h2>🤖 Lịch Sử Hỏi AI</h2>
-        <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
+    </div>
+
+    <section id="aiHistorySection" style="display:none;" class="card">
+      <h2>🤖 Lịch Sử Hỏi AI</h2>
+      <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
+      
+      <div style="margin: 15px 0;">
+        <button id="fetchAIHistoryBtn" class="btn-refresh">
+          <i class="fa-solid fa-sync"></i> Tải Lịch Sử
+        </button>
+      </div>
+      
+      <div id="aiHistoryArea"></div>
+      <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="categoriesSection" style="display:none;" class="card">
+      <h2>📁 Quản Lý Danh Mục</h2>
+      <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
+      
+      <div style="margin: 15px 0;">
+        <button id="fetchCategoriesBtn" class="btn-refresh">
+          <i class="fa-solid fa-sync"></i> Tải Danh Mục
+        </button>
+        <button id="createCategoryBtn" class="create-btn" style="margin-left: 10px;">
+          <i class="fa-solid fa-plus"></i> Thêm Danh Mục
+        </button>
+      </div>
+      
+      <div id="categoriesArea"></div>
+      <div id="categoriesMessage" role="status" aria-live="polite"></div>
+    </section>
+
+    <section id="promptSection" style="display:none;" class="card">
+      <div class="panel">
+            <h2>Biến Bắt Buộc (Không Được Sửa)</h2>
+            
+            <div class="warning">
+                Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
+            </div>
+
+            <div class="info-text">
+                Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng
+            </div>
+
+            <ul class="var-list">
+                <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
+                <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
+                <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
+                <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
+                <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
+                <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
+                <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
+                <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
+                <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
+                <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
+                <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
+                <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
+                <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
+                <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
+                <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
+                <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
+                <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
+                <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
+                <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
+                <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
+                <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
+            </ul>
+        </div>
+
+        <div class="section-divider"></div>
+      <h2>📝 Quản Lý Prompt Template AI</h2>
+      <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI</p>
+      
+      <div id="promptMessage" role="status" aria-live="polite"></div>
+      
+      <div style="margin: 20px 0;">
+        <h3>✏️ Chỉnh Sửa Prompt</h3>
+        <textarea id="promptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
         
-        <div style="margin: 15px 0;">
-          <button id="fetchAIHistoryBtn" class="btn-refresh">
-            <i class="fa-solid fa-sync"></i> Tải Lịch Sử
+        <div style="margin-top: 15px;">
+          <button id="savePromptBtn" class="btn-save">
+            <i class="fa-solid fa-save"></i> Lưu Prompt
+          </button>
+          <button id="resetPromptBtn" class="btn-reset">
+            <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
           </button>
         </div>
-        
-        <div id="aiHistoryArea"></div>
-        <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
-      </section>
-            <!-- ============ THÊM CATEGORIES SECTION ============ -->
-      <section id="categoriesSection" style="display:none;" class="card">
-        <h2>📁 Quản Lý Danh Mục</h2>
-        <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
-        
-        <div style="margin: 15px 0;">
-          <button id="fetchCategoriesBtn" class="btn-refresh">
-            <i class="fa-solid fa-sync"></i> Tải Danh Mục
-          </button>
-          <button id="createCategoryBtn" class="create-btn" style="margin-left: 10px;">
-            <i class="fa-solid fa-plus"></i> Thêm Danh Mục
-          </button>
-        </div>
-        
-        <div id="categoriesArea"></div>
-        <div id="categoriesMessage" role="status" aria-live="polite"></div>
-      </section>
+      </div>
+
+      <div style="margin: 20px 0;">
+        <h3>👁️ Nội Dung Prompt Mẫu</h3>
+        <div id="promptPreview" class="prompt-preview">Đang tải...</div>
+      </div>
+      <div style="margin: 20px 0;">
+        <h3>Định dạng AI trả về</h3>
+        <div id="jsonFormat" class="json-format"></div>
+      </div>
+    </section>
   </main>
 
   <script>
@@ -425,10 +576,12 @@
     const btnHome = document.getElementById('btnHome');
     const btnAIHistory = document.getElementById('btnAIHistory');
     const btnCategories = document.getElementById('btnCategories');
+    const btnPrompt = document.getElementById('btnPrompt');
     
     const adminCard = document.getElementById('adminCard');
     const aiHistorySection = document.getElementById('aiHistorySection');
     const categoriesSection = document.getElementById('categoriesSection');
+    const promptSection = document.getElementById('promptSection');
     
     const fetchUsersBtn = document.getElementById('fetchUsersBtn');
     const usersArea = document.getElementById('usersArea');
@@ -443,6 +596,13 @@
     const categoriesArea = document.getElementById('categoriesArea');
     const categoriesMessage = document.getElementById('categoriesMessage');
 
+    const promptEditor = document.getElementById('promptEditor');
+    const promptPreview = document.getElementById('promptPreview');
+    const jsonFormat = document.getElementById('jsonFormat');
+    const savePromptBtn = document.getElementById('savePromptBtn');
+    const resetPromptBtn = document.getElementById('resetPromptBtn');
+    const promptMessage = document.getElementById('promptMessage');
+
     // ============ NAVIGATION ============
     const adminBtn = document.createElement('button');
     adminBtn.className = 'nav-btn';
@@ -451,20 +611,18 @@
     navButtonsWrapper.appendChild(adminBtn);
 
     function showSection(sectionId, activeBtn) {
-      // Ẩn tất cả sections
       adminCard.style.display = 'none';
       aiHistorySection.style.display = 'none';
       categoriesSection.style.display = 'none';
+      promptSection.style.display = 'none';
       
-      // Hiện section được chọn
       document.getElementById(sectionId).style.display = 'block';
       
-      // Update active button
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       if (activeBtn) activeBtn.classList.add('active');
     }
 
-    btnPath.addEventListener('click', () => { window.location.href = 'path.html?page=path'; });
+    btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
     btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
     btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
     
@@ -480,10 +638,22 @@
       showSection('categoriesSection', btnCategories);
     });
 
+    btnPrompt.addEventListener('click', () => {
+      showSection('promptSection', btnPrompt);
+      loadPromptTemplate();
+    });
+
     // Set active state from URL
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'admin';
-    const idMap = { path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory' };
+    const idMap = { 
+      path: 'btnPath', 
+      progress: 'btnProgress', 
+      admin: 'btnAdmin', 
+      aihistory: 'btnAIHistory',
+      categories: 'btnCategories',
+      prompt: 'btnPrompt'
+    };
     const btnId = idMap[page];
     if (btnId) {
       const el = document.getElementById(btnId);
@@ -510,6 +680,19 @@
         .replaceAll('>', '&gt;')
         .replaceAll('"', '&quot;')
         .replaceAll("'", '&#39;');
+    }
+
+    function showMessage(message, type = 'info') {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
+      msgDiv.textContent = message;
+      
+      promptMessage.innerHTML = '';
+      promptMessage.appendChild(msgDiv);
+      
+      setTimeout(() => {
+        msgDiv.remove();
+      }, 3000);
     }
 
     // ============ USER MANAGEMENT ============
@@ -561,6 +744,14 @@
     async function onDeleteUserClick(evt) {
       const id = evt.currentTarget.getAttribute('data-id');
       if (!id) return alert('Không có id user');
+      const row = evt.currentTarget.closest('tr');
+      const emailCell = row.querySelector('td:nth-child(2)');
+      const email = emailCell ? emailCell.textContent.trim() : '';
+      
+      if (email === 'a&m!NA!i@gmail.com') {
+        alert('Không thể xóa tài khoản admin!');
+        return;
+      }
 
       const ok = confirm('Bạn chắc chắn muốn xóa user này? Hành động không thể hoàn tác.');
       if (!ok) return;
@@ -651,7 +842,6 @@
       ];
     }
 
-    // Toggle user list on/off
     let fetchClickCount = 0;
     fetchUsersBtn.addEventListener('click', async function() {
       fetchClickCount++;
@@ -706,13 +896,11 @@
       aiHistoryArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${total} bản ghi</strong></div>` + html;
     }
 
-    // Toggle AI history on/off
     let fetchAIClickCount = 0;
     fetchAIHistoryBtn.addEventListener('click', async function() {
       fetchAIClickCount++;
       
       if (fetchAIClickCount % 2 === 1) {
-        // Show
         aiHistoryMessage.textContent = 'Đang tải...';
         fetchAIHistoryBtn.disabled = true;
         
@@ -739,7 +927,6 @@
           setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
         }
       } else {
-        // Hide
         aiHistoryArea.innerHTML = '';
         aiHistoryMessage.textContent = 'Danh sách đã đóng.';
         setTimeout(() => { aiHistoryMessage.textContent = ''; }, 1400);
@@ -803,14 +990,21 @@
           headers: { 'Authorization': 'Bearer ' + token }
         });
         
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status} - ${res.statusText}`);
+        }
         
         const data = await res.json();
+        
+        if (!data?.success || !Array.isArray(data.data)) {
+          throw new Error('Dữ liệu không hợp lệ từ server');
+        }
+        
         renderCategories(data.data);
         categoriesMessage.textContent = `Đã tải ${data.data.length} danh mục`;
       } catch (err) {
-        console.error(err);
-        categoriesMessage.textContent = 'Lỗi khi tải danh mục';
+        console.error('Lỗi tải danh mục:', err.message || err);
+        categoriesMessage.textContent = `Lỗi khi tải danh mục: ${err.message || 'Vui lòng kiểm tra kết nối.'}`;
         categoriesArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
       } finally {
         fetchCategoriesBtn.disabled = false;
@@ -818,16 +1012,13 @@
       }
     }
 
-    // Toggle categories on/off
     let fetchCatClickCount = 0;
     fetchCategoriesBtn.addEventListener('click', async function() {
       fetchCatClickCount++;
       
       if (fetchCatClickCount % 2 === 1) {
-        // Show
         await loadCategories();
       } else {
-        // Hide
         categoriesArea.innerHTML = '';
         categoriesMessage.textContent = 'Danh sách đã đóng.';
         setTimeout(() => { categoriesMessage.textContent = ''; }, 1400);
@@ -858,7 +1049,6 @@
         
         if (data.success) {
           alert('✅ ' + data.message);
-          // Reload if currently showing
           if (fetchCatClickCount % 2 === 1) {
             loadCategories();
           }
@@ -959,6 +1149,127 @@
         alert('Lỗi khi xóa');
       }
     };
+
+    // ============ PROMPT TEMPLATE MANAGEMENT ============
+    async function loadPromptTemplate() {
+      try {
+        promptEditor.disabled = true;
+        promptEditor.value = 'Đang tải...';
+        promptPreview.textContent = 'Đang tải...';
+        jsonFormat.textContent = 'Đang tải...';
+        
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/prompt', {
+         method: 'POST',
+         headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+          promptEditor.value = data.data.prompt_template || '';
+          promptPreview.textContent = data.data.prompt_template || '';
+          jsonFormat.textContent = data.data.json_format_response || '';
+        } else {
+          throw new Error('Không thể tải prompt template');
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
+        promptEditor.value = '';
+        promptPreview.textContent = 'Không thể tải prompt template';
+      } finally {
+        promptEditor.disabled = false;
+      }
+    }
+
+    savePromptBtn.addEventListener('click', async function() {
+      const content = promptEditor.value.trim();
+      
+      if (!content) {
+        showMessage('Prompt không được để trống', 'error');
+        return;
+      }
+      
+      if (!confirm('Bạn có chắc chắn muốn lưu prompt này?')) return;
+      
+      savePromptBtn.disabled = true;
+      savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+      
+      try {
+        const prompt = document.getElementById('promptEditor').value;
+
+        const res = await fetch('/api/admin/prompt/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        promptContent: prompt,
+                        jsonFormat: jsonFormat
+                    })
+                })
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showMessage('✅ Prompt đã được lưu thành công!', 'success');
+          // ✅ FIX: Cập nhật preview với nội dung mới
+          promptPreview.textContent = content;
+        } else {
+          throw new Error(data.error || 'Lỗi khi lưu prompt');
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage('❌ ' + err.message, 'error');
+      } finally {
+        savePromptBtn.disabled = false;
+        savePromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt';
+      }
+    });
+
+    resetPromptBtn.addEventListener('click', async function() {
+      if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
+      
+      resetPromptBtn.disabled = true;
+      resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/prompt-template/reset', {
+          method: 'POST',
+          headers: { 
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
+          await loadPromptTemplate();
+        } else {
+          throw new Error(data.error || 'Lỗi khi khôi phục prompt');
+        }
+      } catch (err) {
+        console.error(err);
+        showMessage('❌ ' + err.message, 'error');
+      } finally {
+        resetPromptBtn.disabled = false;
+        resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+      }
+    });
+
+    // ✅ FIX: Cập nhật preview khi user gõ trong editor
+    promptEditor.addEventListener('input', function() {
+      promptPreview.textContent = this.value;
+    });
   </script>
 </body>
 </html>
