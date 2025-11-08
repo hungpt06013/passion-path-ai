@@ -72,20 +72,36 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Postgres pool
+// Postgres pool - FORCE POOLER
 let poolConfig = {};
+
 if (process.env.DATABASE_URL) {
-  poolConfig.connectionString = process.env.DATABASE_URL;
-  if (process.env.PGSSLMODE === "require") poolConfig.ssl = { rejectUnauthorized: false };
-} else {
+  console.log('🔗 Using DATABASE_URL from env');
   poolConfig = {
-    user: process.env.DB_USER || process.env.PGUSER || "postgres",
-    host: process.env.DB_HOST || process.env.PGHOST || "localhost",
-    database: process.env.DB_NAME || process.env.PGDATABASE || "myapp",
-    password: process.env.DB_PASSWORD || process.env.PGPASSWORD || "",
-    port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10),
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 5, // Giới hạn connections cho serverless
+    idleTimeoutMillis: 20000,
+    connectionTimeoutMillis: 10000
+  };
+} else {
+  console.error('❌ DATABASE_URL not found! Using fallback config');
+  poolConfig = {
+    user: process.env.DB_USER || "postgres",
+    host: process.env.DB_HOST || "localhost",
+    database: process.env.DB_NAME || "postgres",
+    password: process.env.DB_PASSWORD || "",
+    port: parseInt(process.env.DB_PORT || "5432", 10),
+    ssl: { rejectUnauthorized: false }
   };
 }
+
 const pool = new Pool(poolConfig);
+
+// Error handler
+pool.on('error', (err) => {
+  console.error('❌ Unexpected pool error:', err.message);
+});
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
@@ -107,16 +123,31 @@ if (!process.env.OPENAI_API_KEY) {
 // quick DB test
 (async function testDB() {
   try {
+    console.log('🔍 Testing database connection...');
+    console.log('📋 Pool config:', {
+      host: poolConfig.host || 'from connectionString',
+      database: poolConfig.database || 'from connectionString',
+      port: poolConfig.port || 'from connectionString',
+      ssl: poolConfig.ssl ? 'enabled' : 'disabled'
+    });
+    
     const client = await pool.connect();
+    
     try {
       await client.query("SET client_encoding = 'UTF8'");
     } catch (e) {
       console.warn("⚠️ Could not set client_encoding to UTF8:", e.message);
     }
+    
+    const result = await client.query('SELECT NOW() as current_time');
+    console.log(`✅ PostgreSQL connected at: ${result.rows[0].current_time}`);
+    
     client.release();
-    console.log(`✅ PostgreSQL connected (${poolConfig.database || poolConfig.connectionString || "unknown"})`);
   } catch (err) {
-    console.error("❌ PostgreSQL connection failed:", err.message || err);
+    console.error("❌ PostgreSQL connection failed:");
+    console.error("   Message:", err.message);
+    console.error("   Code:", err.code);
+    console.error("   Host:", err.hostname || 'N/A');
   }
 })();
 
@@ -3863,3 +3894,4 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
