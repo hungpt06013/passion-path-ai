@@ -72,35 +72,20 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Postgres pool
-// Postgres pool - DIRECT CONNECTION
 let poolConfig = {};
-
 if (process.env.DATABASE_URL) {
-  poolConfig = {
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false }, // ⬅️ BẮT BUỘC cho Supabase
-    max: 5, // ⬅️ Giới hạn connections cho Vercel serverless
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000
-  };
+  poolConfig.connectionString = process.env.DATABASE_URL;
+  if (process.env.PGSSLMODE === "require") poolConfig.ssl = { rejectUnauthorized: false };
 } else {
   poolConfig = {
-    user: process.env.DB_USER || "postgres",
-    host: process.env.DB_HOST || "localhost",
-    database: process.env.DB_NAME || "postgres",
-    password: process.env.DB_PASSWORD || "",
-    port: parseInt(process.env.DB_PORT || "5432", 10),
-    ssl: false
+    user: process.env.DB_USER || process.env.PGUSER || "postgres",
+    host: process.env.DB_HOST || process.env.PGHOST || "localhost",
+    database: process.env.DB_NAME || process.env.PGDATABASE || "myapp",
+    password: process.env.DB_PASSWORD || process.env.PGPASSWORD || "",
+    port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10),
   };
 }
-
 const pool = new Pool(poolConfig);
-
-// ⬅️ THÊM error handler
-pool.on('error', (err, client) => {
-  console.error('❌ Unexpected pool error:', err.message);
-  process.exit(-1);
-});
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
