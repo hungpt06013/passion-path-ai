@@ -537,8 +537,15 @@ Return a concrete exercise URL and one short keyword (format above).`;
         // attempt puppeteer render once
         try {
           if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] trying puppeteer for`, url);
-          let puppeteer;
-          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
+
+let puppeteer = null;
+try {
+  const mod = await import('puppeteer'); // dynamic import
+  puppeteer = mod?.default || mod;
+} catch (e) {
+  puppeteer = null;
+  if (DEBUG) console.log('puppeteer not installed');
+}
           if (puppeteer) {
             const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
             const page = await browser.newPage();
@@ -692,8 +699,14 @@ Return one concrete material URL and one short keyword (format above).`;
       if ((!tokenMatch && !reportedPresent) && USE_PUPPETEER) {
         try {
           if (DEBUG) console.log(`[Material][Attempt ${attempt}] trying puppeteer for`, url);
-          let puppeteer;
-          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
+let puppeteer = null;
+try {
+  const mod = await import('puppeteer'); // dynamic import
+  puppeteer = mod?.default || mod;
+} catch (e) {
+  puppeteer = null;
+  if (DEBUG) console.log('puppeteer not installed');
+}
           if (puppeteer) {
             const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
             const page = await browser.newPage();
@@ -3862,5 +3875,6 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
