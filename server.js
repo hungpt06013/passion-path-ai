@@ -119,7 +119,19 @@ if (!process.env.OPENAI_API_KEY) {
     console.error("❌ PostgreSQL connection failed:", err.message || err);
   }
 })();
+const dns = require('dns');
 
+app.get('/api/debug-dns', async (req, res) => {
+  const host = process.env.PGHOST || (process.env.DATABASE_URL && new URL(process.env.DATABASE_URL).hostname);
+  try {
+    dns.lookup(host, (err, address) => {
+      if (err) return res.status(500).json({ ok: false, err: err.message });
+      res.json({ ok: true, host, address });
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: e.message });
+  }
+});
 // bcrypt helpers
 function hashPassword(password, saltRounds = 10) {
   return new Promise((resolve, reject) => {
@@ -3863,3 +3875,4 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
