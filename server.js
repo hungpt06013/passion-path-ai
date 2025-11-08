@@ -72,7 +72,13 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Postgres pool
-let poolConfig = {};
+const poolConfig = {
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+  max: 5,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000
+};
 // Postgres pool - MUST have DATABASE_URL
 if (!process.env.DATABASE_URL) {
   console.error('❌❌❌ FATAL ERROR: DATABASE_URL environment variable is not set!');
@@ -118,7 +124,7 @@ if (!process.env.OPENAI_API_KEY) {
       console.warn("⚠️ Could not set client_encoding to UTF8:", e.message);
     }
     client.release();
-    console.log(`✅ PostgreSQL connected (${poolConfig.database || poolConfig.connectionString || "unknown"})`);
+    console.log(`✅ PostgreSQL connected (${.database || poolConfig.connectionString || "unknown"})`);
   } catch (err) {
     console.error("❌ PostgreSQL connection failed:", err.message || err);
   }
@@ -3879,5 +3885,6 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
