@@ -72,30 +72,35 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Postgres pool
-const poolConfig = {
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  max: 5,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000
-};
-// Postgres pool - MUST have DATABASE_URL
-if (!process.env.DATABASE_URL) {
-  console.error('❌❌❌ FATAL ERROR: DATABASE_URL environment variable is not set!');
-  console.error('❌ Please configure DATABASE_URL in Vercel Dashboard');
-  console.error('❌ Format: postgresql://user:pass@host:port/db');
-  process.exit(1);
+// Postgres pool - DIRECT CONNECTION
+let poolConfig = {};
+
+if (process.env.DATABASE_URL) {
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }, // ⬅️ BẮT BUỘC cho Supabase
+    max: 5, // ⬅️ Giới hạn connections cho Vercel serverless
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000
+  };
+} else {
+  poolConfig = {
+    user: process.env.DB_USER || "postgres",
+    host: process.env.DB_HOST || "localhost",
+    database: process.env.DB_NAME || "postgres",
+    password: process.env.DB_PASSWORD || "",
+    port: parseInt(process.env.DB_PORT || "5432", 10),
+    ssl: false
+  };
 }
 
-console.log('✅ DATABASE_URL found, length:', process.env.DATABASE_URL.length);
-console.log('✅ Preview:', process.env.DATABASE_URL.substring(0, 50) + '...');
+const pool = new Pool(poolConfig);
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+// ⬅️ THÊM error handler
+pool.on('error', (err, client) => {
+  console.error('❌ Unexpected pool error:', err.message);
+  process.exit(-1);
 });
-
-console.log('✅ PostgreSQL pool created with SSL enabled');
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
@@ -124,11 +129,12 @@ if (!process.env.OPENAI_API_KEY) {
       console.warn("⚠️ Could not set client_encoding to UTF8:", e.message);
     }
     client.release();
-    console.log(`✅ PostgreSQL connected (${.database || poolConfig.connectionString || "unknown"})`);
+    console.log(`✅ PostgreSQL connected (${poolConfig.database || poolConfig.connectionString || "unknown"})`);
   } catch (err) {
     console.error("❌ PostgreSQL connection failed:", err.message || err);
   }
 })();
+
 // bcrypt helpers
 function hashPassword(password, saltRounds = 10) {
   return new Promise((resolve, reject) => {
@@ -547,15 +553,8 @@ Return a concrete exercise URL and one short keyword (format above).`;
         // attempt puppeteer render once
         try {
           if (DEBUG) console.log(`[Exercise][Attempt ${attempt}] trying puppeteer for`, url);
-
-let puppeteer = null;
-try {
-  const mod = await import('puppeteer'); // dynamic import
-  puppeteer = mod?.default || mod;
-} catch (e) {
-  puppeteer = null;
-  if (DEBUG) console.log('puppeteer not installed');
-}
+          let puppeteer;
+          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
           if (puppeteer) {
             const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
             const page = await browser.newPage();
@@ -709,14 +708,8 @@ Return one concrete material URL and one short keyword (format above).`;
       if ((!tokenMatch && !reportedPresent) && USE_PUPPETEER) {
         try {
           if (DEBUG) console.log(`[Material][Attempt ${attempt}] trying puppeteer for`, url);
-let puppeteer = null;
-try {
-  const mod = await import('puppeteer'); // dynamic import
-  puppeteer = mod?.default || mod;
-} catch (e) {
-  puppeteer = null;
-  if (DEBUG) console.log('puppeteer not installed');
-}
+          let puppeteer;
+          try { puppeteer = require('puppeteer'); } catch (e) { puppeteer = null; if (DEBUG) console.log('puppeteer not installed'); }
           if (puppeteer) {
             const browser = await puppeteer.launch({ args: ['--no-sandbox','--disable-setuid-sandbox'] });
             const page = await browser.newPage();
@@ -3885,6 +3878,3 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
-
-
-
