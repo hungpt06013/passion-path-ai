@@ -73,19 +73,23 @@ if (fs.existsSync(publicDir)) {
 
 // Postgres pool
 let poolConfig = {};
-if (process.env.DATABASE_URL) {
-  poolConfig.connectionString = process.env.DATABASE_URL;
-  if (process.env.PGSSLMODE === "require") poolConfig.ssl = { rejectUnauthorized: false };
-} else {
-  poolConfig = {
-    user: process.env.DB_USER || process.env.PGUSER || "postgres",
-    host: process.env.DB_HOST || process.env.PGHOST || "localhost",
-    database: process.env.DB_NAME || process.env.PGDATABASE || "myapp",
-    password: process.env.DB_PASSWORD || process.env.PGPASSWORD || "",
-    port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10),
-  };
+// Postgres pool - MUST have DATABASE_URL
+if (!process.env.DATABASE_URL) {
+  console.error('❌❌❌ FATAL ERROR: DATABASE_URL environment variable is not set!');
+  console.error('❌ Please configure DATABASE_URL in Vercel Dashboard');
+  console.error('❌ Format: postgresql://user:pass@host:port/db');
+  process.exit(1);
 }
-const pool = new Pool(poolConfig);
+
+console.log('✅ DATABASE_URL found, length:', process.env.DATABASE_URL.length);
+console.log('✅ Preview:', process.env.DATABASE_URL.substring(0, 50) + '...');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
+console.log('✅ PostgreSQL pool created with SSL enabled');
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
@@ -3875,6 +3879,5 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
-
 
 
