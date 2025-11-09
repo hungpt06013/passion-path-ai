@@ -1573,29 +1573,29 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       // Trả về success (chắc chắn có roadmap_id)
       return res.json({ success: true, roadmap_id: roadmapId, message: "Tạo lộ trình thành công" });
 
-    } catch (err) {
-      await client.query('ROLLBACK').catch(()=>{});
-      console.error('Error creating roadmap (transaction):', err && err.message ? err.message : err);
-      console.error('PG ERROR DETAIL:', err?.detail, 'POSITION:', err?.position, 'CODE:', err?.code);
-      return res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
-    } finally {
-      client.release();
-    }
-
 } catch (err) {
-  console.error("❌ Error creating roadmap (transaction):", err && err.message ? err.message : err);
-  console.error("PG ERROR DETAIL:", err?.detail, "POSITION:", err?.position, "CODE:", err?.code);
-
-  // ✅ Tạm thời trả lỗi chi tiết cho client để debug
+  console.error('Error creating roadmap (transaction):', err && err.message ? err.message : err);
+  console.error('PG ERROR DETAIL:', err?.detail, 'POSITION:', err?.position, 'CODE:', err?.code);
+  // TEMP DEBUG: trả chi tiết lỗi cho client — chỉ để debug, revert sau khi fix
   res.status(500).json({
     success: false,
     error: err?.message || "Internal server error",
     detail: err?.detail || null,
     position: err?.position || null,
     code: err?.code || null,
-    stack: err?.stack ? String(err.stack).split("\n").slice(0, 10).join("\n") : null
+    // trả 1-2 dòng stack top để dễ đọc
+    stack: err?.stack ? String(err.stack).split('\n').slice(0,6).join('\n') : null
   });
 }
+finally {
+      client.release();
+    }
+
+  } catch (err) {
+    console.error('Unhandled error in /api/roadmaps:', err && err.message ? err.message : err);
+    res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
+  }
+});
 // --- END full replacement for POST /api/roadmaps ---
 
 
@@ -3965,9 +3965,6 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
-
-
-
 
 
 
