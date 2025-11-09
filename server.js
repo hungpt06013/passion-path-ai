@@ -1329,7 +1329,7 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
         learning_content: String(d.learning_content || d.content || `Nội dung học tập ngày ${i + 1}`).trim().substring(0, 500),
         practice_exercises: String(d.practice_exercises || d.exercises || `Bài tập thực hành ngày ${i + 1}`).trim().substring(0, 300),
         learning_materials: String(d.learning_materials || d.materials || `Tài liệu học tập ngày ${i + 1}`).trim().substring(0, 300),
-        study_guide: String(d.study_guide || d.guide || `Hướng dẫn học tập ngày ${i + 1}`).trim().substring(0, 300),
+        study_guide: String(d.study_guide || d.instructions || d.guide || `Hướng dẫn học tập ngày ${i + 1}`).trim().substring(0, 300),
         study_duration_hours: parseFloat(d.study_duration_hours || d.hours || hoursPerDay)
       };
 
@@ -1710,6 +1710,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
               String(d.learning_content || d.content || '').trim().substring(0, 4000),
               String(d.practice_exercises || d.exercises || '').trim().substring(0, 1000),
               String(d.learning_materials || d.materials || '').trim().substring(0, 1000),
+              String(d.study_guide || d.instructions || d.guide || '').trim().substring(0, 1000),
               perDay,
               studyDateStr
             ]
@@ -1813,7 +1814,7 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
             parseFloat(day.study_duration_hours || day.hours || 2),
             studyDateStr,
             'NOT_STARTED', // ✅ Mặc định
-            day.study_guide
+            day.study_guide || day.usage_instructions || day.instructions || day.guide || ""
           ]
         );
       }
@@ -4119,6 +4120,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
