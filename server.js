@@ -1498,6 +1498,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
         throw new Error(`Invalid duration_hours for insert: ${duration_hours}`);
       }
 
+      // --- Build insert values (đã sanitize trước đó) ---
       const insertRoadmapVals = [
         sanitizedRoadmapName,
         sanitizedCategory,
@@ -1510,8 +1511,55 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
         sanitizedAnalyst
       ];
 
-      // Finally execute the insert
+      // --- DEBUG / TYPE CHECK: kiểm tra từng tham số trước khi gửi tới Postgres ---
+      // định nghĩa kiểu mong đợi (theo thứ tự cột trong INSERT)
+      const expectedTypes = [
+        'text', // roadmap_name
+        'text', // category
+        'text', // sub_category
+        'text', // start_level
+        'integer', // user_id
+        'integer', // duration_days
+        'number', // duration_hours (float ok)
+        'text', // expected_outcome
+        'text'  // roadmap_analyst
+      ];
+
+      // build preview để log & để trả về client nếu có lỗi
+      const preview = insertRoadmapVals.map((v, i) => {
+        return { idx: i+1, expected: expectedTypes[i], value_preview: (v && v.toString) ? String(v).slice(0,200) : v, typeof: typeof v };
+      });
+      console.log('DEBUG -> insertRoadmapVals preview:', JSON.stringify(preview, null, 2));
+
+      // validate: nếu tham số integer/number không phù hợp -> trả lỗi rõ ràng (400)
+      for (let i = 0; i < expectedTypes.length; i++) {
+        const exp = expectedTypes[i];
+        const val = insertRoadmapVals[i];
+
+        if (exp === 'integer') {
+          if (!Number.isInteger(val)) {
+            // trả lỗi chi tiết để biết chính xác field nào bị sai
+            const msg = `Invalid param at position ${i+1} (expected integer) — value: ${JSON.stringify(val).slice(0,300)}`;
+            console.error('BAD_PARAM:', msg);
+            // Rollback and return clear 400
+            await client.query('ROLLBACK').catch(()=>{});
+            return res.status(400).json({ success:false, error: 'Bad request: invalid parameter type', bad_param_index: i+1, bad_param_value: String(val).slice(0,500), message: msg, preview });
+          }
+        }
+        if (exp === 'number') {
+          if (typeof val !== 'number' || isNaN(val)) {
+            const msg = `Invalid param at position ${i+1} (expected number) — value: ${JSON.stringify(val).slice(0,300)}`;
+            console.error('BAD_PARAM:', msg);
+            await client.query('ROLLBACK').catch(()=>{});
+            return res.status(400).json({ success:false, error: 'Bad request: invalid parameter type', bad_param_index: i+1, bad_param_value: String(val).slice(0,500), message: msg, preview });
+          }
+        }
+        // text: no strict check (we truncated earlier)
+      }
+
+      // Nếu qua hết checks thì mới gọi query
       const roadmapResult = await client.query(insertRoadmapSQL, insertRoadmapVals);
+
       // ---------- END SANITIZE + PREPARE INSERT ----------
 
       if (!roadmapResult || !roadmapResult.rows || roadmapResult.rows.length === 0) {
@@ -3965,6 +4013,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
