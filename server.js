@@ -1447,25 +1447,73 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     try {
       await client.query('BEGIN');
 
+      // ---------- SANITIZE + PREPARE INSERT (Safer) ----------
       const insertRoadmapSQL = `
         INSERT INTO learning_roadmaps
           (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         RETURNING roadmap_id, created_at
       `;
+
+      // --- Sanitize/stringify/trim từng biến (giới hạn độ dài để tránh lỗi unexpected)
+      const sanitizedRoadmapName = roadmap_name ? String(roadmap_name).trim().substring(0,255) : null;
+      const sanitizedCategory = category ? String(category).trim().substring(0,100) : null;
+      const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0,100) : null;
+      const sanitizedStartLevel = start_level ? String(start_level).trim().substring(0,50) : null;
+      const sanitizedExpected = expected_outcome ? String(expected_outcome).trim().substring(0,4000) : null;
+      const sanitizedAnalyst = roadmap_analyst ? String(roadmap_analyst).trim().substring(0,20000) : null;
+
+      // --- Ensure numeric types are correct (server-side coercion)
+      const safeUserId = Number.isInteger(userIdInt) ? userIdInt : parseInt(req.user?.id || '', 10);
+      const safeDurDays = Number.isInteger(durDays) ? durDays : parseInt(duration_days, 10);
+      const safeDurHours = !isNaN(durHours) ? Number(durHours) : parseFloat(String(duration_hours || '0').replace(/[^\d.-]/g, ''));
+
+      // Debug: show each value and its typeof (truncate long strings for logs)
+      try {
+        console.log('DEBUG -> insertRoadmapVals preview:');
+        const previewVals = [
+          { name: 'roadmap_name', value: sanitizedRoadmapName?.slice?.(0,120), type: typeof sanitizedRoadmapName },
+          { name: 'category', value: sanitizedCategory, type: typeof sanitizedCategory },
+          { name: 'sub_category', value: sanitizedSubCategory, type: typeof sanitizedSubCategory },
+          { name: 'start_level', value: sanitizedStartLevel, type: typeof sanitizedStartLevel },
+          { name: 'user_id', value: safeUserId, type: typeof safeUserId },
+          { name: 'duration_days', value: safeDurDays, type: typeof safeDurDays },
+          { name: 'duration_hours', value: safeDurHours, type: typeof safeDurHours },
+          { name: 'expected_outcome', value: sanitizedExpected?.slice?.(0,120), type: typeof sanitizedExpected },
+          { name: 'roadmap_analyst', value: sanitizedAnalyst?.slice?.(0,120), type: typeof sanitizedAnalyst }
+        ];
+        console.log(JSON.stringify(previewVals, null, 2));
+      } catch (e) {
+        console.log('DEBUG preview log failed:', e && e.message ? e.message : e);
+      }
+
+      // Strict checks: fail early with clear message if numeric fields invalid
+      if (!Number.isInteger(safeUserId)) {
+        throw new Error(`Invalid user_id for insert: ${req.user?.id}`);
+      }
+      if (!Number.isInteger(safeDurDays) || safeDurDays <= 0) {
+        throw new Error(`Invalid duration_days for insert: ${duration_days}`);
+      }
+      if (isNaN(safeDurHours) || safeDurHours <= 0) {
+        throw new Error(`Invalid duration_hours for insert: ${duration_hours}`);
+      }
+
       const insertRoadmapVals = [
-        roadmap_name,
-        category,
-        sub_category || null,
-        start_level,
-        userIdInt,
-        durDays,
-        durHours,
-        expected_outcome || null,
-        roadmap_analyst || null
+        sanitizedRoadmapName,
+        sanitizedCategory,
+        sanitizedSubCategory,
+        sanitizedStartLevel,
+        safeUserId,
+        safeDurDays,
+        safeDurHours,
+        sanitizedExpected,
+        sanitizedAnalyst
       ];
 
+      // Finally execute the insert
       const roadmapResult = await client.query(insertRoadmapSQL, insertRoadmapVals);
+      // ---------- END SANITIZE + PREPARE INSERT ----------
+
       if (!roadmapResult || !roadmapResult.rows || roadmapResult.rows.length === 0) {
         throw new Error('Không thể tạo lộ trình (no returning id)');
       }
@@ -3908,6 +3956,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
