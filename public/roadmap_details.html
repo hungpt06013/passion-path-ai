@@ -323,7 +323,7 @@
         const roadmapResult = await roadmapResponse.json();
         if (!roadmapResult.success) throw new Error('Không thể tải thông tin lộ trình');
         roadmapData = roadmapResult.data;
-        viewRoadmapDetails(roadmapId, roadmapData.roadmap_analyst)
+        viewRoadmapDetails(roadmapId, roadmapData.roadmap_analyst_text)
         renderRoadmap();
       } catch (error) {
         console.error('Error:', error);
