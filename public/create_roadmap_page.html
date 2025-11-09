@@ -1270,19 +1270,27 @@ function setupCategoryOtherToggle() {
 }
 
 function validateDays() {
-        const daysInput = document.getElementById('q11_program_days');
-        const aiBtn = document.getElementById('aiGenerateBtn'); // Sửa: dùng getElementById
-        const warning = document.getElementById('daysWarning');
+    const daysInput = document.getElementById('q11_program_days');
+    // robust fetch for the AI/generate button: thử nhiều id/class có thể xuất hiện
+    const aiBtn = document.getElementById('aiGenerateBtn')
+                || document.getElementById('generateAI')
+                || document.getElementById('generateBtn')
+                || document.querySelector('.ai-btn')
+                || null;
+    const warning = document.getElementById('daysWarning');
 
-        // Check riêng lẻ
-        if (!daysInput) {
-            console.warn('daysInput not found');
-            return;
-        }
-        if (!aiBtn) {
-            console.warn('aiBtn not found');
-            return;
-        }
+    // Check riêng lẻ
+    if (!daysInput) {
+        console.warn('daysInput not found');
+        return;
+    }
+
+    // Nếu không tìm thấy nút AI thì chỉ warn (KHÔNG return) — để các validations khác vẫn chạy
+    if (!aiBtn) {
+        console.warn('aiBtn not found (expected ids: aiGenerateBtn | generateAI | generateBtn | .ai-btn)');
+        // don't return; allow other validations to continue
+    }
+
         if (!warning) {
             console.warn('warning not found');
             return;
@@ -1543,8 +1551,13 @@ async function generateRoadmapWithAI() {
             category: q2_category,
             sub_category: q3_category_detail || null,
             start_level: q7_current_level,
-            duration_days: q11_program_days,
-            duration_hours: extractFirstNumber(q9_daily_time, 2) * q11_program_days,
+            // ép kiểu ngay khi build payload
+            duration_days: parseInt(q11_program_days, 10) || 0,
+            duration_hours: (function(){
+                const perDay = Number(extractFirstNumber(q9_daily_time, 2)) || 0;
+                const days = parseInt(q11_program_days, 10) || 0;
+                return perDay * days;
+            })(),
             expected_outcome: q5_specific_goal,
 
             // full Qs
@@ -2106,8 +2119,20 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     };
 
     if (days.length > 0) roadmapData.days = days;
+// đảm bảo các trường numeric cuối cùng trước khi gửi
+roadmapData.duration_days = parseInt(roadmapData.duration_days, 10) || 0;
+roadmapData.duration_hours = Number(roadmapData.duration_hours) || 0;
 
-    console.log('📤 Sending data:', roadmapData);
+// debug types & values trước khi gửi
+console.log('✅ payload types:', {
+  duration_days_type: typeof roadmapData.duration_days,
+  duration_hours_type: typeof roadmapData.duration_hours,
+  duration_days_value: roadmapData.duration_days,
+  duration_hours_value: roadmapData.duration_hours
+});
+
+console.log('📤 Sending data:', roadmapData);
+
 
     // =========================================
     // BƯỚC 5: GỬI REQUEST (gộp headers)
