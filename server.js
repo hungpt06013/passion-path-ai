@@ -15,6 +15,7 @@ import Joi from "joi";
 dotenv.config();
 const app = express();
 import cors from "cors";
+import dns from "dns/promises";
 
 // -------- CORS -----------
 const rawAllowed = (process.env.ALLOWED_ORIGINS || "").trim();
@@ -25,50 +26,26 @@ if (rawAllowed) {
       origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         if (allowedList.indexOf(origin) !== -1) return callback(null, true);
-        return callback(new Error("CORS not allowed from origin " + origin));
+        return callback(new Error("Not allowed by CORS"));
       },
+      credentials: true,
     })
   );
 } else {
-  if ((process.env.NODE_ENV || "development") === "production") {
-    console.warn("⚠️ ALLOWED_ORIGINS not set in production. This is insecure.");
-  }
   app.use(cors());
 }
 
-// OpenAI client
-const rawOpenAiKey = (process.env.OPENAI_API_KEY || "").trim();
-const openAiKey = rawOpenAiKey.replace(/^['"]|['"]$/g, "");
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-// ✅ THÊM DEBUG
-if (!openAiKey || openAiKey.length < 20) {
-  console.error("❌❌❌ OPENAI_API_KEY NOT SET OR INVALID!");
-  console.error("❌ Key length:", openAiKey.length);
-} else {
-  console.log("✅ OPENAI key valid, length:", openAiKey.length, "last6:", openAiKey.slice(-6));
-}
-
-const openai = new OpenAI({ apiKey: openAiKey });
-
-// Safe debug: show length and last few chars (avoid printing full key)
-console.log("Using OPENAI key length:", openAiKey.length, " last6:", openAiKey.slice(-6));
-// __dirname ESM
+// File helpers
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // public dir
-const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "public"));
-
-// parsers
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
-
-// static serve
-if (fs.existsSync(publicDir)) {
-  app.use(express.static(publicDir));
-  console.log(`✅ Serving static files from: ${publicDir}`);
-} else {
-  console.warn(`⚠️ Static folder not found: ${publicDir} – static files WILL NOT be served`);
+const publicDir = process.env.PUBLIC_DIR || path.join(__dirname, "public");
+if (!fs.existsSync(publicDir)) {
+  console.log(`public dir not found: ${publicDir} – static files WILL NOT be served`);
 }
 
 // Postgres pool
@@ -85,50 +62,42 @@ if (process.env.DATABASE_URL) {
     port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10),
   };
 }
-const pool = new Pool(poolConfig);
-const upload = multer({ 
+
+// NOTE: pool creation moved later (we'll create pool after IPv4 resolution)
+
+// multer setup
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (ext !== '.xlsx' && ext !== '.xls') {
-      return cb(new Error('Chỉ chấp nhận file Excel (.xlsx, .xls)'));
+    if (ext !== ".xlsx" && ext !== ".xls") {
+      return cb(new Error("Chỉ chấp nhận file Excel (.xlsx, .xls)"));
     }
     cb(null, true);
-  }
+  },
 });
+
 if (!process.env.JWT_SECRET) {
   console.warn("⚠️ Warning: JWT_SECRET not set. Using default dev secret.");
 }
-if (!process.env.OPENAI_API_KEY) {
-  console.warn("⚠️ Warning: OPENAI_API_KEY not set. AI features will not work.");
+if (!process.env.NODE_ENV) {
+  console.warn("⚠️ Warning: NODE_ENV not set. Defaulting to production assumptions.");
 }
 
-// quick DB test
-(async function testDB() {
-  try {
-    const client = await pool.connect();
-    try {
-      await client.query("SET client_encoding = 'UTF8'");
-    } catch (e) {
-      console.warn("⚠️ Could not set client_encoding to UTF8:", e.message);
-    }
-    client.release();
-    console.log(`✅ PostgreSQL connected (${poolConfig.database || poolConfig.connectionString || "unknown"})`);
-  } catch (err) {
-    console.error("❌ PostgreSQL connection failed:", err.message || err);
-  }
-})();
-
-// bcrypt helpers
-function hashPassword(password, saltRounds = 10) {
+// small helpers
+function hashPassword(plain) {
   return new Promise((resolve, reject) => {
-    bcrypt.hash(password, saltRounds, (err, hash) => {
+    bcrypt.genSalt(10, (err, salt) => {
       if (err) return reject(err);
-      resolve(hash);
+      bcrypt.hash(plain, salt, (err2, hashed) => {
+        if (err2) return reject(err2);
+        resolve(hashed);
+      });
     });
   });
 }
+
 function comparePassword(plain, hashed) {
   return new Promise((resolve, reject) => {
     bcrypt.compare(plain, hashed, (err, same) => {
@@ -142,6 +111,205 @@ function comparePassword(plain, hashed) {
 function makeToken(userId) {
   return jwt.sign({ userId }, process.env.JWT_SECRET || "dev_local_secret", { expiresIn: "2h" });
 }
+
+// ---------- DB: ép dùng IPv4 + test connection (chèn trước MAX_AI_DAYS) ----------
+export let pool = null;
+
+async function createAndTestPool() {
+  console.log("NODE_OPTIONS:", JSON.stringify(process.env.NODE_OPTIONS || null));
+
+  if (!process.env.DATABASE_URL) {
+    console.error("No DATABASE_URL set in env");
+    return null;
+  }
+
+  let conn = process.env.DATABASE_URL;
+  try {
+    const urlObj = new URL(conn);
+    const host = urlObj.hostname;
+
+    try {
+      // force lookup IPv4
+      const { address } = await dns.lookup(host, { family: 4 });
+      if (address) {
+        conn = conn.replace(host, address);
+        console.log("Resolved DB host to IPv4:", address);
+      } else {
+        console.log("No IPv4 address found for host:", host);
+      }
+    } catch (dnsErr) {
+      console.warn("IPv4 lookup failed:", dnsErr && dnsErr.message ? dnsErr.message : dnsErr);
+      // tiếp tục dùng DATABASE_URL gốc (nếu NODE_OPTIONS hoạt động, cũng ổn)
+    }
+  } catch (e) {
+    console.warn("DATABASE_URL parse error:", e && e.message ? e.message : e);
+  }
+
+  const poolConfigLocal = { connectionString: conn };
+  if (process.env.PGSSLMODE === "require") {
+    poolConfigLocal.ssl = { rejectUnauthorized: false };
+  }
+
+  const p = new Pool(poolConfigLocal);
+
+  try {
+    await p.query("SELECT 1");
+    console.log("Postgres test OK");
+  } catch (err) {
+    console.error("Postgres connection test FAILED:", err && err.message ? err.message : err);
+  }
+
+  return p;
+}
+
+(async () => {
+  try {
+    pool = await createAndTestPool();
+  } catch (err) {
+    console.error("Failed to create DB pool:", err && err.message ? err.message : err);
+  }
+})();
+// ---------- end DB snippet ----------
+
+// AI config - CRITICAL: Temperature MUST be 1
+const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
+const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "400000", 10);
+const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "1500", 10);
+const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-nano";
+const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
+const OPENAI_TEMPERATURE = parseFloat(process.env.OPENAI_TEMPERATURE || "0.5");
+
+// OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || "",
+});
+
+// helpers
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function safeParseJson(x) {
+  try {
+    return JSON.parse(x);
+  } catch (e) {
+    return null;
+  }
+}
+
+// DB helpers (use exported 'pool' variable created above)
+async function query(text, params = []) {
+  if (!pool) throw new Error("DB pool not initialized");
+  const client = await pool.connect();
+  try {
+    const res = await client.query(text, params);
+    return res;
+  } finally {
+    client.release();
+  }
+}
+
+async function getUserById(id) {
+  const r = await query("SELECT * FROM users WHERE id = $1", [id]);
+  return r.rows[0];
+}
+
+// Example seed admin (only if SEED_ADMIN true)
+async function maybeSeedAdmin() {
+  if (!process.env.SEED_ADMIN) return;
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || "admin@example.com";
+    const adminUser = await query("SELECT * FROM users WHERE email = $1", [adminEmail]);
+    if (adminUser.rowCount === 0) {
+      const hashed = await hashPassword(process.env.ADMIN_PASSWORD || "adminpass");
+      await query(
+        "INSERT INTO users (username, email, password, role) VALUES ($1,$2,$3,$4)",
+        [process.env.ADMIN_USERNAME || "admin", adminEmail, hashed, "admin"]
+      );
+      console.log("Seeded admin user:", adminEmail);
+    } else {
+      console.log("Admin exists, skipping seed");
+    }
+  } catch (err) {
+    console.error("Seed admin failed:", err && err.message ? err.message : err);
+  }
+}
+
+// Authentication routes
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+    const r = await query("SELECT * FROM users WHERE email = $1", [email]);
+    if (r.rowCount === 0) return res.status(401).json({ error: "Invalid" });
+    const user = r.rows[0];
+    const ok = await comparePassword(password, user.password);
+    if (!ok) return res.status(401).json({ error: "Invalid" });
+    const token = makeToken(user.id);
+    res.json({ token, user: { id: user.id, email: user.email, username: user.username } });
+  } catch (err) {
+    console.error("Login error:", err && err.message ? err.message : err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Minimal user creation (for seeding/testing)
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, email, password } = req.body || {};
+    const hashed = await hashPassword(password);
+    await query("INSERT INTO users (username, email, password) VALUES ($1,$2,$3)", [
+      username,
+      email,
+      hashed,
+    ]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("Register error:", err && err.message ? err.message : err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Static files
+app.use("/public", express.static(publicDir));
+
+// Example Excel upload route
+app.post("/api/upload-excel", upload.single("file"), async (req, res) => {
+  try {
+    const buffer = req.file.buffer;
+    const wb = XLSX.read(buffer, { type: "buffer" });
+    const sheetName = wb.SheetNames[0];
+    const data = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+    res.json({ rows: data.length, sample: data.slice(0, 5) });
+  } catch (err) {
+    console.error("Upload failed:", err && err.message ? err.message : err);
+    res.status(500).json({ error: "Upload failed" });
+  }
+});
+
+// Health check
+app.get("/healthz", async (req, res) => {
+  try {
+    await query("SELECT 1");
+    res.json({ ok: true, now: nowIso() });
+  } catch (err) {
+    res.status(500).json({ ok: false, error: err && err.message ? err.message : String(err) });
+  }
+});
+
+// Start server
+const PORT = parseInt(process.env.PORT || "3000", 10);
+
+(async () => {
+  try {
+    await maybeSeedAdmin();
+  } catch (e) {
+    console.error("Seed admin error:", e && e.message ? e.message : e);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+})();
 
 // AI config - CRITICAL: Temperature MUST be 1
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
@@ -3863,3 +4031,4 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
