@@ -1518,7 +1518,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       // --- Prepare SQL + values (explicit column list) ---
       const insertRoadmapSQL = `
         INSERT INTO learning_roadmaps
-          (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
+          (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
         RETURNING roadmap_id, created_at
       `;
@@ -4035,6 +4035,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
