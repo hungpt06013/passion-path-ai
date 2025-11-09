@@ -3891,17 +3891,33 @@ app.get('/api/categories/top', async (req, res) => {
                 c.id,
                 c.name,
                 c.description,
-                COUNT(lr.roadmap_id) as roadmap_count
+                (
+                    -- Đếm roadmap từ bảng system
+                    COALESCE(
+                        (SELECT COUNT(*) 
+                         FROM learning_roadmaps_system lrs 
+                         WHERE lrs.category = c.name), 0
+                    )
+                    + 
+                    -- Đếm roadmap từ bảng user (chỉ những roadmap có đánh giá >= 4 sao)
+                    COALESCE(
+                        (SELECT COUNT(*) 
+                         FROM learning_roadmaps lr 
+                         WHERE lr.category = c.name 
+                         AND lr.overall_rating >= 4), 0
+                    )
+                ) as roadmap_count
             FROM categories c
-            LEFT JOIN learning_roadmaps_system lr ON lr.category = c.name
-            GROUP BY c.id, c.name, c.description
-            HAVING COUNT(lr.roadmap_id) > 0
             ORDER BY roadmap_count DESC
             LIMIT 6
         `;
         
         const result = await pool.query(query);
-        res.json(result.rows);
+        
+        // Lọc chỉ lấy category có ít nhất 1 roadmap
+        const filtered = result.rows.filter(cat => parseInt(cat.roadmap_count) > 0);
+        
+        res.json(filtered);
         
     } catch (error) {
         console.error('Error fetching top categories:', error);
@@ -4120,6 +4136,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
