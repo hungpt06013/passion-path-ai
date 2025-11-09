@@ -1405,11 +1405,10 @@ app.get("/api/roadmaps", requireAuth, async (req, res) => {
 
 // --- START full replacement for POST /api/roadmaps ---
 app.post("/api/roadmaps", requireAuth, async (req, res) => {
-  // Handler tạo roadmap an toàn, có validate/parse robust và transaction
   const MAX_AI_DAYS = 365;
 
   try {
-    // --- Lấy payload ---
+    // ✅ THÊM: Lấy roadmap_analyst_text từ req.body
     const { roadmapData, roadmap_analyst_text } = req.body || {};
     const {
       roadmap_name,
@@ -1449,7 +1448,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 
     // Nếu duration_hours không hợp lệ, cố gắng trích từ các text (roadmap_analyst, expected_outcome, fallback)
     if (isNaN(parsedDurHours) || parsedDurHours === 0) {
-      const tryTexts = [roadmap_analyst, expected_outcome, req.body && req.body.duration_hours].filter(Boolean);
+      const tryTexts = [roadmap_analyst_text, expected_outcome, req.body && req.body.duration_hours].filter(Boolean);
       for (const t of tryTexts) {
         const maybe = parsePossibleNumber(t);
         if (!isNaN(maybe) && maybe > 0) {
@@ -1485,7 +1484,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       raw_user_id: rawUserId,
       parsed_user_id: userIdFinal,
       expected_outcome_preview: expected_outcome ? ('' + expected_outcome).slice(0,120) : null,
-      roadmap_analyst_preview: roadmap_analyst ? ('' + roadmap_analyst).slice(0,200) : null
+      roadmap_analyst_preview: roadmap_analyst_text ? ('' + roadmap_analyst_text).slice(0,200) : null
     });
 
     // Validate bắt buộc
@@ -1508,6 +1507,8 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0, 200) : null;
     const sanitizedStartLevel = String(start_level).trim().substring(0, 50);
     const sanitizedExpected = String(expected_outcome).trim().substring(0, 4000);
+    
+    // ✅ THÊM: Sanitize roadmap_analyst_text
     const sanitizedAnalyst = roadmap_analyst_text ? String(roadmap_analyst_text).trim().substring(0,20000) : null;
 
     // --- CONNECT DB and TRANSACTION ---
@@ -1532,7 +1533,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
         durDaysInt,
         durHoursNum,
         sanitizedExpected,
-        sanitizedAnalyst
+        sanitizedAnalyst  // ✅ THÊM VÀO ĐÂY (vị trí $9)
       ];
 
       // --- Strict type-check trước khi gọi Postgres (bắt lỗi rõ ràng) ---
@@ -1649,7 +1650,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       await client.query('ROLLBACK').catch(() => {});
       console.error('Error creating roadmap (transaction):', err && err.message ? err.message : err);
       console.error('PG ERROR DETAIL:', err?.detail, 'POSITION:', err?.position, 'CODE:', err?.code);
-      // Trả lỗi tổng quát (debug) — bạn có thể thay bằng trả ít chi tiết hơn
+      // Trả lỗi tổng quát (debug) – bạn có thể thay bằng trả ít chi tiết hơn
       return res.status(500).json({
         success: false,
         error: err?.message || 'Không thể tạo lộ trình',
@@ -4035,6 +4036,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
