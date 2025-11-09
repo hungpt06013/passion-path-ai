@@ -1405,18 +1405,46 @@ app.get("/api/roadmaps", requireAuth, async (req, res) => {
 
 app.post("/api/roadmaps", requireAuth, async (req, res) => {
   try {
-    const { roadmapData, roadmap_analyst } = req.body;
-    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome, days, history_id } = roadmapData;
-    
-    if (!roadmap_name || !category || !start_level || !duration_days || !duration_hours || !expected_outcome) {
-      return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
-    }
-    
-    const roadmapResult = await pool.query(
-      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome,roadmap_analyst)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst]
-    );
+      const { roadmapData, roadmap_analyst } = req.body;
+  // destructure an toàn (tránh lỗi nếu roadmapData undefined)
+  const {
+    roadmap_name,
+    category,
+    sub_category,
+    start_level,
+    duration_days,
+    duration_hours,
+    expected_outcome,
+    days,
+    history_id
+  } = roadmapData || {};
+
+  // ÉP KIỂU & VALIDATE an toàn
+  const userIdInt = parseInt(req.user?.id, 10);
+  const durDays = parseInt(duration_days, 10);
+  const durHours = parseFloat(String(duration_hours).replace(/[^\d.-]/g, '')) || NaN;
+
+  console.log('DEBUG create roadmap payload types:', {
+    userId: req.user?.id,
+    userIdInt,
+    duration_days,
+    durDays,
+    duration_hours,
+    durHours,
+    expected_outcome_preview: expected_outcome ? (''+expected_outcome).slice(0,120) : null,
+    roadmap_analyst_preview: roadmap_analyst ? (''+roadmap_analyst).slice(0,120) : null
+  });
+
+  // Trả lỗi rõ ràng nếu thiếu / không hợp lệ
+  if (!roadmap_name || !category || !start_level || !Number.isInteger(durDays) || isNaN(durHours) || !expected_outcome) {
+    return res.status(400).json({
+      success: false,
+      error: 'Thiếu/không hợp lệ: kiểm tra roadmap_name, category, start_level, duration_days (số), duration_hours (số), expected_outcome'
+    });
+  }
+
+  // Sử dụng biến đã parse (userIdInt, durDays, durHours) cho INSERT phía dưới
+
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
     const roadmapCreatedAt = new Date(roadmapResult.rows[0].created_at);
@@ -1497,28 +1525,35 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     res.json({ success: true, roadmap_id: roadmapId, message: "Tạo lộ trình thành công" });
   } catch (err) {
     console.error("Error creating roadmap:", err?.message || err);
+    // thêm chi tiết Postgres để dễ debug (err.detail, err.position)
+    console.error("PG CODE:", err?.code, "DETAIL:", err?.detail, "POSITION:", err?.position);
     res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
   }
+
 });
 
 //Tạo lộ trình mới từ danh sách lộ trình của hệ thống
 app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
   try {
-    const { roadmapDataSystem, roadmap_analyst } = req.body;
-    //console.log('days:',roadmapDataSystem.days)
-    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours } = roadmapDataSystem;
-    
+  const { roadmapDataSystem, roadmap_analyst } = req.body;
+  const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours } = roadmapDataSystem || {};
 
-    if (!roadmap_name || !category || !start_level || !duration_days || !duration_hours) {
-      //console.log('thiếu data:',roadmap_name,'category:',category,'start_level:',start_level,'duration_days',duration_days,'duration_hours:',duration_hours,'expected_outcome:',expected_outcome)
-      return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
-    }
-    
-    const roadmapResult = await pool.query(
-      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours,roadmap_analyst)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst]
-    );
+  // Ép kiểu
+  const userIdInt = parseInt(req.user?.id, 10);
+  const durDays = parseInt(duration_days, 10);
+  const durHours = parseFloat(String(duration_hours).replace(/[^\d.-]/g, '')) || NaN;
+
+  if (!roadmap_name || !category || !start_level || !Number.isInteger(durDays) || isNaN(durHours)) {
+    return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc hoặc duration không hợp lệ" });
+  }
+
+  const roadmapResult = await pool.query(
+    `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours,roadmap_analyst)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
+    [roadmap_name, category, sub_category || null, start_level, userIdInt, durDays, durHours, roadmap_analyst]
+  );
+
+
    
     const roadmapId = roadmapResult.rows[0].roadmap_id;
     console.log('roadmapId:',roadmapId)
@@ -3863,4 +3898,5 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
