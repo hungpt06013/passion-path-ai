@@ -1754,11 +1754,11 @@ function addDay(dayData = null) {
                    value="${escapeHtmlAttr(dayData?.learning_materials || '')}">
         </div>
         
-        <div class="form-group">
-            <label class="form-label">Hướng dẫn sử dụng</label>
-            <textarea class="form-textarea" name="days[${dayCount-1}][study_guide]"
-                      placeholder="Hướng dẫn sử dụng tài liệu và cách học">${escapeHtmlAttr(dayData?.study_guide || '')}</textarea>
-        </div>
+<div class="form-group">
+    <label class="form-label">Hướng dẫn sử dụng</label>
+    <textarea class="form-textarea" name="days[${dayCount-1}][study_guide]"
+              placeholder="Hướng dẫn sử dụng tài liệu và cách học">${escapeHtmlAttr(dayData?.study_guide || '')}</textarea>
+</div>
         
         <div class="form-group">
             <label class="form-label">Thời gian học (giờ)</label>
