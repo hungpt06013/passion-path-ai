@@ -1405,7 +1405,11 @@ app.get("/api/roadmaps", requireAuth, async (req, res) => {
 
 // --- START full replacement for POST /api/roadmaps ---
 app.post("/api/roadmaps", requireAuth, async (req, res) => {
+  // Handler tạo roadmap an toàn, có validate/parse robust và transaction
+  const MAX_AI_DAYS = 365;
+
   try {
+    // --- Lấy payload ---
     const { roadmapData, roadmap_analyst } = req.body || {};
     const {
       roadmap_name,
@@ -1419,35 +1423,99 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       history_id
     } = roadmapData || {};
 
-    // ÉP KIỂU & VALIDATE an toàn
-    const userIdInt = parseInt(req.user?.id, 10);
-    const durDays = parseInt(duration_days, 10);
-    const durHours = parseFloat(String(duration_hours).replace(/[^\d.-]/g, '')) || NaN;
-
-    console.log('DEBUG create roadmap payload types:', {
-      userId: req.user?.id,
-      userIdInt,
-      duration_days,
-      durDays,
-      duration_hours,
-      durHours,
-      expected_outcome_preview: expected_outcome ? (''+expected_outcome).slice(0,120) : null,
-      roadmap_analyst_preview: roadmap_analyst ? (''+roadmap_analyst).slice(0,120) : null
-    });
-
-    if (!roadmap_name || !category || !start_level || !Number.isInteger(durDays) || isNaN(durHours) || !expected_outcome) {
-      return res.status(400).json({
-        success: false,
-        error: 'Thiếu/không hợp lệ: kiểm tra roadmap_name, category, start_level, duration_days (số), duration_hours (số), expected_outcome'
-      });
+    // --- Helper: cố gắng trích số từ nhiều dạng input ---
+    function parsePossibleNumber(v) {
+      if (v === null || v === undefined) return NaN;
+      if (typeof v === 'number') return v;
+      if (typeof v === 'boolean') return NaN;
+      const s = String(v).trim();
+      // Thử parse trực tiếp (ví dụ "7.5", "10")
+      const asNum = Number(s.replace(',', '.'));
+      if (!isNaN(asNum)) return asNum;
+      // Trích số đầu tiên (ví dụ "15 tuần", "30 phút")
+      const m = s.match(/-?\d+(\.\d+)?/);
+      if (m) return Number(m[0]);
+      // Loại bỏ ký tự không phải số trừ dấu '.' và '-' rồi thử
+      const cleaned = s.replace(/[^\d\.\-]+/g, '');
+      const cleanedNum = Number(cleaned);
+      return isNaN(cleanedNum) ? NaN : cleanedNum;
     }
 
-    // START TRANSACTION: insert roadmap & details atomically
+    // --- Parse numeric robust ---
+    const rawUserId = req.user?.id;
+    const userIdNum = parsePossibleNumber(rawUserId);
+    const parsedDurDays = parsePossibleNumber(duration_days);
+    let parsedDurHours = parsePossibleNumber(duration_hours);
+
+    // Nếu duration_hours không hợp lệ, cố gắng trích từ các text (roadmap_analyst, expected_outcome, fallback)
+    if (isNaN(parsedDurHours) || parsedDurHours === 0) {
+      const tryTexts = [roadmap_analyst, expected_outcome, req.body && req.body.duration_hours].filter(Boolean);
+      for (const t of tryTexts) {
+        const maybe = parsePossibleNumber(t);
+        if (!isNaN(maybe) && maybe > 0) {
+          // heuristic: nếu >24 có thể là tổng giờ; nếu <=24 có thể là giờ/buổi hoặc phút
+          if (maybe > 24) {
+            parsedDurHours = maybe;
+          } else {
+            if (maybe > 6) {
+              // nhiều khả năng là phút (vd 30 => 30 phút)
+              parsedDurHours = maybe / 60;
+            } else {
+              // có khả năng là giờ/buổi; nếu có durDays thì nhân
+              if (!isNaN(parsedDurDays) && parsedDurDays > 0) parsedDurHours = maybe * parsedDurDays;
+              else parsedDurHours = maybe;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    // Chuẩn hóa integer/number
+    const durDaysInt = Number.isInteger(parsedDurDays) ? parsedDurDays : (Number.isFinite(parsedDurDays) ? Math.floor(parsedDurDays) : NaN);
+    const durHoursNum = !isNaN(parsedDurHours) ? Number(parsedDurHours) : NaN;
+    const userIdFinal = Number.isInteger(userIdNum) ? userIdNum : NaN;
+
+    // Debug log (rút gọn preview cho text dài)
+    console.log('DEBUG create roadmap payload types (robust parse):', {
+      raw_duration_days: duration_days,
+      parsed_duration_days: durDaysInt,
+      raw_duration_hours: duration_hours,
+      parsed_duration_hours: durHoursNum,
+      raw_user_id: rawUserId,
+      parsed_user_id: userIdFinal,
+      expected_outcome_preview: expected_outcome ? ('' + expected_outcome).slice(0,120) : null,
+      roadmap_analyst_preview: roadmap_analyst ? ('' + roadmap_analyst).slice(0,200) : null
+    });
+
+    // Validate bắt buộc
+    if (!roadmap_name || !category || !start_level || !expected_outcome) {
+      return res.status(400).json({ success: false, error: 'Thiếu trường bắt buộc: roadmap_name | category | start_level | expected_outcome' });
+    }
+    if (!Number.isInteger(userIdFinal)) {
+      return res.status(400).json({ success: false, error: 'Invalid user id', raw_user_id: rawUserId });
+    }
+    if (!Number.isInteger(durDaysInt) || durDaysInt <= 0 || durDaysInt > MAX_AI_DAYS) {
+      return res.status(400).json({ success: false, error: `Invalid duration_days (positive integer <= ${MAX_AI_DAYS})`, raw_value: duration_days, parsed: durDaysInt });
+    }
+    if (isNaN(durHoursNum) || durHoursNum <= 0) {
+      return res.status(400).json({ success: false, error: 'Invalid duration_hours (positive number expected)', raw_value: duration_hours, parsed: durHoursNum });
+    }
+
+    // --- Sanitize/trim text fields để tránh dữ liệu quá dài hoặc kiểu sai ---
+    const sanitizedRoadmapName = String(roadmap_name).trim().substring(0, 255);
+    const sanitizedCategory = String(category).trim().substring(0, 100);
+    const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0, 200) : null;
+    const sanitizedStartLevel = String(start_level).trim().substring(0, 50);
+    const sanitizedExpected = String(expected_outcome).trim().substring(0, 4000);
+    const sanitizedAnalyst = roadmap_analyst ? String(roadmap_analyst).trim().substring(0, 20000) : null;
+
+    // --- CONNECT DB and TRANSACTION ---
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
 
-      // ---------- SANITIZE + PREPARE INSERT (Safer) ----------
+      // --- Prepare SQL + values (explicit column list) ---
       const insertRoadmapSQL = `
         INSERT INTO learning_roadmaps
           (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
@@ -1455,136 +1523,88 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
         RETURNING roadmap_id, created_at
       `;
 
-      // --- Sanitize/stringify/trim từng biến (giới hạn độ dài để tránh lỗi unexpected)
-      const sanitizedRoadmapName = roadmap_name ? String(roadmap_name).trim().substring(0,255) : null;
-      const sanitizedCategory = category ? String(category).trim().substring(0,100) : null;
-      const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0,100) : null;
-      const sanitizedStartLevel = start_level ? String(start_level).trim().substring(0,50) : null;
-      const sanitizedExpected = expected_outcome ? String(expected_outcome).trim().substring(0,4000) : null;
-      const sanitizedAnalyst = roadmap_analyst ? String(roadmap_analyst).trim().substring(0,20000) : null;
-
-      // --- Ensure numeric types are correct (server-side coercion)
-      const safeUserId = Number.isInteger(userIdInt) ? userIdInt : parseInt(req.user?.id || '', 10);
-      const safeDurDays = Number.isInteger(durDays) ? durDays : parseInt(duration_days, 10);
-      const safeDurHours = !isNaN(durHours) ? Number(durHours) : parseFloat(String(duration_hours || '0').replace(/[^\d.-]/g, ''));
-
-      // Debug: show each value and its typeof (truncate long strings for logs)
-      try {
-        console.log('DEBUG -> insertRoadmapVals preview:');
-        const previewVals = [
-          { name: 'roadmap_name', value: sanitizedRoadmapName?.slice?.(0,120), type: typeof sanitizedRoadmapName },
-          { name: 'category', value: sanitizedCategory, type: typeof sanitizedCategory },
-          { name: 'sub_category', value: sanitizedSubCategory, type: typeof sanitizedSubCategory },
-          { name: 'start_level', value: sanitizedStartLevel, type: typeof sanitizedStartLevel },
-          { name: 'user_id', value: safeUserId, type: typeof safeUserId },
-          { name: 'duration_days', value: safeDurDays, type: typeof safeDurDays },
-          { name: 'duration_hours', value: safeDurHours, type: typeof safeDurHours },
-          { name: 'expected_outcome', value: sanitizedExpected?.slice?.(0,120), type: typeof sanitizedExpected },
-          { name: 'roadmap_analyst', value: sanitizedAnalyst?.slice?.(0,120), type: typeof sanitizedAnalyst }
-        ];
-        console.log(JSON.stringify(previewVals, null, 2));
-      } catch (e) {
-        console.log('DEBUG preview log failed:', e && e.message ? e.message : e);
-      }
-
-      // Strict checks: fail early with clear message if numeric fields invalid
-      if (!Number.isInteger(safeUserId)) {
-        throw new Error(`Invalid user_id for insert: ${req.user?.id}`);
-      }
-      if (!Number.isInteger(safeDurDays) || safeDurDays <= 0) {
-        throw new Error(`Invalid duration_days for insert: ${duration_days}`);
-      }
-      if (isNaN(safeDurHours) || safeDurHours <= 0) {
-        throw new Error(`Invalid duration_hours for insert: ${duration_hours}`);
-      }
-
-      // --- Build insert values (đã sanitize trước đó) ---
       const insertRoadmapVals = [
         sanitizedRoadmapName,
         sanitizedCategory,
         sanitizedSubCategory,
         sanitizedStartLevel,
-        safeUserId,
-        safeDurDays,
-        safeDurHours,
+        userIdFinal,
+        durDaysInt,
+        durHoursNum,
         sanitizedExpected,
         sanitizedAnalyst
       ];
 
-      // --- DEBUG / TYPE CHECK: kiểm tra từng tham số trước khi gửi tới Postgres ---
-      // định nghĩa kiểu mong đợi (theo thứ tự cột trong INSERT)
+      // --- Strict type-check trước khi gọi Postgres (bắt lỗi rõ ràng) ---
       const expectedTypes = [
-        'text', // roadmap_name
-        'text', // category
-        'text', // sub_category
-        'text', // start_level
-        'integer', // user_id
-        'integer', // duration_days
-        'number', // duration_hours (float ok)
-        'text', // expected_outcome
-        'text'  // roadmap_analyst
+        'text', 'text', 'text', 'text',
+        'integer', 'integer', 'number', 'text', 'text'
       ];
-
-      // build preview để log & để trả về client nếu có lỗi
-      const preview = insertRoadmapVals.map((v, i) => {
-        return { idx: i+1, expected: expectedTypes[i], value_preview: (v && v.toString) ? String(v).slice(0,200) : v, typeof: typeof v };
-      });
+      const preview = insertRoadmapVals.map((v, i) => ({
+        idx: i + 1,
+        expected: expectedTypes[i],
+        value_preview: v && v.toString ? String(v).slice(0, 200) : v,
+        typeof: typeof v
+      }));
       console.log('DEBUG -> insertRoadmapVals preview:', JSON.stringify(preview, null, 2));
 
-      // validate: nếu tham số integer/number không phù hợp -> trả lỗi rõ ràng (400)
       for (let i = 0; i < expectedTypes.length; i++) {
         const exp = expectedTypes[i];
         const val = insertRoadmapVals[i];
-
         if (exp === 'integer') {
           if (!Number.isInteger(val)) {
-            // trả lỗi chi tiết để biết chính xác field nào bị sai
-            const msg = `Invalid param at position ${i+1} (expected integer) — value: ${JSON.stringify(val).slice(0,300)}`;
-            console.error('BAD_PARAM:', msg);
-            // Rollback and return clear 400
-            await client.query('ROLLBACK').catch(()=>{});
-            return res.status(400).json({ success:false, error: 'Bad request: invalid parameter type', bad_param_index: i+1, bad_param_value: String(val).slice(0,500), message: msg, preview });
+            await client.query('ROLLBACK').catch(() => {});
+            return res.status(400).json({
+              success: false,
+              error: 'Bad request: invalid parameter type',
+              bad_param_index: i + 1,
+              bad_param_value: String(val).slice(0, 500),
+              message: `Invalid param at position ${i + 1} (expected integer)`,
+              preview
+            });
           }
         }
         if (exp === 'number') {
           if (typeof val !== 'number' || isNaN(val)) {
-            const msg = `Invalid param at position ${i+1} (expected number) — value: ${JSON.stringify(val).slice(0,300)}`;
-            console.error('BAD_PARAM:', msg);
-            await client.query('ROLLBACK').catch(()=>{});
-            return res.status(400).json({ success:false, error: 'Bad request: invalid parameter type', bad_param_index: i+1, bad_param_value: String(val).slice(0,500), message: msg, preview });
+            await client.query('ROLLBACK').catch(() => {});
+            return res.status(400).json({
+              success: false,
+              error: 'Bad request: invalid parameter type',
+              bad_param_index: i + 1,
+              bad_param_value: String(val).slice(0, 500),
+              message: `Invalid param at position ${i + 1} (expected number)`,
+              preview
+            });
           }
         }
-        // text: no strict check (we truncated earlier)
       }
 
-      // Nếu qua hết checks thì mới gọi query
+      // --- Insert roadmap chính ---
       const roadmapResult = await client.query(insertRoadmapSQL, insertRoadmapVals);
-
-      // ---------- END SANITIZE + PREPARE INSERT ----------
-
       if (!roadmapResult || !roadmapResult.rows || roadmapResult.rows.length === 0) {
         throw new Error('Không thể tạo lộ trình (no returning id)');
       }
-
       const roadmapId = roadmapResult.rows[0].roadmap_id;
       const roadmapCreatedAt = new Date(roadmapResult.rows[0].created_at);
-      roadmapCreatedAt.setHours(0,0,0,0);
+      roadmapCreatedAt.setHours(0, 0, 0, 0);
 
-      // Link với AI history nếu có
+      // --- Link AI history nếu có ---
       if (history_id) {
-        await client.query(
-          `UPDATE ai_query_history SET roadmap_id = $1 WHERE id = $2`,
-          [roadmapId, history_id]
-        ).catch(() => {});
+        try {
+          await client.query(`UPDATE ai_query_history SET roadmap_id = $1 WHERE id = $2`, [roadmapId, history_id]);
+        } catch (e) {
+          // không fatal: chỉ log
+          console.warn('Warning: cannot update ai_query_history', e && e.message ? e.message : e);
+        }
       }
 
-      // Insert ngày/nghiệp vụ chi tiết nếu client gửi days[]
+      // --- Insert details (nếu client gửi days array) ---
       if (Array.isArray(days) && days.length > 0) {
         for (let i = 0; i < days.length; i++) {
           const d = days[i] || {};
-          const dayNumber = parseInt(d.day_number, 10) || (i + 1);
+          const dayNumber = Number.isInteger(parsePossibleNumber(d.day_number)) ? parsePossibleNumber(d.day_number) : (i + 1);
 
-          // compute study_date: if provided and valid use it, else compute from created_at + index
+          // determine study_date: dùng d.study_date nếu hợp lệ, hoặc tăng dần từ createdAt
           let sd = null;
           if (d.study_date) {
             const parsed = new Date(d.study_date);
@@ -1596,7 +1616,12 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
           }
           const studyDateStr = sd.toISOString().split('T')[0];
 
-          const perDay = parseFloat(d.study_duration_hours) || (durDays > 0 && !isNaN(durHours) ? (durHours / durDays) : 0);
+          // study_duration_hours: ưu tiên giá trị ngày nếu có, else chia đều
+          let perDay = parsePossibleNumber(d.study_duration_hours);
+          if (isNaN(perDay) || perDay === 0) {
+            perDay = durDaysInt > 0 ? (durHoursNum / durDaysInt) : 0;
+          }
+          perDay = Number(isNaN(perDay) ? 0 : perDay);
 
           await client.query(
             `INSERT INTO learning_roadmap_details
@@ -1605,11 +1630,11 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
             [
               roadmapId,
               dayNumber,
-              String(d.daily_goal || d.goal || '').trim().substring(0,500),
-              String(d.learning_content || d.content || '').trim().substring(0,4000),
-              String(d.practice_exercises || d.exercises || '').trim().substring(0,1000),
-              String(d.learning_materials || d.materials || '').trim().substring(0,1000),
-              Number(perDay) || 0,
+              String(d.daily_goal || d.goal || '').trim().substring(0, 1000),
+              String(d.learning_content || d.content || '').trim().substring(0, 4000),
+              String(d.practice_exercises || d.exercises || '').trim().substring(0, 1000),
+              String(d.learning_materials || d.materials || '').trim().substring(0, 1000),
+              perDay,
               studyDateStr
             ]
           );
@@ -1618,32 +1643,29 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 
       await client.query('COMMIT');
 
-      // Trả về success (chắc chắn có roadmap_id)
-      return res.json({ success: true, roadmap_id: roadmapId, message: "Tạo lộ trình thành công" });
-
-} catch (err) {
-  console.error('Error creating roadmap (transaction):', err && err.message ? err.message : err);
-  console.error('PG ERROR DETAIL:', err?.detail, 'POSITION:', err?.position, 'CODE:', err?.code);
-  // TEMP DEBUG: trả chi tiết lỗi cho client — chỉ để debug, revert sau khi fix
-  res.status(500).json({
-    success: false,
-    error: err?.message || "Internal server error",
-    detail: err?.detail || null,
-    position: err?.position || null,
-    code: err?.code || null,
-    // trả 1-2 dòng stack top để dễ đọc
-    stack: err?.stack ? String(err.stack).split('\n').slice(0,6).join('\n') : null
-  });
-}
-finally {
-      client.release();
+      // Trả về success
+      return res.json({ success: true, roadmap_id: roadmapId, message: 'Tạo lộ trình thành công' });
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('Error creating roadmap (transaction):', err && err.message ? err.message : err);
+      console.error('PG ERROR DETAIL:', err?.detail, 'POSITION:', err?.position, 'CODE:', err?.code);
+      // Trả lỗi tổng quát (debug) — bạn có thể thay bằng trả ít chi tiết hơn
+      return res.status(500).json({
+        success: false,
+        error: err?.message || 'Không thể tạo lộ trình',
+        detail: err?.detail || null,
+        position: err?.position || null,
+        code: err?.code || null
+      });
+    } finally {
+      try { client.release(); } catch (e) { /* ignore */ }
     }
-
   } catch (err) {
     console.error('Unhandled error in /api/roadmaps:', err && err.message ? err.message : err);
-    res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
+    return res.status(500).json({ success: false, error: 'Không thể tạo lộ trình', detail: err?.message || null });
   }
 });
+
 // --- END full replacement for POST /api/roadmaps ---
 
 
@@ -4013,6 +4035,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
