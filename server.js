@@ -1583,8 +1583,17 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     }
 
   } catch (err) {
-    console.error('Unhandled error in /api/roadmaps:', err && err.message ? err.message : err);
-    res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
+  console.error("❌ Error creating roadmap (transaction):", err && err.message ? err.message : err);
+  console.error("PG ERROR DETAIL:", err?.detail, "POSITION:", err?.position, "CODE:", err?.code);
+
+  // ✅ Tạm thời trả lỗi chi tiết cho client để debug
+  res.status(500).json({
+    success: false,
+    error: err?.message || "Internal server error",
+    detail: err?.detail || null,
+    position: err?.position || null,
+    code: err?.code || null,
+    stack: err?.stack ? String(err.stack).split("\n").slice(0, 10).join("\n") : null
   }
 });
 // --- END full replacement for POST /api/roadmaps ---
@@ -3956,6 +3965,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
