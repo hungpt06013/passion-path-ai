@@ -1582,7 +1582,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       client.release();
     }
 
-  } catch (err) {
+} catch (err) {
   console.error("❌ Error creating roadmap (transaction):", err && err.message ? err.message : err);
   console.error("PG ERROR DETAIL:", err?.detail, "POSITION:", err?.position, "CODE:", err?.code);
 
@@ -1594,8 +1594,8 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     position: err?.position || null,
     code: err?.code || null,
     stack: err?.stack ? String(err.stack).split("\n").slice(0, 10).join("\n") : null
-  }
-});
+  });
+}
 // --- END full replacement for POST /api/roadmaps ---
 
 
@@ -3965,6 +3965,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
