@@ -1269,6 +1269,7 @@ function setupCategoryOtherToggle() {
     });
 }
 
+// --- START replace validateDays function ---
 function validateDays() {
     const daysInput = document.getElementById('q11_program_days');
     // robust fetch for the AI/generate button: thử nhiều id/class có thể xuất hiện
@@ -1290,24 +1291,27 @@ function validateDays() {
         console.warn('aiBtn not found (expected ids: aiGenerateBtn | generateAI | generateBtn | .ai-btn)');
         // don't return; allow other validations to continue
     }
+    if (!warning) {
+        console.warn('warning not found');
+        // continue — không cần abort toàn bộ
+    }
 
-        if (!warning) {
-            console.warn('warning not found');
-            return;
-        }
-
-        const days = parseInt(daysInput.value);
-        if (isNaN(days) || days < 15 || days > 180) {
-            aiBtn.disabled = true;
+    const days = parseInt(daysInput.value, 10);
+    if (isNaN(days) || days < 15 || days > 180) {
+        if (aiBtn) aiBtn.disabled = true;
+        if (warning) {
             warning.style.display = 'block';
             if (days > 180) warning.textContent = '⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.';
             else if (days < 15) warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 đến 180.';
             else warning.textContent = '';
-        } else {
-            aiBtn.disabled = false;
-            warning.style.display = 'none';
         }
+    } else {
+        if (aiBtn) aiBtn.disabled = false;
+        if (warning) warning.style.display = 'none';
     }
+}
+// --- END replace validateDays function ---
+
 
 function updateTotalHours() {
         const daysInput = document.getElementById('q11_program_days');
@@ -2077,48 +2081,57 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     }
 
     // build payload
-    const roadmapData = {
-      // basic normalized fields
-      roadmap_name: q1_roadmap_name,
-      category: q2_category,
-      sub_category: q3_category_detail || null,
-      start_level: q7_current_level,
-      duration_days: q11_program_days,
-      duration_hours: duration_hours,
-      expected_outcome: q5_specific_goal,
+// --- START ensure numeric fields in roadmapData ---
+const roadmapData = {
+  roadmap_name: q1_roadmap_name,
+  category: q2_category,
+  sub_category: q3_category_detail || null,
+  start_level: q7_current_level,
+  // đảm bảo ép kiểu ngay tại đây
+  duration_days: parseInt(q11_program_days, 10) || 0,
+  duration_hours: (function(){
+      // nếu bạn đã có days array thì duration_hours có thể được tính từ đó;
+      // nếu không, lấy số đầu tiên từ q9_daily_time * q11_program_days
+      const perDay = Number(extractFirstNumber(q9_daily_time, 2)) || 0;
+      const days = parseInt(q11_program_days, 10) || 0;
+      return perDay * days;
+  })(),
+  expected_outcome: q5_specific_goal,
 
-      // full Qs for server
-      q1_roadmap_name,
-      q2_category,
-      q3_category_detail,
-      q4_main_purpose,
-      q4_main_purpose_other,
-      q5_specific_goal,
-      q5_current_job,
-      q6_learning_duration,
-      q7_current_level,
-      q8_skills_text,
-      q9_daily_time,
-      q10_weekly_sessions,
-      q11_program_days,
-      q12_learning_styles,
-      q12_learning_styles_other,
-      q13_learning_combinations,
-      q13_learning_combinations_other,
-      q14_challenges,
-      q14_challenges_other,
-      q15_motivation,
-      q15_motivation_other,
-      q16_material_types,
-      q16_material_types_other,
-      q17_material_language,
-      q18_assessment_types,
-      q19_result_display,
-      q20_assessment_frequency,
-      q20_assessment_frequency_other
-    };
+  // full Qs (giữ nguyên)
+  q1_roadmap_name,
+  q2_category,
+  q3_category_detail,
+  q4_main_purpose,
+  q4_main_purpose_other,
+  q5_specific_goal,
+  q5_current_job,
+  q6_learning_duration,
+  q7_current_level,
+  q8_skills_text,
+  q9_daily_time,
+  q10_weekly_sessions,
+  q11_program_days,
+  q12_learning_styles,
+  q12_learning_styles_other,
+  q13_learning_combinations,
+  q13_learning_combinations_other,
+  q14_challenges,
+  q14_challenges_other,
+  q15_motivation,
+  q15_motivation_other,
+  q16_material_types,
+  q16_material_types_other,
+  q17_material_language,
+  q18_assessment_types,
+  q19_result_display,
+  q20_assessment_frequency,
+  q20_assessment_frequency_other
+};
 
-    if (days.length > 0) roadmapData.days = days;
+if (days.length > 0) roadmapData.days = days;
+// --- END ensure numeric fields in roadmapData ---
+
 // đảm bảo các trường numeric cuối cùng trước khi gửi
 roadmapData.duration_days = parseInt(roadmapData.duration_days, 10) || 0;
 roadmapData.duration_hours = Number(roadmapData.duration_hours) || 0;
@@ -2132,6 +2145,7 @@ console.log('✅ payload types:', {
 });
 
 console.log('📤 Sending data:', roadmapData);
+
 
 
     // =========================================
