@@ -205,7 +205,7 @@ async function initDB() {
         roadmap_name VARCHAR(255) NOT NULL,
         category VARCHAR(100) NOT NULL,
         sub_category VARCHAR(100),
-        start_level VARCHAR(20) CHECK (start_level IN ('Beginner', 'Intermediate', 'Advanced')),
+        start_level VARCHAR(20) CHECK (start_level IN ('Mới bắt đầu', 'Cơ bản', 'Trung bình', 'Khá tốt', 'Nâng cao')),
         user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
         duration_days INTEGER NOT NULL CHECK (duration_days > 0),
         duration_hours DECIMAL(6,2) NOT NULL CHECK (duration_hours > 0),
@@ -1505,10 +1505,21 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const sanitizedRoadmapName = String(roadmap_name).trim().substring(0, 255);
     const sanitizedCategory = String(category).trim().substring(0, 100);
     const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0, 200) : null;
-    const sanitizedStartLevel = String(start_level).trim().substring(0, 50);
+    
+    // ✅ SANITIZE + VALIDATE start_level với 5 giá trị tiếng Việt
+    const sanitizedStartLevel = start_level ? String(start_level).trim() : '';
+    const validLevels = ['Mới bắt đầu', 'Cơ bản', 'Trung bình', 'Khá tốt', 'Nâng cao'];
+    if (!validLevels.includes(sanitizedStartLevel)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Trình độ không hợp lệ. Chỉ chấp nhận: ${validLevels.join(', ')}`,
+        received: sanitizedStartLevel
+      });
+    }
+    
     const sanitizedExpected = String(expected_outcome).trim().substring(0, 4000);
     
-    // ✅ THÊM: Sanitize roadmap_analyst_text
+    // ✅ Sanitize roadmap_analyst_text
     const sanitizedAnalyst = roadmap_analyst_text ? String(roadmap_analyst_text).trim().substring(0,20000) : null;
 
     // --- CONNECT DB and TRANSACTION ---
@@ -1684,7 +1695,15 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
   if (!roadmap_name || !category || !start_level || !Number.isInteger(durDays) || isNaN(durHours)) {
     return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc hoặc duration không hợp lệ" });
   }
-
+  // ✅ THÊM: Validate start_level
+  const validLevels = ['Mới bắt đầu', 'Cơ bản', 'Trung bình', 'Khá tốt', 'Nâng cao'];
+  if (!validLevels.includes(start_level)) {
+    return res.status(400).json({ 
+      success: false, 
+      error: `Trình độ không hợp lệ. Chỉ chấp nhận: ${validLevels.join(', ')}`,
+      received: start_level
+    });
+  }
   const roadmapResult = await pool.query(
     `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst_text)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
@@ -4036,6 +4055,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
