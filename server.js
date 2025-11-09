@@ -3926,7 +3926,7 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
         learning_effectiveness,
         created_at,
         updated_at,
-        roadmap_analyst_text
+        roadmap_analyst
       FROM learning_roadmaps_system
       WHERE roadmap_id = $1
     `;
@@ -4035,6 +4035,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
