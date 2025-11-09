@@ -313,6 +313,70 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_roadmap_details_study_date 
       ON learning_roadmap_details(study_date);
     `);
+    await pool.query(`
+  DO $$ 
+  BEGIN
+    -- Thêm cột detailed_feedback
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps' 
+      AND column_name = 'detailed_feedback'
+    ) THEN
+      ALTER TABLE learning_roadmaps 
+      ADD COLUMN detailed_feedback TEXT;
+    END IF;
+    
+    -- Thêm cột recommended_category
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps' 
+      AND column_name = 'recommended_category'
+    ) THEN
+      ALTER TABLE learning_roadmaps 
+      ADD COLUMN recommended_category VARCHAR(100);
+    END IF;
+    
+    -- Thêm cột actual_learning_outcomes
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps' 
+      AND column_name = 'actual_learning_outcomes'
+    ) THEN
+      ALTER TABLE learning_roadmaps 
+      ADD COLUMN actual_learning_outcomes TEXT;
+    END IF;
+    
+    -- Thêm cột improvement_suggestions
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps' 
+      AND column_name = 'improvement_suggestions'
+    ) THEN
+      ALTER TABLE learning_roadmaps 
+      ADD COLUMN improvement_suggestions TEXT;
+    END IF;
+    
+    -- Thêm cột roadmap_analyst_text (nếu chưa có)
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps' 
+      AND column_name = 'roadmap_analyst_text'
+    ) THEN
+      ALTER TABLE learning_roadmaps 
+      ADD COLUMN roadmap_analyst_text TEXT;
+    END IF;
+    
+    -- Thêm cột usage_instructions cho bảng details
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmap_details' 
+      AND column_name = 'usage_instructions'
+    ) THEN
+      ALTER TABLE learning_roadmap_details 
+      ADD COLUMN usage_instructions TEXT;
+    END IF;
+  END $$;
+`);
     console.log("✅ DB initialized");
   } catch (err) {
     console.error("❌ DB init error:", err && err.message ? err.message : err);
@@ -4055,6 +4119,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
