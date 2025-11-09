@@ -1410,7 +1410,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 
   try {
     // --- Lấy payload ---
-    const { roadmapData, roadmap_analyst } = req.body || {};
+    const { roadmapData, roadmap_analyst_text } = req.body || {};
     const {
       roadmap_name,
       category,
@@ -1508,7 +1508,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const sanitizedSubCategory = sub_category ? String(sub_category).trim().substring(0, 200) : null;
     const sanitizedStartLevel = String(start_level).trim().substring(0, 50);
     const sanitizedExpected = String(expected_outcome).trim().substring(0, 4000);
-    const sanitizedAnalyst = roadmap_analyst ? String(roadmap_analyst).trim().substring(0, 20000) : null;
+    const sanitizedAnalyst = roadmap_analyst_text ? String(roadmap_analyst_text).trim().substring(0,20000) : null;
 
     // --- CONNECT DB and TRANSACTION ---
     const client = await pool.connect();
@@ -1672,7 +1672,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 //Tạo lộ trình mới từ danh sách lộ trình của hệ thống
 app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
   try {
-  const { roadmapDataSystem, roadmap_analyst } = req.body;
+  const { roadmapDataSystem, roadmap_analyst_text } = req.body;
   const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours } = roadmapDataSystem || {};
 
   // Ép kiểu
@@ -1685,9 +1685,9 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
   }
 
   const roadmapResult = await pool.query(
-    `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours,roadmap_analyst)
+    `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst_text)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
-    [roadmap_name, category, sub_category || null, start_level, userIdInt, durDays, durHours, roadmap_analyst]
+    [roadmap_name, category, sub_category || null, start_level, userIdInt, durDays, durHours, roadmap_analyst_text]
   );
 
 
@@ -2255,7 +2255,7 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
         actual_learning_outcomes,
         improvement_suggestions,
         would_recommend,
-        roadmap_analyst,
+        roadmap_analyst_text,
         created_at,
         updated_at
       FROM learning_roadmaps
@@ -3926,7 +3926,7 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
         learning_effectiveness,
         created_at,
         updated_at,
-        roadmap_analyst
+        roadmap_analyst_text
       FROM learning_roadmaps_system
       WHERE roadmap_id = $1
     `;
@@ -4035,6 +4035,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
