@@ -3932,39 +3932,50 @@ app.get('/api/categories/top', async (req, res) => {
  * GET /api/roadmaps/category/:categoryName
  * Lấy thông tin category và tất cả lộ trình thuộc category đó (hệ thống)
  */
+// ✅ FIXED VERSION - Thay thế đoạn code cũ trong server.js
+
 app.get('/api/roadmapsystem/category/:categoryName', async (req, res) => {
   try {
-    const categoryName  = req.params.categoryName;
+    const categoryId = req.params.categoryName; // Đây là category ID (1, 2, 3...)
     const { page = 1, limit = 12 } = req.query;
     const offset = (page - 1) * limit;
-    //console.log("categoryName",categoryName);
-    const queryC = `
-      SELECT 
-        id,
-        name,
-        description,
-        created_at
+    
+    console.log('🔍 [API] Received categoryId:', categoryId);
+    
+    // ✅ STEP 1: Lấy tên category từ ID
+    const categoryQuery = `
+      SELECT id, name, description, created_at
       FROM categories
       WHERE id = $1
     `;
     
-    const result = await pool.query(queryC, [parseInt(categoryName)]);
-    //console.log ('result.rows[0].name 2=',result.rows[0].name);
-
-    // Get category info
+    const categoryResult = await pool.query(categoryQuery, [parseInt(categoryId)]);
+    
+    if (categoryResult.rows.length === 0) {
+      console.log('❌ [API] Category not found:', categoryId);
+      return res.status(404).json({
+        success: false,
+        error: 'Không tìm thấy lĩnh vực'
+      });
+    }
+    
+    const categoryName = categoryResult.rows[0].name;
+    console.log('✅ [API] Found category name:', categoryName);
+    
+    // ✅ STEP 2: Đếm số lượng roadmap
     const countQuery = `
-        SELECT COUNT(*) as total
+      SELECT COUNT(*) as total
       FROM learning_roadmaps_system
       WHERE category = $1
     `;
-    const countResult = await pool.query(countQuery, [result.rows[0].name]);
-
-    //console.log('categoryResult.rows.length=', countResult.rows.length);
-   
+    const countResult = await pool.query(countQuery, [categoryName]);
+    const totalRoadmaps = parseInt(countResult.rows[0].total);
     
-    // Get all roadmaps for this category
-    const query = `
-        SELECT 
+    console.log('📊 [API] Total roadmaps found:', totalRoadmaps);
+    
+    // ✅ STEP 3: Lấy danh sách roadmap
+    const roadmapsQuery = `
+      SELECT 
         roadmap_id,
         roadmap_name,
         category,
@@ -3982,25 +3993,28 @@ app.get('/api/roadmapsystem/category/:categoryName', async (req, res) => {
       ORDER BY created_at DESC
       LIMIT $2 OFFSET $3
     `;
-    const roadmaps = await pool.query(query, [result.rows[0].name, limit, offset]);
-   //console.log('roadmaps.rows=', roadmaps.rows);
-
+    
+    const roadmapsResult = await pool.query(roadmapsQuery, [categoryName, limit, offset]);
+    
+    console.log('📦 [API] Returning', roadmapsResult.rows.length, 'roadmaps');
+    
     res.json({
       success: true,
-      data: roadmaps.rows,
+      data: roadmapsResult.rows,
       pagination: {
-        total: parseInt(countResult.rows[0].total),
+        total: totalRoadmaps,
         page: parseInt(page),
         limit: parseInt(limit),
-        totalPages: Math.ceil(countResult.rows[0].total / limit)
+        totalPages: Math.ceil(totalRoadmaps / limit)
       }
     });
+    
   } catch (error) {
-    console.log('Error fetching roadmaps by category:', error);
-    console.error('Error fetching roadmaps by category:', error);
+    console.error('❌ [API] Error in /api/roadmapsystem/category:', error);
     res.status(500).json({
       success: false,
-      error: 'Không thể tải danh sách lộ trình'
+      error: 'Không thể tải danh sách lộ trình',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -4136,6 +4150,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
