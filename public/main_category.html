@@ -392,7 +392,31 @@
   </footer>
 
   <script>
-    const API_BASE_URL = 'http://localhost:3000/api';
+  (function(){
+    const PROD_HOSTNAME = 'passion-path-ai.onrender.com';
+    let apiBase;
+
+    try {
+      // window.location.hostname là cách an toàn để so sánh host (không chứa protocol)
+      const host = window.location.hostname || '';
+      const origin = window.location.origin || (window.location.protocol + '//' + host);
+
+      if (host === PROD_HOSTNAME || origin.includes(PROD_HOSTNAME)) {
+        apiBase = `https://${PROD_HOSTNAME}/api`;
+      } else {
+        apiBase = 'http://localhost:3000/api';
+      }
+    } catch (err) {
+      // Nếu có lỗi bất ngờ, fallback về localhost
+      apiBase = 'http://localhost:3000/api';
+    }
+
+    // export ra global để các script khác dùng
+    window.API_BASE_URL = apiBase;
+
+    // debug: bỏ hoặc comment dòng này khi production
+    console.log('Using API_BASE_URL =', window.API_BASE_URL);
+  })();
     let currentPage = 1;
     let currentCategory = '';
     let allRoadmaps = [];
