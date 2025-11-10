@@ -439,87 +439,99 @@ async function loadCategoryData() {
   document.getElementById('categoryBreadcrumb').textContent = currentCategory;
 
   const headers = {
-    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+    'Content-Type': 'application/json'
   };
+
+  // helper: lấy mảng data từ nhiều dạng response khác nhau
+  function extractArrayFromPayload(payload) {
+    if (!payload) return [];
+    // if payload is directly an array
+    if (Array.isArray(payload)) return payload;
+    // common shapes: { success: true, data: [...] }
+    if (Array.isArray(payload.data)) return payload.data;
+    // paginated: { data: { rows: [...] } } or { data: { items: [...] } }
+    if (payload.data && typeof payload.data === 'object') {
+      if (Array.isArray(payload.data.rows)) return payload.data.rows;
+      if (Array.isArray(payload.data.items)) return payload.data.items;
+      if (Array.isArray(payload.data.results)) return payload.data.results;
+      // sometimes API returns { rows: [...] } at top-level
+    }
+    if (Array.isArray(payload.rows)) return payload.rows;
+    if (Array.isArray(payload.items)) return payload.items;
+    if (Array.isArray(payload.results)) return payload.results;
+    // sometimes data is an object that directly contains roadmap objects keyed by id -> not handled
+    return [];
+  }
+
+  // helper: fetch + robust parse
+  async function safeFetchAndExtract(url) {
+    try {
+      const resp = await fetch(url, { method: 'GET', headers });
+      let payload = null;
+      try { payload = await resp.json(); } catch (e) { /* non-json response */ }
+      console.log('Fetch', url, 'status', resp.status, 'payload', payload);
+      if (!resp.ok) {
+        // non-OK but maybe returns JSON with useful message; still return extracted array if present
+        return extractArrayFromPayload(payload);
+      }
+      return extractArrayFromPayload(payload);
+    } catch (err) {
+      console.warn('Fetch error', url, err);
+      return [];
+    }
+  }
 
   try {
     // 1) Lấy thông tin category (tên, mô tả) nếu có
     try {
-      const categoryResponse = await fetch(`${API_BASE_URL}/categories/${encodeURIComponent(currentCategory)}`, {
-        method: 'GET',
-        headers
-      });
-      if (categoryResponse.ok) {
-        const categoryData = await categoryResponse.json();
+      const categoryUrl = `${window.API_BASE_URL || API_BASE_URL}/categories/${encodeURIComponent(currentCategory)}`;
+      const categoryResp = await fetch(categoryUrl, { method: 'GET', headers });
+      if (categoryResp.ok) {
+        const categoryData = await categoryResp.json();
+        console.log('category response', categoryData);
         if (categoryData && categoryData.success && categoryData.data) {
           document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name || currentCategory;
           document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
+        } else if (Array.isArray(categoryData)) {
+          // unlikely, but handle gracefully
         }
       } else {
-        console.warn('category fetch not ok', categoryResponse.status);
+        console.warn('category fetch not ok', categoryResp.status);
       }
     } catch (err) {
       console.warn('error fetching category info', err);
     }
 
-    // 2) Fetch từ nhiều nguồn và gộp kết quả
+    // 2) Thử lần lượt các endpoint, gộp kết quả
+    const base = window.API_BASE_URL || API_BASE_URL;
+    const endpoints = [
+      `${base}/roadmapsystem/category/${encodeURIComponent(currentCategory)}?limit=100`,
+      `${base}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`,
+      `${base}/roadmaps?category=${encodeURIComponent(currentCategory)}&limit=100`,
+      // thêm các endpoint khác nếu backend của bạn có route khác
+    ];
+
     let combined = [];
-
-    // roadmapsystem (system templates)
-    try {
-      const respSys = await fetch(`${API_BASE_URL}/roadmapsystem/category/${encodeURIComponent(currentCategory)}?limit=100`, {
-        method: 'GET',
-        headers
-      });
-      if (respSys.ok) {
-        const dataSys = await respSys.json();
-        console.log('roadmapsystem:', dataSys);
-        if (dataSys && dataSys.success && Array.isArray(dataSys.data)) combined = combined.concat(dataSys.data);
-      } else {
-        console.warn('roadmapsystem fetch failed', respSys.status);
+    for (const url of endpoints) {
+      const arr = await safeFetchAndExtract(url);
+      if (arr && arr.length > 0) {
+        combined = combined.concat(arr);
+        // không break — vẫn tiếp tục để thu thập cả hệ thống + user-created nếu cả hai có
       }
-    } catch (err) {
-      console.warn('error fetching roadmapsystem', err);
     }
 
-    // roadmaps (user-created) - try common endpoints
-    try {
-      const respUser = await fetch(`${API_BASE_URL}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`, {
-        method: 'GET',
-        headers
-      });
-      if (respUser.ok) {
-        const dataUser = await respUser.json();
-        console.log('roadmaps (by category):', dataUser);
-        if (dataUser && dataUser.success && Array.isArray(dataUser.data)) combined = combined.concat(dataUser.data);
-      } else {
-        console.warn('/roadmaps/category fetch failed', respUser.status);
-      }
-    } catch (err) {
-      console.warn('error fetching /roadmaps/category', err);
-    }
-
-    // fallback: /api/roadmaps?category=...
+    // Nếu còn rỗng, cố gắng gọi /api/roadmapsystem (không theo category) để debug
     if (combined.length === 0) {
       try {
-        const respQ = await fetch(`${API_BASE_URL}/roadmaps?category=${encodeURIComponent(currentCategory)}&limit=100`, {
-          method: 'GET',
-          headers
-        });
-        if (respQ.ok) {
-          const dataQ = await respQ.json();
-          console.log('fallback /roadmaps?category:', dataQ);
-          if (dataQ && dataQ.success && Array.isArray(dataQ.data)) combined = combined.concat(dataQ.data);
-        } else {
-          console.warn('fallback /roadmaps fetch failed', respQ.status);
-        }
-      } catch (err) {
-        console.warn('error fetching fallback /roadmaps', err);
-      }
+        const fallbackSys = await safeFetchAndExtract(`${base}/roadmapsystem?limit=100`);
+        if (fallbackSys.length > 0) combined = combined.concat(fallbackSys);
+      } catch (e) { /* ignore */ }
     }
 
     // Nếu vẫn rỗng -> show empty
     if (!combined || combined.length === 0) {
+      console.info('No roadmaps found for category', currentCategory, '— combined is empty');
       showEmptyState();
       return;
     }
@@ -527,7 +539,7 @@ async function loadCategoryData() {
     // 3) Dedupe theo các trường id phổ biến (roadmap_id, id, _id)
     const map = new Map();
     combined.forEach(r => {
-      const key = r.roadmap_id ?? r.id ?? r._id ?? JSON.stringify({ name: r.roadmap_name, days: r.duration_days });
+      const key = r.roadmap_id ?? r.id ?? r._id ?? (r.roadmap_name ? `${r.roadmap_name}::${r.duration_days||0}` : JSON.stringify(r));
       if (!map.has(key)) map.set(key, r);
     });
     allRoadmaps = Array.from(map.values());
