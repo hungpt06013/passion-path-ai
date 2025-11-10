@@ -402,56 +402,144 @@
     const urlParams = new URLSearchParams(window.location.search);
     currentCategory = urlParams.get('category') || '';
 
-    async function loadCategoryData() {
-      if (!currentCategory) {
-        showError('Không tìm thấy thông tin lĩnh vực');
-        return;
+async function loadCategoryData() {
+  if (!currentCategory) {
+    showError('Không tìm thấy thông tin lĩnh vực');
+    return;
+  }
+
+  // UI: loading
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('roadmapsGrid').innerHTML = '';
+  document.getElementById('categoryBreadcrumb').textContent = currentCategory;
+
+  const headers = {
+    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+  };
+
+  try {
+    // 1) Lấy thông tin category (tên, mô tả) nếu có
+    try {
+      const categoryResponse = await fetch(`${API_BASE_URL}/categories/${encodeURIComponent(currentCategory)}`, {
+        method: 'GET',
+        headers
+      });
+      if (categoryResponse.ok) {
+        const categoryData = await categoryResponse.json();
+        if (categoryData && categoryData.success && categoryData.data) {
+          document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name || currentCategory;
+          document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
+        }
+      } else {
+        console.warn('category fetch not ok', categoryResponse.status);
       }
+    } catch (err) {
+      console.warn('error fetching category info', err);
+    }
 
-      document.getElementById('loadingState').style.display = 'block';
-      document.getElementById('emptyState').style.display = 'none';
-      document.getElementById('roadmapsGrid').innerHTML = '';
-      document.getElementById('categoryBreadcrumb').textContent = currentCategory;
+    // 2) Fetch từ nhiều nguồn và gộp kết quả
+    let combined = [];
 
+    // roadmapsystem (system templates)
+    try {
+      const respSys = await fetch(`${API_BASE_URL}/roadmapsystem/category/${encodeURIComponent(currentCategory)}?limit=100`, {
+        method: 'GET',
+        headers
+      });
+      if (respSys.ok) {
+        const dataSys = await respSys.json();
+        console.log('roadmapsystem:', dataSys);
+        if (dataSys && dataSys.success && Array.isArray(dataSys.data)) combined = combined.concat(dataSys.data);
+      } else {
+        console.warn('roadmapsystem fetch failed', respSys.status);
+      }
+    } catch (err) {
+      console.warn('error fetching roadmapsystem', err);
+    }
+
+    // roadmaps (user-created) - try common endpoints
+    try {
+      const respUser = await fetch(`${API_BASE_URL}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`, {
+        method: 'GET',
+        headers
+      });
+      if (respUser.ok) {
+        const dataUser = await respUser.json();
+        console.log('roadmaps (by category):', dataUser);
+        if (dataUser && dataUser.success && Array.isArray(dataUser.data)) combined = combined.concat(dataUser.data);
+      } else {
+        console.warn('/roadmaps/category fetch failed', respUser.status);
+      }
+    } catch (err) {
+      console.warn('error fetching /roadmaps/category', err);
+    }
+
+    // fallback: /api/roadmaps?category=...
+    if (combined.length === 0) {
       try {
-        const categoryResponse = await fetch(`/api/categories/${currentCategory}`, {
+        const respQ = await fetch(`${API_BASE_URL}/roadmaps?category=${encodeURIComponent(currentCategory)}&limit=100`, {
           method: 'GET',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          headers
         });
-
-        if (categoryResponse.ok) {
-          const categoryData = await categoryResponse.json();
-          if (categoryData.success) {
-            document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name;
-            document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
-          }
-        }
-
-        const roadmapsResponse = await fetch(`/api/roadmapsystem/category/${currentCategory}?limit=100`, {
-          method: 'GET',
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-
-        const roadmapsData = await roadmapsResponse.json();
-
-        if (roadmapsData.success) {
-          if (roadmapsData.data && roadmapsData.data.length > 0) {
-            allRoadmaps = roadmapsData.data;
-            filteredRoadmaps = allRoadmaps;
-            updateStats();
-            renderRoadmaps();
-          } else {
-            showEmptyState();
-          }
+        if (respQ.ok) {
+          const dataQ = await respQ.json();
+          console.log('fallback /roadmaps?category:', dataQ);
+          if (dataQ && dataQ.success && Array.isArray(dataQ.data)) combined = combined.concat(dataQ.data);
         } else {
-          showError(roadmapsData.error || 'Không thể tải dữ liệu');
+          console.warn('fallback /roadmaps fetch failed', respQ.status);
         }
-      } catch (error) {
-        showError('Không thể tải dữ liệu: ' + error.message);
-      } finally {
-        document.getElementById('loadingState').style.display = 'none';
+      } catch (err) {
+        console.warn('error fetching fallback /roadmaps', err);
       }
     }
+
+    // Nếu vẫn rỗng -> show empty
+    if (!combined || combined.length === 0) {
+      showEmptyState();
+      return;
+    }
+
+    // 3) Dedupe theo các trường id phổ biến (roadmap_id, id, _id)
+    const map = new Map();
+    combined.forEach(r => {
+      const key = r.roadmap_id ?? r.id ?? r._id ?? JSON.stringify({ name: r.roadmap_name, days: r.duration_days });
+      if (!map.has(key)) map.set(key, r);
+    });
+    allRoadmaps = Array.from(map.values());
+
+    // 4) Normalize fields (nếu cần) để render/ lọc/ sắp xếp an toàn
+    allRoadmaps = allRoadmaps.map(r => {
+      return {
+        ...r,
+        roadmap_id: r.roadmap_id ?? r.id ?? r._id,
+        roadmap_name: r.roadmap_name ?? r.name ?? r.title ?? '',
+        start_level: r.start_level ?? r.level ?? '',
+        duration_days: Number(r.duration_days || r.days || 0),
+        duration_hours: Number(r.duration_hours || r.hours || 0),
+        total_user_learning: Number(r.total_user_learning || r.totalLearners || r.learners || 0),
+        overall_rating: (r.overall_rating !== undefined && r.overall_rating !== null) ? Number(r.overall_rating) : (r.rating ? Number(r.rating) : undefined),
+        created_at: r.created_at ?? r.createdAt ?? r.created
+      };
+    });
+
+    // set filtered list & render
+    filteredRoadmaps = allRoadmaps.slice();
+
+    if (allRoadmaps.length > 0) {
+      updateStats();
+      renderRoadmaps();
+    } else {
+      showEmptyState();
+    }
+  } catch (error) {
+    console.error('Không thể tải dữ liệu category:', error);
+    showError('Không thể tải dữ liệu: ' + (error.message || error));
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+  }
+}
+
 
     function updateStats() {
       document.getElementById('totalRoadmaps').textContent = `${allRoadmaps.length} lộ trình`;
