@@ -1093,7 +1093,7 @@
                     const card = document.createElement('div');
                     card.className = 'category-card';
                     card.onclick = () => {
-                        window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
+                        window.location.href = `main_category.html?category=${encodeURIComponent(cat.id || cat.slug || cat.name)}`;
                     };
                     
                     card.innerHTML = `
@@ -1132,3 +1132,4 @@
     </script>
 </body>
 </html>
+
