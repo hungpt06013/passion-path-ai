@@ -1701,8 +1701,8 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 
           await client.query(
             `INSERT INTO learning_roadmap_details
-              (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, learning_materials, study_duration_hours, study_date)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+              (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, learning_materials, usage_instructions, study_duration_hours, study_date)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
             [
               roadmapId,
               dayNumber,
@@ -1710,7 +1710,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
               String(d.learning_content || d.content || '').trim().substring(0, 4000),
               String(d.practice_exercises || d.exercises || '').trim().substring(0, 1000),
               String(d.learning_materials || d.materials || '').trim().substring(0, 1000),
-              String(d.study_guide || d.instructions || d.guide || '').trim().substring(0, 1000),
+              String(d.usage_instructions || d.study_guide || d.instructions || d.guide || '').trim().substring(0, 1000),
               perDay,
               studyDateStr
             ]
@@ -4136,6 +4136,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
