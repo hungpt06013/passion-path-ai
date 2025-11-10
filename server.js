@@ -1950,7 +1950,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
        (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
        RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome]
+      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text || null]
     );
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
@@ -4136,6 +4136,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
