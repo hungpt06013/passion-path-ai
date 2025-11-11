@@ -4136,6 +4136,52 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+app.get('/api/roadmaps/auth-view/:id', async (req, res) => {
+  try {
+    const roadmapId = req.params.id;
+    const authHeader = req.headers.authorization || req.headers.Authorization || '';
+
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: 'Không có token' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ success: false, message: 'Token không hợp lệ' });
+    }
+
+    // Lấy roadmap (không kiểm tra owner)
+    const rmQuery = `SELECT
+      roadmap_id, roadmap_name, category, sub_category, start_level,
+      total_user_learning, duration_days, duration_hours, overall_rating,
+      learning_effectiveness, created_at, updated_at, user_id
+      FROM learning_roadmaps
+      WHERE roadmap_id = $1
+      LIMIT 1`;
+    const rmRes = await pool.query(rmQuery, [roadmapId]);
+    if (!rmRes.rows.length) {
+      return res.status(404).json({ success: false, error: 'Không tìm thấy lộ trình' });
+    }
+    const roadmap = rmRes.rows[0];
+
+    // Lấy details nếu có (nếu bảng khác tên, sửa query)
+    let details = [];
+    try {
+      const detQuery = `SELECT * FROM learning_roadmaps_details WHERE roadmap_id = $1 ORDER BY step_order ASC`;
+      const detRes = await pool.query(detQuery, [roadmapId]);
+      details = detRes.rows || [];
+    } catch (e) {
+      details = [];
+    }
+
+    return res.json({ success: true, data: { roadmap, details } });
+  } catch (err) {
+    console.error('Error GET /api/roadmaps/auth-view/:id', err);
+    return res.status(500).json({ success: false, error: err.message || 'Server error' });
+  }
+});
 
 
 
