@@ -342,66 +342,88 @@
 
 // Thay thế hàm loadRoadmapDetails hiện tại bằng đoạn này
 async function loadRoadmapDetails() {
-  if (!roadmapId) { 
-    alert('Không tìm thấy ID lộ trình'); 
-    window.location.href = 'main.html'; 
-    return; 
-  }
-
-  const token = localStorage.getItem('token') || '';
-  const headers = { 'Authorization': token ? `Bearer ${token}` : '' };
-
+  if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); return; }
   document.getElementById('loadingState').style.display = 'block';
   document.getElementById('roadmapContent').style.display = 'none';
 
+  const token = localStorage.getItem('token') || '';
+
   try {
-    // 1) Thử endpoint hệ thống (public)
-    let resp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}`, { method: 'GET', headers });
-    if (resp.ok) {
-      const json = await resp.json();
-      if (!json.success) throw new Error(json.error || 'Không thể tải lộ trình hệ thống');
-      roadmapData = json.data;
-      // lấy details hệ thống
-      const detResp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}/details`);
-      if (!detResp.ok) throw new Error('Không thể tải chi tiết lộ trình hệ thống');
-      const detJson = await detResp.json();
-      details = detJson.data || [];
-      // Hiển thị
-      renderRoadmap();
-      return;
+    // 1) Thử endpoint auth-view (bắt buộc token)
+    if (token) {
+      const authResp = await fetch(`/api/roadmaps/auth-view/${encodeURIComponent(roadmapId)}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (authResp.ok) {
+        const payload = await authResp.json().catch(()=>({}));
+        if (payload.success) {
+          roadmapData = payload.data?.roadmap || payload.data || {};
+          details = payload.data?.details || [];
+          renderRoadmap();
+          return;
+        }
+      } else if (authResp.status === 401) {
+        // token không hợp lệ hoặc hết hạn
+        alert('Vui lòng đăng nhập để xem chi tiết lộ trình.');
+        // Optionally: redirect to login page
+        // window.location.href = '/login.html';
+        throw new Error('Unauthorized');
+      }
+      // else tiếp tục thử các nguồn khác (system)
+    } else {
+      // không có token
+      alert('Vui lòng đăng nhập để xem chi tiết lộ trình.');
+      throw new Error('No token');
     }
 
-    // 2) Nếu hệ thống trả 404 => thử endpoint lộ trình user (cần auth)
-    if (resp.status === 404) {
-      // kiểm tra token
-      if (!token) {
-        throw new Error('Lộ trình thuộc tài khoản người dùng — vui lòng đăng nhập để xem chi tiết.');
+    // 2) Nếu auth-view không trả data (trường hợp hiếm), thử hệ thống
+    // (giữ fallback cũ: hệ thống public)
+    const sysResp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}`, { method: 'GET' });
+    if (sysResp.ok) {
+      const sysJson = await sysResp.json().catch(()=>({}));
+      if (sysJson.success) {
+        roadmapData = sysJson.data;
+        try {
+          const detResp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}/details`);
+          details = detResp.ok ? (await detResp.json()).data || [] : [];
+        } catch(e) { details = []; }
+        renderRoadmap();
+        return;
       }
-      const userResp = await fetch(`/api/roadmaps/${encodeURIComponent(roadmapId)}`, { method: 'GET', headers: { 'Authorization': `Bearer ${token}` } });
-      if (!userResp.ok) {
-        const errText = (await userResp.json().catch(()=>({}))).error || `HTTP ${userResp.status}`;
-        throw new Error('Không thể tải lộ trình người dùng: ' + errText);
-      }
-      const userJson = await userResp.json();
-      if (!userJson.success) throw new Error(userJson.error || 'Không thể tải lộ trình người dùng');
-      // server trả { success: true, data: { roadmap: ..., details: [...] } }
-      roadmapData = userJson.data?.roadmap || userJson.data;
-      details = userJson.data?.details || [];
-      renderRoadmap();
-      return;
     }
 
-    // 3) Nếu resp.ok == false nhưng không phải 404 -> báo lỗi
-    const payload = await resp.json().catch(()=>({}));
-    throw new Error(payload.error || `HTTP ${resp.status}`);
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Không thể tải dữ liệu: ' + (error.message || error));
+    // 3) Fallback cuối: thử /api/roadmaps/:id với token (nếu server kỳ vọng route này)
+    if (token) {
+      const userResp = await fetch(`/api/roadmaps/${encodeURIComponent(roadmapId)}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (userResp.ok) {
+        const userJson = await userResp.json();
+        roadmapData = userJson.data?.roadmap || userJson.data || {};
+        details = userJson.data?.details || [];
+        renderRoadmap();
+        return;
+      } else if (userResp.status === 401) {
+        alert('Token không hợp lệ — vui lòng đăng nhập lại.');
+      } else {
+        // 404 hoặc lỗi khác
+        const errObj = await userResp.json().catch(()=>({}));
+        throw new Error(errObj.error || errObj.message || `HTTP ${userResp.status}`);
+      }
+    }
+
+    throw new Error('Không thể tải lộ trình');
+  } catch (err) {
+    console.error('loadRoadmapDetails error:', err);
+    // bạn có thể hiển thị UI error thay alert
   } finally {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('roadmapContent').style.display = 'block';
   }
 }
+
 
 
     function renderRoadmap() {
