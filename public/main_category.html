@@ -507,7 +507,7 @@ async function loadCategoryData() {
     const base = window.API_BASE_URL || API_BASE_URL;
     const endpoints = [
       `${base}/roadmapsystem/category/${encodeURIComponent(currentCategory)}?limit=100`,
-      `${base}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`,
+      //`${base}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`,
       `${base}/roadmaps?category=${encodeURIComponent(currentCategory)}&limit=100`,
       // thêm các endpoint khác nếu backend của bạn có route khác
     ];
