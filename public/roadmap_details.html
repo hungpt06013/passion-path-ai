@@ -223,31 +223,7 @@
     </footer>
 
   <script>
-  (function(){
-    const PROD_HOSTNAME = 'passion-path-ai.onrender.com';
-    let apiBase;
-
-    try {
-      // window.location.hostname là cách an toàn để so sánh host (không chứa protocol)
-      const host = window.location.hostname || '';
-      const origin = window.location.origin || (window.location.protocol + '//' + host);
-
-      if (host === PROD_HOSTNAME || origin.includes(PROD_HOSTNAME)) {
-        apiBase = `https://${PROD_HOSTNAME}/api`;
-      } else {
-        apiBase = 'http://localhost:3000/api';
-      }
-    } catch (err) {
-      // Nếu có lỗi bất ngờ, fallback về localhost
-      apiBase = 'http://localhost:3000/api';
-    }
-
-    // export ra global để các script khác dùng
-    window.API_BASE_URL = apiBase;
-
-    // debug: bỏ hoặc comment dòng này khi production
-    console.log('Using API_BASE_URL =', window.API_BASE_URL);
-  })();
+    const API_BASE_URL = 'http://localhost:3000/api';
     const urlParams = new URLSearchParams(window.location.search);
     const roadmapId = urlParams.get('id');
 
@@ -340,91 +316,23 @@
       document.getElementById('modal-body').innerHTML = analysisHTML + tableHTML ;
     }
 
-// Thay thế hàm loadRoadmapDetails hiện tại bằng đoạn này
-async function loadRoadmapDetails() {
-  if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); return; }
-  document.getElementById('loadingState').style.display = 'block';
-  document.getElementById('roadmapContent').style.display = 'none';
-
-  const token = localStorage.getItem('token') || '';
-
-  try {
-    // 1) Thử endpoint auth-view (bắt buộc token)
-    if (token) {
-      const authResp = await fetch(`/api/roadmaps/auth-view/${encodeURIComponent(roadmapId)}`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (authResp.ok) {
-        const payload = await authResp.json().catch(()=>({}));
-        if (payload.success) {
-          roadmapData = payload.data?.roadmap || payload.data || {};
-          details = payload.data?.details || [];
-          renderRoadmap();
-          return;
-        }
-      } else if (authResp.status === 401) {
-        // token không hợp lệ hoặc hết hạn
-        alert('Vui lòng đăng nhập để xem chi tiết lộ trình.');
-        // Optionally: redirect to login page
-        // window.location.href = '/login.html';
-        throw new Error('Unauthorized');
-      }
-      // else tiếp tục thử các nguồn khác (system)
-    } else {
-      // không có token
-      alert('Vui lòng đăng nhập để xem chi tiết lộ trình.');
-      throw new Error('No token');
-    }
-
-    // 2) Nếu auth-view không trả data (trường hợp hiếm), thử hệ thống
-    // (giữ fallback cũ: hệ thống public)
-    const sysResp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}`, { method: 'GET' });
-    if (sysResp.ok) {
-      const sysJson = await sysResp.json().catch(()=>({}));
-      if (sysJson.success) {
-        roadmapData = sysJson.data;
-        try {
-          const detResp = await fetch(`/api/roadmapsystem/${encodeURIComponent(roadmapId)}/details`);
-          details = detResp.ok ? (await detResp.json()).data || [] : [];
-        } catch(e) { details = []; }
+    async function loadRoadmapDetails() {
+      if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
+      try {
+        const roadmapResponse = await fetch(`/api/roadmapsystem/${roadmapId}`, { method: 'GET', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+        const roadmapResult = await roadmapResponse.json();
+        if (!roadmapResult.success) throw new Error('Không thể tải thông tin lộ trình');
+        roadmapData = roadmapResult.data;
+        viewRoadmapDetails(roadmapId, roadmapData.roadmap_analyst)
         renderRoadmap();
-        return;
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Không thể tải dữ liệu: ' + error.message);
+      } finally {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('roadmapContent').style.display = 'block';
       }
     }
-
-    // 3) Fallback cuối: thử /api/roadmaps/:id với token (nếu server kỳ vọng route này)
-    if (token) {
-      const userResp = await fetch(`/api/roadmaps/${encodeURIComponent(roadmapId)}`, {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (userResp.ok) {
-        const userJson = await userResp.json();
-        roadmapData = userJson.data?.roadmap || userJson.data || {};
-        details = userJson.data?.details || [];
-        renderRoadmap();
-        return;
-      } else if (userResp.status === 401) {
-        alert('Token không hợp lệ — vui lòng đăng nhập lại.');
-      } else {
-        // 404 hoặc lỗi khác
-        const errObj = await userResp.json().catch(()=>({}));
-        throw new Error(errObj.error || errObj.message || `HTTP ${userResp.status}`);
-      }
-    }
-
-    throw new Error('Không thể tải lộ trình');
-  } catch (err) {
-    console.error('loadRoadmapDetails error:', err);
-    // bạn có thể hiển thị UI error thay alert
-  } finally {
-    document.getElementById('loadingState').style.display = 'none';
-    document.getElementById('roadmapContent').style.display = 'block';
-  }
-}
-
-
 
     function renderRoadmap() {
       document.getElementById('roadmapTitle').textContent = roadmapData.roadmap_name;
