@@ -392,31 +392,7 @@
   </footer>
 
   <script>
-  (function(){
-    const PROD_HOSTNAME = 'passion-path-ai.onrender.com';
-    let apiBase;
-
-    try {
-      // window.location.hostname là cách an toàn để so sánh host (không chứa protocol)
-      const host = window.location.hostname || '';
-      const origin = window.location.origin || (window.location.protocol + '//' + host);
-
-      if (host === PROD_HOSTNAME || origin.includes(PROD_HOSTNAME)) {
-        apiBase = `https://${PROD_HOSTNAME}/api`;
-      } else {
-        apiBase = 'http://localhost:3000/api';
-      }
-    } catch (err) {
-      // Nếu có lỗi bất ngờ, fallback về localhost
-      apiBase = 'http://localhost:3000/api';
-    }
-
-    // export ra global để các script khác dùng
-    window.API_BASE_URL = apiBase;
-
-    // debug: bỏ hoặc comment dòng này khi production
-    console.log('Using API_BASE_URL =', window.API_BASE_URL);
-  })();
+    const API_BASE_URL = 'http://localhost:3000/api';
     let currentPage = 1;
     let currentCategory = '';
     let allRoadmaps = [];
@@ -426,156 +402,56 @@
     const urlParams = new URLSearchParams(window.location.search);
     currentCategory = urlParams.get('category') || '';
 
-async function loadCategoryData() {
-  if (!currentCategory) {
-    showError('Không tìm thấy thông tin lĩnh vực');
-    return;
-  }
-
-  // UI: loading
-  document.getElementById('loadingState').style.display = 'block';
-  document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('roadmapsGrid').innerHTML = '';
-  document.getElementById('categoryBreadcrumb').textContent = currentCategory;
-
-  const headers = {
-    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-    'Content-Type': 'application/json'
-  };
-
-  // helper: lấy mảng data từ nhiều dạng response khác nhau
-  function extractArrayFromPayload(payload) {
-    if (!payload) return [];
-    // if payload is directly an array
-    if (Array.isArray(payload)) return payload;
-    // common shapes: { success: true, data: [...] }
-    if (Array.isArray(payload.data)) return payload.data;
-    // paginated: { data: { rows: [...] } } or { data: { items: [...] } }
-    if (payload.data && typeof payload.data === 'object') {
-      if (Array.isArray(payload.data.rows)) return payload.data.rows;
-      if (Array.isArray(payload.data.items)) return payload.data.items;
-      if (Array.isArray(payload.data.results)) return payload.data.results;
-      // sometimes API returns { rows: [...] } at top-level
-    }
-    if (Array.isArray(payload.rows)) return payload.rows;
-    if (Array.isArray(payload.items)) return payload.items;
-    if (Array.isArray(payload.results)) return payload.results;
-    // sometimes data is an object that directly contains roadmap objects keyed by id -> not handled
-    return [];
-  }
-
-  // helper: fetch + robust parse
-  async function safeFetchAndExtract(url) {
-    try {
-      const resp = await fetch(url, { method: 'GET', headers });
-      let payload = null;
-      try { payload = await resp.json(); } catch (e) { /* non-json response */ }
-      console.log('Fetch', url, 'status', resp.status, 'payload', payload);
-      if (!resp.ok) {
-        // non-OK but maybe returns JSON with useful message; still return extracted array if present
-        return extractArrayFromPayload(payload);
+    async function loadCategoryData() {
+      if (!currentCategory) {
+        showError('Không tìm thấy thông tin lĩnh vực');
+        return;
       }
-      return extractArrayFromPayload(payload);
-    } catch (err) {
-      console.warn('Fetch error', url, err);
-      return [];
-    }
-  }
 
-  try {
-    // 1) Lấy thông tin category (tên, mô tả) nếu có
-    try {
-      const categoryUrl = `${window.API_BASE_URL || API_BASE_URL}/categories/${encodeURIComponent(currentCategory)}`;
-      const categoryResp = await fetch(categoryUrl, { method: 'GET', headers });
-      if (categoryResp.ok) {
-        const categoryData = await categoryResp.json();
-        console.log('category response', categoryData);
-        if (categoryData && categoryData.success && categoryData.data) {
-          document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name || currentCategory;
-          document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
-        } else if (Array.isArray(categoryData)) {
-          // unlikely, but handle gracefully
-        }
-      } else {
-        console.warn('category fetch not ok', categoryResp.status);
-      }
-    } catch (err) {
-      console.warn('error fetching category info', err);
-    }
+      document.getElementById('loadingState').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('roadmapsGrid').innerHTML = '';
+      document.getElementById('categoryBreadcrumb').textContent = currentCategory;
 
-    // 2) Thử lần lượt các endpoint, gộp kết quả
-    const base = window.API_BASE_URL || API_BASE_URL;
-    const endpoints = [
-      `${base}/roadmapsystem/category/${encodeURIComponent(currentCategory)}?limit=100`,
-      //`${base}/roadmaps/category/${encodeURIComponent(currentCategory)}?limit=100`,
-      `${base}/roadmaps?category=${encodeURIComponent(currentCategory)}&limit=100`,
-      // thêm các endpoint khác nếu backend của bạn có route khác
-    ];
-
-    let combined = [];
-    for (const url of endpoints) {
-      const arr = await safeFetchAndExtract(url);
-      if (arr && arr.length > 0) {
-        combined = combined.concat(arr);
-        // không break — vẫn tiếp tục để thu thập cả hệ thống + user-created nếu cả hai có
-      }
-    }
-
-    // Nếu còn rỗng, cố gắng gọi /api/roadmapsystem (không theo category) để debug
-    if (combined.length === 0) {
       try {
-        const fallbackSys = await safeFetchAndExtract(`${base}/roadmapsystem?limit=100`);
-        if (fallbackSys.length > 0) combined = combined.concat(fallbackSys);
-      } catch (e) { /* ignore */ }
+        const categoryResponse = await fetch(`/api/categories/${currentCategory}`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        if (categoryResponse.ok) {
+          const categoryData = await categoryResponse.json();
+          if (categoryData.success) {
+            document.getElementById('categoryBreadcrumb').textContent = categoryData.data.name;
+            document.getElementById('categoryDescription').textContent = categoryData.data.description || 'Khám phá các lộ trình học tập chất lượng cao';
+          }
+        }
+
+        const roadmapsResponse = await fetch(`/api/roadmapsystem/category/${currentCategory}?limit=100`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+
+        const roadmapsData = await roadmapsResponse.json();
+
+        if (roadmapsData.success) {
+          if (roadmapsData.data && roadmapsData.data.length > 0) {
+            allRoadmaps = roadmapsData.data;
+            filteredRoadmaps = allRoadmaps;
+            updateStats();
+            renderRoadmaps();
+          } else {
+            showEmptyState();
+          }
+        } else {
+          showError(roadmapsData.error || 'Không thể tải dữ liệu');
+        }
+      } catch (error) {
+        showError('Không thể tải dữ liệu: ' + error.message);
+      } finally {
+        document.getElementById('loadingState').style.display = 'none';
+      }
     }
-
-    // Nếu vẫn rỗng -> show empty
-    if (!combined || combined.length === 0) {
-      console.info('No roadmaps found for category', currentCategory, '— combined is empty');
-      showEmptyState();
-      return;
-    }
-
-    // 3) Dedupe theo các trường id phổ biến (roadmap_id, id, _id)
-    const map = new Map();
-    combined.forEach(r => {
-      const key = r.roadmap_id ?? r.id ?? r._id ?? (r.roadmap_name ? `${r.roadmap_name}::${r.duration_days||0}` : JSON.stringify(r));
-      if (!map.has(key)) map.set(key, r);
-    });
-    allRoadmaps = Array.from(map.values());
-
-    // 4) Normalize fields (nếu cần) để render/ lọc/ sắp xếp an toàn
-    allRoadmaps = allRoadmaps.map(r => {
-      return {
-        ...r,
-        roadmap_id: r.roadmap_id ?? r.id ?? r._id,
-        roadmap_name: r.roadmap_name ?? r.name ?? r.title ?? '',
-        start_level: r.start_level ?? r.level ?? '',
-        duration_days: Number(r.duration_days || r.days || 0),
-        duration_hours: Number(r.duration_hours || r.hours || 0),
-        total_user_learning: Number(r.total_user_learning || r.totalLearners || r.learners || 0),
-        overall_rating: (r.overall_rating !== undefined && r.overall_rating !== null) ? Number(r.overall_rating) : (r.rating ? Number(r.rating) : undefined),
-        created_at: r.created_at ?? r.createdAt ?? r.created
-      };
-    });
-
-    // set filtered list & render
-    filteredRoadmaps = allRoadmaps.slice();
-
-    if (allRoadmaps.length > 0) {
-      updateStats();
-      renderRoadmaps();
-    } else {
-      showEmptyState();
-    }
-  } catch (error) {
-    console.error('Không thể tải dữ liệu category:', error);
-    showError('Không thể tải dữ liệu: ' + (error.message || error));
-  } finally {
-    document.getElementById('loadingState').style.display = 'none';
-  }
-}
-
 
     function updateStats() {
       document.getElementById('totalRoadmaps').textContent = `${allRoadmaps.length} lộ trình`;
