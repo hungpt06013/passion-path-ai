@@ -1979,15 +1979,17 @@ app.put("/api/roadmaps/details/:id/status", requireAuth, async (req, res) => {
 });
 
 app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
+    const client = await pool.connect();
     try {
         const roadmapId = parseInt(req.params.id);
         
-        // Verify ownership
+        // ✅ Verify ownership
         const checkQuery = `
-            SELECT roadmap_id FROM learning_roadmaps 
+            SELECT roadmap_id, roadmap_name, category, overall_rating 
+            FROM learning_roadmaps 
             WHERE roadmap_id = $1 AND user_id = $2
         `;
-        const checkResult = await pool.query(checkQuery, [roadmapId, req.user.id]);
+        const checkResult = await client.query(checkQuery, [roadmapId, req.user.id]);
         
         if (checkResult.rows.length === 0) {
             return res.status(404).json({
@@ -1995,20 +1997,65 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
                 error: 'Lộ trình không tìm thấy hoặc bạn không có quyền xóa'
             });
         }
+
+        await client.query('BEGIN');
         
-        // Delete roadmap (cascade sẽ tự động xóa details)
-        await pool.query('DELETE FROM learning_roadmaps WHERE roadmap_id = $1', [roadmapId]);
+        const roadmap = checkResult.rows[0];
+        
+        // ✅ LOGIC: Nếu rating >= 4 sao, XÓA KHỎI learning_roadmaps_system
+        if (roadmap.overall_rating && roadmap.overall_rating >= 4) {
+            console.log(`🗑️ Xóa roadmap "${roadmap.roadmap_name}" khỏi system (rating: ${roadmap.overall_rating})`);
+            
+            // Tìm roadmap_id trong bảng system dựa trên tên và category
+            const systemRoadmapQuery = `
+                SELECT roadmap_id 
+                FROM learning_roadmaps_system 
+                WHERE roadmap_name = $1 
+                AND category = $2
+                LIMIT 1
+            `;
+            const systemResult = await client.query(systemRoadmapQuery, [
+                roadmap.roadmap_name,
+                roadmap.category
+            ]);
+            
+            if (systemResult.rows.length > 0) {
+                const systemRoadmapId = systemResult.rows[0].roadmap_id;
+                
+                // Xóa chi tiết trong learning_roadmap_details_system
+                await client.query(
+                    'DELETE FROM learning_roadmap_details_system WHERE roadmap_id = $1',
+                    [systemRoadmapId]
+                );
+                
+                // Xóa roadmap trong learning_roadmaps_system
+                await client.query(
+                    'DELETE FROM learning_roadmaps_system WHERE roadmap_id = $1',
+                    [systemRoadmapId]
+                );
+                
+                console.log(`✅ Đã xóa roadmap system #${systemRoadmapId}`);
+            }
+        }
+        
+        // ✅ Xóa roadmap của user (cascade sẽ tự động xóa details)
+        await client.query('DELETE FROM learning_roadmaps WHERE roadmap_id = $1', [roadmapId]);
+        
+        await client.query('COMMIT');
         
         res.json({
             success: true,
             message: 'Đã xóa lộ trình thành công'
         });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Error deleting roadmap:', error);
         res.status(500).json({
             success: false,
             error: 'Không thể xóa lộ trình'
         });
+    } finally {
+        client.release();
     }
 });
 // Add this to server.js
@@ -4064,6 +4111,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
