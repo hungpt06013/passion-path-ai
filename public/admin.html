@@ -564,9 +564,14 @@
   </main>
 
   <script>
+    const token = localStorage.getItem('token');
     const storedRole = localStorage.getItem('role');
-    if (storedRole !== 'admin') {
-      // window.location.replace('path.html?page=path');
+    if (!token) {
+      alert('Vui lòng đăng nhập để tiếp tục!');
+      window.location.replace('login.html');
+    } else if (storedRole !== 'admin') {
+      alert('Bạn không phải quản trị!');
+      window.location.replace('path.html');
     }
 
     // ============ DOM ELEMENTS ============
@@ -1276,4 +1281,5 @@ resetPromptBtn.addEventListener('click', async function() {
   </script>
 </body>
 </html>
+
 
