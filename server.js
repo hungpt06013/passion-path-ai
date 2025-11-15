@@ -114,7 +114,7 @@ if (!process.env.OPENAI_API_KEY) {
       console.warn("⚠️ Could not set client_encoding to UTF8:", e.message);
     }
     client.release();
-    console.log(`✅ PostgreSQL connected (${poolConfig.database || poolConfig.connectionString || "unknown"})`);
+    console.log(`✅ PostgreSQL connected`);
   } catch (err) {
     console.error("❌ PostgreSQL connection failed:", err.message || err);
   }
@@ -4111,6 +4111,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
