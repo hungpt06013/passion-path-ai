@@ -1444,7 +1444,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
 const roadmapResult = await pool.query(
   `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text)
    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING roadmap_id, created_at`,
-  [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst]
+  [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text]
 );
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
@@ -1546,7 +1546,7 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
 const roadmapResult = await pool.query(
   `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst_text)
    VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
-  [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst]
+  [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst_text]
 );
    
     const roadmapId = roadmapResult.rows[0].roadmap_id;
@@ -3181,7 +3181,7 @@ app.get("/api/roadmap", requireAuth, async (req, res) => {
         progress_percentage,
         total_studied_hours,
         overall_rating,
-        roadmap_analyst,
+        roadmap_analyst_text,
         expected_outcome,
         created_at
       FROM learning_roadmaps
@@ -3973,5 +3973,6 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
