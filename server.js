@@ -1235,7 +1235,7 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
 
     //console.log('aiResponse:',aiResponse);
     let roadmapData = null;
-    const text = completion?.choices?.[0]?.message?.content;
+    const text = aiResponse;
 console.log("🔍 Raw AI text length:", text?.length);
 console.log("🔍 Raw AI text preview:", (text || "").slice(0,200));
 
@@ -4004,6 +4004,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
