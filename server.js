@@ -890,43 +890,72 @@ function getFallbackLinks(category) {
 // server.js (CHỈ SỬA PHẦN /api/generate-roadmap-ai ENDPOINT)
 
 async function getPromptTemplate() {
-    try {
-        const query = `
-            SELECT prompt_template, json_format_response
-            FROM admin_settings
-            WHERE setting_key = 'prompt_template'
-            LIMIT 1
-        `;
-        
-        const result = await pool.query(query);
-        
-        const defaultPrompt = buildDefaultPromptTemplate();
-        const defaultJsonFormat = JSON.stringify({
-            analysis: "Phân tích chi tiết...",
-            roadmap: []
-        });
-
-        if (result && result.rows && result.rows.length > 0) {
-            const row = result.rows[0];
-            return {
-                prompt_template: row.prompt_template || defaultPrompt,
-                json_format_response: row.json_format_response || defaultJsonFormat
-            };
-        }
-        
-        return {
-            prompt_template: defaultPrompt,
-            json_format_response: defaultJsonFormat
-        };
-    } catch (error) {
-        console.error('Error getting prompt template:', error);
-        return {
-            prompt_template: buildDefaultPromptTemplate(),
-            json_format_response: JSON.stringify({ analysis: "", roadmap: [] })
-        };
+  try {
+    const query = `
+      SELECT prompt_template, json_format_response
+      FROM admin_settings
+      WHERE setting_key = 'prompt_template'
+      LIMIT 1
+    `;
+    
+    const result = await pool.query(query);
+    
+    if (result && result.rows && result.rows.length > 0) {
+      const row = result.rows[0];
+      return {
+        prompt_template: row.prompt_template || getDefaultPromptFromFile(),
+        json_format_response: row.json_format_response || getDefaultJsonFormat()
+      };
     }
+    
+    // Nếu chưa có trong DB, trả về mặc định từ file
+    return {
+      prompt_template: getDefaultPromptFromFile(),
+      json_format_response: getDefaultJsonFormat()
+    };
+  } catch (error) {
+    console.error('Error getting prompt template:', error);
+    // Fallback về file nếu lỗi DB
+    return {
+      prompt_template: getDefaultPromptFromFile(),
+      json_format_response: getDefaultJsonFormat()
+    };
+  }
+}
+// ============ THÊM 2 HÀM MỚI ============
+function getDefaultPromptFromFile() {
+  try {
+    const promptFilePath = path.join(__dirname, 'default_prompt.txt');
+    
+    if (!fs.existsSync(promptFilePath)) {
+      console.warn('⚠️ File default_prompt.txt không tồn tại, sử dụng prompt hardcoded');
+      return buildDefaultPromptTemplate();
+    }
+    
+    const content = fs.readFileSync(promptFilePath, 'utf8');
+    return content.trim();
+  } catch (error) {
+    console.error('❌ Lỗi đọc file default_prompt.txt:', error.message);
+    return buildDefaultPromptTemplate();
+  }
 }
 
+function getDefaultJsonFormat() {
+  return JSON.stringify({
+    analysis: "Phân tích chi tiết về hiện trạng học viên, mục tiêu, tính khả thi...",
+    roadmap: [
+      {
+        day_number: 1,
+        daily_goal: "Mục tiêu ngày 1",
+        learning_content: "Nội dung học tập",
+        practice_exercises: "Bài tập thực hành",
+        learning_materials: "https://...",
+        study_guide: "Hướng dẫn chi tiết",
+        study_duration_hours: "1"
+      }
+    ]
+  }, null, 2);
+}
 function buildDefaultPromptTemplate() {
     return `**THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: <CATEGORY> -- <SUB_CATEGORY>**
       **I/ Vai trò của AI**
@@ -3581,7 +3610,88 @@ app.post("/api/admin/prompt/save", requireAdmin, async (req, res) => {
         });
     }
 });
-
+// ============ API ENDPOINT: Reset Prompt Template ============
+app.post("/api/admin/prompt-template/reset", requireAdmin, async (req, res) => {
+  try {
+    // Đọc prompt mặc định từ file
+    const defaultPrompt = getDefaultPromptFromFile();
+    const defaultJsonFormat = getDefaultJsonFormat();
+    
+    // Kiểm tra xem đã có bản ghi trong DB chưa
+    const checkQuery = `
+      SELECT setting_id FROM admin_settings 
+      WHERE setting_key = 'prompt_template'
+      LIMIT 1
+    `;
+    
+    const checkResult = await pool.query(checkQuery);
+    
+    if (checkResult.rows.length > 0) {
+      // Update bản ghi hiện tại
+      const updateQuery = `
+        UPDATE admin_settings
+        SET 
+          prompt_template = $1,
+          json_format_response = $2,
+          updated_at = CURRENT_TIMESTAMP,
+          updated_by = $3
+        WHERE setting_key = 'prompt_template'
+        RETURNING setting_id, updated_at
+      `;
+      
+      const result = await pool.query(updateQuery, [
+        defaultPrompt,
+        defaultJsonFormat,
+        req.user.id
+      ]);
+      
+      res.json({
+        success: true,
+        message: '✅ Đã khôi phục prompt template về mặc định',
+        data: {
+          prompt_template: defaultPrompt,
+          json_format_response: defaultJsonFormat,
+          updated_at: result.rows[0].updated_at
+        }
+      });
+    } else {
+      // Insert bản ghi mới
+      const insertQuery = `
+        INSERT INTO admin_settings (
+          setting_key, 
+          prompt_template, 
+          json_format_response, 
+          updated_by
+        ) VALUES ('prompt_template', $1, $2, $3)
+        RETURNING setting_id, created_at
+      `;
+      
+      const result = await pool.query(insertQuery, [
+        defaultPrompt,
+        defaultJsonFormat,
+        req.user.id
+      ]);
+      
+      res.json({
+        success: true,
+        message: '✅ Đã tạo prompt template mặc định',
+        data: {
+          prompt_template: defaultPrompt,
+          json_format_response: defaultJsonFormat,
+          created_at: result.rows[0].created_at
+        }
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Error resetting prompt template:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể khôi phục prompt template',
+      message: error.message
+    });
+  }
+});
 app.post("/api/admin/prompt", requireAdmin, async (req, res) => {
 // GET /api/admin/prompt
     try {
@@ -3863,3 +3973,4 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
