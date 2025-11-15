@@ -1212,7 +1212,7 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
         console.log(`AI attempt ${attempts}/${MAX_ATTEMPTS}...`);
         const completion = await callOpenAIWithFallback({
           messages: [
-            { role: "system", content: "Bạn là một chuyên gia thiết kế lộ trình học, trả về JSON duy nhất như yêu cầu (không văn bản thêm): " || String(systemPrompt) },
+            { role: "system", content: `Bạn là một chuyên gia thiết kế lộ trình học, trả về JSON duy nhất như yêu cầu (không văn bản thêm): ${systemPrompt}` },
             { role: "user", content: String(userPrompt) }           
           ],
           desiredCompletionTokens: desiredTokens
@@ -1235,25 +1235,56 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
 
     //console.log('aiResponse:',aiResponse);
     let roadmapData = null;
-    
-    const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    const jsonText = jsonMatch ? jsonMatch[1] : aiResponse;
-    
-    try {
-      roadmapData = JSON.parse(jsonText);
-    } catch (e) {
-      const cleaned = jsonText
-        .replace(/[\u2018\u2019]/g, "'")
-        .replace(/[\u201C\u201D]/g, '"')
-        .replace(/,\s*([}\]])/g, '$1');
-      
-      try {
-        roadmapData = JSON.parse(cleaned);
-      } catch (e2) {
-        console.error("Failed to parse AI response as JSON");
-        throw new Error("AI trả về format không hợp lệ");
-      }
-    }
+    const text = completion?.choices?.[0]?.message?.content;
+console.log("🔍 Raw AI text length:", text?.length);
+console.log("🔍 Raw AI text preview:", (text || "").slice(0,200));
+
+function extractJsonBlock(s) {
+  if (!s || typeof s !== 'string') return s;
+  // 1) nếu có ```json ... ```
+  const codeBlock = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (codeBlock) return codeBlock[1];
+
+  // 2) nếu có object lớn {...}
+  const firstObj = s.indexOf('{');
+  const lastObj = s.lastIndexOf('}');
+  if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
+    return s.slice(firstObj, lastObj + 1);
+  }
+
+  // 3) nếu là mảng [...]
+  const firstArr = s.indexOf('[');
+  const lastArr = s.lastIndexOf(']');
+  if (firstArr !== -1 && lastArr !== -1 && lastArr > firstArr) {
+    return s.slice(firstArr, lastArr + 1);
+  }
+
+  // fallback toàn văn
+  return s;
+}
+
+const raw = aiResponse;
+const jsonText = extractJsonBlock(raw);
+
+const tryParse = (txt) => {
+  try { return JSON.parse(txt); } catch (e) {}
+  // replace “smart quotes” and trailing commas
+  const cleaned = txt
+    .replace(/[\u2018\u2019]/g,"'")
+    .replace(/[\u201C\u201D]/g,'"')
+    .replace(/,\s*([}\]])/g,'$1');
+  try { return JSON.parse(cleaned); } catch (e) {}
+  return null;
+};
+
+roadmapData = tryParse(jsonText);
+if (!roadmapData) roadmapData = tryParse(raw);
+
+if (!roadmapData) {
+  console.error('AI RAW RESPONSE (first 2000 chars):', (raw||'').slice(0,2000));
+  throw new Error("AI trả về format không hợp lệ");
+}
+
 
     let analysis = roadmapData.analysis  || 'Không có phân tích';
 
@@ -3973,6 +4004,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
