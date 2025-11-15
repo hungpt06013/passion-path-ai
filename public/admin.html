@@ -1234,37 +1234,40 @@
       }
     });
 
-    resetPromptBtn.addEventListener('click', async function() {
-      if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
-      
-      resetPromptBtn.disabled = true;
-      resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
-      
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/prompt-template/reset', {
-          method: 'POST',
-          headers: { 
-            'Authorization': 'Bearer ' + token
-          }
-        });
-        
-        const data = await res.json();
-        
-        if (data.success) {
-          showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
-          await loadPromptTemplate();
-        } else {
-          throw new Error(data.error || 'Lỗi khi khôi phục prompt');
-        }
-      } catch (err) {
-        console.error(err);
-        showMessage('❌ ' + err.message, 'error');
-      } finally {
-        resetPromptBtn.disabled = false;
-        resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+resetPromptBtn.addEventListener('click', async function() {
+  if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
+  
+  resetPromptBtn.disabled = true;
+  resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+  
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch('/api/admin/prompt-template/reset', {
+      method: 'POST',
+      headers: { 
+        'Authorization': 'Bearer ' + token
       }
     });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
+      // Cập nhật editor và preview với prompt mới
+      promptEditor.value = data.data.prompt_template;
+      promptPreview.textContent = data.data.prompt_template;
+      jsonFormat.textContent = data.data.json_format_response;
+    } else {
+      throw new Error(data.error || 'Lỗi khi khôi phục prompt');
+    }
+  } catch (err) {
+    console.error(err);
+    showMessage('❌ ' + err.message, 'error');
+  } finally {
+    resetPromptBtn.disabled = false;
+    resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+  }
+});
 
     // ✅ FIX: Cập nhật preview khi user gõ trong editor
     promptEditor.addEventListener('input', function() {
@@ -1273,3 +1276,4 @@
   </script>
 </body>
 </html>
+
