@@ -223,6 +223,46 @@ async function initDB() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+        await pool.query(`
+      DO $$ 
+      BEGIN
+        -- Thêm detailed_feedback
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmaps' 
+          AND column_name = 'detailed_feedback'
+        ) THEN
+          ALTER TABLE learning_roadmaps ADD COLUMN detailed_feedback TEXT;
+        END IF;
+
+        -- Thêm recommended_category
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmaps' 
+          AND column_name = 'recommended_category'
+        ) THEN
+          ALTER TABLE learning_roadmaps ADD COLUMN recommended_category VARCHAR(100);
+        END IF;
+
+        -- Thêm actual_learning_outcomes
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmaps' 
+          AND column_name = 'actual_learning_outcomes'
+        ) THEN
+          ALTER TABLE learning_roadmaps ADD COLUMN actual_learning_outcomes TEXT;
+        END IF;
+
+        -- Thêm improvement_suggestions
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmaps' 
+          AND column_name = 'improvement_suggestions'
+        ) THEN
+          ALTER TABLE learning_roadmaps ADD COLUMN improvement_suggestions TEXT;
+        END IF;
+      END $$;
+    `);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS learning_roadmap_details (
         detail_id SERIAL PRIMARY KEY,
@@ -240,6 +280,34 @@ async function initDB() {
         completed_at TIMESTAMP,
         UNIQUE(roadmap_id, day_number)
       );
+    `);
+    
+    // ✅ THÊM CỘT usage_instructions cho learning_roadmap_details
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmap_details' 
+          AND column_name = 'usage_instructions'
+        ) THEN
+          ALTER TABLE learning_roadmap_details ADD COLUMN usage_instructions TEXT;
+        END IF;
+      END $$;
+    `);
+
+    // ✅ THÊM CỘT usage_instructions cho learning_roadmap_details_system
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'learning_roadmap_details_system' 
+          AND column_name = 'usage_instructions'
+        ) THEN
+          ALTER TABLE learning_roadmap_details_system ADD COLUMN usage_instructions TEXT;
+        END IF;
+      END $$;
     `);
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ai_query_history (
@@ -3996,6 +4064,7 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
 
 
 
