@@ -40,7 +40,6 @@
       align-items: center;
       justify-content: center;
       padding: 28px;
-      padding-top: 135px;
     }
 
     .card {
@@ -180,90 +179,7 @@
       font-weight: 600;
       cursor: pointer;
     }
-.fixed-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 80px;
-  background: #007bff;
-  box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
-  z-index: 50;
-}
 
-.bar-inner {
-  max-width: 1200px;
-  height: 100%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  box-sizing: border-box;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand-icon {
-  width: 48px;
-  height: 48px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.brand-title {
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.brand-sub {
-  color: rgba(255,255,255,0.9);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 22px;
-  align-items: center;
-}
-
-.nav-btn {
-  background: none;
-  color: #fff;
-  padding: 0;
-  font-size: 15px;
-  font-weight: 600;
-  border-radius: 9999px;
-  border: none;
-  cursor: pointer;
-}
-
-.nav-btn:hover {
-  color: #e6f2ff;
-}
-
-.nav-btn.active {
-  color: #e6f2ff;
-  text-decoration: underline;
-}
     @media (max-width: 520px) {
       .page-wrapper {
         padding: 12px;
@@ -299,20 +215,6 @@
 </style>
 </head>
 <body>
-<div class="fixed-bar">
-  <div class="bar-inner">
-    <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-graduation-cap"></i>
-      </div>
-      <div class="brand-text">
-        <div class="brand-title">Con đường đam mê</div>
-        <div class="brand-sub">AI-Powered Learning Path</div>
-      </div>
-    </div>
-    <div class="nav-buttons" id="mainNavButtons"></div>
-  </div>
-</div>
   <div class="page-wrapper">
     <section class="card" aria-labelledby="registration-heading">
       <header>
@@ -380,44 +282,7 @@
       </div>
     </section>
   </div>
-<footer style="background: #1a202c; color: #e5e7eb; padding: 28px 20px 16px; margin-top: 40px;">
-  <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; margin-bottom: 20px;">
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 44px; height: 44px; background: #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div>
-          <div style="font-size: 18px; font-weight: 700; color: white;">Con đường đam mê</div>
-          <div style="font-size: 11px; color: #9ca3af;">AI-Powered Learning Path</div>
-        </div>
-      </div>
-      <p style="color: #9ca3af; line-height: 1.5; font-size: 13px; margin: 0;">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-    </div>
 
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Tính Năng</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="create_roadmap_page.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Tạo lộ trình với AI</a>
-        <a href="path.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Lưu trữ các lộ trình</a>
-        <a href="progress.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Theo dõi tiến độ</a>
-      </div>
-    </div>
-
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Hỗ Trợ</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Liên hệ</a>
-        <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Trung tâm trợ giúp</a>
-        <a href="#" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
-      </div>
-    </div>
-  </div>
-
-  <div style="max-width: 1200px; margin: 0 auto; padding-top: 16px; border-top: 1px solid #374151; text-align: center; color: #9ca3af; font-size: 13px;">
-    © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-  </div>
-</footer>
   <script>
     // DOM
     const registrationFormElement = document.getElementById('registrationForm');
@@ -690,45 +555,6 @@
     attachQuickValidationOnBlur();
     fullNameInputElement.focus();
     updatePasswordCriteriaVisual('');
-    // Load navigation buttons
-async function loadNavButtons() {
-  const navButtons = document.getElementById('mainNavButtons');
-  if (!navButtons) return;
-  
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role') || 'user';
-  
-  let navHtml = `<button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>`;
-  
-  if (token) {
-    navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
-    navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
-    if (role === 'admin') {
-      navHtml += `<button class="nav-btn" id="btnAdmin"><i class="fa-solid fa-user-shield"></i> Quản Trị</button>`;
-    }
-  } else {
-    navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
-    navHtml += `<button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>`;
-  }
-  
-  navButtons.innerHTML = navHtml;
-  
-  const btnHome = document.getElementById('btnHome');
-  if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-  
-  const btnPath = document.getElementById('btnPath');
-  if (btnPath) btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
-  
-  const btnProgress = document.getElementById('btnProgress');
-  if (btnProgress) btnProgress.addEventListener('click', () => { window.location.href = 'progress.html'; });
-  
-  const btnAdmin = document.getElementById('btnAdmin');
-  if (btnAdmin) btnAdmin.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
-}
-
-document.addEventListener('DOMContentLoaded', loadNavButtons);
   </script>
 </body>
 </html>
-
-
