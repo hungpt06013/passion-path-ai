@@ -49,25 +49,42 @@
       box-sizing: border-box;
     }
 
-    .brand {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
-    }
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    .brand-title {
-      color: white;
-      font-size: 20px;
-      font-weight: 700;
-    }
+.brand-icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 22px;
+  flex-shrink: 0;
+}
 
-    .brand-sub {
-      color: white;
-      font-size: 13px;
-      font-weight: 600;
-      opacity: 0.95;
-    }
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.brand-title {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.brand-sub {
+  color: rgba(255,255,255,0.9);
+  font-size: 12px;
+  font-weight: 600;
+}
 
     .toMain {
       background: #000;
@@ -333,10 +350,15 @@
 <body>
   <div class="fixed-bar">
     <div class="bar-inner">
-      <div class="brand">
-        <div class="brand-title">Lộ Trình Học Tập AI</div>
-        <div class="brand-sub">AI-Powered Learning Path</div>
-      </div>
+<div class="brand">
+  <div class="brand-icon">
+    <i class="fa-solid fa-graduation-cap"></i>
+  </div>
+  <div class="brand-text">
+    <div class="brand-title">Con đường đam mê</div>
+    <div class="brand-sub">AI-Powered Learning Path</div>
+  </div>
+</div>
 
       <div class="nav-buttons" id="navButtons">
         <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
@@ -385,7 +407,44 @@
       </div>
     </div>
   </main>
+<footer style="background: #1a202c; color: #e5e7eb; padding: 28px 20px 16px; margin-top: 40px;">
+  <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; margin-bottom: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 44px; height: 44px; background: #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <div style="font-size: 18px; font-weight: 700; color: white;">Con đường đam mê</div>
+          <div style="font-size: 11px; color: #9ca3af;">AI-Powered Learning Path</div>
+        </div>
+      </div>
+      <p style="color: #9ca3af; line-height: 1.5; font-size: 13px; margin: 0;">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+    </div>
 
+    <div>
+      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Tính Năng</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="create_roadmap_page.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Tạo lộ trình với AI</a>
+        <a href="path.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Lưu trữ các lộ trình</a>
+        <a href="progress.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Theo dõi tiến độ</a>
+      </div>
+    </div>
+
+    <div>
+      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Hỗ Trợ</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Liên hệ</a>
+        <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Trung tâm trợ giúp</a>
+        <a href="#" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
+      </div>
+    </div>
+  </div>
+
+  <div style="max-width: 1200px; margin: 0 auto; padding-top: 16px; border-top: 1px solid #374151; text-align: center; color: #9ca3af; font-size: 13px;">
+    © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+  </div>
+</footer>
   <script>
     const navButtonsWrapper = document.getElementById('navButtons');
     const btnPath = document.getElementById('btnPath');
@@ -552,3 +611,4 @@
   </script>
 </body>
 </html>
+
