@@ -927,200 +927,88 @@
         </div>
     </footer>
 
-    <script>
-        const loginBtn = document.querySelector(".login-btn");
-        const registerBtn = document.querySelector(".register-btn");
-        const userArea = document.getElementById("userArea");
-        const ADMIN_TOKEN = 'admin-token';
+<script>
+    const loginBtn = document.querySelector(".login-btn");
+    const registerBtn = document.querySelector(".register-btn");
+    const userArea = document.getElementById("userArea");
+    const ADMIN_TOKEN = 'admin-token';
 
-        // Color schemes for categories
-        const categoryColors = [
-            { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
-            { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
-            { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
-            { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
-            { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
-            { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' }
-        ];
+    // Color schemes for categories
+    const categoryColors = [
+        { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
+        { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
+        { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
+        { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
+        { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
+        { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' }
+    ];
 
-        function showAuthButtons() {
-            loginBtn.style.display = "inline-flex";
-            registerBtn.style.display = "inline-flex";
-            const children = Array.from(userArea.children);
-            children.forEach(c => {
-                if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-                    try {
-                        userArea.removeChild(c);
-                    } catch (e) {}
+    function showAuthButtons() {
+        loginBtn.style.display = "inline-flex";
+        registerBtn.style.display = "inline-flex";
+        const children = Array.from(userArea.children);
+        children.forEach(c => {
+            if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+                try {
+                    userArea.removeChild(c);
+                } catch (e) {}
+            }
+        });
+    }
+
+    loginBtn.addEventListener("click", () => {
+        window.location.href = "login.html";
+    });
+
+    registerBtn.addEventListener("click", () => {
+        window.location.href = "register.html";
+    });
+
+    function wireLogoutAndNav(logoutEl) {
+        if (logoutEl) {
+            logoutEl.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+
+                if (!document.querySelector('.login-btn')) {
+                    const b = document.createElement('button');
+                    b.className = 'login-btn';
+                    b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+                    b.addEventListener('click', () => window.location.href = 'login.html');
+                    userArea.appendChild(b);
                 }
+
+                if (!document.querySelector('.register-btn')) {
+                    const b2 = document.createElement('button');
+                    b2.className = 'register-btn';
+                    b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+                    b2.addEventListener('click', () => window.location.href = 'register.html');
+                    userArea.appendChild(b2);
+                }
+
+                showAuthButtons();
             });
         }
+    }
 
-        loginBtn.addEventListener("click", () => {
-            window.location.href = "login.html";
-        });
-
-        registerBtn.addEventListener("click", () => {
-            window.location.href = "register.html";
-        });
-
-        function wireLogoutAndNav(logoutEl) {
-            if (logoutEl) {
-                logoutEl.addEventListener('click', () => {
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('role');
-
-                    if (!document.querySelector('.login-btn')) {
-                        const b = document.createElement('button');
-                        b.className = 'login-btn';
-                        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
-                        b.addEventListener('click', () => window.location.href = 'login.html');
-                        userArea.appendChild(b);
-                    }
-
-                    if (!document.querySelector('.register-btn')) {
-                        const b2 = document.createElement('button');
-                        b2.className = 'register-btn';
-                        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
-                        b2.addEventListener('click', () => window.location.href = 'register.html');
-                        userArea.appendChild(b2);
-                    }
-
-                    showAuthButtons();
-                });
-            }
-        }
-        async function loadUser() {
-            const token = localStorage.getItem('token');
-            const navButtons = document.getElementById('mainNavButtons');
-            
-            // Reset navigation buttons
-            if (navButtons) {
-                navButtons.innerHTML = '';
-            }
-            
-            showAuthButtons();
-            if (!token) return;
-
-            let name = 'Người dùng';
-            let serverRole = 'user';
-
-            if (token === ADMIN_TOKEN) {
-                name = 'Admin';
-                serverRole = 'admin';
-                localStorage.setItem('role', 'admin');
-            } else {
-                try {
-                    const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-                    if (!res.ok) { 
-                        showAuthButtons(); 
-                        return; 
-                    }
-                    const data = await res.json();
-                    serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-                    name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-                    localStorage.setItem('role', serverRole);
-                } catch (err) {
-                    console.error(err);
-                    showAuthButtons();
-                    return;
-                }
-            }
-
-            if (document.querySelector('.login-btn')) {
-                document.querySelector('.login-btn').style.display = 'none';
-            }
-            if (document.querySelector('.register-btn')) {
-                document.querySelector('.register-btn').style.display = 'none';
-            }
-
-            userArea.innerHTML = `
-                <span>Xin chào <strong style="color:white;">${name}</strong></span>
-                <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    async function loadUser() {
+        const token = localStorage.getItem('token');
+        const navButtons = document.getElementById('mainNavButtons');
+        
+        // Luôn hiển thị navigation buttons ngay từ đầu
+        if (navButtons) {
+            navButtons.innerHTML = `
+                <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
+                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ trình học</button>
+                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến độ</button>
             `;
-            const logoutEl = document.getElementById('logout');
-            wireLogoutAndNav(logoutEl);
-
-            // Thêm navigation buttons
-            let navHtml = `
-                <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
-                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-            `;
-            if (serverRole === 'admin') {
-                navHtml += `
-                    <button class="nav-btn" id="btnAdmin"><i class="fa-solid fa-user-shield"></i> Quản Trị</button>
-                `;
-            }
-            navButtons.innerHTML = navHtml;
-
-            // Add event listeners
-            document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
-            document.getElementById('btnPath').addEventListener('click', () => { window.location.href = 'path.html'; });
-            document.getElementById('btnProgress').addEventListener('click', () => { window.location.href = 'progress.html'; });
-            if (serverRole === 'admin') {
-                document.getElementById('btnAdmin').addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
-            }
-
-            // Active state
-            const params = new URLSearchParams(window.location.search);
-            const page = params.get('page') || 'home';
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
-            const btnId = idMap[page];
-            if (btnId) {
-                const el = document.getElementById(btnId);
-                if (el) el.classList.add('active');
-            }
-        }
-        // Load top categories
-        async function loadTopCategories() {
-            try {
-                const res = await fetch('/api/categories/top', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!res.ok) throw new Error('Failed to load categories');
-                
-                const categories = await res.json();
-                const grid = document.getElementById('categoriesGrid');
-                
-                categories.forEach((cat, index) => {
-                    const colorScheme = categoryColors[index % categoryColors.length];
-                    const card = document.createElement('div');
-                    card.className = 'category-card';
-                    card.onclick = () => {
-                        window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
-                    };
-                    
-                    card.innerHTML = `
-                        <div class="category-icon" style="background: ${colorScheme.bg};">
-                            <i class="fa-solid ${colorScheme.icon}"></i>
-                        </div>
-                        <h3 class="category-name">${cat.name}</h3>
-                        <p class="category-desc">${cat.description}</p>
-                        <div class="category-stats">
-                            <span class="category-count">${cat.roadmap_count}+ lộ trình</span>
-                            <button class="category-btn">Xem chi tiết</button>
-                        </div>
-                    `;
-                    
-                    grid.appendChild(card);
-                });
-            } catch (err) {
-                console.error('Error loading categories:', err);
-            }
-        }
-
-        loadUser();
-        loadTopCategories();
-
-        const startBtn = document.getElementById('startNowBtn');
-        if (startBtn) {
-            startBtn.addEventListener('click', () => {
+            
+            // Add event listeners cho nav buttons
+            document.getElementById('btnHome').addEventListener('click', () => { 
+                window.location.href = 'main.html'; 
+            });
+            
+            document.getElementById('btnPath').addEventListener('click', () => { 
                 const token = localStorage.getItem('token');
                 if (!token) {
                     window.location.href = 'login.html';
@@ -1128,10 +1016,143 @@
                     window.location.href = 'path.html';
                 }
             });
+            
+            document.getElementById('btnProgress').addEventListener('click', () => { 
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                } else {
+                    window.location.href = 'progress.html';
+                }
+            });
         }
-    </script>
+        
+        showAuthButtons();
+        if (!token) return;
+
+        let name = 'Người dùng';
+        let serverRole = 'user';
+
+        if (token === ADMIN_TOKEN) {
+            name = 'Admin';
+            serverRole = 'admin';
+            localStorage.setItem('role', 'admin');
+        } else {
+            try {
+                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+                if (!res.ok) { 
+                    showAuthButtons(); 
+                    return; 
+                }
+                const data = await res.json();
+                serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+                name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+                localStorage.setItem('role', serverRole);
+            } catch (err) {
+                console.error(err);
+                showAuthButtons();
+                return;
+            }
+        }
+
+        if (document.querySelector('.login-btn')) {
+            document.querySelector('.login-btn').style.display = 'none';
+        }
+        if (document.querySelector('.register-btn')) {
+            document.querySelector('.register-btn').style.display = 'none';
+        }
+
+        userArea.innerHTML = `
+            <span>Xin chào <strong style="color:white;">${name}</strong></span>
+            <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+        `;
+        const logoutEl = document.getElementById('logout');
+        wireLogoutAndNav(logoutEl);
+
+        // Thêm nút Admin nếu là admin
+        if (serverRole === 'admin') {
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'nav-btn';
+            adminBtn.id = 'btnAdmin';
+            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản trị';
+            adminBtn.addEventListener('click', () => { 
+                window.location.href = 'admin.html?page=admin'; 
+            });
+            navButtons.appendChild(adminBtn);
+        }
+
+        // Active state
+        const params = new URLSearchParams(window.location.search);
+        const page = params.get('page') || 'home';
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+        const btnId = idMap[page];
+        if (btnId) {
+            const el = document.getElementById(btnId);
+            if (el) el.classList.add('active');
+        }
+    }
+
+    // Load top categories
+    async function loadTopCategories() {
+        try {
+            const res = await fetch('/api/categories/top', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to load categories');
+            
+            const categories = await res.json();
+            const grid = document.getElementById('categoriesGrid');
+            
+            categories.forEach((cat, index) => {
+                const colorScheme = categoryColors[index % categoryColors.length];
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.onclick = () => {
+                    window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
+                };
+                
+                card.innerHTML = `
+                    <div class="category-icon" style="background: ${colorScheme.bg};">
+                        <i class="fa-solid ${colorScheme.icon}"></i>
+                    </div>
+                    <h3 class="category-name">${cat.name}</h3>
+                    <p class="category-desc">${cat.description}</p>
+                    <div class="category-stats">
+                        <span class="category-count">${cat.roadmap_count}+ lộ trình</span>
+                        <button class="category-btn">Xem chi tiết</button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        } catch (err) {
+            console.error('Error loading categories:', err);
+        }
+    }
+
+    loadUser();
+    loadTopCategories();
+
+    const startBtn = document.getElementById('startNowBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'path.html';
+            }
+        });
+    }
+</script>
 </body>
 </html>
+
 
 
 
