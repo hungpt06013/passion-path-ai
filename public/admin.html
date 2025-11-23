@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quản Trị - App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản Trị - Con đường đam mê</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
     :root {
         --primary:#007bff;
         --primary-dark: #1e6fe6;
@@ -31,7 +31,6 @@
         -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Header / fixed bar styles (from first file) */
     .fixed-bar {
         position: fixed;
         top: 0;
@@ -175,7 +174,17 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.12);
     }
 
-    /* Footer (from first file) */
+    main {
+        margin-top: 135px;
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 30px 20px;
+        box-sizing: border-box;
+        position: relative;
+    }
+
+    /* Footer (rút gọn chiều cao) */
     footer {
         background: #1a202c;
         color: #e5e7eb;
@@ -296,22 +305,7 @@
         font-size: 13px;
     }
 
-    /* --------------------------------------------------
-       Admin page specific styles (kept & adjusted)
-       -------------------------------------------------- */
-    body {
-      background: #f5f5f5;
-      color: #0f172a;
-    }
-
-    .content {
-      margin-top: 135px;
-      padding: 28px;
-      max-width: 1100px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
+    /* Admin page specific styles (kept from admin file) */
     .card {
       background: #fff;
       padding: 20px;
@@ -323,11 +317,6 @@
     .small {
       color: #666;
       font-size: 14px;
-    }
-
-    .danger {
-      color: #b22222;
-      font-weight: 700;
     }
 
     .users-table {
@@ -447,12 +436,6 @@
       background: #f9fafb;
     }
 
-    .prompt-editor:focus {
-      outline: none;
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
     .prompt-preview {
       background: #f3f4f6;
       padding: 15px;
@@ -476,20 +459,12 @@
       margin-right: 10px;
     }
 
-    .btn-save:hover {
-      background: #059669;
-    }
-
     .btn-reset {
       background: #6b7280;
       color: white;
       padding: 10px 20px;
       border-radius: 8px;
       font-size: 14px;
-    }
-
-    .btn-reset:hover {
-      background: #4b5563;
     }
 
     .success-message {
@@ -543,10 +518,6 @@
             gap: 8px;
         }
 
-    .var-list li {
-            list-style: none;
-        }
-
     .warning {
             background: #fee2e2;
             color: #991b1b;
@@ -556,12 +527,6 @@
             margin-bottom: 20px;
             font-size: 0.9rem;
         }
-
-    @media (max-width:1100px) {
-        .headline {
-            font-size: 48px;
-        }
-    }
 
     @media (max-width:820px) {
         .bar-inner {
@@ -580,7 +545,7 @@
             justify-content: center;
         }
 
-        .content {
+        main {
             margin-top: 200px;
         }
 
@@ -588,257 +553,466 @@
             min-height: 240px;
         }
     }
-
-    @media (max-width:520px) {
-        .brand-title {
-            font-size: 16px;
-        }
-
-        .brand-sub {
-            font-size: 11px;
-        }
-
-        button {
-            font-size: 13px;
-            padding: 8px 14px;
-        }
-
-        .content {
-            padding: 20px 15px;
-        }
-    }
-  </style>
+    </style>
 </head>
 <body>
-  <!-- Header replaced with code from the first file -->
-  <div class="fixed-bar">
-      <div class="bar-inner">
-          <div class="brand">
-              <div class="brand-icon">
-                  <i class="fa-solid fa-graduation-cap"></i>
-              </div>
-              <div class="brand-text">
-                  <div class="brand-title">Con đường đam mê</div>
-                  <div class="brand-sub">AI-Powered Learning Path</div>
-              </div>
-          </div>
-          <div class="nav-buttons" id="mainNavButtons">
-          <!-- Buttons sẽ được thêm bằng JavaScript -->
-          </div>
-          <div id="userArea" class="userInfo">
-              <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-              <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-          </div>
-      </div>
-  </div>
-
-  <main class="content">
-    <div class="card" id="adminCard">
-      <h1>🛠️ Bảng Quản Trị</h1>
-      <p class="small">Quản lý người dùng, nội dung, phân quyền, báo cáo hệ thống...</p>
-
-      <section style="margin-top:14px;">
-        <h3>Quản lý người dùng</h3>
-        <p class="small">Hiển thị danh sách user, ban/unban, gán role...</p>
-
-        <div style="margin-top:10px;">
-          <button id="fetchUsersBtn" class="btn-refresh">
-            <i class="fa-solid fa-list"></i> Lấy danh sách users
-          </button>
+    <!-- Header exactly from the first file -->
+    <div class="fixed-bar">
+        <div class="bar-inner">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="brand-text">
+                    <div class="brand-title">Con đường đam mê</div>
+                    <div class="brand-sub">AI-Powered Learning Path</div>
+                </div>
+            </div>
+            <div class="nav-buttons" id="mainNavButtons">
+            <!-- Buttons sẽ được thêm bằng JavaScript -->
+            </div>
+            <div id="userArea" class="userInfo">
+                <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+                <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+            </div>
         </div>
-
-        <div id="usersArea"></div>
-        <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
-      </section>
     </div>
 
-    <section id="aiHistorySection" style="display:none;" class="card">
-      <h2>🤖 Lịch Sử Hỏi AI</h2>
-      <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
-      
-      <div style="margin: 15px 0;">
-        <button id="fetchAIHistoryBtn" class="btn-refresh">
-          <i class="fa-solid fa-sync"></i> Tải Lịch Sử
-        </button>
+    <main>
+      <div class="card" id="adminCard">
+        <h1>🛠️ Bảng Quản Trị</h1>
+        <p class="small">Quản lý người dùng, nội dung, phân quyền, báo cáo hệ thống...</p>
+
+        <section style="margin-top:14px;">
+          <h3>Quản lý người dùng</h3>
+          <p class="small">Hiển thị danh sách user, ban/unban, gán role...</p>
+
+          <div style="margin-top:10px;">
+            <button id="fetchUsersBtn" class="btn-refresh">
+              <i class="fa-solid fa-list"></i> Lấy danh sách users
+            </button>
+          </div>
+
+          <div id="usersArea"></div>
+          <div id="usersMessage" class="users-message" role="status" aria-live="polite"></div>
+        </section>
       </div>
-      
-      <div id="aiHistoryArea"></div>
-      <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
-    </section>
 
-    <section id="categoriesSection" style="display:none;" class="card">
-      <h2>📁 Quản Lý Danh Mục</h2>
-      <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
-      
-      <div style="margin: 15px 0;">
-        <button id="fetchCategoriesBtn" class="btn-refresh">
-          <i class="fa-solid fa-sync"></i> Tải Danh Mục
-        </button>
-        <button id="createCategoryBtn" class="create-btn" style="margin-left: 10px;">
-          <i class="fa-solid fa-plus"></i> Thêm Danh Mục
-        </button>
-      </div>
-      
-      <div id="categoriesArea"></div>
-      <div id="categoriesMessage" role="status" aria-live="polite"></div>
-    </section>
-
-    <section id="promptSection" style="display:none;" class="card">
-      <div class="panel">
-            <h2>Biến Bắt Buộc (Không Được Sửa)</h2>
-            
-            <div class="warning">
-                Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
-            </div>
-
-            <div class="info-text">
-                Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng
-            </div>
-
-            <ul class="var-list">
-                <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
-                <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
-                <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
-                <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
-                <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
-                <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
-                <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
-                <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
-                <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
-                <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
-                <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
-                <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
-                <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
-                <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
-                <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
-                <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
-                <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
-                <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
-                <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
-                <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
-                <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
-            </ul>
-        </div>
-
-        <div class="section-divider"></div>
-      <h2>📝 Quản Lý Prompt Template AI</h2>
-      <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI</p>
-      
-      <div id="promptMessage" role="status" aria-live="polite"></div>
-      
-      <div style="margin: 20px 0;">
-        <h3>✏️ Chỉnh Sửa Prompt</h3>
-        <textarea id="promptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
+      <section id="aiHistorySection" style="display:none;" class="card">
+        <h2>🤖 Lịch Sử Hỏi AI</h2>
+        <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
         
-        <div style="margin-top: 15px;">
-          <button id="savePromptBtn" class="btn-save">
-            <i class="fa-solid fa-save"></i> Lưu Prompt
-          </button>
-          <button id="resetPromptBtn" class="btn-reset">
-            <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
+        <div style="margin: 15px 0;">
+          <button id="fetchAIHistoryBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Lịch Sử
           </button>
         </div>
-      </div>
+        
+        <div id="aiHistoryArea"></div>
+        <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
+      </section>
 
-      <div style="margin: 20px 0;">
-        <h3>👁️ Nội Dung Prompt Mẫu</h3>
-        <div id="promptPreview" class="prompt-preview">Đang tải...</div>
-      </div>
-      <div style="margin: 20px 0;">
-        <h3>Định dạng AI trả về</h3>
-        <div id="jsonFormat" class="json-format"></div>
-      </div>
-    </section>
-  </main>
+      <section id="categoriesSection" style="display:none;" class="card">
+        <h2>📁 Quản Lý Danh Mục</h2>
+        <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
+        
+        <div style="margin: 15px 0;">
+          <button id="fetchCategoriesBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Danh Mục
+          </button>
+          <button id="createCategoryBtn" class="create-btn" style="margin-left: 10px;">
+            <i class="fa-solid fa-plus"></i> Thêm Danh Mục
+          </button>
+        </div>
+        
+        <div id="categoriesArea"></div>
+        <div id="categoriesMessage" role="status" aria-live="polite"></div>
+      </section>
 
-  <!-- Footer replaced with code from the first file -->
-  <footer>
-      <div class="footer-content">
-          <div class="footer-brand">
-              <div class="footer-logo">
-                  <div class="footer-logo-icon">
-                      <i class="fa-solid fa-graduation-cap"></i>
-                  </div>
-                  <div class="footer-logo-text">
-                      <div class="footer-logo-title">Con đường đam mê</div>
-                      <div class="footer-logo-sub">AI-Powered Learning Path</div>
-                  </div>
+      <section id="promptSection" style="display:none;" class="card">
+        <div class="panel">
+              <h2>Biến Bắt Buộc (Không Được Sửa)</h2>
+              
+              <div class="warning">
+                  Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
               </div>
-              <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+
+              <div class="info-text">
+                  Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng
+              </div>
+
+              <ul class="var-list">
+                  <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
+                  <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
+                  <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
+                  <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
+                  <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
+                  <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
+                  <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
+                  <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
+                  <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
+                  <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
+                  <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
+                  <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
+                  <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
+                  <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
+                  <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
+                  <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
+                  <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
+                  <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
+                  <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
+                  <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
+                  <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
+              </ul>
           </div>
 
-          <div class="footer-section">
-              <h3>Tính Năng</h3>
-              <div class="footer-links">
-                  <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                  <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                  <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
-              </div>
+          <div class="section-divider"></div>
+        <h2>📝 Quản Lý Prompt Template AI</h2>
+        <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI</p>
+        
+        <div id="promptMessage" role="status" aria-live="polite"></div>
+        
+        <div style="margin: 20px 0;">
+          <h3>✏️ Chỉnh Sửa Prompt</h3>
+          <textarea id="promptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
+          
+          <div style="margin-top: 15px;">
+            <button id="savePromptBtn" class="btn-save">
+              <i class="fa-solid fa-save"></i> Lưu Prompt
+            </button>
+            <button id="resetPromptBtn" class="btn-reset">
+              <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
+            </button>
           </div>
+        </div>
 
-          <div class="footer-section">
-              <h3>Hỗ Trợ</h3>
-              <div class="footer-links">
-                  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
-                  <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                  <a href="#" class="footer-link">Thu thập ý kiến</a>
-              </div>
-          </div>
-      </div>
+        <div style="margin: 20px 0;">
+          <h3>👁️ Nội Dung Prompt Mẫu</h3>
+          <div id="promptPreview" class="prompt-preview">Đang tải...</div>
+        </div>
+        <div style="margin: 20px 0;">
+          <h3>Định dạng AI trả về</h3>
+          <div id="jsonFormat" class="json-format"></div>
+        </div>
+      </section>
+    </main>
 
-      <div class="footer-bottom">
-          © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-      </div>
-  </footer>
+    <!-- Footer exactly from the first file -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">
+                        <div class="footer-logo-title">Con đường đam mê</div>
+                        <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                    </div>
+                </div>
+                <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Tính Năng</h3>
+                <div class="footer-links">
+                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+                </div>
+            </div>
+
+            <div class="footer-section">
+                <h3>Hỗ Trợ</h3>
+                <div class="footer-links">
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
+                    <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
+                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+        </div>
+    </footer>
 
   <script>
-    // Basic admin auth check (kept)
-    const token = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role');
-    if (!token) {
-      alert('Vui lòng đăng nhập để tiếp tục!');
-      window.location.replace('login.html');
-    } else if (storedRole !== 'admin') {
-      alert('Bạn không phải quản trị!');
-      window.location.replace('path.html');
+    // Header JS exactly from the first file (loadUser + helpers)
+    const loginBtn = document.querySelector(".login-btn");
+    const registerBtn = document.querySelector(".register-btn");
+    const userArea = document.getElementById("userArea");
+    const ADMIN_TOKEN = 'admin-token';
+
+    // Color schemes for categories (kept from first file though admin page may not use it)
+    const categoryColors = [
+        { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
+        { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
+        { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
+        { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
+        { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
+        { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' }
+    ];
+
+    function showAuthButtons() {
+        if (loginBtn) loginBtn.style.display = "inline-flex";
+        if (registerBtn) registerBtn.style.display = "inline-flex";
+        const children = Array.from(userArea.children);
+        children.forEach(c => {
+            if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+                try {
+                    userArea.removeChild(c);
+                } catch (e) {}
+            }
+        });
     }
 
-    // ============ Header-related setup: populate nav buttons into #mainNavButtons ============
-    (function populateMainNavForAdmin(){
-      const mainNav = document.getElementById('mainNavButtons');
-      if (!mainNav) return;
-      mainNav.innerHTML = `
-          <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
-          <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-          <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-          <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
-          <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh mục</button>
-          <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
-      `;
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+          window.location.href = "login.html";
+      });
+    }
+
+    if (registerBtn) {
+      registerBtn.addEventListener("click", () => {
+          window.location.href = "register.html";
+      });
+    }
+
+    function wireLogoutAndNav(logoutEl) {
+        if (logoutEl) {
+            logoutEl.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+
+                if (!document.querySelector('.login-btn')) {
+                    const b = document.createElement('button');
+                    b.className = 'login-btn';
+                    b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+                    b.addEventListener('click', () => window.location.href = 'login.html');
+                    userArea.appendChild(b);
+                }
+
+                if (!document.querySelector('.register-btn')) {
+                    const b2 = document.createElement('button');
+                    b2.className = 'register-btn';
+                    b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+                    b2.addEventListener('click', () => window.location.href = 'register.html');
+                    userArea.appendChild(b2);
+                }
+
+                showAuthButtons();
+            });
+        }
+    }
+
+    async function loadUser() {
+        const token = localStorage.getItem('token');
+        const navButtons = document.getElementById('mainNavButtons');
+        
+        // Luôn hiển thị navigation buttons ngay từ đầu
+        if (navButtons) {
+            navButtons.innerHTML = `
+                <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
+                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ trình học</button>
+                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến độ</button>
+                <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+                <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh mục</button>
+                <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
+            `;
+            
+            // Add event listeners cho nav buttons
+            const btnHome = document.getElementById('btnHome');
+            const btnPath = document.getElementById('btnPath');
+            const btnProgress = document.getElementById('btnProgress');
+            const btnAIHistory = document.getElementById('btnAIHistory');
+            const btnCategories = document.getElementById('btnCategories');
+            const btnPrompt = document.getElementById('btnPrompt');
+
+            if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+            if (btnPath) btnPath.addEventListener('click', () => { 
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                } else {
+                    window.location.href = 'path.html';
+                }
+            });
+            if (btnProgress) btnProgress.addEventListener('click', () => { 
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = 'login.html';
+                } else {
+                    window.location.href = 'progress.html';
+                }
+            });
+
+            if (btnAIHistory) btnAIHistory.addEventListener('click', () => {
+              // show AI history section in admin page
+              document.getElementById('aiHistorySection').style.display = 'block';
+              document.getElementById('categoriesSection').style.display = 'none';
+              document.getElementById('promptSection').style.display = 'none';
+              document.getElementById('adminCard').style.display = 'none';
+            });
+
+            if (btnCategories) btnCategories.addEventListener('click', () => {
+              document.getElementById('categoriesSection').style.display = 'block';
+              document.getElementById('aiHistorySection').style.display = 'none';
+              document.getElementById('promptSection').style.display = 'none';
+              document.getElementById('adminCard').style.display = 'none';
+            });
+
+            if (btnPrompt) btnPrompt.addEventListener('click', () => {
+              document.getElementById('promptSection').style.display = 'block';
+              document.getElementById('aiHistorySection').style.display = 'none';
+              document.getElementById('categoriesSection').style.display = 'none';
+              document.getElementById('adminCard').style.display = 'none';
+              loadPromptTemplate().catch(()=>{});
+            });
+        }
+        
+        showAuthButtons();
+        if (!token) return;
+
+        let name = 'Người dùng';
+        let serverRole = 'user';
+
+        if (token === ADMIN_TOKEN) {
+            name = 'Admin';
+            serverRole = 'admin';
+            localStorage.setItem('role', 'admin');
+        } else {
+            try {
+                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+                if (!res.ok) { 
+                    showAuthButtons(); 
+                    return; 
+                }
+                const data = await res.json();
+                serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+                name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+                localStorage.setItem('role', serverRole);
+            } catch (err) {
+                console.error(err);
+                showAuthButtons();
+                return;
+            }
+        }
+
+        if (document.querySelector('.login-btn')) {
+            document.querySelector('.login-btn').style.display = 'none';
+        }
+        if (document.querySelector('.register-btn')) {
+            document.querySelector('.register-btn').style.display = 'none';
+        }
+
+        userArea.innerHTML = `
+            <span>Xin chào <strong style="color:white;">${name}</strong></span>
+            <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+        `;
+        const logoutEl = document.getElementById('logout');
+        wireLogoutAndNav(logoutEl);
+
+        // Thêm nút Admin nếu là admin
+        if (serverRole === 'admin') {
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'nav-btn';
+            adminBtn.id = 'btnAdmin';
+            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản trị';
+            adminBtn.addEventListener('click', () => { 
+                // show admin card
+                document.getElementById('adminCard').style.display = 'block';
+                document.getElementById('aiHistorySection').style.display = 'none';
+                document.getElementById('categoriesSection').style.display = 'none';
+                document.getElementById('promptSection').style.display = 'none';
+            });
+            const navButtons = document.getElementById('mainNavButtons');
+            if (navButtons) navButtons.appendChild(adminBtn);
+        }
+
+        // Active state
+        const params = new URLSearchParams(window.location.search);
+        const page = params.get('page') || 'home';
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory', categories: 'btnCategories', prompt: 'btnPrompt' };
+        const btnId = idMap[page];
+        if (btnId) {
+            const el = document.getElementById(btnId);
+            if (el) el.classList.add('active');
+        }
+    }
+
+    // Load top categories (from first file) - kept but optional for admin
+    async function loadTopCategories() {
+        try {
+            const res = await fetch('/api/categories/top', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Failed to load categories');
+            
+            const categories = await res.json();
+            const grid = document.getElementById('categoriesArea');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const colorScheme = categoryColors[index % categoryColors.length];
+                const card = document.createElement('div');
+                card.className = 'history-card';
+                card.onclick = () => {
+                    window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
+                };
+                
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <div>
+                        <div style="font-weight:700;font-size:16px;">${escapeHtml(cat.name)}</div>
+                        <div style="color:${'var(--muted)'};font-size:13px;">${escapeHtml(cat.description || '')}</div>
+                      </div>
+                      <div style="text-align:right;color:var(--primary);font-weight:700;">${cat.roadmap_count || (cat.roadmap_count===0?0:'-')}</div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        } catch (err) {
+            console.error('Error loading categories:', err);
+        }
+    }
+
+    // Initialize header + categories
+    loadUser().catch((e)=>console.error(e));
+    loadTopCategories().catch(()=>{});
+
+    // ============ Admin page JS (user management, ai history, categories, prompt) ============
+    // The admin logic is preserved from the admin file you provided.
+
+    // Basic admin auth check (also keeps behavior consistent)
+    (function adminAuthCheck(){
+      const token = localStorage.getItem('token');
+      const storedRole = localStorage.getItem('role');
+      if (!token) {
+        alert('Vui lòng đăng nhập để tiếp tục!');
+        window.location.replace('login.html');
+      } else if (storedRole !== 'admin') {
+        alert('Bạn không phải quản trị!');
+        window.location.replace('path.html');
+      }
     })();
 
     // ============ DOM ELEMENTS ============
-    const navButtonsWrapper = document.getElementById('mainNavButtons');
-    const btnPath = document.getElementById('btnPath');
-    const btnProgress = document.getElementById('btnProgress');
-    const btnHome = document.getElementById('btnHome');
-    const btnAIHistory = document.getElementById('btnAIHistory');
-    const btnCategories = document.getElementById('btnCategories');
-    const btnPrompt = document.getElementById('btnPrompt');
-    
-    const adminCard = document.getElementById('adminCard');
-    const aiHistorySection = document.getElementById('aiHistorySection');
-    const categoriesSection = document.getElementById('categoriesSection');
-    const promptSection = document.getElementById('promptSection');
-    
     const fetchUsersBtn = document.getElementById('fetchUsersBtn');
     const usersArea = document.getElementById('usersArea');
     const usersMessage = document.getElementById('usersMessage');
-    
+
     const fetchAIHistoryBtn = document.getElementById('fetchAIHistoryBtn');
     const aiHistoryArea = document.getElementById('aiHistoryArea');
     const aiHistoryMessage = document.getElementById('aiHistoryMessage');
-    
+
     const fetchCategoriesBtn = document.getElementById('fetchCategoriesBtn');
     const createCategoryBtn = document.getElementById('createCategoryBtn');
     const categoriesArea = document.getElementById('categoriesArea');
@@ -851,67 +1025,7 @@
     const resetPromptBtn = document.getElementById('resetPromptBtn');
     const promptMessage = document.getElementById('promptMessage');
 
-    // ============ NAVIGATION ============
-    // Append Admin button into main nav if not present
-    (function ensureAdminNavButton(){
-      const existing = document.getElementById('btnAdmin');
-      if (!existing && navButtonsWrapper) {
-        const adminBtn = document.createElement('button');
-        adminBtn.className = 'nav-btn';
-        adminBtn.id = 'btnAdmin';
-        adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-        navButtonsWrapper.appendChild(adminBtn);
-
-        adminBtn.addEventListener('click', () => {
-          showSection('adminCard', adminBtn);
-        });
-      }
-    })();
-
-    function showSection(sectionId, activeBtn) {
-      adminCard.style.display = 'none';
-      aiHistorySection.style.display = 'none';
-      categoriesSection.style.display = 'none';
-      promptSection.style.display = 'none';
-      
-      document.getElementById(sectionId).style.display = 'block';
-      
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      if (activeBtn) activeBtn.classList.add('active');
-    }
-
-    if (btnPath) btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
-    if (btnProgress) btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
-    if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-    if (btnAIHistory) btnAIHistory.addEventListener('click', () => {
-      showSection('aiHistorySection', btnAIHistory);
-    });
-    if (btnCategories) btnCategories.addEventListener('click', () => {
-      showSection('categoriesSection', btnCategories);
-    });
-    if (btnPrompt) btnPrompt.addEventListener('click', () => {
-      showSection('promptSection', btnPrompt);
-      loadPromptTemplate();
-    });
-
-    // Set active state from URL
-    const params = new URLSearchParams(window.location.search);
-    const page = params.get('page') || 'admin';
-    const idMap = { 
-      path: 'btnPath', 
-      progress: 'btnProgress', 
-      admin: 'btnAdmin', 
-      aihistory: 'btnAIHistory',
-      categories: 'btnCategories',
-      prompt: 'btnPrompt'
-    };
-    const btnId = idMap[page];
-    if (btnId) {
-      const el = document.getElementById(btnId);
-      if (el) el.classList.add('active');
-    }
-
-    // ============ UTILITY FUNCTIONS ============
+    // Utility
     function fmtDate(iso) {
       try {
         if (!iso) return '-';
@@ -934,6 +1048,7 @@
     }
 
     function showMessage(message, type = 'info') {
+      if (!promptMessage) return;
       const msgDiv = document.createElement('div');
       msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
       msgDiv.textContent = message;
@@ -946,7 +1061,7 @@
       }, 3000);
     }
 
-    // ============ USER MANAGEMENT ============
+    // Users
     function renderUsersTable(users) {
       if (!Array.isArray(users) || users.length === 0) {
         usersArea.innerHTML = '<div class="muted">Không có user nào.</div>';
@@ -1094,18 +1209,20 @@
     }
 
     let fetchClickCount = 0;
-    fetchUsersBtn.addEventListener('click', async function() {
-      fetchClickCount++;
-      if (fetchClickCount % 2 === 1) {
-        await fetchUsersFromServerOrFallback();
-      } else {
-        usersArea.innerHTML = '';
-        usersMessage.textContent = 'Danh sách đã đóng.';
-        setTimeout(() => { usersMessage.textContent = ''; }, 1400);
-      }
-    });
+    if (fetchUsersBtn) {
+      fetchUsersBtn.addEventListener('click', async function() {
+        fetchClickCount++;
+        if (fetchClickCount % 2 === 1) {
+          await fetchUsersFromServerOrFallback();
+        } else {
+          usersArea.innerHTML = '';
+          usersMessage.textContent = 'Danh sách đã đóng.';
+          setTimeout(() => { usersMessage.textContent = ''; }, 1400);
+        }
+      });
+    }
 
-    // ============ AI HISTORY ============
+    // AI History
     function renderAIHistory(records, total) {
       if (!records || records.length === 0) {
         aiHistoryArea.innerHTML = '<div class="muted">Chưa có lịch sử nào</div>';
@@ -1148,43 +1265,45 @@
     }
 
     let fetchAIClickCount = 0;
-    fetchAIHistoryBtn.addEventListener('click', async function() {
-      fetchAIClickCount++;
-      
-      if (fetchAIClickCount % 2 === 1) {
-        aiHistoryMessage.textContent = 'Đang tải...';
-        fetchAIHistoryBtn.disabled = true;
+    if (fetchAIHistoryBtn) {
+      fetchAIHistoryBtn.addEventListener('click', async function() {
+        fetchAIClickCount++;
         
-        try {
-          const token = localStorage.getItem('token');
-          const res = await fetch('/api/admin/ai-history', {
-            headers: { 
-              'Authorization': 'Bearer ' + token,
-              'Cache-Control': 'no-cache'
-            }
-          });
+        if (fetchAIClickCount % 2 === 1) {
+          aiHistoryMessage.textContent = 'Đang tải...';
+          fetchAIHistoryBtn.disabled = true;
           
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          
-          const data = await res.json();
-          renderAIHistory(data.data, data.total);
-          aiHistoryMessage.textContent = `Đã tải ${data.data.length} bản ghi`;
-        } catch (err) {
-          console.error(err);
-          aiHistoryMessage.textContent = 'Lỗi khi tải lịch sử';
-          aiHistoryArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
-        } finally {
-          fetchAIHistoryBtn.disabled = false;
-          setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
+          try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('/api/admin/ai-history', {
+              headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Cache-Control': 'no-cache'
+              }
+            });
+            
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            
+            const data = await res.json();
+            renderAIHistory(data.data, data.total);
+            aiHistoryMessage.textContent = `Đã tải ${data.data.length} bản ghi`;
+          } catch (err) {
+            console.error(err);
+            aiHistoryMessage.textContent = 'Lỗi khi tải lịch sử';
+            aiHistoryArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+          } finally {
+            fetchAIHistoryBtn.disabled = false;
+            setTimeout(() => { aiHistoryMessage.textContent = ''; }, 2500);
+          }
+        } else {
+          aiHistoryArea.innerHTML = '';
+          aiHistoryMessage.textContent = 'Danh sách đã đóng.';
+          setTimeout(() => { aiHistoryMessage.textContent = ''; }, 1400);
         }
-      } else {
-        aiHistoryArea.innerHTML = '';
-        aiHistoryMessage.textContent = 'Danh sách đã đóng.';
-        setTimeout(() => { aiHistoryMessage.textContent = ''; }, 1400);
-      }
-    });
+      });
+    }
 
-    // ============ CATEGORIES MANAGEMENT ============
+    // Categories
     function renderCategories(categories) {
       if (!categories || categories.length === 0) {
         categoriesArea.innerHTML = '<div class="muted">Chưa có danh mục nào</div>';
@@ -1264,25 +1383,29 @@
     }
 
     let fetchCatClickCount = 0;
-    fetchCategoriesBtn.addEventListener('click', async function() {
-      fetchCatClickCount++;
-      
-      if (fetchCatClickCount % 2 === 1) {
-        await loadCategories();
-      } else {
-        categoriesArea.innerHTML = '';
-        categoriesMessage.textContent = 'Danh sách đã đóng.';
-        setTimeout(() => { categoriesMessage.textContent = ''; }, 1400);
-      }
-    });
+    if (fetchCategoriesBtn) {
+      fetchCategoriesBtn.addEventListener('click', async function() {
+        fetchCatClickCount++;
+        
+        if (fetchCatClickCount % 2 === 1) {
+          await loadCategories();
+        } else {
+          categoriesArea.innerHTML = '';
+          categoriesMessage.textContent = 'Danh sách đã đóng.';
+          setTimeout(() => { categoriesMessage.textContent = ''; }, 1400);
+        }
+      });
+    }
 
-    createCategoryBtn.addEventListener('click', () => {
-      const name = prompt('Tên danh mục mới:');
-      if (!name || !name.trim()) return;
-      
-      const description = prompt('Mô tả (có thể để trống):');
-      createCategory(name.trim(), description?.trim());
-    });
+    if (createCategoryBtn) {
+      createCategoryBtn.addEventListener('click', () => {
+        const name = prompt('Tên danh mục mới:');
+        if (!name || !name.trim()) return;
+        
+        const description = prompt('Mô tả (có thể để trống):');
+        createCategory(name.trim(), description?.trim());
+      });
+    }
 
     async function createCategory(name, description) {
       try {
@@ -1401,21 +1524,20 @@
       }
     };
 
-    // ============ PROMPT TEMPLATE MANAGEMENT ============
+    // Prompt Template Management
     async function loadPromptTemplate() {
       try {
-        promptEditor.disabled = true;
-        promptEditor.value = 'Đang tải...';
-        promptPreview.textContent = 'Đang tải...';
-        jsonFormat.textContent = 'Đang tải...';
+        if (promptEditor) promptEditor.disabled = true;
+        if (promptEditor) promptEditor.value = 'Đang tải...';
+        if (promptPreview) promptPreview.textContent = 'Đang tải...';
+        if (jsonFormat) jsonFormat.textContent = 'Đang tải...';
         
-        const token = localStorage.getItem('token');
         const res = await fetch('/api/admin/prompt', {
          method: 'POST',
          headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+         },
         });
         
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1423,105 +1545,110 @@
         const data = await res.json();
         
         if (data.success && data.data) {
-          promptEditor.value = data.data.prompt_template || '';
-          promptPreview.textContent = data.data.prompt_template || '';
-          jsonFormat.textContent = data.data.json_format_response || '';
+          if (promptEditor) promptEditor.value = data.data.prompt_template || '';
+          if (promptPreview) promptPreview.textContent = data.data.prompt_template || '';
+          if (jsonFormat) jsonFormat.textContent = data.data.json_format_response || '';
         } else {
           throw new Error('Không thể tải prompt template');
         }
       } catch (err) {
         console.error(err);
         showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
-        promptEditor.value = '';
-        promptPreview.textContent = 'Không thể tải prompt template';
+        if (promptEditor) promptEditor.value = '';
+        if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
       } finally {
-        promptEditor.disabled = false;
+        if (promptEditor) promptEditor.disabled = false;
       }
     }
 
-    savePromptBtn.addEventListener('click', async function() {
-      const content = promptEditor.value.trim();
-      
-      if (!content) {
-        showMessage('Prompt không được để trống', 'error');
-        return;
-      }
-      
-      if (!confirm('Bạn có chắc chắn muốn lưu prompt này?')) return;
-      
-      savePromptBtn.disabled = true;
-      savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-      
-      try {
-        const prompt = document.getElementById('promptEditor').value;
-
-        const res = await fetch('/api/admin/prompt/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        promptContent: prompt,
-                        jsonFormat: jsonFormat.textContent || ''
-                    })
-                })
+    if (savePromptBtn) {
+      savePromptBtn.addEventListener('click', async function() {
+        const content = promptEditor.value.trim();
         
-        const data = await res.json();
-        
-        if (data.success) {
-          showMessage('✅ Prompt đã được lưu thành công!', 'success');
-          promptPreview.textContent = content;
-        } else {
-          throw new Error(data.error || 'Lỗi khi lưu prompt');
+        if (!content) {
+          showMessage('Prompt không được để trống', 'error');
+          return;
         }
-      } catch (err) {
-        console.error(err);
-        showMessage('❌ ' + err.message, 'error');
-      } finally {
-        savePromptBtn.disabled = false;
-        savePromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt';
-      }
-    });
+        
+        if (!confirm('Bạn có chắc chắn muốn lưu prompt này?')) return;
+        
+        savePromptBtn.disabled = true;
+        savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+        
+        try {
+          const prompt = document.getElementById('promptEditor').value;
 
-resetPromptBtn.addEventListener('click', async function() {
-  if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
-  
-  resetPromptBtn.disabled = true;
-  resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
-  
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch('/api/admin/prompt-template/reset', {
-      method: 'POST',
-      headers: { 
-        'Authorization': 'Bearer ' + token
-      }
-    });
-    
-    const data = await res.json();
-    
-    if (data.success) {
-      showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
-      promptEditor.value = data.data.prompt_template;
-      promptPreview.textContent = data.data.prompt_template;
-      jsonFormat.textContent = data.data.json_format_response;
-    } else {
-      throw new Error(data.error || 'Lỗi khi khôi phục prompt');
+          const res = await fetch('/api/admin/prompt/save', {
+                      method: 'POST',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          'Authorization': `Bearer ${localStorage.getItem('token')}`
+                      },
+                      body: JSON.stringify({
+                          promptContent: prompt,
+                          jsonFormat: jsonFormat.textContent || ''
+                      })
+                  })
+          
+          const data = await res.json();
+          
+          if (data.success) {
+            showMessage('✅ Prompt đã được lưu thành công!', 'success');
+            promptPreview.textContent = content;
+          } else {
+            throw new Error(data.error || 'Lỗi khi lưu prompt');
+          }
+        } catch (err) {
+          console.error(err);
+          showMessage('❌ ' + err.message, 'error');
+        } finally {
+          savePromptBtn.disabled = false;
+          savePromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt';
+        }
+      });
     }
-  } catch (err) {
-    console.error(err);
-    showMessage('❌ ' + err.message, 'error');
-  } finally {
-    resetPromptBtn.disabled = false;
-    resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
-  }
-});
 
-    // ✅ FIX: Cập nhật preview khi user gõ trong editor
-    promptEditor.addEventListener('input', function() {
-      promptPreview.textContent = this.value;
-    });
+    if (resetPromptBtn) {
+      resetPromptBtn.addEventListener('click', async function() {
+        if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
+        
+        resetPromptBtn.disabled = true;
+        resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+        
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/admin/prompt-template/reset', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token
+            }
+          });
+          
+          const data = await res.json();
+          
+          if (data.success) {
+            showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
+            promptEditor.value = data.data.prompt_template;
+            promptPreview.textContent = data.data.prompt_template;
+            jsonFormat.textContent = data.data.json_format_response;
+          } else {
+            throw new Error(data.error || 'Lỗi khi khôi phục prompt');
+          }
+        } catch (err) {
+          console.error(err);
+          showMessage('❌ ' + err.message, 'error');
+        } finally {
+          resetPromptBtn.disabled = false;
+          resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+        }
+      });
+    }
+
+    if (promptEditor) {
+      promptEditor.addEventListener('input', function() {
+        if (promptPreview) promptPreview.textContent = this.value;
+      });
+    }
   </script>
 </body>
 </html>
