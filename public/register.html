@@ -28,7 +28,7 @@
     body {
       height: 100%;
       margin: 0;
-      background: linear-gradient(180deg, #f7faff 0%, #eef6ff 100%);
+      background: linear-gradient(135deg, #85ccff);
       color: #222;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -523,19 +523,93 @@
       updatePasswordCriteriaVisual('');
     }
 
-    function attachQuickValidationOnBlur() {
-      [fullNameInputElement, userNameInputElement, emailAddressInputElement, passwordInputElement, confirmPasswordInputElement]
-        .forEach(function(inputElement) {
-          inputElement.addEventListener('blur', function() {
-            validateFormInputs();
-          });
-        });
-
-      passwordInputElement.addEventListener('input', function() {
-        updatePasswordCriteriaVisual(passwordInputElement.value);
-      });
+function attachQuickValidationOnBlur() {
+  fullNameInputElement.addEventListener('blur', function() {
+    if (fullNameInputElement.value.trim() || fullNameInputElement.dataset.touched) {
+      fullNameInputElement.dataset.touched = 'true';
+      const val = fullNameInputElement.value.trim();
+      if (!val) {
+        fullNameErrorElement.textContent = 'Vui lòng nhập họ và tên.';
+        fullNameErrorElement.hidden = false;
+      } else if (val.length < 2) {
+        fullNameErrorElement.textContent = 'Họ và tên phải có ít nhất 2 ký tự.';
+        fullNameErrorElement.hidden = false;
+      } else {
+        fullNameErrorElement.hidden = true;
+      }
     }
+  });
 
+  userNameInputElement.addEventListener('blur', function() {
+    if (userNameInputElement.value.trim() || userNameInputElement.dataset.touched) {
+      userNameInputElement.dataset.touched = 'true';
+      const val = userNameInputElement.value.trim();
+      if (!val) {
+        userNameErrorElement.textContent = 'Vui lòng nhập tên đăng nhập.';
+        userNameErrorElement.hidden = false;
+      } else if (!/^[a-zA-Z0-9._-]{3,30}$/.test(val)) {
+        userNameErrorElement.textContent = 'Tên đăng nhập chỉ được chứa chữ, số, . _ - và 3–30 ký tự.';
+        userNameErrorElement.hidden = false;
+      } else {
+        userNameErrorElement.hidden = true;
+      }
+    }
+  });
+
+  emailAddressInputElement.addEventListener('blur', function() {
+    if (emailAddressInputElement.value.trim() || emailAddressInputElement.dataset.touched) {
+      emailAddressInputElement.dataset.touched = 'true';
+      const val = emailAddressInputElement.value.trim();
+      if (!val) {
+        emailAddressErrorElement.textContent = 'Vui lòng nhập địa chỉ email.';
+        emailAddressErrorElement.hidden = false;
+      } else if (!isEmailValid(val)) {
+        emailAddressErrorElement.textContent = 'Email không hợp lệ.';
+        emailAddressErrorElement.hidden = false;
+      } else {
+        emailAddressErrorElement.hidden = true;
+      }
+    }
+  });
+
+  passwordInputElement.addEventListener('blur', function() {
+    if (passwordInputElement.value || passwordInputElement.dataset.touched) {
+      passwordInputElement.dataset.touched = 'true';
+      const val = passwordInputElement.value;
+      if (!val) {
+        passwordErrorElement.textContent = 'Vui lòng nhập mật khẩu.';
+        passwordErrorElement.hidden = false;
+      } else {
+        const hasUpper = /[A-Z]/.test(val);
+        const hasLower = /[a-z]/.test(val);
+        const hasDigit = /[0-9]/.test(val);
+        const hasSpecial = /[^A-Za-z0-9]/.test(val);
+        if (val.length < 8 || !hasUpper || !hasLower || !hasDigit || !hasSpecial) {
+          passwordErrorElement.textContent = 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.';
+          passwordErrorElement.hidden = false;
+        } else {
+          passwordErrorElement.hidden = true;
+        }
+      }
+    }
+  });
+
+  confirmPasswordInputElement.addEventListener('blur', function() {
+    if (confirmPasswordInputElement.value || confirmPasswordInputElement.dataset.touched) {
+      confirmPasswordInputElement.dataset.touched = 'true';
+      if (confirmPasswordInputElement.value !== passwordInputElement.value) {
+        confirmPasswordErrorElement.textContent = 'Mật khẩu xác nhận không khớp.';
+        confirmPasswordErrorElement.hidden = false;
+      } else {
+        confirmPasswordErrorElement.hidden = true;
+      }
+    }
+  });
+
+  passwordInputElement.addEventListener('input', function() {
+    updatePasswordCriteriaVisual(passwordInputElement.value);
+  });
+}
     // --- IMPORTANT: ensure immediate navigation on first interaction ---
     // Pointerdown (or mousedown) fires BEFORE blur; navigate on primary pointer down.
     if (loginLinkElement) {
