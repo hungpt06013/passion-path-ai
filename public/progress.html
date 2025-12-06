@@ -7,11 +7,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
+    html, body {
+  height: 100%;
+  margin: 0;
+}
     body {
       margin: 0;
       font-family: 'Inter', sans-serif;
       background: #f5f5f5;
+        display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
     }
+    main {
+  flex: 1 0 auto;  /* Quan trọng nhất! */
+  box-sizing: border-box;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: calc(var(--header-height) + 20px);
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
     button {
       font-family: 'Inter', sans-serif;
@@ -25,34 +44,50 @@
       font-size: 15px;
       font-weight: 600;
     }
+footer {
+  flex-shrink: 0;  /* Quan trọng! */
+  background: #1a202c;
+  color: #e5e7eb;
+  padding: 28px 20px 16px;
+  margin-top: 40px;
+}
+:root {
+  --primary: #007bff;
+  --primary-dark: #1e6fe6;
+  --muted: #6b7280;
+  --bg: #f5f8fb;
+  --header-height: 80px;
+}
 
-    .fixed-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background: #007bff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 10;
-    }
+.fixed-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  background: var(--primary);
+  box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+  z-index: 50;
+}
 
-    .bar-inner {
-      max-width: 1200px;
-      height: 100%;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 40px;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
+.bar-inner {
+  max-width: 1200px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  box-sizing: border-box;
+  gap: 16px;
+}
 
 .brand {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .brand-icon {
@@ -71,55 +106,115 @@
 .brand-text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  line-height: 1;
+  min-width: 0;
 }
 
 .brand-title {
   color: white;
   font-size: 20px;
   font-weight: 700;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.05;
 }
 
 .brand-sub {
   color: rgba(255,255,255,0.9);
   font-size: 12px;
   font-weight: 600;
+  white-space: normal;
+  line-height: 1;
 }
 
-    .toMain {
-      background: #000;
-      color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 12px 4px 6px;
+  min-width: 0;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  gap: 22px;
+}
 
-    .toMain:hover {
-      background: #222;
-    }
+.nav-buttons::-webkit-scrollbar { 
+  height: 6px; 
+}
 
-    .nav-buttons {
-      display: flex;
-      gap: 22px;
-      align-items: center;
-    }
+.nav-buttons::-webkit-scrollbar-thumb { 
+  background: rgba(0, 0, 0, 0.12); 
+  border-radius: 6px; 
+}
 
-    .nav-btn {
-      background: none;
-      color: #fff;
-      padding: 0;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 9999px;
-    }
+.nav-btn {
+  background: none;
+  color: #fff;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .nav-btn .fa {
-      margin-right: 8px;
-      opacity: 0.95;
-    }
+.nav-btn .fa {
+  margin-right: 4px;
+  opacity: 0.95;
+}
 
-    .nav-btn.active {
-      color: #e6f2ff;
-      text-decoration: underline;
-    }
+.nav-btn.active {
+  color: #e6f2ff;
+  text-decoration: underline;
+}
+
+.userInfo {
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.login-btn {
+  background: white;
+  color: #333;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.login-btn:hover {
+  background: #f0f0f0;
+}
+
+.register-btn {
+  background: #28a745;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.register-btn:hover {
+  background: #218838;
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.admin-btn {
+  background: #6f42c1;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
 
     .content {
       margin-top: 110px;
@@ -348,25 +443,26 @@
   </style>
 </head>
 <body>
-  <div class="fixed-bar">
-    <div class="bar-inner">
-<div class="brand">
-  <div class="brand-icon">
-    <i class="fa-solid fa-graduation-cap"></i>
-  </div>
-  <div class="brand-text">
-    <div class="brand-title">Con đường đam mê</div>
-    <div class="brand-sub">AI-Powered Learning Path</div>
-  </div>
-</div>
-
-      <div class="nav-buttons" id="navButtons">
-        <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
-        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+<div class="fixed-bar">
+  <div class="bar-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Con đường đam mê</div>
+        <div class="brand-sub">AI-Powered Learning Path</div>
       </div>
     </div>
+    <div class="nav-buttons" id="mainNavButtons">
+      <!-- Buttons sẽ được thêm bằng JavaScript -->
+    </div>
+    <div id="userArea" class="userInfo">
+      <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+      <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+    </div>
   </div>
+</div>
 
   <main class="content">
     <div class="card">
@@ -446,36 +542,170 @@
   </div>
 </footer>
   <script>
-    const navButtonsWrapper = document.getElementById('navButtons');
-    const btnPath = document.getElementById('btnPath');
-    const btnProgress = document.getElementById('btnProgress');
-    const btnHome = document.getElementById('btnHome');
-
-    btnPath.addEventListener('click', () => { window.location.href = 'path.html'; });
-    btnProgress.addEventListener('click', () => { window.location.href = 'progress.html?page=progress'; });
-    btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-
-    // Show admin button if admin
-    const role = localStorage.getItem('role');
-    if (role === 'admin') {
-      const adminBtn = document.createElement('button');
-      adminBtn.className = 'nav-btn';
-      adminBtn.id = 'btnAdmin';
-      adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-      navButtonsWrapper.appendChild(adminBtn);
-      adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+const loginBtn = document.querySelector(".login-btn");
+const registerBtn = document.querySelector(".register-btn");
+const userArea = document.getElementById("userArea");
+const ADMIN_TOKEN = 'admin-token';
+const token = localStorage.getItem('token');
+if (!token) {
+  window.location.href = 'login.html';
+} 
+function showAuthButtons() {
+  if (loginBtn) loginBtn.style.display = "inline-flex";
+  if (registerBtn) registerBtn.style.display = "inline-flex";
+  const children = Array.from(userArea.children);
+  children.forEach(c => {
+    if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+      try {
+        userArea.removeChild(c);
+      } catch (e) {}
     }
+  });
+}
 
-    // Active state
-    const params = new URLSearchParams(window.location.search);
-    const page = params.get('page') || 'progress';
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
-    const btnId = idMap[page];
-    if (btnId) {
-      const el = document.getElementById(btnId);
-      if (el) el.classList.add('active');
+if (loginBtn) {
+  loginBtn.addEventListener("click", () => {
+    window.location.href = "login.html";
+  });
+}
+
+if (registerBtn) {
+  registerBtn.addEventListener("click", () => {
+    window.location.href = "register.html";
+  });
+}
+
+function wireLogoutAndNav(logoutEl) {
+  if (logoutEl) {
+    logoutEl.addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+
+      if (!document.querySelector('.login-btn')) {
+        const b = document.createElement('button');
+        b.className = 'login-btn';
+        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+        b.addEventListener('click', () => window.location.href = 'login.html');
+        userArea.appendChild(b);
+      }
+
+      if (!document.querySelector('.register-btn')) {
+        const b2 = document.createElement('button');
+        b2.className = 'register-btn';
+        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+        b2.addEventListener('click', () => window.location.href = 'register.html');
+        userArea.appendChild(b2);
+      }
+
+      showAuthButtons();
+    });
+  }
+}
+
+async function loadUser() {
+  const token = localStorage.getItem('token');
+  const navButtons = document.getElementById('mainNavButtons');
+  
+  // Luôn hiển thị navigation buttons ngay từ đầu
+  if (navButtons) {
+    navButtons.innerHTML = `
+      <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+      <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+      <button class="nav-btn active" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+    `;
+    
+    // Add event listeners cho nav buttons
+    document.getElementById('btnHome').addEventListener('click', () => { 
+      window.location.href = 'main.html'; 
+    });
+    
+    document.getElementById('btnPath').addEventListener('click', () => { 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+      } else {
+        window.location.href = 'path.html';
+      }
+    });
+    
+    document.getElementById('btnProgress').addEventListener('click', () => { 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+      } else {
+        window.location.href = 'progress.html';
+      }
+    });
+  }
+  
+  showAuthButtons();
+  if (!token) return;
+
+  let name = 'Người dùng';
+  let serverRole = 'user';
+
+  if (token === ADMIN_TOKEN) {
+    name = 'Admin';
+    serverRole = 'admin';
+    localStorage.setItem('role', 'admin');
+  } else {
+    try {
+      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+      if (!res.ok) { 
+        showAuthButtons(); 
+        return; 
+      }
+      const data = await res.json();
+      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+      name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+      localStorage.setItem('role', serverRole);
+    } catch (err) {
+      console.error(err);
+      showAuthButtons();
+      return;
     }
+  }
+
+  if (document.querySelector('.login-btn')) {
+    document.querySelector('.login-btn').style.display = 'none';
+  }
+  if (document.querySelector('.register-btn')) {
+    document.querySelector('.register-btn').style.display = 'none';
+  }
+
+  userArea.innerHTML = `
+    <span>Xin chào <strong style="color:white;">${name}</strong></span>
+    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+  `;
+  const logoutEl = document.getElementById('logout');
+  wireLogoutAndNav(logoutEl);
+
+  // Thêm nút Admin nếu là admin
+  if (serverRole === 'admin') {
+    const adminBtn = document.createElement('button');
+    adminBtn.className = 'nav-btn';
+    adminBtn.id = 'btnAdmin';
+    adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+    adminBtn.addEventListener('click', () => { 
+      window.location.href = 'admin.html?page=admin'; 
+    });
+    navButtons.appendChild(adminBtn);
+  }
+
+  // Active state
+  const params = new URLSearchParams(window.location.search);
+  const page = params.get('page') || 'progress';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+  const btnId = idMap[page];
+  if (btnId) {
+    const el = document.getElementById(btnId);
+    if (el) el.classList.add('active');
+  }
+}
+
+// Initialize
+loadUser().catch((e)=>console.error(e));
 
     // ============ XỬ LÝ PROGRESS ============
     function getAuthHeaders() {
@@ -602,13 +832,12 @@
     });
 
     // Check auth và load dữ liệu
-    const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = 'login.html';
-    } else {
-      loadProgress();
-    }
+// Check auth và load dữ liệu
+if (!token) {
+  window.location.href = 'login.html';
+} else {
+  loadProgress();
+}
   </script>
 </body>
 </html>
-
