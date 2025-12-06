@@ -4016,27 +4016,30 @@ app.get('/api/roadmapsystem/category/:categoryName', async (req, res) => {
 // =====================================================
 // API: Lấy chi tiết 1 lộ trình system
 // =====================================================
+// Tìm dòng này trong server.js (khoảng dòng 1180)
 app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
   try {
     const { roadmapId } = req.params;
     
     const query = `
       SELECT 
-        roadmap_id,
-        roadmap_name,
-        category,
-        sub_category,
-        start_level,
-        total_user_learning,
-        duration_days,
-        duration_hours,
-        overall_rating,
-        learning_effectiveness,
-        created_at,
-        updated_at,
-        roadmap_analyst
-      FROM learning_roadmaps_system
-      WHERE roadmap_id = $1
+        lr.roadmap_id,
+        lr.roadmap_name,
+        lr.category,
+        lr.sub_category,
+        lr.start_level,
+        lr.total_user_learning,
+        lr.duration_days,
+        lr.duration_hours,
+        lr.overall_rating,
+        lr.learning_effectiveness,
+        lr.created_at,
+        lr.updated_at,
+        lr.roadmap_analyst,
+        c.id as category_id  -- ✅ THÊM DÒNG NÀY
+      FROM learning_roadmaps_system lr
+      LEFT JOIN categories c ON c.name = lr.category  -- ✅ THÊM JOIN
+      WHERE lr.roadmap_id = $1
     `;
     
     const result = await pool.query(query, [roadmapId]);
