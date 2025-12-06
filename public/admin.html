@@ -12,14 +12,13 @@
         --primary-dark: #1e6fe6;
         --muted: #6b7280;
         --bg: #f5f8fb;
+        --header-height: 80px;
     }
 
-    html, 
-    body {
-        height: 100%;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
+html, body {
+  height: 100%;
+  margin: 0;
+}
 
     body {
         margin: 0;
@@ -29,7 +28,11 @@
         color: #0f172a;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-    }
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
     .fixed-bar {
         position: fixed;
@@ -42,6 +45,7 @@
         z-index: 50;
     }
 
+    /* Layout container - keeps content centered but lets nav expand */
     .bar-inner {
         max-width: 1200px;
         height: 100%;
@@ -49,14 +53,18 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 40px;
+        padding: 0 20px;
         box-sizing: border-box;
+        gap: 16px;
     }
 
+    /* Brand (left) */
     .brand {
         display: flex;
         align-items: center;
         gap: 12px;
+        flex: 0 0 auto; /* không co dãn, giữ vị trí bên trái */
+        min-width: 0;
     }
 
     .brand-icon {
@@ -75,38 +83,64 @@
     .brand-text {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
+        line-height: 1;
+        min-width: 0;
     }
 
+    /* Cho phép brand-title và brand-sub hiển thị 2 dòng (như yêu cầu) */
     .brand-title {
         color: white;
         font-size: 20px;
         font-weight: 700;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.05;
     }
 
     .brand-sub {
         color: rgba(255,255,255,0.9);
         font-size: 12px;
         font-weight: 600;
+        white-space: normal;
+        line-height: 1;
     }
 
-    .nav-buttons {
-        display: flex;
-        gap: 22px;
-        align-items: center;
-    }
+    /* Nav buttons (giữa) - chiếm không gian còn lại, giữ tất cả trên 1 hàng */
+/* Thay thế .nav-buttons hiện tại bằng đoạn này */
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* <-- đặt các nút sát về phía bên trái (sau logo) */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 12px 4px 6px;    /* padding-left nhỏ để tách logo và nút */
+    min-width: 0;
+    white-space: nowrap;          /* giữ tất cả trên 1 hàng */
+    flex-wrap: nowrap;
+}
+
+
+    /* Ẩn scrollbar ngang nhỏ trên desktop nếu muốn (không bắt buộc) */
+    .nav-buttons::-webkit-scrollbar { height: 6px; }
+    .nav-buttons::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 6px; }
 
     .nav-btn {
         background: none;
         color: #fff;
-        padding: 0;
+        padding: 6px 12px;
         font-size: 15px;
         font-weight: 600;
         border-radius: 9999px;
+        white-space: nowrap;      /* verhindert wrap của chữ trong nút */
+        flex-shrink: 0;           /* không thu nhỏ nút */
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }
 
     .nav-btn .fa {
-        margin-right: 8px;
+        margin-right: 4px;
         opacity: 0.95;
     }
 
@@ -115,6 +149,18 @@
         text-decoration: underline;
     }
 
+    /* User area (phải) */
+    .userInfo {
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 0 0 auto; /* giữ nguyên kích thước, không co dãn */
+        min-width: 0;
+    }
+
+    /* Buttons chung */
     button {
         font-family: 'Inter', sans-serif;
         cursor: pointer;
@@ -123,17 +169,10 @@
         gap: 8px;
         border: none;
         border-radius: 9999px;
-        padding: 10px 20px;
+        padding: 10px 18px;
         font-size: 15px;
         font-weight: 600;
-    }
-
-    .userInfo {
-        color: white;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        background: transparent;
     }
 
     .login-btn {
@@ -174,15 +213,17 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.12);
     }
 
-    main {
-        margin-top: 135px;
-        max-width: 1200px;
-        margin-left: auto;
-        margin-right: auto;
-        padding: 30px 20px;
-        box-sizing: border-box;
-        position: relative;
-    }
+main {
+  flex: 1 0 auto;
+  box-sizing: border-box;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: calc(var(--header-height) + 20px); /* bù header + khoảng cách */
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
     /* Footer (rút gọn chiều cao) */
     footer {
@@ -190,8 +231,10 @@
         color: #e5e7eb;
         padding: 28px 20px 16px;
         margin-top: 40px;
+        flex-shrink: 0;
     }
 
+    /* (các phần CSS khác giữ nguyên) */
     .footer-content {
         max-width: 1200px;
         margin: 0 auto;
@@ -552,6 +595,13 @@
         .prompt-editor {
             min-height: 240px;
         }
+
+        /* Trên mobile cho phép nav xuống dòng để dễ thao tác */
+        .nav-buttons {
+            overflow-x: visible;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
     }
     </style>
 </head>
@@ -813,11 +863,11 @@
         // Luôn hiển thị navigation buttons ngay từ đầu
         if (navButtons) {
             navButtons.innerHTML = `
-                <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>
-                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ trình học</button>
-                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến độ</button>
+                <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
                 <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
-                <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh mục</button>
+                <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
                 <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
             `;
             
@@ -918,7 +968,7 @@
             const adminBtn = document.createElement('button');
             adminBtn.className = 'nav-btn';
             adminBtn.id = 'btnAdmin';
-            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản trị';
+            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
             adminBtn.addEventListener('click', () => { 
                 // show admin card
                 document.getElementById('adminCard').style.display = 'block';
@@ -1652,4 +1702,3 @@
   </script>
 </body>
 </html>
-
