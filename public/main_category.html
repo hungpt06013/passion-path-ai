@@ -7,77 +7,176 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-
+        :root {
+        --primary:#007bff;
+        --primary-dark: #1e6fe6;
+        --muted: #6b7280;
+        --bg: #f5f8fb;
+        --header-height: 80px;
+    }
+html, body {
+  height: 100%;
+  margin: 0;
+}
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1f2937; }
+    body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1f2937; 
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+  }
+    main {
+  flex: 1 0 auto;  /* Quan trọng nhất! */
+  box-sizing: border-box;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: calc(var(--header-height) + 20px);
+  padding-left: 20px;
+  padding-right: 20px;
+}
 
-    /* Header - replaced with fixed-bar styles */
     .fixed-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background: #007bff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-      z-index: 10;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 80px;
+        background: var(--primary);
+        box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+        z-index: 50;
     }
 
     .bar-inner {
-      max-width: 1200px;
-      height: 100%;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 40px;
-      padding: 0 20px;
-      box-sizing: border-box;
+        max-width: 1200px;
+        height: 100%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
     }
 
-    /* Brand is NOT clickable (div, not anchor) */
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .brand-icon {
-      width: 48px;
-      height: 48px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 22px;
-      flex-shrink: 0;
+        width: 48px;
+        height: 48px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 22px;
+        flex-shrink: 0;
     }
 
     .brand-text {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 
-    .brand-title { color: white; font-size: 20px; font-weight: 700; }
-    .brand-sub { color: rgba(255,255,255,0.9); font-size: 12px; font-weight: 600; }
-
-    .nav-buttons { display: flex; gap: 22px; align-items: center; margin-left: 40px; }
-    .nav-btn, .nav-item {
-      background: none;
-      color: #fff;
-      padding: 0;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 9999px;
-      text-decoration: none;
-      cursor: pointer;
-      border: none;
+    .brand-title {
+        color: white;
+        font-size: 20px;
+        font-weight: 700;
     }
-    .nav-btn:hover, .nav-item:hover { color: #e6f2ff; }
 
+    .brand-sub {
+        color: rgba(255,255,255,0.9);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .nav-buttons {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+    }
+
+    .nav-btn {
+        background: none;
+        color: #fff;
+        padding: 0;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 9999px;
+    }
+
+    .nav-btn .fa {
+        margin-right: 8px;
+        opacity: 0.95;
+    }
+
+    .nav-btn.active {
+        color: #e6f2ff;
+    }
+
+    button {
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        border-radius: 9999px;
+        padding: 10px 20px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .userInfo {
+        color: white;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .login-btn {
+        background: white;
+        color: #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    .login-btn:hover {
+        background: #f0f0f0;
+    }
+
+    .register-btn {
+        background: #28a745;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    .register-btn:hover {
+        background: #218838;
+    }
+
+    .logout-btn {
+        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    .toApp-btn {
+        background: #000;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    .admin-btn {
+        background: #6f42c1;
+        color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
     /* Adjust page content to account for fixed header */
     .page-offset { padding-top: 100px; /* header height + spacing */ }
 
@@ -88,7 +187,7 @@
     /* Breadcrumb */
     .breadcrumb { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; }
     .breadcrumb a { color: #6b7280; text-decoration: none; transition: color 0.2s; }
-    .breadcrumb a:hover { color: #4f46e5; }
+    .breadcrumb a:hover { color: #007bff; }
     .breadcrumb .current { color: #1f2937; font-weight: 600; }
 
     .page-header { max-width: 1200px; margin: 32px auto; padding: 0 24px; }
@@ -97,19 +196,19 @@
 
     .category-stats { display: flex; gap: 32px; align-items: center; }
     .stat-badge { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .stat-badge i { color: #4f46e5; font-size: 18px; }
+    .stat-badge i { color: #007bff; font-size: 18px; }
     .stat-badge span { font-weight: 600; color: #1f2937; }
 
     .filters { max-width: 1200px; margin: 0 auto 32px; padding: 0 24px; display: flex; gap: 16px; align-items: center; }
     .filter-group { display: flex; gap: 8px; align-items: center; }
     .filter-label { font-size: 14px; font-weight: 600; color: #4b5563; }
     .filter-select { padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: border-color 0.2s; }
-    .filter-select:focus { outline: none; border-color: #4f46e5; }
+    .filter-select:focus { outline: none; border-color: #007bff; }
 
     .roadmaps { max-width: 1200px; margin: 0 auto 80px; padding: 0 24px; }
     .roadmaps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
     .roadmap-card { background: white; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
-    .roadmap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: #4f46e5; }
+    .roadmap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: #007bff; }
     .roadmap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
     .roadmap-level { padding: 6px 12px; background: #dbeafe; color: #1e40af; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
     .roadmap-level.intermediate { background: #fef3c7; color: #92400e; }
@@ -126,11 +225,11 @@
     .learner-count { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; }
     .learner-avatars { display: flex; margin-left: -4px; }
     .learner-avatar { width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; background: linear-gradient(135deg, #667eea, #764ba2); margin-left: -8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 700; }
-    .view-btn { padding: 10px 20px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
+    .view-btn { padding: 10px 20px; background: linear-gradient(135deg, #007bff, #1e40af); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; }
     .view-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
 
     .loading { text-align: center; padding: 60px 24px; color: #6b7280; }
-    .spinner { width: 48px; height: 48px; margin: 0 auto 20px; border: 4px solid #e5e7eb; border-top-color: #4f46e5; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    .spinner { width: 48px; height: 48px; margin: 0 auto 20px; border: 4px solid #e5e7eb; border-top-color: #007bff; border-radius: 50%; animation: spin 0.8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .empty-state { text-align: center; padding: 80px 24px; }
@@ -139,12 +238,13 @@
     .empty-state p { color: #6b7280; font-size: 16px; }
 
     /* Footer */
-    footer {
-        background: #1a202c;
-        color: #e5e7eb;
-        padding: 28px 20px 16px;
-        margin-top: 40px;
-    }
+footer {
+  flex-shrink: 0;  /* Quan trọng! */
+  background: #1a202c;
+  color: #e5e7eb;
+  padding: 28px 20px 16px;
+  margin-top: 40px;
+}
 
     .footer-content {
         max-width: 1200px;
@@ -271,23 +371,26 @@
 </head>
 <body>
   <!-- Header (brand is NOT clickable) -->
-  <div class="fixed-bar">
-    <div class="bar-inner">
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div class="brand-text">
-          <div class="brand-title">Con đường đam mê</div>
-          <div class="brand-sub">AI-Powered Learning Path</div>
-        </div>
+<div class="fixed-bar">
+  <div class="bar-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
       </div>
-
-      <div class="nav-buttons" id="mainNavButtons">
-        <!-- Buttons sẽ được thêm bằng JavaScript -->
+      <div class="brand-text">
+        <div class="brand-title">Con đường đam mê</div>
+        <div class="brand-sub">AI-Powered Learning Path</div>
       </div>
     </div>
+    <div class="nav-buttons" id="mainNavButtons">
+      <!-- Buttons sẽ được thêm bằng JavaScript -->
+    </div>
+    <div id="userArea" class="userInfo">
+      <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+      <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+    </div>
   </div>
+</div>
 
   <div class="page-offset">
     <!-- Breadcrumb -->
@@ -352,46 +455,201 @@
   </div>
 
   <!-- Footer (copied) -->
-  <footer>
-    <div class="footer-content">
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <div class="footer-logo-icon">
-            <i class="fa-solid fa-graduation-cap"></i>
-          </div>
-          <div class="footer-logo-text">
-            <div class="footer-logo-title">Học Tập Thông Minh</div>
-            <div class="footer-logo-sub">AI-Powered Learning Platform</div>
-          </div>
-        </div>
-        <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-      </div>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="footer-logo-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div class="footer-logo-text">
+                        <div class="footer-logo-title">Con đường đam mê</div>
+                        <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                    </div>
+                </div>
+                <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+                <!--<div class="footer-social">
+                    <a href="#" class="social-icon"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>-->
+            </div>
 
-      <div class="footer-section">
-        <h3>Tính Năng</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">Phân tích AI</a>
-          <a href="#" class="footer-link">Lộ trình cá nhân</a>
-          <a href="#" class="footer-link">Theo dõi tiến độ</a>
-        </div>
-      </div>
+            <div class="footer-section">
+                <h3>Tính Năng</h3>
+                <div class="footer-links">
+                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+                </div>
+            </div>
 
-      <div class="footer-section">
-        <h3>Hỗ Trợ</h3>
-        <div class="footer-links">
-          <a href="#" class="footer-link">Trung tâm trợ giúp</a>
-          <a href="#" class="footer-link">Liên hệ</a>
-          <a href="#" class="footer-link">Thu thập ý kiến</a>
+            <div class="footer-section">
+                <h3>Hỗ Trợ</h3>
+                <div class="footer-links">
+                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
+                    <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
+                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <div class="footer-bottom">
-      © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-    </div>
-  </footer>
+        <div class="footer-bottom">
+            © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+        </div>
+    </footer>
 
   <script>
+    const loginBtn = document.querySelector(".login-btn");
+const registerBtn = document.querySelector(".register-btn");
+const userArea = document.getElementById("userArea");
+const ADMIN_TOKEN = 'admin-token';
+
+function showAuthButtons() {
+  if (loginBtn) loginBtn.style.display = "inline-flex";
+  if (registerBtn) registerBtn.style.display = "inline-flex";
+  const children = Array.from(userArea.children);
+  children.forEach(c => {
+    if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+      try {
+        userArea.removeChild(c);
+      } catch (e) {}
+    }
+  });
+}
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", () => {
+    window.location.href = "login.html";
+  });
+}
+
+if (registerBtn) {
+  registerBtn.addEventListener("click", () => {
+    window.location.href = "register.html";
+  });
+}
+
+function wireLogoutAndNav(logoutEl) {
+  if (logoutEl) {
+    logoutEl.addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+
+      if (!document.querySelector('.login-btn')) {
+        const b = document.createElement('button');
+        b.className = 'login-btn';
+        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+        b.addEventListener('click', () => window.location.href = 'login.html');
+        userArea.appendChild(b);
+      }
+
+      if (!document.querySelector('.register-btn')) {
+        const b2 = document.createElement('button');
+        b2.className = 'register-btn';
+        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+        b2.addEventListener('click', () => window.location.href = 'register.html');
+        userArea.appendChild(b2);
+      }
+
+      showAuthButtons();
+    });
+  }
+}
+
+async function loadUser() {
+  const token = localStorage.getItem('token');
+  const navButtons = document.getElementById('mainNavButtons');
+  
+  // Luôn hiển thị navigation buttons ngay từ đầu
+  if (navButtons) {
+    navButtons.innerHTML = `
+      <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+      <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+      <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+    `;
+    
+    // Add event listeners cho nav buttons
+    document.getElementById('btnHome').addEventListener('click', () => { 
+      window.location.href = 'main.html'; 
+    });
+    
+    document.getElementById('btnPath').addEventListener('click', () => { 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+      } else {
+        window.location.href = 'path.html';
+      }
+    });
+    
+    document.getElementById('btnProgress').addEventListener('click', () => { 
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+      } else {
+        window.location.href = 'progress.html';
+      }
+    });
+  }
+  
+  showAuthButtons();
+  if (!token) return;
+
+  let name = 'Người dùng';
+  let serverRole = 'user';
+
+  if (token === ADMIN_TOKEN) {
+    name = 'Admin';
+    serverRole = 'admin';
+    localStorage.setItem('role', 'admin');
+  } else {
+    try {
+      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+      if (!res.ok) { 
+        showAuthButtons(); 
+        return; 
+      }
+      const data = await res.json();
+      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+      name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+      localStorage.setItem('role', serverRole);
+    } catch (err) {
+      console.error(err);
+      showAuthButtons();
+      return;
+    }
+  }
+
+  if (document.querySelector('.login-btn')) {
+    document.querySelector('.login-btn').style.display = 'none';
+  }
+  if (document.querySelector('.register-btn')) {
+    document.querySelector('.register-btn').style.display = 'none';
+  }
+
+  userArea.innerHTML = `
+    <span>Xin chào <strong style="color:white;">${name}</strong></span>
+    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+  `;
+  const logoutEl = document.getElementById('logout');
+  wireLogoutAndNav(logoutEl);
+
+
+  // Active state
+  const params = new URLSearchParams(window.location.search);
+  const page = params.get('page') || 'progress';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
+  const btnId = idMap[page];
+  if (btnId) {
+    const el = document.getElementById(btnId);
+    if (el) el.classList.add('active');
+  }
+}
+
+// Initialize
+loadUser().catch((e)=>console.error(e));
     const API_BASE_URL = 'http://localhost:3000/api';
     let currentPage = 1;
     let currentCategory = '';
@@ -459,48 +717,48 @@
       document.getElementById('totalLearners').textContent = `${totalLearners.toLocaleString()} học viên`;
     }
 
-    function renderRoadmaps() {
-      const grid = document.getElementById('roadmapsGrid');
-      if (!filteredRoadmaps || filteredRoadmaps.length === 0) {
-        showEmptyState();
-        return;
-      }
-      document.getElementById('emptyState').style.display = 'none';
-      grid.innerHTML = filteredRoadmaps.map(roadmap => {
-        const levelClass = roadmap.start_level === 'Intermediate' ? 'intermediate' : roadmap.start_level === 'Advanced' ? 'advanced' : '';
-        const levelText = roadmap.start_level === 'Beginner' ? 'Cơ bản' : roadmap.start_level === 'Intermediate' ? 'Trung cấp' : roadmap.start_level === 'Advanced' ? 'Nâng cao' : roadmap.start_level;
-        return `
-          <div class="roadmap-card" onclick="viewRoadmapDetails(${roadmap.roadmap_id})">
-            <div class="roadmap-header">
-              <span class="roadmap-level ${levelClass}">${levelText}</span>
-            </div>
-            <h3>${escapeHtml(roadmap.roadmap_name)}</h3>
-            <div class="roadmap-meta">
-              <div class="meta-item"><i class="fas fa-calendar"></i><span>${roadmap.duration_days} ngày</span></div>
-              <div class="meta-item"><i class="fas fa-clock"></i><span>${roadmap.duration_hours}h</span></div>
-              ${roadmap.sub_category ? `<div class="meta-item"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
-            </div>
-            ${roadmap.overall_rating || roadmap.learning_effectiveness ? `
-              <div class="roadmap-rating">
-                ${roadmap.overall_rating ? `<div class="rating-item"><span class="rating-stars">⭐</span><span class="rating-value">${roadmap.overall_rating.toFixed(1)}</span><span style="color: #9ca3af;">Tổng thể</span></div>` : ''}
-                ${roadmap.learning_effectiveness ? `<div class="rating-item"><span class="rating-stars">📈</span><span class="rating-value">${roadmap.learning_effectiveness.toFixed(1)}</span><span style="color: #9ca3af;">Hiệu quả</span></div>` : ''}
-              </div>
-            ` : ''}
-            <div class="roadmap-footer">
-              <div class="learner-count">
-                <div class="learner-avatars">
-                  <div class="learner-avatar">👤</div>
-                  <div class="learner-avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">👤</div>
-                  <div class="learner-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">👤</div>
-                </div>
-                <span>${roadmap.total_user_learning || 0}+ đang học</span>
-              </div>
-              <button class="view-btn" onclick="event.stopPropagation(); viewRoadmapDetails(${roadmap.roadmap_id})">Xem chi tiết</button>
-            </div>
+function renderRoadmaps() {
+  const grid = document.getElementById('roadmapsGrid');
+  if (!filteredRoadmaps || filteredRoadmaps.length === 0) {
+    showEmptyState();
+    return;
+  }
+  document.getElementById('emptyState').style.display = 'none';
+  grid.innerHTML = filteredRoadmaps.map(roadmap => {
+    const levelClass = roadmap.start_level === 'Intermediate' ? 'intermediate' : roadmap.start_level === 'Advanced' ? 'advanced' : '';
+    const levelText = roadmap.start_level === 'Beginner' ? 'Cơ bản' : roadmap.start_level === 'Intermediate' ? 'Trung cấp' : roadmap.start_level === 'Advanced' ? 'Nâng cao' : roadmap.start_level;
+    return `
+      <div class="roadmap-card" onclick="viewRoadmapDetails(${roadmap.roadmap_id})">
+        <div class="roadmap-header">
+          <span class="roadmap-level ${levelClass}">${levelText}</span>
+        </div>
+        <h3>${escapeHtml(roadmap.roadmap_name)}</h3>
+        <div class="roadmap-meta">
+          <div class="meta-item"><i class="fas fa-calendar"></i><span>${roadmap.duration_days} ngày</span></div>
+          <div class="meta-item"><i class="fas fa-clock"></i><span>${roadmap.duration_hours}h</span></div>
+          ${roadmap.sub_category ? `<div class="meta-item"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
+        </div>
+        ${roadmap.overall_rating || roadmap.learning_effectiveness ? `
+          <div class="roadmap-rating">
+            ${roadmap.overall_rating ? `<div class="rating-item"><span class="rating-stars">⭐</span><span class="rating-value">${Number(roadmap.overall_rating).toFixed(1)}</span><span style="color: #9ca3af;">Tổng thể</span></div>` : ''}
+            ${roadmap.learning_effectiveness ? `<div class="rating-item"><span class="rating-stars">📈</span><span class="rating-value">${Number(roadmap.learning_effectiveness).toFixed(1)}</span><span style="color: #9ca3af;">Hiệu quả</span></div>` : ''}
           </div>
-        `;
-      }).join('');
-    }
+        ` : ''}
+        <div class="roadmap-footer">
+          <div class="learner-count">
+            <div class="learner-avatars">
+              <div class="learner-avatar">👤</div>
+              <div class="learner-avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">👤</div>
+              <div class="learner-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">👤</div>
+            </div>
+            <span>${roadmap.total_user_learning || 0}+ đang học</span>
+          </div>
+          <button class="view-btn" onclick="event.stopPropagation(); viewRoadmapDetails(${roadmap.roadmap_id})">Xem chi tiết</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
     function viewRoadmapDetails(roadmapId) {
       window.location.href = `roadmap_details.html?id=${roadmapId}`;
