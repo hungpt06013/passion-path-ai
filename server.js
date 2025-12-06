@@ -11,7 +11,30 @@ import OpenAI from "openai";
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
-import dns from 'dns/promises';
+// Force IPv4 only when running on Render (ENV: RENDER=true)
+import dns from 'dns';
+
+if (process.env.RENDER) {
+  console.log("🌐 Render detected → forcing IPv4 for Supabase...");
+  const originalLookup = dns.lookup.bind(dns);
+
+  dns.lookup = function (hostname, options, callback) {
+    // Nếu là host Supabase → ép IPv4
+    if (typeof hostname === "string" && hostname.includes(".supabase.co")) {
+      if (typeof options === "function") {
+        callback = options;
+        options = { family: 4 };
+      } else if (!options || typeof options !== "object") {
+        options = { family: 4 };
+      } else {
+        options.family = 4;
+      }
+    }
+
+    return originalLookup(hostname, options, callback);
+  };
+}
+
 async function createPoolFromDatabaseUrl() {
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not set');
