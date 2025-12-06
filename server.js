@@ -11,105 +11,8 @@ import OpenAI from "openai";
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
-// Force IPv4 only when running on Render (ENV: RENDER=true)
-import dns from 'dns';
 
-if (process.env.RENDER) {
-  console.log("🌐 Render detected → forcing IPv4 for Supabase...");
-  const originalLookup = dns.lookup.bind(dns);
-
-  dns.lookup = function (hostname, options, callback) {
-    // Nếu là host Supabase → ép IPv4
-    if (typeof hostname === "string" && hostname.includes(".supabase.co")) {
-      if (typeof options === "function") {
-        callback = options;
-        options = { family: 4 };
-      } else if (!options || typeof options !== "object") {
-        options = { family: 4 };
-      } else {
-        options.family = 4;
-      }
-    }
-
-    return originalLookup(hostname, options, callback);
-  };
-}
-
-async function createPoolFromDatabaseUrl() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not set');
-  }
-
-  const url = new URL(process.env.DATABASE_URL);
-  const hostname = url.hostname;
-  const port = url.port ? Number(url.port) : 5432;
-  const database = url.pathname ? url.pathname.slice(1) : 'postgres';
-  const user = url.username;
-  const password = decodeURIComponent(url.password || '');
-
-  let hostToUse = hostname;
-  try {
-    // Ưu tiên lookup IPv4
-    const res = await dns.lookup(hostname, { family: 4 });
-    hostToUse = res.address;
-    console.log('✅ Resolved IPv4 for', hostname, '->', hostToUse);
-  } catch (err) {
-    console.warn('⚠️ IPv4 lookup failed, will fall back to hostname:', err.message);
-    hostToUse = hostname;
-  }
-
-  const pool = new Pool({
-    host: hostToUse,
-    port,
-    user,
-    password,
-    database,
-    ssl: { rejectUnauthorized: false },
-    // tùy bạn có muốn set max/idleTimeout...
-  });
-
-  // Test connection nhanh
-  try {
-    await pool.query('SELECT 1');
-    console.log('✅ DB pool created and tested OK (host used:', hostToUse + ')');
-  } catch (err) {
-    console.error('❌ DB test query failed:', err);
-    throw err;
-  }
-
-  return pool;
-}
-
-// Khởi тialize pool từ DATABASE_URL hoặc config
-let pool;
-(async () => {
-  try {
-    pool = await createPoolFromDatabaseUrl();
-    globalThis.__PG_POOL__ = pool;
-  } catch (e) {
-    console.error('DB init error:', e);
-    process.exit(1);
-  }
-})();
 dotenv.config();
-// debug DATABASE_URL (an toàn: không in password)
-if (process.env.DATABASE_URL) {
-  try {
-    const u = new URL(process.env.DATABASE_URL);
-    console.log('✅ DATABASE_URL present — host:', u.hostname, 'port:', u.port || '5432');
-    // thêm DNS lookup debug (non-blocking)
-    import('dns').then(dns => {
-      dns.lookup(u.hostname, (err, address, family) => {
-        if (err) return console.warn('⚠️ DNS lookup failed for', u.hostname, err.message);
-        console.log('✅ DNS resolved:', u.hostname, '->', address, 'family', family);
-      });
-    }).catch(e => console.warn('dns import failed', e.message));
-  } catch (e) {
-    console.warn('❌ DATABASE_URL parse error:', e.message);
-  }
-} else {
-  console.warn('❌ DATABASE_URL is NOT set');
-}
 
 const app = express();
 import cors from "cors";
@@ -168,6 +71,22 @@ if (fs.existsSync(publicDir)) {
 } else {
   console.warn(`⚠️ Static folder not found: ${publicDir} – static files WILL NOT be served`);
 }
+
+// Postgres pool
+let poolConfig = {};
+if (process.env.DATABASE_URL) {
+  poolConfig.connectionString = process.env.DATABASE_URL;
+  if (process.env.PGSSLMODE === "require") poolConfig.ssl = { rejectUnauthorized: false };
+} else {
+  poolConfig = {
+    user: process.env.DB_USER || process.env.PGUSER || "postgres",
+    host: process.env.DB_HOST || process.env.PGHOST || "localhost",
+    database: process.env.DB_NAME || process.env.PGDATABASE || "myapp",
+    password: process.env.DB_PASSWORD || process.env.PGPASSWORD || "",
+    port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10),
+  };
+}
+const pool = new Pool(poolConfig);
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
