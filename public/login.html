@@ -189,16 +189,40 @@
         font-size: 16px;
       }
     }
+    .back-btn {
+  background: transparent;
+  border: 1px solid rgba(10,20,40,0.12);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(10,20,40,0.04);
+  border-color: rgba(10,20,40,0.18);
+}
 </style>
 </head>
 <body>
   <main class="page">
     <section class="card" aria-labelledby="login-heading">
       <header>
+        
+<div style="margin-bottom: 16px;">
+  <button type="button" id="backButton" class="back-btn">
+    ← Quay lại
+  </button>
+</div>
         <h1 id="login-heading">Đăng nhập</h1>
         <p class="lead">Đăng nhập bằng tên đăng nhập hoặc email. Nhập ít nhất 1 trong 2 (cả hai cũng được) và mật khẩu.</p>
       </header>
-
       <form id="loginForm" novalidate>
         <div class="form-row">
           <label for="loginUsernameInput">Tên đăng nhập</label>
@@ -373,6 +397,12 @@
     toggleBtn.addEventListener('click', togglePassword);
     document.getElementById('registerLink').addEventListener('click', (ev)=>{ ev.preventDefault(); window.location.href = '/register.html'; });
     inpUser.focus();
+    const backButton = document.getElementById('backButton');
+if (backButton) {
+  backButton.addEventListener('click', () => {
+    window.location.href = '/main.html';
+  });
+}
   </script>
 </body>
 </html>
