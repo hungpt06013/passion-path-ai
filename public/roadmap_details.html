@@ -445,9 +445,9 @@ footer {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -498,30 +498,14 @@ if (registerBtn) {
 }
 
 function wireLogoutAndNav(logoutEl) {
-  if (logoutEl) {
-    logoutEl.addEventListener('click', () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-
-      if (!document.querySelector('.login-btn')) {
-        const b = document.createElement('button');
-        b.className = 'login-btn';
-        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
-        b.addEventListener('click', () => window.location.href = 'login.html');
-        userArea.appendChild(b);
-      }
-
-      if (!document.querySelector('.register-btn')) {
-        const b2 = document.createElement('button');
-        b2.className = 'register-btn';
-        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
-        b2.addEventListener('click', () => window.location.href = 'register.html');
-        userArea.appendChild(b2);
-      }
-
-      showAuthButtons();
-    });
-  }
+  if (!logoutEl) return;
+  logoutEl.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    
+    // ✅ REDIRECT VỀ MAIN.HTML NGAY LẬP TỨC
+    window.location.href = 'main.html';
+  });
 }
 
 async function loadUser() {
