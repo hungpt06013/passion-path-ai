@@ -1230,10 +1230,6 @@
     // (Phần script giữ nguyên hoàn toàn từ path.html gốc)
     // Mình chèn nguyên các hàm chính: fetchRoadmaps, renderRoadmaps, displayRoadmapDetails,
     // updateStatus, submitEvaluation, upload handling, setupNavigation, initApp, v.v.
-const token = localStorage.getItem('token');
-if (!token) {
-  window.location.href = 'login.html';
-}
     let currentRoadmapId = null;
     let evaluationData = {};
     let allRoadmaps = [];
@@ -1428,10 +1424,10 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
 
     function displayRoadmapDetails(roadmap, details) {
         // Chỉ hiển thị phân tích AI nếu có nội dung phân tích (không phải từ Excel upload)
-        const analysisHTML = roadmap.roadmap_analyst_text && roadmap.roadmap_analyst_text.trim() !== '' ? `
+        const analysisHTML = roadmap.roadmap_analyst && roadmap.roadmap_analyst.trim() !== '' ? `
             <div class="analysis-section">
                 <h3>📊 Phân Tích AI</h3>
-                <div class="analysis-content">${roadmap.roadmap_analyst_text}</div>
+                <div class="analysis-content">${roadmap.roadmap_analyst}</div>
             </div>
         ` : '';
 
@@ -1693,13 +1689,13 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
 
       if (btnPath) {
         btnPath.addEventListener('click', () => { 
-          window.location.href = 'path.html?page=path'; 
+          window.location.href = 'auth-check.html?target=path.html';
         });
       }
 
       if (btnProgress) {
         btnProgress.addEventListener('click', () => { 
-          window.location.href = 'progress.html?page=progress'; 
+          window.location.href = 'auth-check.html?target=progress.html';
         });
       }
 
@@ -1999,14 +1995,14 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>-->
         </div>
 
-        <div class="footer-section">
-            <h3>Tính Năng</h3>
-            <div class="footer-links">
-                <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+            <div class="footer-section">
+                <h3>Tính Năng</h3>
+                <div class="footer-links">
+                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
+                </div>
             </div>
-        </div>
 
         <div class="footer-section">
             <h3>Hỗ Trợ</h3>
@@ -2046,30 +2042,9 @@ function wireLogoutAndNav(logoutEl) {
   logoutEl.addEventListener('click', () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
-
-    // nếu nút login/register bị remove thì recreate
-    const userArea = document.getElementById('userArea') || document.querySelector('.userInfo');
-    if (userArea) {
-      if (!userArea.querySelector('.login-btn')) {
-        const b = document.createElement('button');
-        b.className = 'login-btn';
-        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
-        b.addEventListener('click', () => window.location.href = 'login.html');
-        userArea.appendChild(b);
-      }
-      if (!userArea.querySelector('.register-btn')) {
-        const b2 = document.createElement('button');
-        b2.className = 'register-btn';
-        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
-        b2.addEventListener('click', () => window.location.href = 'register.html');
-        userArea.appendChild(b2);
-      }
-
-      // show lại 2 nút
-      const loginBtn = userArea.querySelector('.login-btn');
-      const registerBtn = userArea.querySelector('.register-btn');
-      showAuthButtons(userArea, loginBtn, registerBtn);
-    }
+    
+    // ✅ REDIRECT VỀ MAIN.HTML NGAY LẬP TỨC
+    window.location.href = 'main.html';
   });
 }
 
@@ -2152,12 +2127,7 @@ if (document.readyState === 'loading') {
 } else {
   loadUser();
 }
-if (!token) {
-  window.location.href = 'login.html';
-} 
 </script>
 
 </body>
 </html>
-
-
