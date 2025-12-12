@@ -521,9 +521,9 @@ footer {
     <div>
       <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Tính Năng</h3>
       <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="create_roadmap_page.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Tạo lộ trình với AI</a>
-        <a href="path.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Lưu trữ các lộ trình</a>
-        <a href="progress.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Theo dõi tiến độ</a>
+        <a href="auth-check.html?target=create_roadmap_page.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Tạo lộ trình với AI</a>
+        <a href="auth-check.html?target=path.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Lưu trữ các lộ trình</a>
+        <a href="auth-check.html?target=progress.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Theo dõi tiến độ</a>
       </div>
     </div>
 
@@ -576,30 +576,14 @@ if (registerBtn) {
 }
 
 function wireLogoutAndNav(logoutEl) {
-  if (logoutEl) {
-    logoutEl.addEventListener('click', () => {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-
-      if (!document.querySelector('.login-btn')) {
-        const b = document.createElement('button');
-        b.className = 'login-btn';
-        b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
-        b.addEventListener('click', () => window.location.href = 'login.html');
-        userArea.appendChild(b);
-      }
-
-      if (!document.querySelector('.register-btn')) {
-        const b2 = document.createElement('button');
-        b2.className = 'register-btn';
-        b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
-        b2.addEventListener('click', () => window.location.href = 'register.html');
-        userArea.appendChild(b2);
-      }
-
-      showAuthButtons();
-    });
-  }
+  if (!logoutEl) return;
+  logoutEl.addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    
+    // ✅ REDIRECT VỀ MAIN.HTML NGAY LẬP TỨC
+    window.location.href = 'main.html';
+  });
 }
 
 async function loadUser() {
