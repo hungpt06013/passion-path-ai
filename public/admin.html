@@ -766,9 +766,9 @@ main {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -834,7 +834,7 @@ main {
             logoutEl.addEventListener('click', () => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('role');
-
+                window.location.href = 'main.html';
                 if (!document.querySelector('.login-btn')) {
                     const b = document.createElement('button');
                     b.className = 'login-btn';
@@ -1036,7 +1036,7 @@ main {
 
     // Initialize header + categories
     loadUser().catch((e)=>console.error(e));
-    loadTopCategories().catch(()=>{});
+    //loadTopCategories().catch(()=>{});
 
     // ============ Admin page JS (user management, ai history, categories, prompt) ============
     // The admin logic is preserved from the admin file you provided.
@@ -1050,7 +1050,7 @@ main {
         window.location.replace('login.html');
       } else if (storedRole !== 'admin') {
         alert('Bạn không phải quản trị!');
-        window.location.replace('path.html');
+        window.location.replace('auth-check.html?target=path.html');
       }
     })();
 
@@ -1476,7 +1476,10 @@ main {
           if (fetchCatClickCount % 2 === 1) {
             loadCategories();
           }
-        } else {
+        } else if (token !== ADMIN_TOKEN) {
+          alert('Token đã hết hạn, vui lòng đăng nhập lại!');
+        }
+          else {
           alert('❌ ' + data.error);
         }
       } catch (err) {
@@ -1603,7 +1606,10 @@ main {
         }
       } catch (err) {
         console.error(err);
-        showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
+        if (token !== ADMIN_TOKEN) {
+          showMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
+        }
+        else {showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');}
         if (promptEditor) promptEditor.value = '';
         if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
       } finally {
