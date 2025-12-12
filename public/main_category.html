@@ -25,7 +25,7 @@ html, body {
   min-height: 100vh;
   overflow-x: hidden;
   }
-    main {
+main {
   flex: 1 0 auto;  /* Quan trọng nhất! */
   box-sizing: border-box;
   max-width: 1200px;
@@ -233,6 +233,14 @@ html, body {
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .empty-state { text-align: center; padding: 80px 24px; }
+    /* Footer */
+footer {
+  flex-shrink: 0;  /* Quan trọng! */
+  background: #1a202c;
+  color: #e5e7eb;
+  padding: 28px 20px 16px;
+  margin-top: 40px;
+}
     .empty-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
     .empty-state h3 { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #1f2937; }
     .empty-state p { color: #6b7280; font-size: 16px; }
@@ -392,7 +400,7 @@ footer {
   </div>
 </div>
 
-  <div class="page-offset">
+  <main class="page-offset">
     <!-- Breadcrumb -->
     <div class="breadcrumb">
       <a href="main.html"><i class="fas fa-home"></i></a>
@@ -452,7 +460,7 @@ footer {
 
       <div id="roadmapsGrid" class="roadmaps-grid"></div>
     </div>
-  </div>
+</main>
 
   <!-- Footer (copied) -->
     <footer>
@@ -478,9 +486,9 @@ footer {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -814,7 +822,7 @@ function renderRoadmaps() {
       const role = localStorage.getItem('role') || 'user';
 
       // Always show Home button (so it behaves like main.html)
-      let navHtml = `<button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang chủ</button>`;
+      let navHtml = `<button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>`;
       // If token exists, include Path / Progress and Admin (if role)
       if (token) {
         navHtml += `<button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>`;
