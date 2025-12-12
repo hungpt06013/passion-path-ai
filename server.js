@@ -1541,9 +1541,9 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
     }
     
-    // ✅ INSERT vào learning_roadmaps với roadmap_analyst_text (TEXT)
+    // ✅ INSERT vào learning_roadmaps với roadmap_analyst
     const roadmapResult = await pool.query(
-      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst_text)
+      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING roadmap_id, created_at`,
       [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst || null]
     );
@@ -1642,9 +1642,9 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
     }
     
-    // ✅ INSERT vào learning_roadmaps - roadmap_analyst_text nhận giá trị TEXT từ system
+    // ✅ INSERT vào learning_roadmaps - roadmap_analyst nhận giá trị TEXT từ system
     const roadmapResult = await pool.query(
-      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst_text)
+      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
       [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst || null]
     );
@@ -2282,7 +2282,7 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
         actual_learning_outcomes,
         improvement_suggestions,
         would_recommend,
-        roadmap_analyst_text,
+        roadmap_analyst,
         created_at,
         updated_at
       FROM learning_roadmaps
@@ -3351,7 +3351,7 @@ app.get("/api/roadmap", requireAuth, async (req, res) => {
         progress_percentage,
         total_studied_hours,
         overall_rating,
-        roadmap_analyst_text,
+        roadmap_analyst,
         expected_outcome,
         created_at
       FROM learning_roadmaps
