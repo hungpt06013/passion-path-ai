@@ -212,11 +212,35 @@
         width: 100%;
       }
     }
+    .back-btn {
+  background: transparent;
+  border: 1px solid rgba(10,20,40,0.12);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: rgba(10,20,40,0.04);
+  border-color: rgba(10,20,40,0.18);
+}
 </style>
 </head>
 <body>
   <div class="page-wrapper">
     <section class="card" aria-labelledby="registration-heading">
+      <div style="margin-bottom: 16px;">
+  <button type="button" id="backButton" class="back-btn">
+    ← Quay lại
+  </button>
+</div>
       <header>
         <h1 id="registration-heading">Đăng ký tài khoản</h1>
         <p class="lead">Tạo tài khoản để bắt đầu lộ trình học tập AI. Vui lòng điền đầy đủ thông tin.</p>
@@ -629,6 +653,12 @@ function attachQuickValidationOnBlur() {
     attachQuickValidationOnBlur();
     fullNameInputElement.focus();
     updatePasswordCriteriaVisual('');
+    const backButton = document.getElementById('backButton');
+if (backButton) {
+  backButton.addEventListener('click', () => {
+    window.location.href = '/main.html';
+  });
+}
   </script>
 </body>
 </html>
