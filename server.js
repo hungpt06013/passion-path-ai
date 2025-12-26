@@ -520,7 +520,7 @@ Return a concrete exercise URL and one short keyword (format above).`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        model: "gpt-5-nano",
+        model: "gpt-4o",
         temperature: 1,
         desiredCompletionTokens: 220
       });
@@ -686,7 +686,7 @@ Return one concrete material URL and one short keyword (format above).`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        model: "gpt-5-nano",
+        model: "gpt-4o",
         temperature: 1,
         desiredCompletionTokens: 220
       });
