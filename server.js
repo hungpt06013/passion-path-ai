@@ -148,7 +148,7 @@ function makeToken(userId) {
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
 const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "400000", 10);
 const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "1500", 10);
-const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
+const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
 const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
@@ -4146,3 +4146,4 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+
