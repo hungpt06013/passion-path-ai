@@ -148,7 +148,7 @@ function makeToken(userId) {
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
 const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "400000", 10);
 const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "1500", 10);
-const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-nano";
+const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
 const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
 const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
@@ -166,14 +166,14 @@ function buildOpenAIParams({ model, messages, maxCompletionTokens }) {
 
 // ...existing code...
 async function callOpenAIWithFallback({ messages, desiredCompletionTokens }) {
+  console.log("🔍 PREFERRED_OPENAI_MODEL:", PREFERRED_OPENAI_MODEL); // ✅ THÊM DÒNG NÀY
   const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
   try {
     const params = buildOpenAIParams({ model: PREFERRED_OPENAI_MODEL, messages, maxCompletionTokens: capped });
-    const safeLog = { ...params, messages: undefined };
-    console.log("📤 Sending params:", JSON.stringify(safeLog, null, 2));
+    console.log("📤 Trying model:", params.model); // ✅ THÊM DÒNG NÀY
     return await openai.chat.completions.create(params);
   } catch (err) {
-    console.error("❌ OpenAI error message:", err && err.message ? err.message : String(err));
+    console.error("❌ Model failed:", PREFERRED_OPENAI_MODEL, "Error:", err.message);
     const code = err && (err.code || (err.error && err.error.code));
     const status = err && err.status;
     if (code === "model_not_found" || status === 404 || String(err.message).toLowerCase().includes("model")) {
