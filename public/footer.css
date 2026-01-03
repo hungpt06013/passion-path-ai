@@ -1,0 +1,245 @@
+footer {
+  flex-shrink: 0;  /* Quan trọng! */
+  background: #1a202c;
+  color: #e5e7eb;
+  padding: 28px 20px 16px;
+  margin-top: 40px;
+}
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff, #007bff);
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.modal-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: transform 0.2s;
+}
+
+.close-modal:hover {
+    transform: scale(1.1);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.info-box {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.rating-group {
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.rating-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 32px;
+}
+
+.star {
+    cursor: pointer;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+    transform: scale(1.2);
+}
+
+.rating-value {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.textarea-group {
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.textarea-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.textarea-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.textarea-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.submit-evaluation-btn {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-evaluation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.submit-evaluation-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;  /* Quan trọng nhất! */
+}
+
+footer {
+  flex-shrink: 0;
+}
+.footer-link {
+  color: #9ca3af !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+  transition: color 0.3s ease !important;
+  display: inline-block !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 1.5 !important;
+  width: fit-content !important; /* Quan trọng! */
+}
+
+.footer-link:hover {
+  color: #007bff !important;
+}
+@media (max-width: 768px) {
+    .modal-content {
+        width: 98%;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .rating-stars {
+        font-size: 28px;
+    }
+}
