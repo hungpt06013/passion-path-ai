@@ -3491,6 +3491,7 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
     client.release();
   }
 });
+
 app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req, res) => {
   try {
     console.log('📤 Upload request received');
@@ -3505,28 +3506,24 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     
-    // ✅ ĐỌC DỮ LIỆU VÀ TỰ ĐỘNG TRIM TÊN CỘT
     const data = XLSX.utils.sheet_to_json(sheet, {
       raw: false,
       defval: '',
-      header: 1 // ✅ ĐỌC DƯỚI DẠNG ARRAY ĐỂ XỬ LÝ DÒNG 1 RIÊNG
+      header: 1
     });
 
     console.log('📊 Rows parsed:', data.length);
 
-    if (data.length < 2) { // Cần ít nhất 2 dòng (header + 1 dòng data)
+    if (data.length < 2) {
       return res.status(400).json({ success: false, error: "File Excel phải có ít nhất 2 dòng (header + data)" });
     }
 
-    // ✅ LẤY ROADMAP_ANALYST TỪ DÒNG 1 (index 0)
-    const roadmapAnalyst = data[0][0] || ''; // Cột đầu tiên của dòng 1
+    const roadmapAnalyst = data[0][0] || '';
     console.log('📝 Roadmap Analyst:', roadmapAnalyst);
 
-    // ✅ LẤY HEADER TỪ DÒNG 2 (index 1)
     const headers = data[1].map(h => String(h).trim().toLowerCase().replace(/\s+/g, '_'));
     console.log('📋 Headers:', headers);
 
-    // ✅ KIỂM TRA 8 CỘT THEO THỨ TỰ MỚI
     const requiredColumns = [
       'day_number',
       'day_study', 
@@ -3552,11 +3549,10 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
-    // ✅ XỬ LÝ DATA TỪ DÒNG 3 TRỞ ĐI (index 2+)
     const normalizedData = [];
     for (let i = 2; i < data.length; i++) {
       const row = data[i];
-      if (!row || row.length === 0 || !row[0]) continue; // Skip empty rows
+      if (!row || row.length === 0 || !row[0]) continue;
       
       const normalized = {};
       headers.forEach((header, idx) => {
@@ -3577,19 +3573,108 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    // ✅ HÀM XỬ LÝ day_study LINH HOẠT
+    function parseDayStudy(dayStudyValue) {
+      if (!dayStudyValue || dayStudyValue.toString().trim() === '') {
+        return null;
+      }
+      
+      try {
+        // Xử lý Excel serial number
+        if (typeof dayStudyValue === 'number') {
+          const excelEpoch = new Date(1899, 11, 30);
+          const date = new Date(excelEpoch.getTime() + dayStudyValue * 86400000);
+          // ✅ FIX: Trả về string YYYY-MM-DD thay vì Date object
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        
+        const dayStudyStr = dayStudyValue.toString().trim().replace(/^'/, '');
+        
+        // Thử parse với dấu /
+        let parts = dayStudyStr.split('/');
+        if (parts.length === 3) {
+          let day = parseInt(parts[0], 10);
+          let month = parseInt(parts[1], 10);
+          let year = parseInt(parts[2], 10);
+          
+          // ✅ FIX NĂM 2 CHỮ SỐ: 26 → 2026
+          if (year < 100) {
+            year += 2000;
+          }
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            // ✅ FIX TIMEZONE: Trả về string thay vì Date object
+            const monthStr = String(month).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            return `${year}-${monthStr}-${dayStr}`;
+          }
+        }
+        
+        // Thử parse với dấu -
+        parts = dayStudyStr.split('-');
+        if (parts.length === 3) {
+          // Kiểm tra format yyyy-mm-dd hay dd-mm-yyyy
+          if (parts[0].length === 4) {
+            // Format: yyyy-mm-dd
+            let year = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            let day = parseInt(parts[2], 10);
+            
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+              const monthStr = String(month).padStart(2, '0');
+              const dayStr = String(day).padStart(2, '0');
+              return `${year}-${monthStr}-${dayStr}`;
+            }
+          } else {
+            // Format: dd-mm-yyyy
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            let year = parseInt(parts[2], 10);
+            
+            // ✅ FIX NĂM 2 CHỮ SỐ
+            if (year < 100) {
+              year += 2000;
+            }
+            
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+              const monthStr = String(month).padStart(2, '0');
+              const dayStr = String(day).padStart(2, '0');
+              return `${year}-${monthStr}-${dayStr}`;
+            }
+          }
+        }
+        
+        // Fallback: thử parse trực tiếp
+        const directParse = new Date(dayStudyStr);
+        if (!isNaN(directParse.getTime())) {
+          const year = directParse.getFullYear();
+          const month = String(directParse.getMonth() + 1).padStart(2, '0');
+          const day = String(directParse.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
+    
     for (let i = 0; i < normalizedData.length; i++) {
       const row = normalizedData[i];
-      const rowNumber = i + 3; // Row 3 = first data row (row 1 = analyst, row 2 = header)
+      const rowNumber = i + 3;
       
-      // ✅ 1. VALIDATE day_number: phải tăng 1 đơn vị từ 1
+      // ✅ 1. VALIDATE day_number
       const dayNumber = parseInt(row.day_number);
-      const expectedDayNumber = i;
+      const expectedDayNumber = i + 1;
       
-      if (isNaN(dayNumber) || dayNumber !== expectedDayNumber+1) {
+      if (isNaN(dayNumber) || dayNumber !== expectedDayNumber) {
         errors.push(`Hàng ${rowNumber}: day_number không hợp lệ (mong đợi ${expectedDayNumber}, nhận được "${row.day_number}")`);
       }
       
-      // ✅ 2. VALIDATE study_duration_hours: phải là số > 0, có thể có dấu thập phân
+      // ✅ 2. VALIDATE study_duration_hours
       const hoursStr = String(row.study_duration_hours || '').trim();
       const hours = parseFloat(hoursStr.replace(',', '.'));
       
@@ -3597,43 +3682,13 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
         errors.push(`Hàng ${rowNumber}: study_duration_hours không hợp lệ (phải >= 0.5, nhận được "${row.study_duration_hours}")`);
       }
       
-      // ✅ 3. VALIDATE day_study: ngày đầu tiên phải sau ngày hiện tại
+      // ✅ 3. VALIDATE day_study (FIXED)
       if (row.day_study && row.day_study.trim() !== '') {
-        try {
-          let studyDate;
-          
-          // Xử lý Excel serial number
-          if (typeof row.day_study === 'number') {
-            const excelEpoch = new Date(1899, 11, 30);
-            studyDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
-          } else {
-            // Parse dd/mm/yyyy format
-            const parts = row.day_study.split('/');
-            if (parts.length === 3) {
-              const day = parseInt(parts[0]);
-              const month = parseInt(parts[1]) - 1;
-              const year = parseInt(parts[2]);
-              studyDate = new Date(year, month, day);
-            } else {
-              studyDate = new Date(row.day_study);
-            }
-          }
-          
-          if (isNaN(studyDate.getTime())) {
-            hasInvalidDayStudy = true;
-            errors.push(`Hàng ${rowNumber}: day_study không đúng định dạng dd/mm/yyyy (nhận được "${row.day_study}")`);
-          } else {
-            // ✅ Kiểm tra ngày đầu tiên phải sau ngày hiện tại
-            if (i === 0) {
-              studyDate.setHours(0, 0, 0, 0);
-              if (studyDate < today) {
-                errors.push(`Hàng ${rowNumber}: Ngày học đầu tiên phải sau ngày hôm qua (${today.toLocaleDateString('vi-VN')})`);
-              }
-            }
-          }
-        } catch (e) {
+        const studyDateStr = parseDayStudy(row.day_study);
+        
+        if (!studyDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(studyDateStr)) {
           hasInvalidDayStudy = true;
-          errors.push(`Hàng ${rowNumber}: day_study không hợp lệ (${e.message})`);
+          errors.push(`Hàng ${rowNumber}: day_study không đúng định dạng (nhận được "${row.day_study}"). Hỗ trợ: d/m/yyyy, dd/mm/yyyy, d-m-yyyy, dd-mm-yyyy, yyyy-mm-dd`);
         }
       }
     }
@@ -3646,7 +3701,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
-    // ✅ LẤY THÔNG TIN ROADMAP TỪ BODY
+    // ✅ LẤY THÔNG TIN ROADMAP
     const { roadmap_name, category, sub_category, start_level, expected_outcome } = req.body;
     
     if (!roadmap_name || !category || !start_level || !expected_outcome) {
@@ -3659,7 +3714,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       return sum + hours;
     }, 0);
 
-    // ✅ TẠO ROADMAP VỚI ROADMAP_ANALYST
+    // ✅ TẠO ROADMAP
     const roadmapResult = await pool.query(
       `INSERT INTO learning_roadmaps 
        (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
@@ -3669,49 +3724,25 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     );
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
-
     console.log('✅ Roadmap created with analyst, ID:', roadmapId);
 
-    // ✅ INSERT CHI TIẾT VỚI XỬ LÝ day_study
+    // ✅ INSERT CHI TIẾT với XỬ LÝ day_study MỚI
     for (let i = 0; i < normalizedData.length; i++) {
       const row = normalizedData[i];
       const dayNumber = parseInt(row.day_number);
       
       let studyDateStr = null;
       
-      // Chỉ xử lý day_study nếu không có invalid dates
       if (!hasInvalidDayStudy && row.day_study && row.day_study.trim() !== '') {
-        try {
-          let studyDate;
-          
-          if (typeof row.day_study === 'number') {
-            const excelEpoch = new Date(1899, 11, 30);
-            studyDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
-          } else {
-            const parts = row.day_study.split('/');
-            if (parts.length === 3) {
-              const day = parseInt(parts[0]);
-              const month = parseInt(parts[1]) - 1;
-              const year = parseInt(parts[2]);
-              studyDate = new Date(year, month, day);
-            } else {
-              studyDate = new Date(row.day_study);
-            }
-          }
-          
-          if (!isNaN(studyDate.getTime())) {
-            studyDateStr = studyDate.toISOString().split('T')[0];
-          }
-        } catch (e) {
-          studyDateStr = null;
-        }
+        studyDateStr = parseDayStudy(row.day_study);
+        // ✅ studyDateStr đã là string "YYYY-MM-DD" rồi, không cần convert
       }
       
       await pool.query(
         `INSERT INTO learning_roadmap_details 
-         (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
+        (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
           learning_materials, usage_instructions, study_duration_hours, study_date, completion_status)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
         [
           roadmapId,
           dayNumber,
@@ -3721,7 +3752,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
           String(row.learning_materials || '').trim() || '',
           String(row.guide_learning || '').trim() || '',
           parseFloat(String(row.study_duration_hours).replace(',', '.')),
-          studyDateStr,
+          studyDateStr,  // ✅ Đã là string "YYYY-MM-DD"
           'NOT_STARTED'
         ]
       );
@@ -3746,6 +3777,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     res.status(500).json({ success: false, error: error.message || "Lỗi khi upload file" });
   }
 });
+
 app.get("/api/roadmaps/:id/details", requireAuth, async (req, res) => {
   try {
     const roadmapId = parseInt(req.params.id);
