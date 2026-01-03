@@ -6,6 +6,20 @@
     <title>Quản Trị - Con đường đam mê</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <script>
+          (function adminAuthCheck(){
+      const token = localStorage.getItem('token');
+      const storedRole = localStorage.getItem('role');
+      if (!token) {
+        alert('Vui lòng đăng nhập!');
+        window.location.replace('login.html');
+      } else if (storedRole !== 'admin') {
+        alert('Bạn không phải quản trị!');
+        window.location.replace('path.html');
+      }
+    })();
+    </script>
     <style>
     :root {
         --primary:#007bff;
@@ -83,7 +97,7 @@ html, body {
     .brand-text {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 3px;
         line-height: 1;
         min-width: 0;
     }
@@ -124,7 +138,22 @@ html, body {
     /* Ẩn scrollbar ngang nhỏ trên desktop nếu muốn (không bắt buộc) */
     .nav-buttons::-webkit-scrollbar { height: 6px; }
     .nav-buttons::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 6px; }
+::-webkit-scrollbar { 
+    width: 6px; 
+}
 
+::-webkit-scrollbar-thumb { 
+    background: rgba(0, 0, 0, 0.12); 
+    border-radius: 6px; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
     .nav-btn {
         background: none;
         color: #fff;
@@ -570,7 +599,254 @@ main {
             margin-bottom: 20px;
             font-size: 0.9rem;
         }
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    overflow-y: auto;
+}
 
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff, #007bff);
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.modal-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: transform 0.2s;
+}
+
+.close-modal:hover {
+    transform: scale(1.1);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.info-box {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.rating-group {
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.rating-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 32px;
+}
+
+.star {
+    cursor: pointer;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+    transform: scale(1.2);
+}
+
+.rating-value {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.textarea-group {
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.textarea-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.textarea-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.textarea-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.submit-evaluation-btn {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-evaluation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.submit-evaluation-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+/* Details/Summary styling */
+details {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 10px;
+    background: white;
+    margin: 8px 0;
+}
+
+details[open] {
+    border-color: #007bff;
+}
+
+details summary {
+    font-weight: 600;
+    cursor: pointer;
+    user-select: none;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+details summary:hover {
+    background: #f0f9ff;
+    color: #0056b3;
+}
+
+details[open] summary {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+}
+/* Thêm vào phần <style> */
+details[open] summary::after {
+    content: ' ▼';
+}
+
+details summary::after {
+    content: ' ►';
+}
+
+details > div {
+    margin-top: 10px;
+}
+@media (max-width: 768px) {
+    .modal-content {
+        width: 98%;
+        max-height: 95vh;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .rating-stars {
+        font-size: 28px;
+    }
+}
     @media (max-width:820px) {
         .bar-inner {
             flex-direction: column;
@@ -744,7 +1020,55 @@ main {
           <h3>Định dạng AI trả về</h3>
           <div id="jsonFormat" class="json-format"></div>
         </div>
+        <!-- ===== PHẦN MỚI: PROMPT TẠO THỦ CÔNG ===== -->
+        <div style="margin: 20px 0; border-top: 2px solid #e5e7eb; padding-top: 30px;">
+          <h2>📝 Prompt Template (Tạo Thủ Công)</h2>
+          <p class="small">Prompt này sẽ được hiển thị cho user non-admin để họ tự hỏi AI bên ngoài</p>
+          
+          <div id="manualPromptMessage" role="status" aria-live="polite"></div>
+          
+          <div style="margin: 20px 0;">
+            <h3>✏️ Chỉnh Sửa Prompt (Tạo Thủ Công)</h3>
+            <textarea id="manualPromptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
+            
+            <div style="margin-top: 15px;">
+              <button id="saveManualPromptBtn" class="btn-save">
+                <i class="fa-solid fa-save"></i> Lưu Prompt Thủ Công
+              </button>
+              <button id="resetManualPromptBtn" class="btn-reset">
+                <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
+              </button>
+            </div>
+          </div>
+
+          <div style="margin: 20px 0;">
+            <h3>👁️ Nội Dung Prompt (Tạo Thủ Công)</h3>
+            <div id="manualPromptPreview" class="prompt-preview">Đang tải...</div>
+          </div>
+        </div>
       </section>
+      <section id="feedbackSection" style="display:none;" class="card">
+    <h2>💬 Phản Hồi Người Dùng</h2>
+    <p class="small">Xem và phân tích phản hồi từ người dùng về hệ thống</p>
+    
+    <div style="margin: 15px 0;">
+        <button id="fetchFeedbackBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Phản Hồi
+        </button>
+        <button id="viewStatsBtn" class="btn-refresh" style="margin-left: 10px;">
+            <i class="fa-solid fa-chart-bar"></i> Xem Thống Kê
+        </button>
+    </div>
+    
+    <!-- Statistics Area -->
+    <div id="statsArea" style="display:none; background: #f0f9ff; padding: 20px; border-radius: 12px; margin: 20px 0;">
+        <h3 style="color: #0369a1; margin-bottom: 15px;">📊 Thống Kê Trung Bình</h3>
+        <div id="statsContent"></div>
+    </div>
+    
+    <div id="feedbackArea"></div>
+    <div id="feedbackMessage" role="status" aria-live="polite"></div>
+</section>
     </main>
 
     <!-- Footer exactly from the first file -->
@@ -766,9 +1090,9 @@ main {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -777,7 +1101,7 @@ main {
                 <div class="footer-links">
                     <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
                     <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                    <a href="javascript:void(0)" onclick="openFeedbackModal()" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
                 </div>
             </div>
         </div>
@@ -786,14 +1110,172 @@ main {
             © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
         </div>
     </footer>
+<!-- Modal Thu thập ý kiến -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <div>
+                <h2>📋 Thu Thập Ý Kiến</h2>
+                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
+            </div>
+            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <strong>📌 Mục đích thu thập:</strong>
+                <p style="margin: 10px 0 0 0; line-height: 1.6;">
+                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
+                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
+                </p>
+            </div>
 
+            <form id="feedbackForm">
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
+                    <p class="small" style="margin-bottom: 20px;">
+                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
+                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
+                    </p>
+
+                    <!-- Rating 1 -->
+                    <div class="rating-group">
+                        <label>1. Mức độ phù hợp của nội dung học *</label>
+                        <div class="rating-stars" id="rating_1">
+                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 2 -->
+                    <div class="rating-group">
+                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
+                        <div class="rating-stars" id="rating_2">
+                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 3 -->
+                    <div class="rating-group">
+                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
+                        <div class="rating-stars" id="rating_3">
+                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 4 -->
+                    <div class="rating-group">
+                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
+                        <div class="rating-stars" id="rating_4">
+                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 5 -->
+                    <div class="rating-group">
+                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
+                        <div class="rating-stars" id="rating_5">
+                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 6 -->
+                    <div class="rating-group">
+                        <label>6. Mức độ duy trì động lực học *</label>
+                        <div class="rating-stars" id="rating_6">
+                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 7 -->
+                    <div class="rating-group">
+                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
+                        <div class="rating-stars" id="rating_7">
+                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 8 -->
+                    <div class="rating-group">
+                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
+                        <div class="rating-stars" id="rating_8">
+                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
+                    </div>
+                </div>
+
+                <!-- Câu hỏi mở -->
+                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
+
+                    <div class="textarea-group">
+                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
+                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
+                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
+                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
+                    💾 Gửi Phản Hồi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
   <script>
     // Header JS exactly from the first file (loadUser + helpers)
     const loginBtn = document.querySelector(".login-btn");
     const registerBtn = document.querySelector(".register-btn");
     const userArea = document.getElementById("userArea");
     const ADMIN_TOKEN = 'admin-token';
-
+    if(!ADMIN_TOKEN) window.location.href = 'login.html';
     // Color schemes for categories (kept from first file though admin page may not use it)
     const categoryColors = [
         { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
@@ -856,142 +1338,166 @@ main {
         }
     }
 
-    async function loadUser() {
-        const token = localStorage.getItem('token');
-        const navButtons = document.getElementById('mainNavButtons');
-        
-        // Luôn hiển thị navigation buttons ngay từ đầu
-        if (navButtons) {
-            navButtons.innerHTML = `
-                <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-                <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-                <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-                <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
-                <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
-                <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
-            `;
-            
-            // Add event listeners cho nav buttons
-            const btnHome = document.getElementById('btnHome');
-            const btnPath = document.getElementById('btnPath');
-            const btnProgress = document.getElementById('btnProgress');
-            const btnAIHistory = document.getElementById('btnAIHistory');
-            const btnCategories = document.getElementById('btnCategories');
-            const btnPrompt = document.getElementById('btnPrompt');
+// Tìm hàm loadUser() trong admin.html và sửa lại:
 
-            if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-            if (btnPath) btnPath.addEventListener('click', () => { 
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    window.location.href = 'login.html';
-                } else {
-                    window.location.href = 'path.html';
-                }
-            });
-            if (btnProgress) btnProgress.addEventListener('click', () => { 
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    window.location.href = 'login.html';
-                } else {
-                    window.location.href = 'progress.html';
-                }
-            });
-
-            if (btnAIHistory) btnAIHistory.addEventListener('click', () => {
-              // show AI history section in admin page
-              document.getElementById('aiHistorySection').style.display = 'block';
-              document.getElementById('categoriesSection').style.display = 'none';
-              document.getElementById('promptSection').style.display = 'none';
-              document.getElementById('adminCard').style.display = 'none';
-            });
-
-            if (btnCategories) btnCategories.addEventListener('click', () => {
-              document.getElementById('categoriesSection').style.display = 'block';
-              document.getElementById('aiHistorySection').style.display = 'none';
-              document.getElementById('promptSection').style.display = 'none';
-              document.getElementById('adminCard').style.display = 'none';
-            });
-
-            if (btnPrompt) btnPrompt.addEventListener('click', () => {
-              document.getElementById('promptSection').style.display = 'block';
-              document.getElementById('aiHistorySection').style.display = 'none';
-              document.getElementById('categoriesSection').style.display = 'none';
-              document.getElementById('adminCard').style.display = 'none';
-              loadPromptTemplate().catch(()=>{});
-            });
-        }
-        
-        showAuthButtons();
-        if (!token) return;
-
-        let name = 'Người dùng';
-        let serverRole = 'user';
-
-        if (token === ADMIN_TOKEN) {
-            name = 'Admin';
-            serverRole = 'admin';
-            localStorage.setItem('role', 'admin');
-        } else {
-            try {
-                const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-                if (!res.ok) { 
-                    showAuthButtons(); 
-                    return; 
-                }
-                const data = await res.json();
-                serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-                name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-                localStorage.setItem('role', serverRole);
-            } catch (err) {
-                console.error(err);
-                showAuthButtons();
-                return;
-            }
-        }
-
-        if (document.querySelector('.login-btn')) {
-            document.querySelector('.login-btn').style.display = 'none';
-        }
-        if (document.querySelector('.register-btn')) {
-            document.querySelector('.register-btn').style.display = 'none';
-        }
-
-        userArea.innerHTML = `
-            <span>Xin chào <strong style="color:white;">${name}</strong></span>
-            <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+async function loadUser() {
+    const token = localStorage.getItem('token');
+    const navButtons = document.getElementById('mainNavButtons');
+    
+    // Luôn hiển thị navigation buttons ngay từ đầu
+    if (navButtons) {
+        navButtons.innerHTML = `
+            <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+            <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+            <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+            <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+            <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
+            <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
+            <button class="nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
         `;
-        const logoutEl = document.getElementById('logout');
-        wireLogoutAndNav(logoutEl);
+        
+        // Add event listeners cho nav buttons
+        const btnHome = document.getElementById('btnHome');
+        const btnPath = document.getElementById('btnPath');
+        const btnProgress = document.getElementById('btnProgress');
+        const btnAIHistory = document.getElementById('btnAIHistory');
+        const btnCategories = document.getElementById('btnCategories');
+        const btnPrompt = document.getElementById('btnPrompt');
+        const btnFeedback = document.getElementById('btnFeedback');
+        
+        if (btnFeedback) btnFeedback.addEventListener('click', () => {
+            document.getElementById('feedbackSection').style.display = 'block';
+            document.getElementById('promptSection').style.display = 'none';
+            document.getElementById('aiHistorySection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('adminCard').style.display = 'none';
+        });
+        
+        if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
+        
+        if (btnPath) btnPath.addEventListener('click', () => { 
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'path.html';
+            }
+        });
+        
+        if (btnProgress) btnProgress.addEventListener('click', () => { 
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'progress.html';
+            }
+        });
 
-        // Thêm nút Admin nếu là admin
-        if (serverRole === 'admin') {
-            const adminBtn = document.createElement('button');
-            adminBtn.className = 'nav-btn';
-            adminBtn.id = 'btnAdmin';
-            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-            adminBtn.addEventListener('click', () => { 
-                // show admin card
-                document.getElementById('adminCard').style.display = 'block';
-                document.getElementById('aiHistorySection').style.display = 'none';
-                document.getElementById('categoriesSection').style.display = 'none';
-                document.getElementById('promptSection').style.display = 'none';
-            });
-            const navButtons = document.getElementById('mainNavButtons');
-            if (navButtons) navButtons.appendChild(adminBtn);
-        }
+        if (btnAIHistory) btnAIHistory.addEventListener('click', () => {
+            document.getElementById('aiHistorySection').style.display = 'block';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('promptSection').style.display = 'none';
+            document.getElementById('adminCard').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
+        });
 
-        // Active state
-        const params = new URLSearchParams(window.location.search);
-        const page = params.get('page') || 'home';
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory', categories: 'btnCategories', prompt: 'btnPrompt' };
-        const btnId = idMap[page];
-        if (btnId) {
-            const el = document.getElementById(btnId);
-            if (el) el.classList.add('active');
+        if (btnCategories) btnCategories.addEventListener('click', () => {
+            document.getElementById('categoriesSection').style.display = 'block';
+            document.getElementById('aiHistorySection').style.display = 'none';
+            document.getElementById('promptSection').style.display = 'none';
+            document.getElementById('adminCard').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
+        });
+
+        if (btnPrompt) btnPrompt.addEventListener('click', () => {
+            document.getElementById('promptSection').style.display = 'block';
+            document.getElementById('aiHistorySection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('adminCard').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
+            loadPromptTemplate().catch(()=>{});
+            loadManualPromptTemplate().catch(()=>{});
+        });
+    }
+    
+    // ✅ BỎ showAuthButtons() Ở ĐÂY - KHÔNG GỌI NỮA!
+    // showAuthButtons(); // ❌ XÓA DÒNG NÀY
+    
+    if (!token) {
+        // Nếu không có token, hiển thị nút đăng nhập/đăng ký
+        showAuthButtons();
+        return;
+    }
+
+    let name = 'Người dùng';
+    let serverRole = 'user';
+
+    if (token === ADMIN_TOKEN) {
+        name = 'Admin';
+        serverRole = 'admin';
+        localStorage.setItem('role', 'admin');
+    } else {
+        try {
+            const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+            if (!res.ok) { 
+                showAuthButtons(); 
+                return; 
+            }
+            const data = await res.json();
+            serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+            name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+            localStorage.setItem('role', serverRole);
+        } catch (err) {
+            console.error(err);
+            showAuthButtons();
+            return;
         }
     }
 
+    // ✅ ẨN NÚT LOGIN/REGISTER TRƯỚC KHI HIỂN THỊ USER INFO
+    if (document.querySelector('.login-btn')) {
+        document.querySelector('.login-btn').style.display = 'none';
+    }
+    if (document.querySelector('.register-btn')) {
+        document.querySelector('.register-btn').style.display = 'none';
+    }
+
+    // ✅ HIỂN THỊ THÔNG TIN USER
+    userArea.innerHTML = `
+        <span>Xin chào <strong style="color:white;">${name}</strong></span>
+        <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    `;
+    const logoutEl = document.getElementById('logout');
+    wireLogoutAndNav(logoutEl);
+
+    // Thêm nút Admin nếu là admin
+    if (serverRole === 'admin') {
+        const adminBtn = document.createElement('button');
+        adminBtn.className = 'nav-btn';
+        adminBtn.id = 'btnAdmin';
+        adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+        adminBtn.addEventListener('click', () => { 
+            document.getElementById('adminCard').style.display = 'block';
+            document.getElementById('aiHistorySection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('promptSection').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
+        });
+        const navButtons = document.getElementById('mainNavButtons');
+        if (navButtons) navButtons.appendChild(adminBtn);
+    }
+
+    // Active state
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page') || 'home';
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory', categories: 'btnCategories', prompt: 'btnPrompt' };
+    const btnId = idMap[page];
+    if (btnId) {
+        const el = document.getElementById(btnId);
+        if (el) el.classList.add('active');
+    }
+}
     // Load top categories (from first file) - kept but optional for admin
     async function loadTopCategories() {
         try {
@@ -1050,7 +1556,7 @@ main {
         window.location.replace('login.html');
       } else if (storedRole !== 'admin') {
         alert('Bạn không phải quản trị!');
-        window.location.replace('auth-check.html?target=path.html');
+        window.location.replace('path.html');
       }
     })();
 
@@ -1272,48 +1778,81 @@ main {
       });
     }
 
-    // AI History
-    function renderAIHistory(records, total) {
-      if (!records || records.length === 0) {
-        aiHistoryArea.innerHTML = '<div class="muted">Chưa có lịch sử nào</div>';
-        return;
-      }
-      
-      const html = records.map(r => {
-        const statusClass = r.status === 'SUCCESS' ? 'status-success' : 
-                          r.status === 'FAIL' ? 'status-fail' : 
-                          r.status === 'TIMEOUT' ? 'status-timeout' : '';
-        
-        let promptPreview = '';
+// AI History
+// AI History
+// AI History
+function renderAIHistory(records, total) {
+  if (!records || records.length === 0) {
+    aiHistoryArea.innerHTML = '<div class="muted">Chưa có lịch sử nào</div>';
+    return;
+  }
+  
+  const html = records.map(r => {
+    const statusClass = r.status === 'SUCCESS' ? 'status-success' : 
+                      r.status === 'FAIL' ? 'status-fail' : 
+                      r.status === 'TIMEOUT' ? 'status-timeout' : '';
+    
+    // ✅ XỬ LÝ PROMPT CONTENT ĐÚNG
+    let promptPreview = '';
+    let fullPrompt = '';
+    try {
+      if (typeof r.prompt_content === 'string') {
+        // Thử parse JSON
         try {
           const parsed = JSON.parse(r.prompt_content);
-          promptPreview = parsed.roadmap_name || parsed.userPrompt?.substring(0, 100) || '';
+          // Ưu tiên lấy userPrompt, nếu không có thì stringify cả object
+          fullPrompt = parsed.userPrompt || JSON.stringify(parsed, null, 2);
         } catch (e) {
-          promptPreview = String(r.prompt_content).substring(0, 100);
+          // Nếu parse lỗi, dùng string gốc
+          fullPrompt = r.prompt_content;
         }
-        
-        return `
-          <div class="history-card">
-            <div class="history-header">
-              <div>
-                <strong>ID #${r.id}</strong> - ${new Date(r.query_time).toLocaleString('vi-VN')}
-              </div>
-              <span class="status-badge ${statusClass}">${r.status}</span>
-            </div>
-            <div style="margin-top: 10px;">
-              <strong>Người hỏi:</strong> ${escapeHtml(r.username || 'N/A')} (${escapeHtml(r.email || '')})<br>
-              <strong>Nội dung:</strong> ${escapeHtml(promptPreview)}...<br>
-              ${r.roadmap_name ? `<strong>Lộ trình:</strong> ${escapeHtml(r.roadmap_name)} (#${r.roadmap_id})<br>` : ''}
-              ${r.response_tokens ? `<strong>Tokens:</strong> ${r.response_tokens}<br>` : ''}
-              ${r.error_message ? `<strong style="color:#dc2625;">Lỗi:</strong> ${escapeHtml(r.error_message)}<br>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-      
-      aiHistoryArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${total} bản ghi</strong></div>` + html;
+      } else {
+        fullPrompt = JSON.stringify(r.prompt_content, null, 2);
+      }
+      promptPreview = fullPrompt.substring(0, 200) + (fullPrompt.length > 200 ? '...' : '');
+    } catch (e) {
+      fullPrompt = String(r.prompt_content || 'N/A');
+      promptPreview = fullPrompt.substring(0, 200);
     }
-
+    
+    return `
+      <div class="history-card">
+        <div class="history-header">
+          <div>
+            <strong>ID #${r.id}</strong> - ${new Date(r.query_time).toLocaleString('vi-VN')}
+          </div>
+          <span class="status-badge ${statusClass}">${r.status}</span>
+        </div>
+        <div style="margin-top: 10px;">
+          <strong>Người hỏi:</strong> ${escapeHtml(r.username || 'N/A')} (${escapeHtml(r.email || '')})<br>
+          
+          <!-- ✅ HIỂN THỊ MÃ LỘ TRÌNH -->
+          <strong>Mã lộ trình:</strong> 
+          ${r.roadmap_id 
+            ? `<a href="path.html?open=${r.roadmap_id}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">#${r.roadmap_id}</a>` 
+            : '<span style="color: #999; font-style: italic;">Chưa lưu</span>'
+          }
+          ${r.roadmap_name ? ` - ${escapeHtml(r.roadmap_name)}` : ''}<br>
+          
+          ${r.response_tokens ? `<strong>Tokens:</strong> ${r.response_tokens}<br>` : ''}
+          ${r.error_message ? `<strong style="color:#dc2625;">Lỗi:</strong> ${escapeHtml(r.error_message)}<br>` : ''}
+          
+          <!-- ✅ HIỂN THỊ PROMPT CONTENT (RÚT GỌN) -->
+          <br><details style="margin-top: 8px;">
+            <summary style="cursor: pointer; color: #007bff; font-weight: 600; padding: 8px; background: #f0f9ff; border-radius: 6px;">
+              🔍 Xem Prompt (${promptPreview.length} / ${fullPrompt.length} ký tự)
+            </summary>
+            <div style="margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;">
+              ${escapeHtml(fullPrompt)}
+            </div>
+          </details>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  aiHistoryArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${total} bản ghi</strong></div>` + html;
+}
     let fetchAIClickCount = 0;
     if (fetchAIHistoryBtn) {
       fetchAIHistoryBtn.addEventListener('click', async function() {
@@ -1616,7 +2155,150 @@ main {
         if (promptEditor) promptEditor.disabled = false;
       }
     }
+    // ============ MANUAL PROMPT TEMPLATE FUNCTIONS ============
+    async function loadManualPromptTemplate() {
+      try {
+        if (manualPromptEditor) manualPromptEditor.disabled = true;
+        if (manualPromptEditor) manualPromptEditor.value = 'Đang tải...';
+        if (manualPromptPreview) manualPromptPreview.textContent = 'Đang tải...';
+        
+        const res = await fetch('/api/admin/manual-prompt', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        
+        if (data.success && data.data) {
+          if (manualPromptEditor) manualPromptEditor.value = data.data.manual_prompt_template || '';
+          if (manualPromptPreview) manualPromptPreview.textContent = data.data.manual_prompt_template || '';
+        } else {
+          throw new Error('Không thể tải manual prompt template');
+        }
+      } catch (err) {
+        console.error(err);
+        const token = localStorage.getItem('token');
+        if (token !== ADMIN_TOKEN) {
+          showManualPromptMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
+        } else {
+          showManualPromptMessage('Lỗi khi tải manual prompt template: ' + err.message, 'error');
+        }
+        if (manualPromptEditor) manualPromptEditor.value = '';
+        if (manualPromptPreview) manualPromptPreview.textContent = 'Không thể tải manual prompt template';
+      } finally {
+        if (manualPromptEditor) manualPromptEditor.disabled = false;
+      }
+    }
 
+    function showManualPromptMessage(message, type = 'info') {
+      const manualPromptMessage = document.getElementById('manualPromptMessage');
+      if (!manualPromptMessage) return;
+      const msgDiv = document.createElement('div');
+      msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
+      msgDiv.textContent = message;
+      
+      manualPromptMessage.innerHTML = '';
+      manualPromptMessage.appendChild(msgDiv);
+      
+      setTimeout(() => {
+        msgDiv.remove();
+      }, 3000);
+    }
+
+    const manualPromptEditor = document.getElementById('manualPromptEditor');
+    const manualPromptPreview = document.getElementById('manualPromptPreview');
+    const saveManualPromptBtn = document.getElementById('saveManualPromptBtn');
+    const resetManualPromptBtn = document.getElementById('resetManualPromptBtn');
+
+    if (saveManualPromptBtn) {
+      saveManualPromptBtn.addEventListener('click', async function() {
+        const content = manualPromptEditor.value.trim();
+        
+        if (!content) {
+          showManualPromptMessage('Prompt không được để trống', 'error');
+          return;
+        }
+        
+        if (!confirm('Bạn có chắc chắn muốn lưu prompt thủ công này?')) return;
+        
+        saveManualPromptBtn.disabled = true;
+        saveManualPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+        
+        try {
+          const res = await fetch('/api/admin/manual-prompt/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({
+              manualPromptContent: content
+            })
+          });
+          
+          const data = await res.json();
+          
+          if (data.success) {
+            showManualPromptMessage('✅ Manual Prompt đã được lưu thành công!', 'success');
+            manualPromptPreview.textContent = content;
+          } else {
+            throw new Error(data.error || 'Lỗi khi lưu manual prompt');
+          }
+        } catch (err) {
+          console.error(err);
+          showManualPromptMessage('❌ ' + err.message, 'error');
+        } finally {
+          saveManualPromptBtn.disabled = false;
+          saveManualPromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt Thủ Công';
+        }
+      });
+    }
+
+    if (resetManualPromptBtn) {
+      resetManualPromptBtn.addEventListener('click', async function() {
+        if (!confirm('Bạn có chắc chắn muốn khôi phục prompt thủ công về mặc định? Hành động này không thể hoàn tác!')) return;
+        
+        resetManualPromptBtn.disabled = true;
+        resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+        
+        try {
+          const token = localStorage.getItem('token');
+          const res = await fetch('/api/admin/manual-prompt/reset', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token
+            }
+          });
+          
+          const data = await res.json();
+          
+          if (data.success) {
+            showManualPromptMessage('✅ Đã khôi phục manual prompt mặc định!', 'success');
+            manualPromptEditor.value = data.data.manual_prompt_template;
+            manualPromptPreview.textContent = data.data.manual_prompt_template;
+          } else {
+            throw new Error(data.error || 'Lỗi khi khôi phục manual prompt');
+          }
+        } catch (err) {
+          console.error(err);
+          showManualPromptMessage('❌ ' + err.message, 'error');
+        } finally {
+          resetManualPromptBtn.disabled = false;
+          resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+        }
+      });
+    }
+
+    if (manualPromptEditor) {
+      manualPromptEditor.addEventListener('input', function() {
+        if (manualPromptPreview) manualPromptPreview.textContent = this.value;
+      });
+    }
     if (savePromptBtn) {
       savePromptBtn.addEventListener('click', async function() {
         const content = promptEditor.value.trim();
@@ -1705,6 +2387,370 @@ main {
         if (promptPreview) promptPreview.textContent = this.value;
       });
     }
+    // Feedback Management
+function renderFeedbackList(feedbacks) {
+  if (!feedbacks || feedbacks.length === 0) {
+    feedbackArea.innerHTML = '<div class="muted">Chưa có phản hồi nào</div>';
+    return;
+  }
+  
+  const criteriaNames = [
+    'Phù hợp nội dung',
+    'Hữu ích học liệu',
+    'Dễ hiểu, dễ áp dụng',
+    'Thực tế & ứng dụng',
+    'Cá nhân hóa',
+    'Duy trì động lực',
+    'Trải nghiệm tổng thể',
+    'Tiện lợi người dùng'
+  ];
+  
+  const html = feedbacks.map(f => {
+    const avgRating = (
+      (f.rating_1 + f.rating_2 + f.rating_3 + f.rating_4 + 
+       f.rating_5 + f.rating_6 + f.rating_7 + f.rating_8) / 8
+    ).toFixed(1);
+    
+    return `
+      <div class="history-card" data-feedback-id="${f.feedback_id}">
+        <div class="history-header">
+          <div>
+            <strong>ID #${f.feedback_id}</strong> - ${new Date(f.created_at).toLocaleString('vi-VN')}
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <span class="status-badge status-success">⭐ ${avgRating}/5</span>
+            <button class="btn-delete" onclick="deleteFeedback(${f.feedback_id})" style="padding: 6px 12px;">
+              <i class="fa-solid fa-trash"></i> Xóa
+            </button>
+          </div>
+        </div>
+        <div style="margin-top: 10px;">
+          <strong>Người dùng:</strong> ${escapeHtml(f.user_name || 'N/A')} (${escapeHtml(f.user_email || '')})<br><br>
+          
+          <details style="margin-top: 12px;">
+            <summary style="cursor: pointer; font-weight: 600; color: #007bff; padding: 10px; background: #f0f9ff; border-radius: 6px; user-select: none;">
+              📊 Xem Chi Tiết Đánh Giá
+            </summary>
+            <div style="margin-top: 10px; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+              ${criteriaNames.map((name, i) => `
+                <div style="margin: 8px 0;">
+                  <strong>${i + 1}. ${name}:</strong> 
+                  ${'⭐'.repeat(f[`rating_${i + 1}`])}${'☆'.repeat(5 - f[`rating_${i + 1}`])}
+                  (${f[`rating_${i + 1}`]}/5)
+                </div>
+              `).join('')}
+            </div>
+          
+          ${f.question_1 ? `<br><strong>💡 Điểm thích nhất:</strong><br>${escapeHtml(f.question_1)}<br>` : ''}
+          ${f.question_2 ? `<br><strong>⚠️ Khó khăn gặp phải:</strong><br>${escapeHtml(f.question_2)}<br>` : ''}
+          ${f.question_3 ? `<br><strong>🚀 Đề xuất cải thiện:</strong><br>${escapeHtml(f.question_3)}` : ''}
+          
+          </details>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  feedbackArea.innerHTML = html;
+}
+
+// Thêm hàm xóa feedback mới
+window.deleteFeedback = async function(feedbackId) {
+  if (!confirm(`Xóa phản hồi #${feedbackId}?\n\nHành động này không thể hoàn tác!`)) return;
+  
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`/api/admin/feedback/${feedbackId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
+    const data = await res.json();
+    
+    if (data.success) {
+      // Xóa card khỏi DOM
+      const card = document.querySelector(`[data-feedback-id="${feedbackId}"]`);
+      if (card) card.remove();
+      
+      // Reload stats nếu đang hiển thị
+      if (statsArea.style.display === 'block') {
+        const statsRes = await fetch('/api/admin/feedback/stats', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const statsData = await statsRes.json();
+        renderFeedbackStats(statsData.data);
+      }
+      
+      showNotification('✅ Đã xóa phản hồi thành công!', 'success');
+    } else {
+      throw new Error(data.error || 'Lỗi khi xóa');
+    }
+  } catch (err) {
+    console.error(err);
+    showNotification('❌ ' + err.message, 'error');
+  }
+};
+
+function renderFeedbackStats(stats) {
+  if (!stats) return;
+  
+  const criteriaNames = [
+    'Phù hợp nội dung',
+    'Hữu ích học liệu',
+    'Dễ hiểu, dễ áp dụng',
+    'Thực tế & ứng dụng',
+    'Cá nhân hóa',
+    'Duy trì động lực',
+    'Trải nghiệm tổng thể',
+    'Tiện lợi người dùng'
+  ];
+  
+  const avgTotal = (
+    (parseFloat(stats.avg_rating_1) + parseFloat(stats.avg_rating_2) + 
+     parseFloat(stats.avg_rating_3) + parseFloat(stats.avg_rating_4) +
+     parseFloat(stats.avg_rating_5) + parseFloat(stats.avg_rating_6) +
+     parseFloat(stats.avg_rating_7) + parseFloat(stats.avg_rating_8)) / 8
+  ).toFixed(2);
+  
+  const html = `
+    <div style="margin-bottom: 20px;">
+      <strong>Tổng số phản hồi:</strong> ${stats.total_feedback}<br>
+      <strong>Đánh giá trung bình tổng thể:</strong> ⭐ ${avgTotal}/5
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+      ${criteriaNames.map((name, i) => {
+        const avg = parseFloat(stats[`avg_rating_${i + 1}`]).toFixed(2);
+        const percent = (avg / 5) * 100;
+        return `
+          <div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <div style="font-weight: 600; margin-bottom: 8px;">${i + 1}. ${name}</div>
+            <div style="font-size: 1.5rem; color: #007bff; font-weight: 700;">⭐ ${avg}/5</div>
+            <div style="background: #e5e7eb; height: 8px; border-radius: 4px; margin-top: 8px; overflow: hidden;">
+              <div style="background: linear-gradient(90deg, #007bff, #007bff); height: 100%; width: ${percent}%;"></div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  
+  statsContent.innerHTML = html;
+  statsArea.style.display = 'block';
+}
+
+let fetchFeedbackClickCount = 0;
+if (fetchFeedbackBtn) {
+  fetchFeedbackBtn.addEventListener('click', async function() {
+    fetchFeedbackClickCount++;
+    
+    if (fetchFeedbackClickCount % 2 === 1) {
+      feedbackMessage.textContent = 'Đang tải...';
+      fetchFeedbackBtn.disabled = true;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/feedback', {
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        renderFeedbackList(data.data);
+        feedbackMessage.textContent = `Đã tải ${data.data.length} phản hồi`;
+      } catch (err) {
+        console.error(err);
+        feedbackMessage.textContent = 'Lỗi khi tải phản hồi';
+        feedbackArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+      } finally {
+        fetchFeedbackBtn.disabled = false;
+        setTimeout(() => { feedbackMessage.textContent = ''; }, 2500);
+      }
+    } else {
+      feedbackArea.innerHTML = '';
+      feedbackMessage.textContent = 'Danh sách đã đóng.';
+      setTimeout(() => { feedbackMessage.textContent = ''; }, 1400);
+    }
+  });
+}
+
+if (viewStatsBtn) {
+  viewStatsBtn.addEventListener('click', async function() {
+    statsArea.style.display = statsArea.style.display === 'none' ? 'block' : 'none';
+    
+    if (statsArea.style.display === 'block') {
+      viewStatsBtn.disabled = true;
+      viewStatsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/admin/feedback/stats', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        const data = await res.json();
+        renderFeedbackStats(data.data);
+      } catch (err) {
+        console.error(err);
+        statsContent.innerHTML = '<div class="muted">Không thể tải thống kê</div>';
+      } finally {
+        viewStatsBtn.disabled = false;
+        viewStatsBtn.innerHTML = '<i class="fa-solid fa-chart-bar"></i> Xem Thống Kê';
+      }
+    }
+  });
+}
+// Feedback modal logic
+let feedbackRatings = {};
+
+function openFeedbackModal() {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để gửi phản hồi!');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('feedbackModal').classList.add('active');
+    feedbackRatings = {}; // Reset ratings
+    
+    // Reset all stars
+    for (let i = 1; i <= 8; i++) {
+        const stars = document.querySelectorAll(`#rating_${i} .star`);
+        stars.forEach(star => star.classList.remove('active'));
+        document.getElementById(`rating_${i}-value`).textContent = '0';
+    }
+    
+    // Reset textareas
+    document.getElementById('question_1').value = '';
+    document.getElementById('question_2').value = '';
+    document.getElementById('question_3').value = '';
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.remove('active');
+}
+
+function setFeedbackRating(ratingId, value) {
+    feedbackRatings[ratingId] = value;
+    
+    const stars = document.querySelectorAll(`#${ratingId} .star`);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    document.getElementById(`${ratingId}-value`).textContent = value;
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#059669';
+    } else {
+        notification.style.background = '#dc2626';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Handle feedback form submission
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validate all 8 ratings are filled
+    for (let i = 1; i <= 8; i++) {
+        if (!feedbackRatings[`rating_${i}`]) {
+            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
+            return;
+        }
+    }
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
+    
+    try {
+        const payload = {
+            rating_1: feedbackRatings.rating_1,
+            rating_2: feedbackRatings.rating_2,
+            rating_3: feedbackRatings.rating_3,
+            rating_4: feedbackRatings.rating_4,
+            rating_5: feedbackRatings.rating_5,
+            rating_6: feedbackRatings.rating_6,
+            rating_7: feedbackRatings.rating_7,
+            rating_8: feedbackRatings.rating_8,
+            question_1: document.getElementById('question_1').value.trim(),
+            question_2: document.getElementById('question_2').value.trim(),
+            question_3: document.getElementById('question_3').value.trim()
+        };
+        
+        const response = await fetch('/api/feedback/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+            setTimeout(() => {
+                closeFeedbackModal();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Không thể gửi phản hồi');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        showNotification('✗ ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('feedbackModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
+});
   </script>
 </body>
 </html>
