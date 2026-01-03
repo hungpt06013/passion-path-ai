@@ -81,7 +81,6 @@ main {
     .brand-text {
         display: flex;
         flex-direction: column;
-        gap: 4px;
     }
 
     .brand-title {
@@ -116,9 +115,6 @@ main {
         opacity: 0.95;
     }
 
-    .nav-btn.active {
-        color: #e6f2ff;
-    }
 
     button {
         font-family: 'Inter', sans-serif;
@@ -219,8 +215,8 @@ main {
     .meta-item i { color: #9ca3af; }
     .roadmap-rating { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px; }
     .rating-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-    .rating-stars { color: #fbbf24; }
-    .rating-value { font-weight: 700; color: #1f2937; }
+    .rating-stars-2 { color: #fbbf24; }
+    .rating-value-2 { font-weight: 700; color: #1f2937; }
     .roadmap-footer { display: flex; justify-content: space-between; align-items: center; }
     .learner-count { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #6b7280; }
     .learner-avatars { display: flex; margin-left: -4px; }
@@ -366,7 +362,196 @@ footer {
         color: #9ca3af;
         font-size: 13px;
     }
+/* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    overflow-y: auto;
+}
 
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff, #007bff);
+    color: white;
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.modal-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 14px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: transform 0.2s;
+}
+
+.close-modal:hover {
+    transform: scale(1.1);
+}
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+.info-box {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.rating-group {
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.rating-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 32px;
+}
+
+.star {
+    cursor: pointer;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+    transform: scale(1.2);
+}
+
+.rating-value {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.textarea-group {
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.textarea-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.textarea-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.textarea-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.submit-evaluation-btn {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-evaluation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.submit-evaluation-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
     @media (max-width: 768px) {
       .page-header h1 { font-size: 28px; }
       .category-stats { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -486,9 +671,9 @@ footer {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="create_roadmap_page.html" class="footer-link" id="create-btn">Tạo lộ trình với AI</a>
+                    <a href="path.html" class="footer-link" id="path-btn">Lưu trữ các lộ trình</a>
+                    <a href="progress.html" class="footer-link" id="progress-btn">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -497,7 +682,7 @@ footer {
                 <div class="footer-links">
                     <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
                     <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                    <a href="#" class="footer-link">Thu thập ý kiến</a>
+                    <a href="javascript:void(0)" onclick="openFeedbackModal()" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
                 </div>
             </div>
         </div>
@@ -506,11 +691,172 @@ footer {
             © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
         </div>
     </footer>
+       <!-- Modal Thu thập ý kiến -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <div>
+                <h2>📋 Thu Thập Ý Kiến</h2>
+                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
+            </div>
+            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <strong>📌 Mục đích thu thập:</strong>
+                <p style="margin: 10px 0 0 0; line-height: 1.6;">
+                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
+                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
+                </p>
+            </div>
 
+            <form id="feedbackForm">
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
+                    <p class="small" style="margin-bottom: 20px;">
+                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
+                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
+                    </p>
+
+                    <!-- Rating 1 -->
+                    <div class="rating-group">
+                        <label>1. Mức độ phù hợp của nội dung học *</label>
+                        <div class="rating-stars" id="rating_1">
+                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 2 -->
+                    <div class="rating-group">
+                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
+                        <div class="rating-stars" id="rating_2">
+                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 3 -->
+                    <div class="rating-group">
+                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
+                        <div class="rating-stars" id="rating_3">
+                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 4 -->
+                    <div class="rating-group">
+                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
+                        <div class="rating-stars" id="rating_4">
+                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 5 -->
+                    <div class="rating-group">
+                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
+                        <div class="rating-stars" id="rating_5">
+                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 6 -->
+                    <div class="rating-group">
+                        <label>6. Mức độ duy trì động lực học *</label>
+                        <div class="rating-stars" id="rating_6">
+                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 7 -->
+                    <div class="rating-group">
+                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
+                        <div class="rating-stars" id="rating_7">
+                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 8 -->
+                    <div class="rating-group">
+                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
+                        <div class="rating-stars" id="rating_8">
+                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
+                    </div>
+                </div>
+
+                <!-- Câu hỏi mở -->
+                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
+
+                    <div class="textarea-group">
+                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
+                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
+                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
+                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
+                    💾 Gửi Phản Hồi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
   <script>
     const loginBtn = document.querySelector(".login-btn");
 const registerBtn = document.querySelector(".register-btn");
 const userArea = document.getElementById("userArea");
+    const createBtn = document.querySelector("create-btn");
+    const pathBtn = document.querySelector("path-btn");
+    const progressBtn = document.querySelector("progress-btn");
 const ADMIN_TOKEN = 'admin-token';
 
 function showAuthButtons() {
@@ -655,7 +1001,51 @@ async function loadUser() {
     if (el) el.classList.add('active');
   }
 }
-
+document.addEventListener('DOMContentLoaded', function() {
+    const createBtn = document.getElementById('create-btn'); // Sửa lại ID đúng
+    if (createBtn) {
+        createBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Ngăn link mặc định
+            const token = localStorage.getItem('token');
+            if (!token) {
+              alert('Vui lòng đăng nhập!');
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'create_roadmap_page.html';
+            }
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const createBtn = document.getElementById('path-btn'); // Sửa lại ID đúng
+    if (createBtn) {
+        createBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Ngăn link mặc định
+            const token = localStorage.getItem('token');
+            if (!token) {
+              alert('Vui lòng đăng nhập!');
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'path.html';
+            }
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function() {
+    const createBtn = document.getElementById('progress-btn'); // Sửa lại ID đúng
+    if (createBtn) {
+        createBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Ngăn link mặc định
+            const token = localStorage.getItem('token');
+            if (!token) {
+              alert('Vui lòng đăng nhập!');
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'progress.html';
+            }
+        });
+    }
+});
 // Initialize
 loadUser().catch((e)=>console.error(e));
     const API_BASE_URL = 'http://localhost:3000/api';
@@ -724,7 +1114,6 @@ loadUser().catch((e)=>console.error(e));
       const totalLearners = allRoadmaps.reduce((sum, r) => sum + (r.total_user_learning || 0), 0);
       document.getElementById('totalLearners').textContent = `${totalLearners.toLocaleString()} học viên`;
     }
-
 function renderRoadmaps() {
   const grid = document.getElementById('roadmapsGrid');
   if (!filteredRoadmaps || filteredRoadmaps.length === 0) {
@@ -735,6 +1124,35 @@ function renderRoadmaps() {
   grid.innerHTML = filteredRoadmaps.map(roadmap => {
     const levelClass = roadmap.start_level === 'Intermediate' ? 'intermediate' : roadmap.start_level === 'Advanced' ? 'advanced' : '';
     const levelText = roadmap.start_level === 'Beginner' ? 'Cơ bản' : roadmap.start_level === 'Intermediate' ? 'Trung cấp' : roadmap.start_level === 'Advanced' ? 'Nâng cao' : roadmap.start_level;
+    
+    // ✅ THAY ĐỔI RATING SECTION
+    let ratingHtml = '';
+    if (roadmap.high_overall_rating_count > 0 || roadmap.high_effectiveness_count > 0) {
+      ratingHtml = '<div class="roadmap-rating">';
+      
+      if (roadmap.high_overall_rating_count > 0) {
+        ratingHtml += `
+          <div class="rating-item">
+            <span class="rating-value-2">${roadmap.high_overall_rating_count}</span>
+            <span style="color: #9ca3af; font-size: 12px;">học viên</span>
+            <span style="color: #9ca3af;">Tổng thể: ≥4⭐</span>
+          </div>
+        `;
+      }
+      
+      if (roadmap.high_effectiveness_count > 0) {
+        ratingHtml += `
+          <div class="rating-item">
+            <span class="rating-value-2">${roadmap.high_effectiveness_count}</span>
+            <span style="color: #9ca3af; font-size: 12px;">học viên</span>
+            <span style="color: #9ca3af;">Hiệu quả: ≥4⭐</span>
+          </div>
+        `;
+      }
+      
+      ratingHtml += '</div>';
+    }
+    
     return `
       <div class="roadmap-card" onclick="viewRoadmapDetails(${roadmap.roadmap_id})">
         <div class="roadmap-header">
@@ -746,12 +1164,7 @@ function renderRoadmaps() {
           <div class="meta-item"><i class="fas fa-clock"></i><span>${roadmap.duration_hours}h</span></div>
           ${roadmap.sub_category ? `<div class="meta-item"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
         </div>
-        ${roadmap.overall_rating || roadmap.learning_effectiveness ? `
-          <div class="roadmap-rating">
-            ${roadmap.overall_rating ? `<div class="rating-item"><span class="rating-stars">⭐</span><span class="rating-value">${Number(roadmap.overall_rating).toFixed(1)}</span><span style="color: #9ca3af;">Tổng thể</span></div>` : ''}
-            ${roadmap.learning_effectiveness ? `<div class="rating-item"><span class="rating-stars">📈</span><span class="rating-value">${Number(roadmap.learning_effectiveness).toFixed(1)}</span><span style="color: #9ca3af;">Hiệu quả</span></div>` : ''}
-          </div>
-        ` : ''}
+        ${ratingHtml}
         <div class="roadmap-footer">
           <div class="learner-count">
             <div class="learner-avatars">
@@ -767,9 +1180,10 @@ function renderRoadmaps() {
     `;
   }).join('');
 }
-
     function viewRoadmapDetails(roadmapId) {
-      window.location.href = `roadmap_details.html?id=${roadmapId}`;
+      const token = localStorage.getItem('token');
+      if(!token) {alert('Vui lòng đăng nhập!');window.location.href='login.html';}
+      else window.location.href = `roadmap_details.html?id=${roadmapId}`;
     }
 
     function showEmptyState() {
@@ -854,6 +1268,151 @@ function renderRoadmaps() {
 
     // Call on page load
     document.addEventListener('DOMContentLoaded', loadNavButtons);
+    let feedbackRatings = {};
+
+function openFeedbackModal() {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để gửi phản hồi!');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('feedbackModal').classList.add('active');
+    feedbackRatings = {}; // Reset ratings
+    
+    // Reset all stars
+    for (let i = 1; i <= 8; i++) {
+        const stars = document.querySelectorAll(`#rating_${i} .star`);
+        stars.forEach(star => star.classList.remove('active'));
+        document.getElementById(`rating_${i}-value`).textContent = '0';
+    }
+    
+    // Reset textareas
+    document.getElementById('question_1').value = '';
+    document.getElementById('question_2').value = '';
+    document.getElementById('question_3').value = '';
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.remove('active');
+}
+
+function setFeedbackRating(ratingId, value) {
+    feedbackRatings[ratingId] = value;
+    
+    const stars = document.querySelectorAll(`#${ratingId} .star`);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    document.getElementById(`${ratingId}-value`).textContent = value;
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#059669';
+    } else {
+        notification.style.background = '#dc2626';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
+
+// Handle feedback form submission
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validate all 8 ratings are filled
+    for (let i = 1; i <= 8; i++) {
+        if (!feedbackRatings[`rating_${i}`]) {
+            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
+            return;
+        }
+    }
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
+    
+    try {
+        const payload = {
+            rating_1: feedbackRatings.rating_1,
+            rating_2: feedbackRatings.rating_2,
+            rating_3: feedbackRatings.rating_3,
+            rating_4: feedbackRatings.rating_4,
+            rating_5: feedbackRatings.rating_5,
+            rating_6: feedbackRatings.rating_6,
+            rating_7: feedbackRatings.rating_7,
+            rating_8: feedbackRatings.rating_8,
+            question_1: document.getElementById('question_1').value.trim(),
+            question_2: document.getElementById('question_2').value.trim(),
+            question_3: document.getElementById('question_3').value.trim()
+        };
+        
+        const response = await fetch('/api/feedback/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+            setTimeout(() => {
+                closeFeedbackModal();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Không thể gửi phản hồi');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        showNotification('✗ ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('feedbackModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
+});
   </script>
 </body>
 </html>
