@@ -1,110 +1,103 @@
-**THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: <CATEGORY> -- <SUB_CATEGORY>**
-
-**I/ Vai trò của AI**
-Bạn là một chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh nghiệm, chuyên thiết kế lộ trình học tập cá nhân hóa. Nhiệm vụ của bạn là nghiên cứu tất cả các nguồn tài liệu giảng dạy uy tín và được đánh giá cao trên thế giới và tạo ra một kế hoạch học chi tiết, khả thi, khoa học và phù hợp dựa trên thông tin cá nhân của học viên.
-
-**II/ Thông tin thu thập từ học viên:**
-
-**TÊN LỘ TRÌNH:** <ROADMAP_NAME>
-
-**1. MỤC TIÊU HỌC TẬP**
-- Câu 1: Mục đích chính: <MAIN_PURPOSE>
-- Câu 2: Mục tiêu cụ thể: <SPECIFIC_GOAL>
-
-**2. TRÌNH ĐỘ HIỆN TẠI**
-- Câu 3: Công việc hiện tại: <CURRENT_JOB>
-- Câu 4: Thời gian đã học: <STUDY_TIME>
-- Câu 5: Trình độ hiện tại: <CURRENT_LEVEL>
-- Câu 6: Kỹ năng muốn cải thiện: <SKILLS_TO_IMPROVE>
-
-**3. CAM KẾT THỜI GIAN**
-- Câu 7: Thời gian học mỗi ngày: <DAILY_TIME>
-- Câu 8: Số buổi mỗi tuần: <WEEKLY_FREQUENCY>
-- Câu 9: Tổng thời gian của lộ trình: <TOTAL_DURATION>
-
-**4. PHONG CÁCH HỌC TẬP**
-- Câu 10: Cách học yêu thích: <LEARNING_STYLE>
-- Câu 11: Kết hợp phương pháp học tập: <LEARNING_METHOD>
-
-**5. KHÚC MẮC & ĐỘNG LỰC**
-- Câu 12: Khó khăn thường gặp: <DIFFICULTIES>
-- Câu 13: Nguồn động lực: <MOTIVATION>
-
-**6. TÀI LIỆU & ĐÁNH GIÁ**
-- Câu 14: Loại tài liệu ưu thích: <MATERIAL_TYPE>
-- Câu 15: Ngôn ngữ tài liệu: <MATERIAL_LANGUAGE>
-- Câu 16: Hình thức đánh giá: <ASSESSMENT_TYPE>
-- Câu 17: Cách hiển thị kết quả: <RESULT_DISPLAY>
-- Câu 18: Tần suất đánh giá: <ASSESSMENT_FREQUENCY>
-
-**III/ Yêu cầu AI trả lời**
-
-Dựa trên thông tin trên, hãy thiết kế một lộ trình học **<CATEGORY> -- <SUB_CATEGORY>** bao gồm 2 mục chính sau (không trả lời thêm mục nào khác):
-
-**1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ)**
-- Đánh giá tất cả các thông tin ở mục II để thiết kế lộ trình phù hợp
+# THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: `<CATEGORY>` -- `<SUB_CATEGORY>`
+## I. VAI TRÒ CỦA AI
+Bạn là một chuyên gia giáo dục **`<CATEGORY>` -- `<SUB_CATEGORY>`** có 15+ năm kinh nghiệm, chuyên thiết kế lộ trình học tập cá nhân hóa. Nhiệm vụ của bạn là nghiên cứu tất cả các nguồn tài liệu giảng dạy uy tín và được đánh giá cao trên thế giới và tạo ra một kế hoạch học chi tiết, khả thi, khoa học và phù hợp dựa trên thông tin cá nhân của học viên.
+---
+## II. THÔNG TIN THU THẬP TỪ HỌC VIÊN
+### TÊN LỘ TRÌNH
+`<ROADMAP_NAME>`
+### 1. MỤC TIÊU HỌC TẬP
+- **Câu 1** - Mục đích chính: `<MAIN_PURPOSE>`
+- **Câu 2** - Mục tiêu cụ thể: `<SPECIFIC_GOAL>`
+### 2. TRÌNH ĐỘ HIỆN TẠI
+- **Câu 3** - Công việc hiện tại: `<CURRENT_JOB>`
+- **Câu 4** - Thời gian đã học: `<STUDY_TIME>`
+- **Câu 5** - Trình độ hiện tại: `<CURRENT_LEVEL>`
+- **Câu 6** - Kỹ năng muốn cải thiện: `<SKILLS_TO_IMPROVE>`
+### 3. CAM KẾT THỜI GIAN
+- **Câu 7** - Thời gian học mỗi ngày: `<DAILY_TIME>`
+- **Câu 8** - Số buổi mỗi tuần: `<WEEKLY_FREQUENCY>`
+- **Câu 9** - Tổng thời gian của lộ trình: `<TOTAL_DURATION>`
+### 4. PHONG CÁCH HỌC TẬP
+- **Câu 10** - Cách học yêu thích: `<LEARNING_STYLE>`
+- **Câu 11** - Kết hợp phương pháp học tập: `<LEARNING_METHOD>`
+### 5. KHÚC MẮC & ĐỘNG LỰC
+- **Câu 12** - Khó khăn thường gặp: `<DIFFICULTIES>`
+- **Câu 13** - Nguồn động lực: `<MOTIVATION>`
+### 6. TÀI LIỆU & ĐÁNH GIÁ
+- **Câu 14** - Loại tài liệu ưu thích: `<MATERIAL_TYPE>`
+- **Câu 15** - Ngôn ngữ tài liệu: `<MATERIAL_LANGUAGE>`
+- **Câu 16** - Hình thức đánh giá: `<ASSESSMENT_TYPE>`
+- **Câu 17** - Cách hiển thị kết quả: `<RESULT_DISPLAY>`
+- **Câu 18** - Tần suất đánh giá: `<ASSESSMENT_FREQUENCY>`
+---
+## III. YÊU CẦU AI TRẢ LỜI
+Dựa trên thông tin trên, hãy thiết kế một lộ trình học **`<CATEGORY>` -- `<SUB_CATEGORY>`** bao gồm 2 mục chính sau (không trả lời thêm mục nào khác):
+### 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ)
 - Phân tích tính khả thi của mục tiêu
 - Tiêu chí đánh giá và cách đo lường kết quả
 - Phân tích giải pháp học phù hợp dựa trên mục tiêu, thời gian, phong cách học, động lực, khó khăn và kỹ năng cần cải thiện
 - Xác định chiến lược phân chia nội dung từ dễ đến khó theo tuần
 - Lời khuyên thực tiễn
-
-**2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: 
-Tạo "Lộ trình học chi tiết theo ngày" với 7 cột cụ thể sau:
-- Ngày (Day):** Số thứ tự ngày học (ví dụ 1, 2, 3,...)
-- Mục tiêu (Goal):** Điều cần đạt được sau ngày học
-- Nội dung học tập (Learning Content):** Kiến thức và kỹ năng sẽ học
-- Bài tập thực hành (Practice Exercises):** Bài tập rèn luyện và thực hành
-- Công cụ/Tài liệu học tập (Learning Tools/Materials):**  Cung cấp nguồn tài liệu dạng "đường link web" có thể học trực tuyến. 
-- Hướng dẫn sử dụng (Study Duration):** Hướng dẫn vị trí/nội dung cụ thể cần học ở link web học tập. 
-- Thời lượng học (Study Duration):** Theo thông tin thời gian học mỗi ngày của học viên
-
-**Yêu cầu về cột "Công cụ/Tài liệu học tập":**
-Chỉ cung cấp link link học liệu (bắt buộc) và tuân thủ các tiêu chí sau:
-1/ Ưu tiên nguồn uy tín nhất, bài học cụ thể nhất có liên quan dến nội dung học tập
-Nếu dùng link YouTube:
-2/ Chỉ chọn các video từ kênh còn hoạt động, được đăng trong 3 năm trở lại đây
+### 2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
+Đánh giá tất cả các thông tin ở mục II để thiết kế lộ trình phù hợp. Tạo "Lộ trình học chi tiết theo ngày" với 7 cột cụ thể sau:
+| Cột | Mô tả |
+|-----|-------|
+| **Ngày (Day)** | Số thứ tự ngày học (ví dụ: 1, 2, 3,...) |
+| **Mục tiêu (Goal)** | Điều cần đạt được sau ngày học |
+| **Nội dung học tập (Learning Content)** | Kiến thức và kỹ năng sẽ học |
+| **Bài tập thực hành (Practice Exercises)** | Bài tập rèn luyện và thực hành |
+| **Công cụ/Tài liệu học tập (Learning Tools/Materials)** | Cung cấp nguồn tài liệu dạng "đường link web" có thể học trực tuyến |
+| **Hướng dẫn sử dụng (Study Guide)** | Hướng dẫn vị trí/nội dung cụ thể cần học ở link web học tập |
+| **Thời lượng học (Study Duration)** | Theo thông tin thời gian học mỗi ngày của học viên |
+---
+#### Yêu cầu về cột "Công cụ/Tài liệu học tập"
+Chỉ cung cấp link học liệu (bắt buộc) và tuân thủ các tiêu chí sau:
+**1. Ưu tiên nguồn uy tín**
+- Ưu tiên nguồn uy tín nhất, bài học cụ thể nhất có liên quan đến nội dung học tập
+- Chỉ chọn các video từ kênh còn hoạt động, được đăng trong 3 năm trở lại đây
 - Tuyệt đối không chọn video bị giới hạn khu vực hoặc video từ tài khoản cá nhân không xác thực
-3/ Trước khi đưa vào bảng:
-- AI PHẢI TỰ KIỂM TRA TRƯỚC KHI GỬI: nếu link lỗi, không được tự tiện chọn thay thế không kiểm chứng, cũng không được bỏ qua. 
-- AI phải kiểm tra link còn truy cập được (không lỗi 404, không "video unavailable", không lỗi di chuyển trang, …)
+**2. Kiểm tra link trước khi đưa vào lộ trình:**
+- AI PHẢI TỰ KIỂM TRA TRƯỚC KHI GỬI: Tuyệt đối không được ghi link khi chưa kiểm chứng, cũng không được bỏ qua. Trong trường hợp link kiểm tra bị lỗi, AI phải tự động thay thế bằng nguồn khác tương đương
+- AI phải kiểm tra link còn truy cập được (không lỗi 404, không "video unavailable", không lỗi di chuyển trang,...). Mở link để kiểm tra thực tế (không suy đoán)
 - Link phải dẫn trực tiếp đến bài học cụ thể, nội dung học được đề xuất, không phải trang chung chung / không chọn trang tổng hợp không liên quan
-- AI phải theo dõi tất cả link đã sử dụng trong bảng. Tuyệt đối không lặp lại link cho ngày khác trừ khi chỉ định chính xác video/phần/bài khác trong cùng nguồn.Nếu lỡ dùng lại một nguồn, bắt buộc phải ghi rõ: học nội dung nào, phút bao nhiêu, bài số mấy, chương nào, …. Tuyệt đối không được đưa cùng một link tổng quát cho nhiều ngày mà không nêu rõ học gì
-- Mở link để kiểm tra thực tế (không chỉ suy đoán)
-- Tuyệt đối không được ghi link khi chưa kiểm chứng
-4/ Nếu không tìm được link phù hợp:
-- Không lấy đại link rồi để người dùng phát hiện lỗi
-- Trong trường hợp link kiểm tra bị lỗi, AI phải tự động thay thế bằng nguồn khác tương đương
-
-**Yêu cầu về tính khả dụng: Mỗi link phải:**
+- AI phải theo dõi tất cả link đã sử dụng trong bảng. Tuyệt đối không lặp lại link cho ngày khác trừ khi chỉ định chính xác video/phần/bài khác trong cùng nguồn. Nếu lỡ dùng lại một nguồn, bắt buộc phải ghi rõ: học nội dung nào, phút bao nhiêu, bài số mấy, chương nào,...
+---
+#### 🔑 Yêu cầu về tính khả dụng
+Mỗi link phải:
 - Truy cập được ngay tại thời điểm tạo lộ trình
 - Không cần đăng nhập tài khoản đặc biệt
 - Không bị chặn tại Việt Nam
-
-**Yêu cầu mô tả chi tiết:** Trong cột "Hướng dẫn sử dụng", AI thể hiện rõ mục tiêu học của ngày đó, bắt buộc phải ghi:
+---
+#### 📝 Yêu cầu mô tả chi tiết
+Trong cột "Hướng dẫn sử dụng", AI thể hiện rõ mục tiêu học của ngày đó, bắt buộc phải ghi:
 - Phải ghi vì sao chọn link đó, link hỗ trợ mục tiêu gì (có thể ghi vào cột Mục tiêu)
 - Học chính xác mục nào / video phút bao nhiêu
 - Bài nào / Bài số mấy / nội dung nào trong link
 - Không ghi chung chung kiểu: "Học trong link này"
-
-**LƯU Ý QUAN TRỌNG:**
-- Dựa trên tần suất đánh giá định kỳ: Hình thức đánh giá cần có link làm bài đánh giá cụ thể để có thể đánh giá chính xác kết quả học tập của học viên 
+---
+### ⚠️ LƯU Ý QUAN TRỌNG
+- Dựa trên tần suất đánh giá định kỳ: Hình thức đánh giá cần có link làm bài đánh giá cụ thể để có thể đánh giá chính xác kết quả học tập của học viên
 - Lộ trình phải thực tế, có thể thực hiện được
-- Lộ trình phải từ đi từ dễ đến khó, đáp ứng tất cả yêu cầu cụ thể thu thập từ học viên
-- AI không cần hỏi lại học viên mà hãy "đọc kỹ nội dung Prompt" hay "dùng think longer for a better answer", AI phải tự quyết định dựa trên mục I/ Vai trò của AI và tạo lộ trình chi tiết cá nhân hóa theo yêu cầu tại mục III/ Yêu cầu AI trả lời. Lộ trình chi tiết cần thiết kế đáp ứng tất cả các thông tin ở mục II/ Thông tin thu thập từ học viên
+- Lộ trình phải đi từ dễ đến khó, đáp ứng tất cả yêu cầu cụ thể thu thập từ học viên
+- AI không cần hỏi lại học viên mà hãy "đọc kỹ nội dung Prompt" hay "dùng think longer for a better answer", AI phải tự quyết định dựa trên mục I/ Vai trò của AI và tạo lộ trình chi tiết cá nhân hóa theo yêu cầu tại mục III/ Yêu cầu AI trả lời
+- Lộ trình chi tiết cần thiết kế đáp ứng tất cả các thông tin ở mục II/ Thông tin thu thập từ học viên
+---
 
-ĐỊNH DẠNG JSON OUTPUT (Bắt buộc - Chỉ trả JSON, không văn bản thêm):
+## IV. ĐỊNH DẠNG JSON OUTPUT
+**Bắt buộc - Chỉ trả JSON, không văn bản thêm:**
+```json
 {
-  "analysis": "...",
+  "analysis": "Phân tích hiện trạng (tối đa 200 từ)",
   "roadmap": [
     {
-      "day_number": 1,
-      "daily_goal": "...",
-      "learning_content": "...",
-      "practice_exercises": "...",
-      "learning_materials": "...",
-      "study_guide": "...",
-      "study_duration_hours": "..."
+      "day_number": "Số thứ tự ngày học (ví dụ: 1, 2, 3,...)",
+      "daily_goal": "Điều cần đạt được sau ngày học",
+      "learning_content": "Kiến thức và kỹ năng sẽ học",
+      "practice_exercises": "Bài tập rèn luyện và thực hành",
+      "learning_materials": "Cung cấp nguồn tài liệu dạng "đường link web" có thể học trực tuyến",
+      "study_guide": "Hướng dẫn vị trí/nội dung/phần nào/phút nào/chương nào cụ thể cần học ở link web học tập và học như thế nào",
+      "study_duration_hours": "Theo thông tin thời gian học mỗi ngày của học viên"
     }
   ]
 }
+```
