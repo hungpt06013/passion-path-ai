@@ -183,12 +183,21 @@ function comparePassword(plain, hashed) {
     });
   });
 }
-
-// token
-function makeToken(userId) {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || "dev_local_secret", { expiresIn: "2h" });
+function getCleanSecret() {
+  const rawSecret = process.env.JWT_SECRET || "dev_local_secret";
+  return rawSecret.replace(/^['"]|['"]$/g, "");
 }
-
+// ✅ CLEAN JWT_SECRET - Remove quotes nếu có
+function makeToken(userId) {
+  return jwt.sign(
+    { userId }, 
+    getCleanSecret(), // ✅ Dùng helper thay vì inline
+    { 
+      expiresIn: "2h",
+      algorithm: 'HS256'
+    }
+  );
+}
 // AI config - CRITICAL: Temperature MUST be 1
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
 const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "200000", 10);
@@ -495,42 +504,129 @@ await pool.query(`
 initDB();
 
 // ---------------- Auth middlewares ----------------
-async function requireAdmin(req, res, next) {
-  const auth = req.headers.authorization || "";
-  const token = auth.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return res.status(401).json({ message: "Không có token" });
-  if ((token.match(/\./g) || []).length !== 2) return res.status(401).json({ message: "Token không hợp lệ" });
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_local_secret");
-    const result = await pool.query("SELECT id, username, role FROM users WHERE id = $1 LIMIT 1", [payload.userId]);
-    if (result.rows.length === 0) return res.status(401).json({ message: "Người dùng không tồn tại" });
-    const user = result.rows[0];
-    if (user.role && String(user.role).toLowerCase() === "admin") { req.user = user; return next(); }
-    const adminName = (process.env.ADMIN_USERNAME || "").trim();
-    if (adminName && user.username === adminName) { req.user = user; return next(); }
-    return res.status(403).json({ message: "Yêu cầu quyền admin" });
-  } catch (err) {
-    if (err && err.name === "TokenExpiredError") return res.status(401).json({ message: "Token đã hết hạn, vui lòng đăng nhập lại" });
-    console.error("Auth error (requireAdmin):", err && err.message ? err.message : err);
-    return res.status(401).json({ message: "Token không hợp lệ" });
-  }
-}
-
 async function requireAuth(req, res, next) {
   const auth = req.headers.authorization || "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
-  if (!token) return res.status(401).json({ message: "Không có token" });
-  if ((token.match(/\./g) || []).length !== 2) return res.status(401).json({ message: "Token không hợp lệ" });
+  
+  if (!token) {
+    return res.status(401).json({ message: "Không có token" });
+  }
+  
+  if ((token.match(/\./g) || []).length !== 2) {
+    return res.status(401).json({ message: "Token không hợp lệ" });
+  }
+  
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "dev_local_secret");
-    const result = await pool.query("SELECT id, username, role FROM users WHERE id = $1 LIMIT 1", [payload.userId]);
-    if (result.rows.length === 0) return res.status(401).json({ message: "Người dùng không tồn tại" });
+    const payload = jwt.verify(token, getCleanSecret(), { // ✅ Dùng helper
+      algorithms: ['HS256']
+    });
+    
+    if (!payload.userId) {
+      return res.status(401).json({ message: "Token không chứa userId" });
+    }
+    
+    const result = await pool.query(
+      "SELECT id, username, role FROM users WHERE id = $1 LIMIT 1", 
+      [payload.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: "Người dùng không tồn tại" });
+    }
+    
     req.user = result.rows[0];
     next();
+    
   } catch (err) {
-    if (err && err.name === "TokenExpiredError") return res.status(401).json({ message: "Token đã hết hạn, vui lòng đăng nhập lại" });
-    console.error("Auth error:", err && err.message ? err.message : err);
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ 
+        message: "Token đã hết hạn, vui lòng đăng nhập lại",
+        code: "TOKEN_EXPIRED"
+      });
+    }
+    
+    if (err.name === "JsonWebTokenError") {
+      console.error("JWT Error:", err.message);
+      return res.status(401).json({ 
+        message: "Token không hợp lệ",
+        code: "INVALID_TOKEN"
+      });
+    }
+    
+    console.error("Auth error (requireAuth):", err);
+    return res.status(401).json({ 
+        message: "Xác thực thất bại",
+        code: "AUTH_FAILED"
+    });
+  }
+}
+
+async function requireAdmin(req, res, next) {
+  const auth = req.headers.authorization || "";
+  const token = auth.replace(/^Bearer\s+/i, "").trim();
+  
+  if (!token) {
+    return res.status(401).json({ message: "Không có token" });
+  }
+  
+  if ((token.match(/\./g) || []).length !== 2) {
     return res.status(401).json({ message: "Token không hợp lệ" });
+  }
+  
+  try {
+    const payload = jwt.verify(token, getCleanSecret(), { // ✅ Dùng helper
+      algorithms: ['HS256']
+    });
+    
+    if (!payload.userId) {
+      return res.status(401).json({ message: "Token không chứa userId" });
+    }
+    
+    const result = await pool.query(
+      "SELECT id, username, role FROM users WHERE id = $1 LIMIT 1", 
+      [payload.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(401).json({ message: "Người dùng không tồn tại" });
+    }
+    
+    const user = result.rows[0];
+    
+    if (user.role && String(user.role).toLowerCase() === "admin") {
+      req.user = user;
+      return next();
+    }
+    
+    const adminName = (process.env.ADMIN_USERNAME || "").trim();
+    if (adminName && user.username === adminName) {
+      req.user = user;
+      return next();
+    }
+    
+    return res.status(403).json({ message: "Yêu cầu quyền admin" });
+    
+  } catch (err) {
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ 
+        message: "Token đã hết hạn, vui lòng đăng nhập lại",
+        code: "TOKEN_EXPIRED"
+      });
+    }
+    
+    if (err.name === "JsonWebTokenError") {
+      console.error("JWT Error:", err.message);
+      return res.status(401).json({ 
+        message: "Token không hợp lệ",
+        code: "INVALID_TOKEN"
+      });
+    }
+    
+    console.error("Auth error (requireAdmin):", err);
+    return res.status(401).json({ 
+      message: "Xác thực thất bại",
+      code: "AUTH_FAILED"
+    });
   }
 }
 // ========== HELPER FUNCTIONS ==========
