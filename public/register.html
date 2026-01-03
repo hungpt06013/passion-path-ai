@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Đăng ký tài khoản</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script>
+  </script>
 <style>
     :root {
       --bg: #f7faff;
@@ -28,7 +31,7 @@
     body {
       height: 100%;
       margin: 0;
-      background: linear-gradient(135deg, #85ccff);
+      background: linear-gradient(135deg, #ffffff);
       color: #222;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -231,9 +234,201 @@
   background: rgba(10,20,40,0.04);
   border-color: rgba(10,20,40,0.18);
 }
+/* Fixed Bar Styles */
+.fixed-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: var(--primary);
+    box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+    z-index: 50;
+}
+
+.bar-inner {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.brand-sub {
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+}
+
+.nav-btn {
+    background: none;
+    color: #fff;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 9999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    padding: 10px 11px;
+}
+
+.nav-btn .fa {
+    margin-right: 8px;
+    opacity: 0.95;
+}
+
+.login-btn, .register-btn {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.userInfo {
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.login-btn {
+    background: white;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.login-btn:hover {
+    background: #f0f0f0;
+}
+
+.register-btn {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+}
+
+.register-btn:hover {
+    background: #218838;
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    cursor: pointer;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Responsive */
+@media (max-width:820px) {
+    .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .fixed-bar {
+        height: auto;
+    }
+
+    .userInfo {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+/* Điều chỉnh page-wrapper */
+.page-wrapper {
+    margin-top: 100px; /* Thêm margin-top để không bị bar che */
+}
 </style>
+<link rel="stylesheet" href="footer.css">
 </head>
 <body>
+  <!-- THÊM BAR GIỐNG MAIN.HTML -->
+<div class="fixed-bar">
+  <div class="bar-inner">
+      <div class="brand">
+          <div class="brand-icon">
+              <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="brand-text">
+              <div class="brand-title">Con đường đam mê</div>
+              <div class="brand-sub">AI-Powered Learning Path</div>
+          </div>
+      </div>
+      <div class="nav-buttons" id="mainNavButtons">
+          <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+          <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+          <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+      </div>
+      <div id="userArea" class="userInfo">
+          <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+          <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+      </div>
+  </div>
+</div>
   <div class="page-wrapper">
     <section class="card" aria-labelledby="registration-heading">
       <div style="margin-bottom: 16px;">
@@ -306,7 +501,7 @@
       </div>
     </section>
   </div>
-
+<div id="footer"></div>
   <script>
     // DOM
     const registrationFormElement = document.getElementById('registrationForm');
@@ -353,23 +548,77 @@
       generalMessageElement.textContent = text || '';
       generalMessageElement.className = type === 'error' ? 'error-message' : (type === 'success' ? 'success-message' : '');
     }
+function updatePasswordCriteriaVisual(pw) {
+  if (pw.length >= 8) { 
+    critLength.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 12px;"></i> <span style="font-size: 13px;">Ít nhất 8 ký tự</span>'; 
+    critLength.classList.remove('error-message'); 
+    critLength.classList.add('success-message'); 
+    critLength.style.lineHeight = '1.5';
+    critLength.style.margin = '0';
+  } else { 
+    critLength.innerHTML = '<i class="fas fa-times" style="color: #dc2626; font-size: 14px;"></i> <span style="font-size: 13px;">Ít nhất 8 ký tự</span>'; 
+    critLength.classList.remove('success-message'); 
+    critLength.classList.add('small-note'); 
+    critLength.style.lineHeight = '1.5';
+    critLength.style.margin = '0';
+  }
 
-    function updatePasswordCriteriaVisual(pw) {
-      if (pw.length >= 8) { critLength.textContent = '✅ Ít nhất 8 ký tự'; critLength.classList.remove('error-message'); critLength.classList.add('success-message'); }
-      else { critLength.textContent = '❌ Ít nhất 8 ký tự'; critLength.classList.remove('success-message'); critLength.classList.add('small-note'); }
+  if (/[A-Z]/.test(pw)) { 
+    critUpper.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 12px;"></i> <span style="font-size: 13px;">Chữ hoa (A-Z)</span>'; 
+    critUpper.classList.remove('error-message'); 
+    critUpper.classList.add('success-message'); 
+    critUpper.style.lineHeight = '1.5';
+    critUpper.style.margin = '0';
+  } else { 
+    critUpper.innerHTML = '<i class="fas fa-times" style="color: #dc2626; font-size: 14px;"></i> <span style="font-size: 13px;">Chữ hoa (A-Z)</span>'; 
+    critUpper.classList.remove('success-message'); 
+    critUpper.classList.add('small-note'); 
+    critUpper.style.lineHeight = '1.5';
+    critUpper.style.margin = '0';
+  }
 
-      if (/[A-Z]/.test(pw)) { critUpper.textContent = '✅ Chữ hoa (A-Z)'; critUpper.classList.remove('error-message'); critUpper.classList.add('success-message'); }
-      else { critUpper.textContent = '❌ Chữ hoa (A-Z)'; critUpper.classList.remove('success-message'); critUpper.classList.add('small-note'); }
+  if (/[a-z]/.test(pw)) { 
+    critLower.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 12px;"></i> <span style="font-size: 13px;">Chữ thường (a-z)</span>'; 
+    critLower.classList.remove('error-message'); 
+    critLower.classList.add('success-message'); 
+    critLower.style.lineHeight = '1.5';
+    critLower.style.margin = '0';
+  } else { 
+    critLower.innerHTML = '<i class="fas fa-times" style="color: #dc2626; font-size: 14px;"></i> <span style="font-size: 13px;">Chữ thường (a-z)</span>'; 
+    critLower.classList.remove('success-message'); 
+    critLower.classList.add('small-note'); 
+    critLower.style.lineHeight = '1.5';
+    critLower.style.margin = '0';
+  }
 
-      if (/[a-z]/.test(pw)) { critLower.textContent = '✅ Chữ thường (a-z)'; critLower.classList.remove('error-message'); critLower.classList.add('success-message'); }
-      else { critLower.textContent = '❌ Chữ thường (a-z)'; critLower.classList.remove('success-message'); critLower.classList.add('small-note'); }
+  if (/[0-9]/.test(pw)) { 
+    critDigit.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 12px;"></i> <span style="font-size: 13px;">Số (0-9)</span>'; 
+    critDigit.classList.remove('error-message'); 
+    critDigit.classList.add('success-message'); 
+    critDigit.style.lineHeight = '1.5';
+    critDigit.style.margin = '0';
+  } else { 
+    critDigit.innerHTML = '<i class="fas fa-times" style="color: #dc2626; font-size: 14px;"></i> <span style="font-size: 13px;">Số (0-9)</span>'; 
+    critDigit.classList.remove('success-message'); 
+    critDigit.classList.add('small-note'); 
+    critDigit.style.lineHeight = '1.5';
+    critDigit.style.margin = '0';
+  }
 
-      if (/[0-9]/.test(pw)) { critDigit.textContent = '✅ Số (0-9)'; critDigit.classList.remove('error-message'); critDigit.classList.add('success-message'); }
-      else { critDigit.textContent = '❌ Số (0-9)'; critDigit.classList.remove('success-message'); critDigit.classList.add('small-note'); }
-
-      if (/[^A-Za-z0-9]/.test(pw)) { critSpecial.textContent = '✅ Ký tự đặc biệt (!@#$...)'; critSpecial.classList.remove('error-message'); critSpecial.classList.add('success-message'); }
-      else { critSpecial.textContent = '❌ Ký tự đặc biệt (!@#$...)'; critSpecial.classList.remove('success-message'); critSpecial.classList.add('small-note'); }
-    }
+  if (/[^A-Za-z0-9]/.test(pw)) { 
+    critSpecial.innerHTML = '<i class="fas fa-check" style="color: #10b981; font-size: 12px;"></i> <span style="font-size: 13px;">Ký tự đặc biệt (!@#$...)</span>'; 
+    critSpecial.classList.remove('error-message'); 
+    critSpecial.classList.add('success-message'); 
+    critSpecial.style.lineHeight = '1.5';
+    critSpecial.style.margin = '0';
+  } else { 
+    critSpecial.innerHTML = '<i class="fas fa-times" style="color: #dc2626; font-size: 14px;"></i> <span style="font-size: 13px;">Ký tự đặc biệt (!@#$...)</span>'; 
+    critSpecial.classList.remove('success-message'); 
+    critSpecial.classList.add('small-note'); 
+    critSpecial.style.lineHeight = '1.5';
+    critSpecial.style.margin = '0';
+  }
+}
 
     function validateFormInputs() {
       let isFormValid = true;
@@ -659,6 +908,138 @@ if (backButton) {
     window.location.href = '/main.html';
   });
 }
+// ========== THÊM JAVASCRIPT CHO BAR VÀ FOOTER ==========
+
+// Xử lý click footer links khi chưa đăng nhập
+document.addEventListener('DOMContentLoaded', function() {
+    const createBtn = document.getElementById('createBtn');
+    if (createBtn) {
+        createBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Vui lòng đăng nhập!');
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const pathBtn = document.getElementById('pathBtn');
+    if (pathBtn) {
+        pathBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Vui lòng đăng nhập!');
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBtn = document.getElementById('progressBtn');
+    if (progressBtn) {
+        progressBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Vui lòng đăng nhập!');
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const openBtn = document.getElementById('openBtn');
+    if (openBtn) {
+        openBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Vui lòng đăng nhập!');
+        });
+    }
+});
+
+// Load user info và điều hướng
+async function loadUser() {
+    const token = localStorage.getItem('token');
+    const userArea = document.getElementById('userArea');
+    const navButtons = document.getElementById('mainNavButtons');
+    
+    // Thiết lập sự kiện cho các nút điều hướng
+    document.getElementById('btnHome').addEventListener('click', () => {
+        window.location.href = 'main.html';
+    });
+    
+    document.getElementById('btnPath').addEventListener('click', () => {
+        window.location.href = 'path.html';
+    });
+    
+    document.getElementById('btnProgress').addEventListener('click', () => {
+        window.location.href = 'progress.html';
+    });
+    
+    // Nếu không có token
+    if (!token) {
+        userArea.innerHTML = '';
+        
+        const loginBtn = document.createElement('button');
+        loginBtn.className = 'login-btn';
+        loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
+        loginBtn.addEventListener('click', () => window.location.href = 'login.html');
+        
+        const registerBtn = document.createElement('button');
+        registerBtn.className = 'register-btn';
+        registerBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
+        registerBtn.addEventListener('click', () => window.location.href = 'register.html');
+        
+        userArea.appendChild(loginBtn);
+        userArea.appendChild(registerBtn);
+        return;
+    }
+    
+    // Nếu có token, lấy thông tin user
+    try {
+        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
+        const res = await fetch(apiBase.replace(/\/$/, '') + '/api/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            const userName = data.user?.name || 'Người dùng';
+            const userRole = data.user?.role || 'user';
+            
+            userArea.innerHTML = `
+                <span>Xin chào <strong style="color:white;">${userName}</strong></span>
+                <button id="logoutBtn" class="logout-btn">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            `;
+            
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                window.location.href = 'main.html';
+            });
+            
+            if (userRole === 'admin') {
+                const adminBtn = document.createElement('button');
+                adminBtn.className = 'nav-btn';
+                adminBtn.id = 'btnAdmin';
+                adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+                adminBtn.addEventListener('click', () => {
+                    window.location.href = 'admin.html?page=admin';
+                });
+                navButtons.appendChild(adminBtn);
+            }
+        } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            loadUser();
+        }
+    } catch (err) {
+        console.error('Error loading user:', err);
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        loadUser();
+    }
+}
+
+// Gọi hàm loadUser khi trang tải xong
+document.addEventListener('DOMContentLoaded', loadUser);
   </script>
+  <script src="footer.js"></script>
 </body>
 </html>
