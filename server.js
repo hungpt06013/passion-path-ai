@@ -5806,15 +5806,22 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
             });
         }
 
+        // ✅ PARSE VÀ ĐẢM BẢO LÀ INTEGER
+        const overall_rating = Math.round(parseFloat(value.overall_rating));
+        const learning_effectiveness = Math.round(parseFloat(value.learning_effectiveness));
+        const difficulty_suitability = Math.round(parseFloat(value.difficulty_suitability));
+        const content_relevance = Math.round(parseFloat(value.content_relevance));
+        const engagement_level = Math.round(parseFloat(value.engagement_level));
+
         // ✅ UPDATE EVALUATION IN learning_roadmaps
         const updateQuery = `
             UPDATE learning_roadmaps
             SET 
-                overall_rating = $1,
-                learning_effectiveness = $2,
-                difficulty_suitability = $3,
-                content_relevance = $4,
-                engagement_level = $5,
+                overall_rating = $1::integer,
+                learning_effectiveness = $2::integer,
+                difficulty_suitability = $3::integer,
+                content_relevance = $4::integer,
+                engagement_level = $5::integer,
                 detailed_feedback = $6,
                 recommended_category = $7,
                 actual_learning_outcomes = $8,
@@ -5826,11 +5833,11 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
         `;
 
         const result = await client.query(updateQuery, [
-            value.overall_rating,
-            value.learning_effectiveness,
-            value.difficulty_suitability,
-            value.content_relevance,
-            value.engagement_level,
+            overall_rating,
+            learning_effectiveness,
+            difficulty_suitability,
+            content_relevance,
+            engagement_level,
             value.detailed_feedback || null,
             value.recommended_category || null,
             value.actual_learning_outcomes || null,
@@ -5842,7 +5849,7 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
         const updatedRoadmap = result.rows[0];
 
         // ✅ LOGIC MỚI: Nếu rating >= 4 sao → ADD TO SYSTEM
-        if (value.overall_rating >= 4) {
+        if (overall_rating >= 4) {
             console.log(`⭐ Rating >= 4, adding roadmap #${roadmapId} to system...`);
 
             // 1️⃣ Check xem đã tồn tại trong system chưa
@@ -5875,8 +5882,8 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
                     updatedRoadmap.start_level,
                     updatedRoadmap.duration_days,
                     updatedRoadmap.duration_hours,
-                    updatedRoadmap.overall_rating,
-                    updatedRoadmap.learning_effectiveness,
+                    overall_rating,
+                    learning_effectiveness,
                     updatedRoadmap.roadmap_analyst
                 ]);
 
@@ -5902,22 +5909,22 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
                 await client.query(copyDetailsQuery, [systemRoadmapId, roadmapId]);
                 console.log(`✅ Copied ${updatedRoadmap.duration_days} days to system`);
 
-} else {
-    // UPDATE thay vì skip
-    const updateSystemQuery = `
-        UPDATE learning_roadmaps_system
-        SET 
-            overall_rating = $1,
-            learning_effectiveness = $2,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE roadmap_id = $3
-    `;
-    await client.query(updateSystemQuery, [
-        updatedRoadmap.overall_rating,
-        updatedRoadmap.learning_effectiveness,
-        existingSystem.rows[0].roadmap_id
-    ]);
-}
+            } else {
+                // UPDATE thay vì skip
+                const updateSystemQuery = `
+                    UPDATE learning_roadmaps_system
+                    SET 
+                        overall_rating = $1::integer,
+                        learning_effectiveness = $2::integer,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE roadmap_id = $3
+                `;
+                await client.query(updateSystemQuery, [
+                    overall_rating,
+                    learning_effectiveness,
+                    existingSystem.rows[0].roadmap_id
+                ]);
+            }
         }
 
         await client.query('COMMIT');
@@ -5939,7 +5946,6 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
         client.release();
     }
 });
-
 // =====================================================
 // ADMIN ROUTES
 // =====================================================
