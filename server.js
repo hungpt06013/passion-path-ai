@@ -8,9 +8,11 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import OpenAI from "openai";
+import Anthropic from '@anthropic-ai/sdk';
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -36,12 +38,28 @@ if (rawAllowed) {
   }
   app.use(cors());
 }
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
+// Verify email configuration
+transporter.verify(function(error, success) {
+  if (error) {
+    console.error('❌ Email configuration error:', error.message);
+  } else {
+    console.log('✅ Email server is ready');
+  }
+});
 // OpenAI client
 const rawOpenAiKey = (process.env.OPENAI_API_KEY || "").trim();
 const openAiKey = rawOpenAiKey.replace(/^['"]|['"]$/g, "");
 
-// ✅ THÊM DEBUG
 if (!openAiKey || openAiKey.length < 20) {
   console.error("❌❌❌ OPENAI_API_KEY NOT SET OR INVALID!");
   console.error("❌ Key length:", openAiKey.length);
@@ -49,10 +67,37 @@ if (!openAiKey || openAiKey.length < 20) {
   console.log("✅ OPENAI key valid, length:", openAiKey.length, "last6:", openAiKey.slice(-6));
 }
 
+// Anthropic client
+const rawAnthropicKey = (process.env.ANTHROPIC_API_KEY || "").trim();
+const anthropicKey = rawAnthropicKey.replace(/^['"]|['"]$/g, "");
+
+let anthropic = null;
+if (anthropicKey && anthropicKey.length > 20) {
+  anthropic = new Anthropic({ apiKey: anthropicKey });
+  console.log("✅ Anthropic key valid, length:", anthropicKey.length, "last6:", anthropicKey.slice(-6));
+} else {
+  console.warn("⚠️ ANTHROPIC_API_KEY not set");
+}
+
+// ✅ KHAI BÁO CÁC BIẾN AI CONFIG TRƯỚC (di chuyển từ dòng 175 lên đây)
+const AI_PROVIDER = process.env.AI_PROVIDER || 'openai';
+const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
+const FALLBACK_CLAUDE_MODEL = process.env.FALLBACK_CLAUDE_MODEL || "claude-3-5-haiku-20241022";
+const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
+const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-5";
+
+// ✅ SAU ĐÓ MỚI LOG (di chuyển từ dòng 63 xuống đây)
+console.log(`🤖 AI Provider: ${AI_PROVIDER.toUpperCase()}`);
+if (AI_PROVIDER === 'claude') {
+  console.log(`📋 Claude Model: ${CLAUDE_MODEL}`);
+  console.log(`📋 Fallback Model: ${FALLBACK_CLAUDE_MODEL}`);
+} else {
+  console.log(`📋 OpenAI Model: ${PREFERRED_OPENAI_MODEL}`);
+  console.log(`📋 Fallback Model: ${FALLBACK_OPENAI_MODEL}`);
+}
+
 const openai = new OpenAI({ apiKey: openAiKey });
 
-// Safe debug: show length and last few chars (avoid printing full key)
-console.log("Using OPENAI key length:", openAiKey.length, " last6:", openAiKey.slice(-6));
 // __dirname ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -146,14 +191,16 @@ function makeToken(userId) {
 
 // AI config - CRITICAL: Temperature MUST be 1
 const MAX_AI_DAYS = parseInt(process.env.MAX_AI_DAYS || "180", 10);
-const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "400000", 10);
-const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "1500", 10);
-const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-nano-2025-08-07";
-const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-4o";
+const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "200000", 10);
+const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "800", 10);
+//const AI_PROVIDER = process.env.AI_PROVIDER || 'openai'; // 'openai' hoặc 'claude'
+//const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-3-5-sonnet-20241022";
+//const FALLBACK_CLAUDE_MODEL = process.env.FALLBACK_CLAUDE_MODEL || "claude-3-haiku-20240307";
+//const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
+//const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-5";
 const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
 const AI_TEMPERATURE = 1; // MUST BE 1
-
 function buildOpenAIParams({ model, messages, maxCompletionTokens }) {
   const tokens = Math.max(MIN_COMPLETION_TOKENS, Math.floor(maxCompletionTokens || MIN_COMPLETION_TOKENS));
   return {
@@ -165,7 +212,8 @@ function buildOpenAIParams({ model, messages, maxCompletionTokens }) {
 }
 
 // ...existing code...
-async function callOpenAIWithFallback({ messages, desiredCompletionTokens }) {
+//01/01 rem tạm
+/*async function callOpenAIWithFallback({ messages, desiredCompletionTokens }) {
   console.log("🔍 PREFERRED_OPENAI_MODEL:", PREFERRED_OPENAI_MODEL); // ✅ THÊM DÒNG NÀY
   const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
   try {
@@ -184,7 +232,7 @@ async function callOpenAIWithFallback({ messages, desiredCompletionTokens }) {
     }
     throw err;
   }
-}
+}*/
 
 // ---------------- DB init ----------------
 async function initDB() {
@@ -352,17 +400,22 @@ async function initDB() {
       );
     `);
 
-    // Insert dữ liệu mẫu
-    await pool.query(`
-      INSERT INTO categories (name, description) VALUES
-      ('Lập trình', 'Các ngôn ngữ và framework lập trình'),
-      ('Marketing', 'Digital Marketing và truyền thông'),
-      ('Thiết kế', 'UI/UX và đồ họa'),
-      ('Ngoại ngữ', 'Học ngoại ngữ và giao tiếp'),
-      ('Kinh doanh', 'Kỹ năng kinh doanh và quản lý'),
-      ('Kỹ năng mềm', 'Kỹ năng giao tiếp và làm việc nhóm')
-      ON CONFLICT (name) DO NOTHING;
-    `);
+    // Insert dữ liệu mẫu nếu như bảng trống
+await pool.query(`
+  INSERT INTO categories (name, description) VALUES
+  ('Lập trình', 'Các ngôn ngữ và framework lập trình'),
+  ('Marketing', 'Digital Marketing và truyền thông'),
+  ('Thiết kế', 'UI/UX và đồ họa'),
+  ('Ngoại ngữ', 'Học ngoại ngữ và giao tiếp'),
+  ('Kinh doanh', 'Kỹ năng kinh doanh và quản lý'),
+  ('Kỹ năng mềm', 'Kỹ năng giao tiếp và làm việc nhóm')
+  ON CONFLICT (name) DO NOTHING;
+`);
+
+// ✅ RESET SEQUENCE VỀ GIÁ TRỊ MAX HIỆN TẠI
+await pool.query(`
+  SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 1));
+`);
     // ✅ BỔ SUNG: Đảm bảo cột study_date tồn tại
     await pool.query(`
       DO $$ 
@@ -381,6 +434,58 @@ async function initDB() {
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_roadmap_details_study_date 
       ON learning_roadmap_details(study_date);
+    `);
+    // Thêm vào hàm initDB() (sau phần tạo các table khác)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_feedback (
+        feedback_id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        rating_1 INTEGER CHECK (rating_1 >= 1 AND rating_1 <= 5),
+        rating_2 INTEGER CHECK (rating_2 >= 1 AND rating_2 <= 5),
+        rating_3 INTEGER CHECK (rating_3 >= 1 AND rating_3 <= 5),
+        rating_4 INTEGER CHECK (rating_4 >= 1 AND rating_4 <= 5),
+        rating_5 INTEGER CHECK (rating_5 >= 1 AND rating_5 <= 5),
+        rating_6 INTEGER CHECK (rating_6 >= 1 AND rating_6 <= 5),
+        rating_7 INTEGER CHECK (rating_7 >= 1 AND rating_7 <= 5),
+        rating_8 INTEGER CHECK (rating_8 >= 1 AND rating_8 <= 5),
+        question_1 TEXT,
+        question_2 TEXT,
+        question_3 TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_feedback_user ON user_feedback(user_id);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_feedback_created ON user_feedback(created_at DESC);`);
+    // ✅ THÊM cột manual_prompt_template
+    await pool.query(`
+      DO $$ 
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'admin_settings' 
+          AND column_name = 'manual_prompt_template'
+        ) THEN
+          ALTER TABLE admin_settings ADD COLUMN manual_prompt_template TEXT;
+        END IF;
+      END $$;
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_codes (
+        id SERIAL PRIMARY KEY,
+        email TEXT NOT NULL,
+        code VARCHAR(6) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reset_email ON password_reset_codes(email);
+    `);
+    
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_reset_code ON password_reset_codes(code);
     `);
     console.log("✅ DB initialized");
   } catch (err) {
@@ -428,10 +533,60 @@ async function requireAuth(req, res, next) {
     return res.status(401).json({ message: "Token không hợp lệ" });
   }
 }
+// ========== HELPER FUNCTIONS ==========
+function generateResetCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
-// ============== OPTIMIZED AI ROADMAP GENERATION ==============
+async function sendResetEmail(email, code) {
+  const mailOptions = {
+    from: `"Con đường đam mê" <${process.env.EMAIL_FROM}>`,
+    to: email,
+    subject: 'Mã xác thực đặt lại mật khẩu',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #007bff; margin: 0;">Con đường đam mê</h1>
+          <p style="color: #6c757d; font-size: 14px;">AI-Powered Learning Path</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="color: #333; margin-top: 0;">Đặt lại mật khẩu</h2>
+          <p style="color: #555; line-height: 1.6;">
+            Bạn đã yêu cầu đặt lại mật khẩu. Sử dụng mã xác thực dưới đây để tiếp tục:
+          </p>
+          
+          <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+            <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 8px;">
+              ${code}
+            </div>
+          </div>
+          
+          <p style="color: #dc3545; font-size: 14px; margin-bottom: 0;">
+            ⚠️ Mã này sẽ hết hạn sau <strong>10 phút</strong>
+          </p>
+        </div>
+        
+        <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; color: #6c757d; font-size: 12px;">
+          <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+          <p style="margin-bottom: 0;">Đây là email tự động, vui lòng không trả lời.</p>
+        </div>
+      </div>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return true;
+  } catch (error) {
+    console.error('❌ Send email error:', error);
+    return false;
+  }
+}
+/// ============== OPTIMIZED AI ROADMAP GENERATION ==============
 
 // Link validation - GIỮ ĐƠN GIẢN, KHÔNG QUÁ STRICT
+/*
 const linkCache = new Map();
 const LINK_CACHE_TTL = 3600000; // 1 hour
 
@@ -469,7 +624,29 @@ async function validateUrlQuick(url, timeout = 8000) {
     return true; // Default accept nếu không validate được
   }
 }
+// Parse multiple links from a string separated by semicolon or newline
+function parseMultipleLinks(linkString) {
+    if (!linkString) return [];
+    
+    // Split by semicolon or newline, then clean up
+    const links = linkString
+        .split(/[;\n]/)
+        .map(link => link.trim())
+        .filter(link => link && link.match(/^https?:\/\//i));
+    
+    return links;
+}
 
+// Format links for display (join with <br> for HTML)
+function formatLinksForDisplay(linkString) {
+    const links = parseMultipleLinks(linkString);
+    if (links.length === 0) return 'N/A';
+    
+    return links.map(link => {
+        const domain = new URL(link).hostname.replace(/^www\./, '');
+        return `<a href="${link}" target="_blank" style="color: #007bff; display: block; margin: 3px 0;">${domain}</a>`;
+    }).join('');
+}
 // ✅ SIMPLIFIED: 1 PROMPT CHUNG CHO MỌI CATEGORY - KHÔNG VALIDATE
 async function getSpecificExerciseLink(topic, category, dayNumber, learningContent) {
   const MAX_ATTEMPTS = 5;
@@ -520,7 +697,7 @@ Return a concrete exercise URL and one short keyword (format above).`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        model: "gpt-4o",
+        model: "gpt-5-nano",
         temperature: 1,
         desiredCompletionTokens: 220
       });
@@ -686,7 +863,7 @@ Return one concrete material URL and one short keyword (format above).`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        model: "gpt-4o",
+        model: "gpt-5-nano",
         temperature: 1,
         desiredCompletionTokens: 220
       });
@@ -742,7 +919,7 @@ Return one concrete material URL and one short keyword (format above).`;
       try {
         try {
           await fetchWithTimeout(url, { method: 'HEAD', headers: { 'User-Agent': 'Mozilla/5.0' } }, 2500);
-        } catch (e) { /* ignore HEAD failure */ }
+        } catch (e) { }
         const getRes = await fetchWithTimeout(url, { method: 'GET', headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' } }, 5000);
         if (!getRes.ok) {
           if (DEBUG) console.log(`[Material][Attempt ${attempt}] GET not ok`, getRes.status);
@@ -796,7 +973,6 @@ Return one concrete material URL and one short keyword (format above).`;
 
   return null;
 }
-
 
 // Fallback links by category - ĐẦY ĐỦ CHO MỌI CATEGORY
 const FALLBACK_LINKS = {
@@ -914,7 +1090,6 @@ const FALLBACK_LINKS = {
     ]
   }
 };
-
 function getFallbackLinks(category) {
   const cat = (category || '').toLowerCase();
   
@@ -955,76 +1130,258 @@ function getFallbackLinks(category) {
   
   return FALLBACK_LINKS.default;
 }
+*/
 // Main AI roadmap generation endpoint
 // server.js (CHỈ SỬA PHẦN /api/generate-roadmap-ai ENDPOINT)
+//01/01 xóa những hàm ko dùng
+/*async function validateBasicUrl(url) {
+  try {
+    if (!url || typeof url !== 'string') return false;
+    const urlObj = new URL(url);
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+*/
+// ✅ THÊM HÀM MỚI - Đặt sau hàm validateBasicUrl (khoảng dòng 850)
+
+/**
+ * Validate URL với chiến lược fallback 404
+ * Nếu URL gốc bị 404, tự động loại bỏ các path segment từ phải sang trái
+ */
+//01/01 xóa những hàm ko dùng
+/*async function validateAndFallbackUrl(url, timeout = 5000) {
+  try {
+    if (!url || typeof url !== 'string') {
+      return { success: false, finalUrl: null, navigationSteps: null };
+    }
+    
+    const urlObj = new URL(url);
+    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') {
+      return { success: false, finalUrl: null, navigationSteps: null };
+    }
+
+    // Helper function để check URL
+    const checkUrl = async (testUrl) => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
+        const response = await fetch(testUrl, {
+          method: 'HEAD',
+          redirect: 'follow',
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        
+        clearTimeout(timeoutId);
+        return response.ok; // true if 200-299
+      } catch (e) {
+        return false;
+      }
+    };
+
+    // Thử URL gốc trước
+    console.log(`🔍 Checking original URL: ${url}`);
+    if (await checkUrl(url)) {
+      console.log(`✅ Original URL OK`);
+      return { success: true, finalUrl: url, navigationSteps: null };
+    }
+
+    console.log(`❌ Original URL failed, starting fallback...`);
+
+    // Chiến lược Fallback: Loại bỏ path segment từ phải sang trái
+    const originalPath = urlObj.pathname;
+    const pathParts = originalPath.split('/').filter(p => p.length > 0);
+    
+    // Track các segment đã remove để tạo hướng dẫn
+    const removedSegments = [];
+    
+    while (pathParts.length > 0) {
+      // Remove segment cuối cùng
+      const removed = pathParts.pop();
+      removedSegments.unshift(removed); // Thêm vào đầu để giữ đúng thứ tự
+      
+      // Build fallback URL
+      const fallbackPath = pathParts.length > 0 ? '/' + pathParts.join('/') + '/' : '/';
+      const fallbackUrl = `${urlObj.protocol}//${urlObj.host}${fallbackPath}`;
+      
+      console.log(`🔄 Trying fallback: ${fallbackUrl}`);
+      
+      if (await checkUrl(fallbackUrl)) {
+        console.log(`✅ Fallback succeeded: ${fallbackUrl}`);
+        
+        // Tạo hướng dẫn navigation
+        const navigationSteps = generateNavigationSteps(removedSegments, urlObj.host);
+        
+        return { 
+          success: true, 
+          finalUrl: fallbackUrl, 
+          navigationSteps: navigationSteps,
+          wasOriginal: false
+        };
+      }
+    }
+    
+    // Tất cả fallback đều fail
+    console.log(`❌ All fallbacks failed for: ${url}`);
+    return { success: false, finalUrl: null, navigationSteps: null };
+    
+  } catch (e) {
+    console.error('validateAndFallbackUrl error:', e.message);
+    return { success: false, finalUrl: null, navigationSteps: null };
+  }
+}*/
+
+/**
+ * Tạo hướng dẫn navigation từ các segment đã remove
+ */
+/*function generateNavigationSteps(segments, hostname) {
+  if (!segments || segments.length === 0) return null;
+  
+  // Decode URL-encoded segments
+  const decodedSegments = segments.map(seg => {
+    try {
+      return decodeURIComponent(seg);
+    } catch {
+      return seg;
+    }
+  });
+  
+  // Tạo hướng dẫn từng bước
+  let steps = `📍 Hướng dẫn điều hướng trên ${hostname}:\n\n`;
+  
+  if (decodedSegments.length === 1) {
+    steps += `➡️ Tìm và click vào mục: "${decodedSegments[0]}"`;
+  } else {
+    steps += `Từ trang đích, làm theo các bước:\n`;
+    decodedSegments.forEach((segment, index) => {
+      // Clean up segment name (remove file extensions, special chars)
+      const cleanName = segment.replace(/\.(html|htm|php|aspx)$/i, '').replace(/[-_]/g, ' ');
+      steps += `${index + 1}. Tìm và click vào: "${cleanName}"\n`;
+    });
+  }
+  
+  return steps.trim();
+}*/
+//01/01 end xóa những hàm ko dùng
+// Improved fallback links by category
+const QUALITY_FALLBACK_LINKS = {
+  'toán học': {
+    exercises: [
+      "https://www.khanacademy.org/math",
+      "https://brilliant.org/courses/mathematical-thinking/",
+      "https://artofproblemsolving.com/alcumus",
+      "https://www.mathsisfun.com/puzzles/",
+      "https://nrich.maths.org/frontpage"
+    ],
+    materials: [
+      "https://www.khanacademy.org/math",
+      "https://brilliant.org/wiki/mathematics/",
+      "https://www.mathsisfun.com/",
+      "https://mathworld.wolfram.com/",
+      "https://www.cut-the-knot.org/"
+    ]
+  },
+  'lập trình': {
+    exercises: [
+      "https://leetcode.com/problemset/",
+      "https://www.hackerrank.com/domains/algorithms",
+      "https://codeforces.com/problemset",
+      "https://www.codewars.com/kata",
+      "https://exercism.org/tracks"
+    ],
+    materials: [
+      "https://www.freecodecamp.org/learn",
+      "https://developer.mozilla.org/en-US/docs/Learn",
+      "https://www.w3schools.com/",
+      "https://javascript.info/",
+      "https://python.org/about/gettingstarted/"
+    ]
+  },
+  'tiếng anh': {
+    exercises: [
+      "https://www.englishclub.com/grammar/",
+      "https://www.perfect-english-grammar.com/grammar-exercises.html",
+      "https://learnenglish.britishcouncil.org/skills/listening",
+      "https://www.englishpage.com/",
+      "https://www.usingenglish.com/quizzes/"
+    ],
+    materials: [
+      "https://learnenglish.britishcouncil.org/",
+      "https://www.bbc.co.uk/learningenglish/",
+      "https://www.englishclub.com/",
+      "https://www.thoughtco.com/esl-4133095",
+      "https://www.englishforeveryone.org/"
+    ]
+  },
+  'default': {
+    exercises: [
+      "https://www.khanacademy.org/",
+      "https://www.coursera.org/",
+      "https://www.edx.org/",
+      "https://brilliant.org/",
+      "https://www.udemy.com/"
+    ],
+    materials: [
+      "https://www.khanacademy.org/",
+      "https://www.coursera.org/",
+      "https://www.youtube.com/education",
+      "https://ocw.mit.edu/",
+      "https://www.edx.org/"
+    ]
+  }
+};
+
+function getFallbackLinksByCategory(category) {
+  const cat = (category || '').toLowerCase();
+  
+  if (cat.includes('toán')) return QUALITY_FALLBACK_LINKS['toán học'];
+  if (cat.includes('lập trình') || cat.includes('program')) return QUALITY_FALLBACK_LINKS['lập trình'];
+  if (cat.includes('tiếng anh') || cat.includes('english')) return QUALITY_FALLBACK_LINKS['tiếng anh'];
+  
+  return QUALITY_FALLBACK_LINKS['default'];
+}
 
 async function getPromptTemplate() {
-  try {
-    const query = `
-      SELECT prompt_template, json_format_response
-      FROM admin_settings
-      WHERE setting_key = 'prompt_template'
-      LIMIT 1
-    `;
-    
-    const result = await pool.query(query);
-    
-    if (result && result.rows && result.rows.length > 0) {
-      const row = result.rows[0];
-      return {
-        prompt_template: row.prompt_template || getDefaultPromptFromFile(),
-        json_format_response: row.json_format_response || getDefaultJsonFormat()
-      };
+    try {
+        const query = `
+            SELECT prompt_template, json_format_response
+            FROM admin_settings
+            WHERE setting_key = 'prompt_template'
+            LIMIT 1
+        `;
+        
+        const result = await pool.query(query);
+        
+        const defaultPrompt = buildDefaultPromptTemplate();
+        const defaultJsonFormat = JSON.stringify({
+            analysis: "Phân tích chi tiết...",
+            roadmap: []
+        });
+
+        if (result && result.rows && result.rows.length > 0) {
+            const row = result.rows[0];
+            return {
+                prompt_template: row.prompt_template || defaultPrompt,
+                json_format_response: row.json_format_response || defaultJsonFormat
+            };
+        }
+        
+        return {
+            prompt_template: defaultPrompt,
+            json_format_response: defaultJsonFormat
+        };
+    } catch (error) {
+        console.error('Error getting prompt template:', error);
+        return {
+            prompt_template: buildDefaultPromptTemplate(),
+            json_format_response: JSON.stringify({ analysis: "", roadmap: [] })
+        };
     }
-    
-    // Nếu chưa có trong DB, trả về mặc định từ file
-    return {
-      prompt_template: getDefaultPromptFromFile(),
-      json_format_response: getDefaultJsonFormat()
-    };
-  } catch (error) {
-    console.error('Error getting prompt template:', error);
-    // Fallback về file nếu lỗi DB
-    return {
-      prompt_template: getDefaultPromptFromFile(),
-      json_format_response: getDefaultJsonFormat()
-    };
-  }
-}
-// ============ THÊM 2 HÀM MỚI ============
-function getDefaultPromptFromFile() {
-  try {
-    const promptFilePath = path.join(__dirname, 'default_prompt.txt');
-    
-    if (!fs.existsSync(promptFilePath)) {
-      console.warn('⚠️ File default_prompt.txt không tồn tại, sử dụng prompt hardcoded');
-      return buildDefaultPromptTemplate();
-    }
-    
-    const content = fs.readFileSync(promptFilePath, 'utf8');
-    return content.trim();
-  } catch (error) {
-    console.error('❌ Lỗi đọc file default_prompt.txt:', error.message);
-    return buildDefaultPromptTemplate();
-  }
 }
 
-function getDefaultJsonFormat() {
-  return JSON.stringify({
-    analysis: "Phân tích chi tiết về hiện trạng học viên, mục tiêu, tính khả thi...",
-    roadmap: [
-      {
-        day_number: 1,
-        daily_goal: "Mục tiêu ngày 1",
-        learning_content: "Nội dung học tập",
-        practice_exercises: "Bài tập thực hành",
-        learning_materials: "https://...",
-        study_guide: "Hướng dẫn chi tiết",
-        study_duration_hours: "1"
-      }
-    ]
-  }, null, 2);
-}
 function buildDefaultPromptTemplate() {
     return `**THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: <CATEGORY> -- <SUB_CATEGORY>**
       **I/ Vai trò của AI**
@@ -1072,6 +1429,7 @@ function buildDefaultPromptTemplate() {
       }`;
 }
 
+/*rem lại để test của claude
 app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   let historyId = null;
   
@@ -1079,193 +1437,173 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     console.log('🚀 AI REQUEST RECEIVED');
     console.log('📦 Request body keys:', Object.keys(req.body));
     console.log('👤 User ID:', req.user.id);
+    
     if (!process.env.OPENAI_API_KEY) {
-      return res.status(503).json({ success: false, error: "Tính năng AI chưa được cấu hình. Vui lòng liên hệ quản trị viên." });
+      return res.status(503).json({ 
+        success: false, 
+        error: "Tính năng AI chưa được cấu hình. Vui lòng liên hệ quản trị viên." 
+      });
     }
 
-    // ✅ LẤY TẤT CẢ DỮ LIỆU TỪ 20 CÂU HỎI (FIXED)
+    // ✅ Get data from 20 questions
     const {
-      roadmap_name,
-      category,
-      sub_category,
-      start_level,
-      duration_days,
-      duration_hours,
-      expected_outcome,
-      customized_prompt,
-      // Q1-Q5
-      q1_roadmap_name,
-      q2_category,
-      q3_category_detail,
-      q4_main_purpose,
-      q4_main_purpose_other, // ✅ THÊM
-      q5_specific_goal,
-      q5_current_job, // ✅ THÊM MỚI
-      // Q6-Q8
-      q6_learning_duration,
-      q7_current_level,
-      q8_skills_text,
-      // Q9-Q11
-      q9_daily_time,
-      q10_weekly_sessions,
-      q11_program_days,
-      // Q12-Q13
-      q12_learning_styles,
-      q12_learning_styles_other, // ✅ THÊM
-      q13_learning_combinations,
-      q13_learning_combinations_other, // ✅ THÊM
-      // Q14-Q15
-      q14_challenges,
-      q14_challenges_other, // ✅ THÊM
-      q15_motivation,
-      q15_motivation_other, // ✅ THÊM
-      // Q16-Q20
-      q16_material_types,
-      q16_material_types_other, // ✅ THÊM
+      roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome,
+      q1_roadmap_name, q2_category, q3_category_detail,
+      q4_main_purpose, q4_main_purpose_other,
+      q5_specific_goal, q5_current_job,
+      q6_learning_duration, q7_current_level, q8_skills_text,
+      q9_daily_time, q10_weekly_sessions, q11_program_days,
+      q12_learning_styles, q12_learning_styles_other,
+      q13_learning_combinations, q13_learning_combinations_other,
+      q14_challenges, q14_challenges_other,
+      q15_motivation, q15_motivation_other,
+      q16_material_types, q16_material_types_other,
       q17_material_language,
-      q18_assessment_types,
-      q19_result_display,
-      q20_assessment_frequency,
-      q20_assessment_frequency_other // ✅ THÊM
+      q18_assessment_types, q19_result_display,
+      q20_assessment_frequency, q20_assessment_frequency_other
     } = req.body;
 
-    // ✅ HÀM XỬ LÝ ARRAY + "OTHER" (FIXED)
+    // ✅ Process arrays with "Other" option
     const processArrayWithOther = (arr, otherValue) => {
       if (!Array.isArray(arr)) return '';
       const filtered = arr.filter(v => v && v !== 'Khác' && v !== 'AI gợi ý');
-      if (otherValue && otherValue.trim()) {
-        filtered.push(otherValue.trim());
-      }
+      if (otherValue && otherValue.trim()) filtered.push(otherValue.trim());
       return filtered.length > 0 ? filtered.join(', ') : 'Chưa xác định';
     };
 
-    // ✅ HÀM XỬ LÝ RADIO + "OTHER" (FIXED)
     const processRadioWithOther = (value, otherValue) => {
       if (!value) return 'Chưa xác định';
-      if (value === 'Khác' && otherValue && otherValue.trim()) {
-        return otherValue.trim();
-      }
+      if (value === 'Khác' && otherValue && otherValue.trim()) return otherValue.trim();
       return value;
     };
 
-    // ✅ TÀI CHÍNH DỮ LIỆU - ƯU TIÊN DỮ LIỆU TỪ 20 CÂU HỎI (FIXED)
+    // ✅ Build final data
     const finalData = {
-      // Basic Info
       roadmap_name: q1_roadmap_name || roadmap_name,
       category: q2_category || category,
       category_detail: q3_category_detail || sub_category,
-      
-      // Q4 - Main Purpose (FIXED: xử lý "Khác")
       main_purpose: processRadioWithOther(q4_main_purpose, q4_main_purpose_other),
-      
-      // Q5 - Specific Goal
       specific_goal: q5_specific_goal || expected_outcome,
-      
-      // Q6-Q8 - Current Level
-      current_job: q5_current_job || 'Chưa xác định', // MỚI
+      current_job: q5_current_job || 'Chưa xác định',
       learning_duration: q6_learning_duration || 'Chưa xác định',
       current_level: q7_current_level || start_level,
       skills_text: q8_skills_text || 'Chưa xác định',
-      
-      // Q9-Q11 - Time Commitment
-      daily_time: q9_daily_time || 'Chưa xác định',
+      daily_time: (() => {
+        const minutes = parseInt(q9_daily_time) || 0;
+        if (minutes === 0) return '0m';
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (hours === 0) return `${minutes}m`;
+        if (remainingMinutes === 0) return `${hours}h`;
+        return `${hours}h ${remainingMinutes}m`;
+      })(),
       weekly_sessions: q10_weekly_sessions || 'Chưa xác định',
       program_days: q11_program_days || duration_days,
-      
-      // Q12-Q13 - Learning Style (FIXED: xử lý array + other)
       learning_styles: processArrayWithOther(q12_learning_styles, q12_learning_styles_other),
       learning_combinations: processArrayWithOther(q13_learning_combinations, q13_learning_combinations_other),
-      
-      // Q14-Q15 - Challenges & Motivation (FIXED: xử lý array + other)
       challenges: processArrayWithOther(q14_challenges, q14_challenges_other),
       motivation: processArrayWithOther(q15_motivation, q15_motivation_other),
-      
-      // Q16-Q20 - Materials & Assessment (FIXED: xử lý array + other)
       material_types: processArrayWithOther(q16_material_types, q16_material_types_other),
       material_language: q17_material_language || 'Tiếng Việt',
       assessment_types: Array.isArray(q18_assessment_types) ? q18_assessment_types.join(', ') : 'Chưa xác định',
       result_display: Array.isArray(q19_result_display) ? q19_result_display.join(', ') : 'Chưa xác định',
       assessment_frequency: processRadioWithOther(q20_assessment_frequency, q20_assessment_frequency_other),
-      
-      // Fallback values
       start_level: q7_current_level || start_level,
       duration_days: q11_program_days || duration_days,
       duration_hours: duration_hours,
       expected_outcome: q5_specific_goal || expected_outcome
     };
 
-    // ✅ KIỂM TRA DỮ LIỆU BẮT BUỘC (FIXED)
-    if (!finalData.roadmap_name || !finalData.category || !finalData.current_level || !finalData.program_days || !finalData.specific_goal) {
-      return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc để tạo lộ trình" });
+    // ✅ Validate required fields
+    if (!finalData.roadmap_name || !finalData.category || !finalData.current_level || 
+        !finalData.program_days || !finalData.specific_goal) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Thiếu thông tin bắt buộc để tạo lộ trình" 
+      });
     }
 
     const actualDays = parseInt(finalData.program_days);
-    const totalHours = parseFloat(finalData.duration_hours) || actualDays * 2;
-    
-    if (isNaN(actualDays) || actualDays <= 0 || actualDays > MAX_AI_DAYS) {
-      return res.status(400).json({ success: false, error: `Số ngày phải từ 1 đến ${MAX_AI_DAYS}` });
-    }
-    
-    if (isNaN(totalHours) || totalHours <= 0) {
-      return res.status(400).json({ success: false, error: "Tổng số giờ không hợp lệ" });
+    const dailyMinutes = parseInt(finalData.daily_time) || 0;
+
+    if (dailyMinutes < 15 || dailyMinutes > 720) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Thời gian học mỗi ngày phải từ 15-720 phút (0.25-12 giờ)" 
+      });
     }
 
-    const hoursPerDay = Math.round((totalHours / actualDays) * 100) / 100;
-    const roadmapStartDate = new Date(); // Ngày bắt đầu = ngày tạo roadmap
+    const hoursPerDay = dailyMinutes / 60;
+    const totalHours = hoursPerDay * actualDays;
+
+    console.log(`✅ Time: ${dailyMinutes}min = ${hoursPerDay.toFixed(2)}h/day × ${actualDays} days = ${totalHours.toFixed(2)}h total`);
+
+    if (isNaN(actualDays) || actualDays <= 0 || actualDays > MAX_AI_DAYS) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Số ngày phải từ 1 đến ${MAX_AI_DAYS}` 
+      });
+    }
+
+    const roadmapStartDate = new Date();
     roadmapStartDate.setHours(0, 0, 0, 0);
+
     console.log(`Generating AI roadmap: ${finalData.roadmap_name} (${actualDays} days, ${hoursPerDay}h/day)`);
 
-    // ✅ TẠO PROMPT TỪ DỮ LIỆU 20 CÂU HỎI (FIXED: đầy đủ tất cả fields)
+    // ✅ Build improved prompt with explicit link requirements
     const promptTemplate = await getPromptTemplate();
-        
     let userPrompt = promptTemplate.prompt_template;
-    let systemPrompt = promptTemplate.json_format_response;
-    console.log('finalData.current_job:',finalData.current_job);    
+    let systemPrompt = `Bạn là chuyên gia thiết kế lộ trình học. 
+
+**YÊU CẦU QUAN TRỌNG VỀ LINKS:**
+1. Mỗi ngày học PHẢI có link học liệu CỤ THỂ, TRỰC TIẾP đến bài học/video/exercise
+2. KHÔNG được dùng link chung chung như /courses/, /learn/, /topics/
+3. Link phải hoạt động, không yêu cầu đăng nhập trả phí
+4. Mỗi link phải khác nhau, không trùng lặp
+
+Trả về JSON format:
+${promptTemplate.json_format_response}`;
+
     const variableMapping = {
-        'CATEGORY': finalData.category,
-        'SUB_CATEGORY': finalData.category_detail,
-        'ROADMAP_NAME': finalData.roadmap_name,
-        'MAIN_PURPOSE': finalData.main_purpose,
-        'SPECIFIC_GOAL': finalData.specific_goal,
-        'CURRENT_JOB': finalData.current_job || 'Không cung cấp',
-        'STUDY_TIME': finalData.learning_duration,
-        'CURRENT_LEVEL': finalData.current_level,
-        'SKILLS_TO_IMPROVE': Array.isArray(finalData.skills_text) ? finalData.skills_text.join(', ') : finalData.skills_text,
-        'DAILY_TIME': finalData.daily_time,
-        'WEEKLY_FREQUENCY': finalData.weekly_sessions,
-        'TOTAL_DURATION': finalData.program_days,
-        'LEARNING_STYLE': Array.isArray(finalData.learning_styles) ? finalData.learning_styles.join(', ') : finalData.learning_styles,
-        'LEARNING_METHOD': Array.isArray(finalData.learning_combinations) ? finalData.learning_combinations.join(', ') : finalData.learning_combinations,
-        'DIFFICULTIES': finalData.challenges,
-        'MOTIVATION': finalData.motivation,
-        'MATERIAL_TYPE': Array.isArray(finalData.material_types) ? finalData.material_types.join(', ') : finalData.material_types,
-        'MATERIAL_LANGUAGE': finalData.material_language,
-        'ASSESSMENT_TYPE': finalData.assessment_types,
-        'RESULT_DISPLAY': finalData.result_display,
-        'ASSESSMENT_FREQUENCY': finalData.assessment_frequency
+      'CATEGORY': finalData.category,
+      'SUB_CATEGORY': finalData.category_detail,
+      'ROADMAP_NAME': finalData.roadmap_name,
+      'MAIN_PURPOSE': finalData.main_purpose,
+      'SPECIFIC_GOAL': finalData.specific_goal,
+      'CURRENT_JOB': finalData.current_job,
+      'STUDY_TIME': finalData.learning_duration,
+      'CURRENT_LEVEL': finalData.current_level,
+      'SKILLS_TO_IMPROVE': finalData.skills_text,
+      'DAILY_TIME': finalData.daily_time,
+      'WEEKLY_FREQUENCY': finalData.weekly_sessions,
+      'TOTAL_DURATION': finalData.program_days,
+      'LEARNING_STYLE': finalData.learning_styles,
+      'LEARNING_METHOD': finalData.learning_combinations,
+      'DIFFICULTIES': finalData.challenges,
+      'MOTIVATION': finalData.motivation,
+      'MATERIAL_TYPE': finalData.material_types,
+      'MATERIAL_LANGUAGE': finalData.material_language,
+      'ASSESSMENT_TYPE': finalData.assessment_types,
+      'RESULT_DISPLAY': finalData.result_display,
+      'ASSESSMENT_FREQUENCY': finalData.assessment_frequency
     };
 
     Object.keys(variableMapping).forEach(key => {
-        userPrompt = userPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
+      userPrompt = userPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
     });
-    console.log('Final userPrompt:', userPrompt);
-    // LƯU LỊCH SỬ SỚM TRƯỚC KHI GỬI AI
+
+    // ✅ Save history BEFORE AI call
     const historyResult = await pool.query(
       `INSERT INTO ai_query_history (user_id, prompt_content, status) 
        VALUES ($1, $2, 'PENDING') RETURNING id`,
-      [
-        req.user.id, 
-        JSON.stringify({ 
-          roadmap_name: finalData.roadmap_name,
-          category: finalData.category,
-          duration_days: actualDays,
-          timestamp: new Date().toISOString(),
-          userPrompt: userPrompt
-        })
-      ]
+      [req.user.id, JSON.stringify({ 
+        roadmap_name: finalData.roadmap_name,
+        category: finalData.category,
+        duration_days: actualDays,
+        timestamp: new Date().toISOString()
+      })]
     );
     historyId = historyResult.rows[0].id;
-    console.log(`Created AI history record #${historyId}`);
 
     const estimatedTokensPerDay = TOKENS_PER_DAY;
     const desiredTokens = Math.min(actualDays * estimatedTokensPerDay, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS);
@@ -1274,15 +1612,14 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     let attempts = 0;
     const MAX_ATTEMPTS = 2;
 
-    //console.log('userPrompt:',userPrompt,'systemPrompt:',systemPrompt)
     while (attempts < MAX_ATTEMPTS && !aiResponse) {
       attempts++;
       try {
         console.log(`AI attempt ${attempts}/${MAX_ATTEMPTS}...`);
         const completion = await callOpenAIWithFallback({
           messages: [
-            { role: "system", content: `Bạn là một chuyên gia thiết kế lộ trình học, trả về JSON duy nhất như yêu cầu (không văn bản thêm): ${systemPrompt}` },
-            { role: "user", content: String(userPrompt) }           
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt }
           ],
           desiredCompletionTokens: desiredTokens
         });
@@ -1302,80 +1639,78 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       throw new Error("AI không trả về kết quả sau nhiều lần thử");
     }
 
-    //console.log('aiResponse:',aiResponse);
+    // ✅ Parse JSON response
     let roadmapData = null;
-    const text = aiResponse;
-console.log("🔍 Raw AI text length:", text?.length);
-console.log("🔍 Raw AI text preview:", (text || "").slice(0,200));
 
-function extractJsonBlock(s) {
-  if (!s || typeof s !== 'string') return s;
-  // 1) nếu có ```json ... ```
-  const codeBlock = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  if (codeBlock) return codeBlock[1];
+    // Bước 1: Trích xuất JSON từ markdown code block
+    const jsonMatch = aiResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    const jsonText = jsonMatch ? jsonMatch[1] : aiResponse;
 
-  // 2) nếu có object lớn {...}
-  const firstObj = s.indexOf('{');
-  const lastObj = s.lastIndexOf('}');
-  if (firstObj !== -1 && lastObj !== -1 && lastObj > firstObj) {
-    return s.slice(firstObj, lastObj + 1);
-  }
+    console.log('🔍 Raw AI response length:', aiResponse.length);
+    console.log('📄 Extracted JSON text (first 500 chars):', jsonText.substring(0, 500));
 
-  // 3) nếu là mảng [...]
-  const firstArr = s.indexOf('[');
-  const lastArr = s.lastIndexOf(']');
-  if (firstArr !== -1 && lastArr !== -1 && lastArr > firstArr) {
-    return s.slice(firstArr, lastArr + 1);
-  }
-
-  // fallback toàn văn
-  return s;
-}
-
-const raw = aiResponse;
-const jsonText = extractJsonBlock(raw);
-
-const tryParse = (txt) => {
-  try { return JSON.parse(txt); } catch (e) {}
-  // replace “smart quotes” and trailing commas
-  const cleaned = txt
-    .replace(/[\u2018\u2019]/g,"'")
-    .replace(/[\u201C\u201D]/g,'"')
-    .replace(/,\s*([}\]])/g,'$1');
-  try { return JSON.parse(cleaned); } catch (e) {}
-  return null;
-};
-
-roadmapData = tryParse(jsonText);
-if (!roadmapData) roadmapData = tryParse(raw);
-
-if (!roadmapData) {
-  console.error('AI RAW RESPONSE (first 2000 chars):', (raw||'').slice(0,2000));
-  throw new Error("AI trả về format không hợp lệ");
-}
-
-
-    let analysis = roadmapData.analysis  || 'Không có phân tích';
-
-    let days = null;
-    if (roadmapData && Array.isArray(roadmapData.roadmap)) {
-      days = roadmapData.roadmap;
-    } else if (Array.isArray(roadmapData)) {
-      days = roadmapData;
-    } else {
-      throw new Error("AI response không chứa mảng roadmap");
+    try {
+      // Bước 2: Thử parse trực tiếp
+      roadmapData = JSON.parse(jsonText);
+      console.log('âœ… JSON parsed successfully on first attempt');
+    } catch (e) {
+      console.warn('⚠️ First parse failed, trying cleanup...', e.message);
+      
+      // Bước 3: Làm sạch và thử lại
+      const cleaned = jsonText
+        .replace(/[\u2018\u2019]/g, "'")
+        .replace(/[\u201C\u201D]/g, '"')
+        .replace(/,\s*([}\]])/g, '$1')
+        .replace(/^\s*[\r\n]+/gm, '') // Xóa dòng trống
+        .trim();
+      
+      try {
+        roadmapData = JSON.parse(cleaned);
+        console.log('âœ… JSON parsed after cleanup');
+      } catch (e2) {
+        console.error('âŒ Failed to parse JSON even after cleanup');
+        console.error('Cleaned text (first 1000 chars):', cleaned.substring(0, 1000));
+        console.error('Parse error:', e2.message);
+        
+        // Bước 4: Thử tìm JSON object đầu tiên trong response
+        const jsonObjectMatch = aiResponse.match(/\{[\s\S]*\}/);
+        if (jsonObjectMatch) {
+          try {
+            roadmapData = JSON.parse(jsonObjectMatch[0]);
+            console.log('âœ… JSON parsed from extracted object');
+          } catch (e3) {
+            console.error('âŒ Cannot parse extracted object');
+            throw new Error(`AI trả về format không hợp lệ. Chi tiết: ${e2.message}. Raw response đã được log.`);
+          }
+        } else {
+          throw new Error(`AI trả về format không hợp lệ. Không tìm thấy JSON object. Raw response: ${aiResponse.substring(0, 500)}...`);
+        }
+      }
     }
+
+    // Bước 5: Validate structure
+    if (!roadmapData || typeof roadmapData !== 'object') {
+      throw new Error('AI trả về không phải là object hợp lệ');
+    }
+
+    console.log('📊 Parsed roadmap keys:', Object.keys(roadmapData));
+    console.log('📊 Roadmap array length:', Array.isArray(roadmapData.roadmap) ? roadmapData.roadmap.length : 'NOT AN ARRAY');
+
+    let analysis = roadmapData.analysis || 'Không có phân tích';
+    let days = Array.isArray(roadmapData.roadmap) ? roadmapData.roadmap : 
+                (Array.isArray(roadmapData) ? roadmapData : []);
 
     if (days.length !== actualDays) {
       console.warn(`AI returned ${days.length} days instead of ${actualDays}, padding...`);
       if (days.length < actualDays) {
+        const fallbackLinks = getFallbackLinksByCategory(finalData.category);
         for (let i = days.length; i < actualDays; i++) {
           days.push({
             day_number: i + 1,
             daily_goal: `Ôn tập và củng cố kiến thức ngày ${i + 1}`,
-            learning_content: `Ôn lại các kiến thức đã học từ đầu khóa. Làm bài tập tổng hợp và kiểm tra hiểu biết.`,
-            practice_exercises: `Làm bài tập tổng hợp các chủ đề đã học`,
-            learning_materials: `Tài liệu ôn tập tổng hợp`,
+            learning_content: `Ôn lại các kiến thức đã học từ đầu khóa`,
+            practice_exercises: `Làm bài tập tổng hợp`,
+            learning_materials: fallbackLinks.materials[i % fallbackLinks.materials.length],
             study_guide: `Ôn tập toàn bộ nội dung, làm bài kiểm tra tổng hợp`,
             study_duration_hours: hoursPerDay
           });
@@ -1385,88 +1720,104 @@ if (!roadmapData) {
       }
     }
 
+    // Normalize and validate links with fallback strategy
     const normalizedDays = [];
+    const fallbackLinks = getFallbackLinksByCategory(finalData.category);
+    const usedLinks = new Set();
+
     for (let i = 0; i < actualDays; i++) {
       const d = days[i] || {};
+      
+      // Extract material links - XỬ LÝ NHIỀU LINK
+      let rawMaterialLink = String(d.learning_materials || d.materials || '').trim();
+      let validatedLinks = [];
+      let navigationGuides = [];
+      
+      // ✅ PARSE NHIỀU LINK - VALIDATE TẤT CẢ
+      if (rawMaterialLink) {
+        // Tách theo dấu ; hoặc xuống dòng
+        const linkArray = rawMaterialLink
+          .split(/[;\n]/)
+          .map(link => link.trim())
+          .filter(link => link && link.match(/^https?:\/\//i));
+        
+        // ✅ VALIDATE TẤT CẢ CÁC LINK
+        for (const link of linkArray) {
+          if (await validateBasicUrl(link)) {
+            console.log(`\n🔗 Processing link ${validatedLinks.length + 1} for day ${i + 1}: ${link}`);
+            
+            const validationResult = await validateAndFallbackUrl(link, 5000);
+            
+            if (validationResult.success) {
+              validatedLinks.push(validationResult.finalUrl);
+              
+              // ✅ LƯU NAVIGATION STEPS NẾU URL BỊ MODIFY
+              if (validationResult.navigationSteps) {
+                navigationGuides.push(validationResult.navigationSteps);
+                console.log(`📍 Navigation steps added for link ${validatedLinks.length}`);
+              }
+            } else {
+              console.log(`⚠️ Link validation failed, skipping: ${link}`);
+            }
+          }
+        }
+      }
+      
+      // ✅ NẾU KHÔNG CÓ LINK HỢP LỆ NÀO, DÙNG FALLBACK
+      let finalMaterialLink = '';
+      let navigationGuide = '';
+      
+      if (validatedLinks.length > 0) {
+        // Join tất cả links hợp lệ bằng dấu ;
+        finalMaterialLink = validatedLinks.join('; ');
+        
+        // Merge tất cả navigation guides
+        if (navigationGuides.length > 0) {
+          navigationGuide = navigationGuides.map((guide, idx) => 
+            `📌 Link ${idx + 1}:\n${guide}`
+          ).join('\n\n---\n\n');
+        }
+      } else {
+        // Dùng fallback nếu không có link nào hợp lệ
+        finalMaterialLink = fallbackLinks.materials[i % fallbackLinks.materials.length];
+        navigationGuide = '';
+        console.log(`⚠️ Using fallback link for day ${i + 1}`);
+      }
+      
+      // Check duplicate (chỉ check link đầu tiên để tránh trùng lặp hoàn toàn)
+      const firstLink = validatedLinks[0] || finalMaterialLink;
+      if (usedLinks.has(firstLink)) {
+        finalMaterialLink = fallbackLinks.materials[i % fallbackLinks.materials.length];
+        navigationGuide = '';
+      }
+      
+      usedLinks.add(firstLink);
+
+      // ✅ MERGE navigation guide vào study_guide
+      let finalStudyGuide = String(d.study_guide || d.usage_instructions || d.instructions || d.guide || `Hướng dẫn học tập ngày ${i + 1}`).trim();
+      
+      if (navigationGuide) {
+        finalStudyGuide = `${finalStudyGuide}\n\n---\n\n${navigationGuide}`;
+      }
+
       const normalized = {
         day_number: i + 1,
-        daily_goal: String(d.daily_goal || d.goal || `Mục tiêu ngày ${i + 1}`).trim().substring(0, 150),
-        learning_content: String(d.learning_content || d.content || `Nội dung học tập ngày ${i + 1}`).trim().substring(0, 500),
-        practice_exercises: String(d.practice_exercises || d.exercises || `Bài tập thực hành ngày ${i + 1}`).trim().substring(0, 300),
-        learning_materials: String(d.learning_materials || d.materials || `Tài liệu học tập ngày ${i + 1}`).trim().substring(0, 300),
-        study_guide: String(d.study_guide || d.guide || `Hướng dẫn học tập ngày ${i + 1}`).trim().substring(0, 300),
-        study_duration_hours: parseFloat(d.study_duration_hours || d.hours || hoursPerDay)
+        daily_goal: String(d.daily_goal || d.goal || `Mục tiêu ngày ${i + 1}`).trim().substring(0, 500),
+        learning_content: String(d.learning_content || d.content || `Nội dung học tập ngày ${i + 1}`).trim().substring(0, 1000),
+        practice_exercises: String(d.practice_exercises || d.exercises || `Bài tập thực hành ngày ${i + 1}`).trim().substring(0, 1000),
+        learning_materials: finalMaterialLink, // ✅ CÓ THỂ CÓ NHIỀU LINK, CÁCH NHAU BỞI ;
+        study_guide: finalStudyGuide.substring(0, 2000),
+        study_duration_hours: parseFloat(d.study_duration_hours || d.hours || hoursPerDay),
+        completion_status: 'NOT_STARTED',
+        study_date: new Date(roadmapStartDate.getTime() + (i * 86400000)).toISOString().split('T')[0]
       };
 
       normalizedDays.push(normalized);
     }
 
-    console.log(`AI generated ${normalizedDays.length} days successfully`);
+    console.log(`✅ AI generated ${normalizedDays.length} days successfully`);
 
-    
-    // LINK ENRICHMENT (GIỮ NGUYÊN LOGIC)
-    console.log(`🔗 Fetching specific links for ${normalizedDays.length} days...`);
-    
-    const fallbackLinks = getFallbackLinks(finalData.category);
-    console.log(`🔗 ===== LINK ENRICHMENT START (${normalizedDays.length} days) =====`);
-        
-    /*const enrichmentPromises = normalizedDays.map(async (day, index) => {
-      console.log(`\n┏━━ Day ${day.day_number} START ━━┓`);
-      
-      const topic = day.daily_goal;
-      const content = day.learning_content;
-      
-      let exerciseLink = await getSpecificExerciseLink(topic, finalData.category, day.day_number, content);
-      let materialLink = await getSpecificMaterialLink(topic, finalData.category, day.day_number, content);
-      
-      if (!exerciseLink) {
-        exerciseLink = fallbackLinks.exercises[index % fallbackLinks.exercises.length];
-        console.log(`⚠️ Day ${day.day_number}: Using FALLBACK exercise → ${exerciseLink}`);
-      } else {
-        console.log(`🎉 Day ${day.day_number}: AI exercise SUCCESS → ${exerciseLink}`);
-      }
-
-      if (!materialLink) {
-        materialLink = fallbackLinks.materials[index % fallbackLinks.materials.length];
-        console.log(`⚠️ Day ${day.day_number}: Using FALLBACK material → ${materialLink}`);
-      } else {
-        console.log(`🎉 Day ${day.day_number}: AI material SUCCESS → ${materialLink}`);
-      }
-      
-      console.log(`┗━━ Day ${day.day_number} END ━━┛\n`);
-
-      return {
-        ...day,
-        practice_exercises: `${day.practice_exercises} - Link: ${exerciseLink}`,
-        learning_materials: `${day.learning_materials} - Link: ${materialLink}`
-      };
-    });*/
-
-    //const enrichedDays = await Promise.all(enrichmentPromises);
-    const enrichedDays = normalizedDays
-
-    console.log(`\n✅ ===== LINK ENRICHMENT COMPLETE =====`);
-    console.log(`📊 Total days processed: ${enrichedDays.length}`);
-
-    console.log(`✅ Successfully enriched roadmap with ${enrichedDays.length} days`);
-    // ✅ ENRICHED DAYS - THÊM TRƯỜNG study_date & completion_status
-    const enrichedDaysWithDates = enrichedDays.map((day, index) => {
-      const studyDate = new Date(roadmapStartDate);
-      studyDate.setDate(studyDate.getDate() + index); // Mỗi ngày cộng thêm 1
-      
-      return {
-        day_number: day.day_number,
-        study_date: studyDate.toISOString().split('T')[0], // YYYY-MM-DD
-        daily_goal: day.daily_goal,
-        learning_content: day.learning_content,
-        practice_exercises: day.practice_exercises,
-        learning_materials: day.learning_materials,
-        study_guide: day.study_guide,
-        study_duration_hours: day.study_duration_hours,
-        completion_status: 'NOT_STARTED' // ✅ Mặc định
-      };
-    });
-    // UPDATE SUCCESS
+    // ✅ Update history to SUCCESS
     if (historyId) {
       await pool.query(
         `UPDATE ai_query_history 
@@ -1474,20 +1825,17 @@ if (!roadmapData) {
              response_tokens = $1,
              updated_at = CURRENT_TIMESTAMP 
          WHERE id = $2`,
-        [enrichedDaysWithDates.length, historyId]
+        [normalizedDays.length, historyId]
       );
-      console.log(`Updated AI history #${historyId} to SUCCESS`);
     }
-
-    console.log(`✅ data analysis: ${analysis}`);
 
     return res.json({
       success: true,
       message: "Tạo lộ trình AI thành công",
       analysis: analysis,
-      data: enrichedDaysWithDates, // ✅ Trả về đầy đủ 9 trường
+      data: normalizedDays,
       metadata: {
-        total_days: enrichedDaysWithDates.length,
+        total_days: normalizedDays.length,
         start_date: roadmapStartDate.toISOString().split('T')[0],
         hours_per_day: hoursPerDay,
         total_hours: totalHours,
@@ -1496,10 +1844,8 @@ if (!roadmapData) {
     });
 
   } catch (error) {
-    console.error("❌❌❌ AI GENERATION ERROR FULL:", error);
-    console.error("❌ Error message:", error.message);
-    console.error("❌ Error stack:", error.stack);
-    // UPDATE FAIL
+    console.error("❌ AI GENERATION ERROR:", error.message);
+    
     if (historyId) {
       await pool.query(
         `UPDATE ai_query_history 
@@ -1517,6 +1863,1331 @@ if (!roadmapData) {
     });
   }
 });
+*/
+
+// =Begin 01/01===========================================
+
+// ============================================
+// FUNCTION 1: Validate URLs with retry logic
+// ============================================
+async function validateUrlWithRetry(url, maxRetries = 2, timeout = 5000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      const response = await fetch(url, {
+        method: 'HEAD',
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // Accept 2xx and 3xx status codes
+      if (response.status >= 200 && response.status < 400) {
+        return { valid: true, url: url };
+      }
+      
+      // If 404, try removing last path segment (fallback strategy)
+      if (response.status === 404 && attempt === 1) {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/').filter(p => p);
+        
+        if (pathParts.length > 1) {
+          pathParts.pop(); // Remove last segment
+          const fallbackUrl = `${urlObj.origin}/${pathParts.join('/')}`;
+          console.log(`âš ï¸ 404 detected, trying fallback: ${fallbackUrl}`);
+          
+          // Recursive call with fallback URL
+          return await validateUrlWithRetry(fallbackUrl, 1, timeout);
+        }
+      }
+      
+    } catch (error) {
+      if (attempt === maxRetries) {
+        console.error(`âŒ URL validation failed after ${maxRetries} attempts: ${url}`);
+        return { valid: false, url: url };
+      }
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s before retry
+    }
+  }
+  
+  return { valid: false, url: url };
+}
+
+// ============================================
+// FUNCTION 2: Improved Fallback Links
+// ============================================
+const IMPROVED_FALLBACK_LINKS = {
+  'Toán học': {
+    materials: [
+      "https://www.khanacademy.org/math",
+      "https://brilliant.org/courses/",
+      "https://www.mathsisfun.com/",
+      "https://www.wolframalpha.com/examples/mathematics"
+    ]
+  },
+  'Lập trình': {
+    materials: [
+      "https://www.freecodecamp.org/learn",
+      "https://developer.mozilla.org/en-US/docs/Learn",
+      "https://www.w3schools.com/",
+      "https://javascript.info/"
+    ]
+  },
+  'Tiếng Anh': {
+    materials: [
+      "https://learnenglish.britishcouncil.org/",
+      "https://www.englishclub.com/",
+      "https://www.bbc.co.uk/learningenglish/",
+      "https://www.perfect-english-grammar.com/"
+    ]
+  },
+  'default': {
+    materials: [
+      "https://www.coursera.org/",
+      "https://www.edx.org/",
+      "https://www.udemy.com/",
+      "https://www.youtube.com/education"
+    ]
+  }
+};
+
+//01/01 rem tạm
+/*function getImprovedFallbackLink(category, dayIndex) {
+  const cat = (category || '').toLowerCase();
+  let fallbackList;
+  
+  if (cat.includes('toÃ¡n')) fallbackList = IMPROVED_FALLBACK_LINKS['toÃ¡n há»c'].materials;
+  else if (cat.includes('láº­p trÃ¬nh') || cat.includes('program')) fallbackList = IMPROVED_FALLBACK_LINKS['láº­p trÃ¬nh'].materials;
+  else if (cat.includes('tiáº¿ng anh') || cat.includes('english')) fallbackList = IMPROVED_FALLBACK_LINKS['tiáº¿ng anh'].materials;
+  else fallbackList = IMPROVED_FALLBACK_LINKS['default'].materials;
+  
+  return fallbackList[dayIndex % fallbackList.length];
+}*/
+
+// ============================================
+// ENHANCED VERSION OF /api/generate-roadmap-ai
+// Replace your existing endpoint with this
+// ============================================
+
+app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
+  let historyId = null;
+  const startTime = Date.now();
+  
+  try {
+    console.log('🚀 AI REQUEST RECEIVED');
+    console.log('📦 Request body keys:', Object.keys(req.body));
+    console.log('👤 User ID:', req.user.id);
+    
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(503).json({ 
+        success: false, 
+        error: "Tính năng AI chưa được cấu hình. Vui lòng liên hệ quản trị viên." 
+      });
+    }
+
+    // ✅ BƯỚC 1: Validate & Process Input (giữ nguyên code cũ)
+    const {
+      roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome,
+      q1_roadmap_name, q2_category, q3_category_detail,
+      q4_main_purpose, q4_main_purpose_other,
+      q5_specific_goal, q5_current_job,
+      q6_learning_duration, q7_current_level, q8_skills_text,
+      q9_daily_time, q10_weekly_sessions, q11_program_days,
+      q12_learning_styles, q12_learning_styles_other,
+      q13_learning_combinations, q13_learning_combinations_other,
+      q14_challenges, q14_challenges_other,
+      q15_motivation, q15_motivation_other,
+      q16_material_types, q16_material_types_other,
+      q17_material_language,
+      q18_assessment_types, q19_result_display,
+      q20_assessment_frequency, q20_assessment_frequency_other
+    } = req.body;
+
+    const processArrayWithOther = (arr, otherValue) => {
+      if (!Array.isArray(arr)) return '';
+      const filtered = arr.filter(v => v && v !== 'Khác' && v !== 'AI gợi ý');
+      if (otherValue && otherValue.trim()) filtered.push(otherValue.trim());
+      return filtered.length > 0 ? filtered.join(', ') : 'Chưa xác định';
+    };
+
+    const processRadioWithOther = (value, otherValue) => {
+      if (!value) return 'Chưa xác định';
+      if (value === 'Khác' && otherValue && otherValue.trim()) return otherValue.trim();
+      return value;
+    };
+
+    const finalData = {
+      roadmap_name: q1_roadmap_name || roadmap_name,
+      category: q2_category || category,
+      category_detail: q3_category_detail || sub_category,
+      main_purpose: processRadioWithOther(q4_main_purpose, q4_main_purpose_other),
+      specific_goal: q5_specific_goal || expected_outcome,
+      current_job: q5_current_job || 'Chưa xác định',
+      learning_duration: q6_learning_duration || 'Chưa xác định',
+      current_level: q7_current_level || start_level,
+      skills_text: q8_skills_text || 'Chưa xác định',
+      daily_time: (() => {
+        const minutes = parseInt(q9_daily_time) || 0;
+        if (minutes === 0) return '0m';
+        const hours = Math.floor(minutes / 60);
+        const remainingMinutes = minutes % 60;
+        if (hours === 0) return `${minutes}m`;
+        if (remainingMinutes === 0) return `${hours}h`;
+        return `${hours}h ${remainingMinutes}m`;
+      })(),
+      weekly_sessions: q10_weekly_sessions || 'Chưa xác định',
+      program_days: q11_program_days || duration_days,
+      learning_styles: processArrayWithOther(q12_learning_styles, q12_learning_styles_other),
+      learning_combinations: processArrayWithOther(q13_learning_combinations, q13_learning_combinations_other),
+      challenges: processArrayWithOther(q14_challenges, q14_challenges_other),
+      motivation: processArrayWithOther(q15_motivation, q15_motivation_other),
+      material_types: processArrayWithOther(q16_material_types, q16_material_types_other),
+      material_language: q17_material_language || 'Tiếng Việt',
+      assessment_types: Array.isArray(q18_assessment_types) ? q18_assessment_types.join(', ') : 'Chưa xác định',
+      result_display: Array.isArray(q19_result_display) ? q19_result_display.join(', ') : 'Chưa xác định',
+      assessment_frequency: processRadioWithOther(q20_assessment_frequency, q20_assessment_frequency_other),
+      start_level: q7_current_level || start_level,
+      duration_days: q11_program_days || duration_days,
+      duration_hours: duration_hours,
+      expected_outcome: q5_specific_goal || expected_outcome
+    };
+
+    // ✅ Validate required fields
+    if (!finalData.roadmap_name || !finalData.category || !finalData.current_level || 
+        !finalData.program_days || !finalData.specific_goal) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Thiếu thông tin bắt buộc để tạo lộ trình" 
+      });
+    }
+
+    const actualDays = parseInt(finalData.program_days);
+    const dailyMinutes = parseInt(q9_daily_time) || 0;
+
+    if (dailyMinutes < 15 || dailyMinutes > 720) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Thời gian học mỗi ngày phải từ 15-720 phút (0.25-12 giờ)" 
+      });
+    }
+
+    const hoursPerDay = dailyMinutes / 60;
+    const totalHours = hoursPerDay * actualDays;
+
+    console.log(`✅ Time: ${dailyMinutes}min = ${hoursPerDay.toFixed(2)}h/day × ${actualDays} days = ${totalHours.toFixed(2)}h total`);
+
+    if (isNaN(actualDays) || actualDays <= 0 || actualDays > MAX_AI_DAYS) {
+      return res.status(400).json({ 
+        success: false, 
+        error: `Số ngày phải từ 1 đến ${MAX_AI_DAYS}` 
+      });
+    }
+
+    const roadmapStartDate = new Date();
+    roadmapStartDate.setHours(0, 0, 0, 0);
+
+    console.log(`Generating AI roadmap: ${finalData.roadmap_name} (${actualDays} days, ${hoursPerDay}h/day)`);
+
+    // ✅ BƯỚC 2: Build Enhanced Prompts
+    //old
+    //const systemPrompt = buildEnhancedSystemPrompt();
+    //const userPrompt = buildPersonalizedUserPrompt(finalData);
+    const promptTemplate = await getPromptTemplate();
+    let userPrompt = promptTemplate.prompt_template;
+    userPrompt += `
+---
+**🔎 YÊU CẦU ĐỘC LẬP VỀ TÌM KIẾM NGUỒN HỌC:**
+
+Với mỗi ngày học trong lộ trình, bạn PHẢI:
+
+1. **Tìm kiếm thực tế** trên web với query liên quan đến chủ đề
+2. **Phân tích kết quả** và chọn nguồn tốt nhất
+3. **Kiểm tra** xem link có:
+   - Truy cập miễn phí
+   - Nội dung phù hợp với level người học
+   - Cập nhật gần đây
+4. **Ghi link cụ thể** (không phải homepage)
+
+**VÍ DỤ QUY TRÌNH TÌM KIẾM:**
+
+Ngày 1: Học Python cơ bản
+→ Search: "python basics tutorial for beginners free"
+→ Tìm thấy: Video của Corey Schafer với 2M views
+→ Link: https://www.youtube.com/watch?v=YYXdXT2l-Gg
+→ Ghi: "Xem video 'Python Tutorial for Beginners - Full Course in 11 Hours' phần 1-2 (0:00-1:30:00)"
+
+Ngày 2: Python Variables và Data Types
+→ Search: "python variables data types interactive tutorial"
+→ Tìm thấy: Real Python interactive tutorial
+→ Link: https://realpython.com/python-variables/
+→ Ghi: "Đọc bài 'Variables in Python' trên Real Python, làm exercises ở cuối bài"
+
+**KHÔNG ĐƯỢC:**
+- Copy link từ template có sẵn
+- Dùng cùng 1 nguồn cho nhiều ngày
+- Đưa link chung chung (homepage, category page)
+- Đưa link không thể truy cập
+
+**CHÚ Ý:**
+- Mỗi link phải ĐỘC NHẤT
+- Mỗi link phải CỤ THỂ
+- Mỗi link phải CÓ HƯỚNG DẪN SỬ DỤNG`;
+
+
+    const variableMapping = {
+      'CATEGORY': finalData.category,
+      'SUB_CATEGORY': finalData.category_detail,
+      'ROADMAP_NAME': finalData.roadmap_name,
+      'MAIN_PURPOSE': finalData.main_purpose,
+      'SPECIFIC_GOAL': finalData.specific_goal,
+      'CURRENT_JOB': finalData.current_job,
+      'STUDY_TIME': finalData.learning_duration,
+      'CURRENT_LEVEL': finalData.current_level,
+      'SKILLS_TO_IMPROVE': finalData.skills_text,
+      'DAILY_TIME': finalData.daily_time,
+      'WEEKLY_FREQUENCY': finalData.weekly_sessions,
+      'TOTAL_DURATION': finalData.program_days,
+      'LEARNING_STYLE': finalData.learning_styles,
+      'LEARNING_METHOD': finalData.learning_combinations,
+      'DIFFICULTIES': finalData.challenges,
+      'MOTIVATION': finalData.motivation,
+      'MATERIAL_TYPE': finalData.material_types,
+      'MATERIAL_LANGUAGE': finalData.material_language,
+      'ASSESSMENT_TYPE': finalData.assessment_types,
+      'RESULT_DISPLAY': finalData.result_display,
+      'ASSESSMENT_FREQUENCY': finalData.assessment_frequency
+    };
+
+    Object.keys(variableMapping).forEach(key => {
+      userPrompt = userPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
+    });   
+
+
+    let systemPrompt = `Bạn là chuyên gia thiết kế lộ trình học với 15+ năm kinh nghiệm.
+
+**🔍 NHIỆM VỤ TÌM KIẾM NGUỒN HỌC:**
+
+Bạn CÓ KHẲ NĂNG TÌM KIẾM TRÊN WEB để tìm nguồn học tốt nhất.
+
+**Quy trình tìm kiếm cho mỗi ngày học:**
+
+1️⃣ **Xác định chủ đề cụ thể** của ngày học
+   VD: "Python functions", "Tiếng Anh thì hiện tại đơn", "CSS Grid Layout"
+
+2️⃣ **Tìm kiếm trên web** với query cụ thể:
+   - "[topic] tutorial free"
+   - "[topic] course free online"
+   - "[topic] youtube video"
+   - "[topic] interactive exercises"
+   - "[topic] github examples"
+
+3️⃣ **Lọc kết quả theo tiêu chí:**
+   ✅ Miễn phí truy cập
+   ✅ Nội dung cập nhật (trong 2 năm gần đây)
+   ✅ Từ nguồn uy tín (edu, tổ chức lớn, creator nổi tiếng)
+   ✅ Có đánh giá/lượt view tốt
+   ✅ Link trực tiếp đến bài học cụ thể
+
+4️⃣ **Chọn link tốt nhất** và ghi rõ:
+   - Tên bài học/video
+   - Tác giả/Platform
+   - Thời lượng (nếu là video)
+   - Phần nào cần học
+
+**📋 TIÊU CHÍ NGUỒN HỌC CHẤT LƯỢNG:**
+
+**Ưu tiên cao:**
+- YouTube videos (có view >10K, like ratio tốt)
+- GitHub repositories (có >100 stars, README chi tiết)
+- Medium articles (có >500 claps, từ publication lớn)
+- Khóa học miễn phí trên Coursera/edX (có thể audit)
+- Documentation chính thức (MDN, Python.org, etc)
+- Interactive tutorials (freeCodeCamp, Codecademy free tier)
+
+**Nguồn tốt:**
+- Blog posts từ experts
+- StackOverflow câu trả lời chất lượng cao
+- Dev.to tutorials
+- Reddit r/learnprogramming guides
+
+**Tránh:**
+- Links yêu cầu đăng ký trả phí
+- Nội dung quá cũ (>3 năm)
+- Quảng cáo/clickbait
+- Links bị paywall
+
+**🎯 FORMAT OUTPUT:**
+
+Với mỗi ngày học, bạn PHẢI:
+1. Tìm kiếm thực tế trên web
+2. Chọn 1 link CỤ THỂ nhất
+3. Ghi rõ cách sử dụng link đó
+
+VD:
+"learning_materials": "https://www.youtube.com/watch?v=rfscVS0vtbw",
+"study_guide": "Xem video 'Learn Python - Full Course for Beginners' của freeCodeCamp.org. Tập trung vào phần Functions (từ 1:45:00 đến 2:15:00). Ghi chú các ví dụ và tự thực hành theo."
+
+**⚠️ LƯU Ý QUAN TRỌNG:**
+- MỖI NGÀY phải có link KHÁC NHAU
+- KHÔNG lặp lại cùng 1 nguồn
+- Ưu tiên đa dạng: video + text + interactive
+- Luôn kiểm tra link có thể truy cập miễn phí
+
+**Trả về JSON format:**
+${promptTemplate.json_format_response}`;
+ 
+
+    console.log('📝 Enhanced prompts built with system prompt: ' + systemPrompt);
+    console.log('📝 Enhanced prompts built with user prompt: ' + userPrompt);
+
+    // ✅ BƯỚC 3: Save history BEFORE AI call
+    const historyResult = await pool.query(
+      `INSERT INTO ai_query_history (user_id, prompt_content, status) 
+       VALUES ($1, $2, 'PENDING') RETURNING id`,
+      [req.user.id, JSON.stringify({ 
+        roadmap_name: finalData.roadmap_name,
+        category: finalData.category,
+        duration_days: actualDays,
+        timestamp: new Date().toISOString()
+      })]
+    );
+    historyId = historyResult.rows[0].id;
+
+    // ============================================
+    // PHASE 1: Initial AI Call với Temperature = 0.3
+    // ============================================
+    console.log(`📞 Phase 1: Initial ${AI_PROVIDER.toUpperCase()} call (temperature=1)...`);
+    
+    const initialMessages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+    
+    /*let aiResponse = await callOpenAIWithFallback({
+      messages: initialMessages,
+      desiredCompletionTokens: Math.min(actualDays * TOKENS_PER_DAY, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS),
+      temperature: 1 // ✅ Giảm temperature để consistent hơn
+    });*/
+
+    let completion = await callAIWithFallback({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      desiredCompletionTokens: Math.min(actualDays * TOKENS_PER_DAY, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS),
+      temperature: 1
+    });
+
+    if (!completion) {
+      throw new Error("AI không trả về kết quả");
+    }
+
+    // Extract text from completion
+    const aiResponse = extractTextFromCompletion(completion);
+
+    if (!aiResponse) {
+      throw new Error("AI response content is empty");
+    }
+    
+    if (!aiResponse) {
+      throw new Error("AI không trả về kết quả");
+    }
+    
+    // Parse initial response
+    let roadmapData = parseAIResponse(aiResponse);
+    let analysis = roadmapData.analysis || 'Không có phân tích';
+    let days = roadmapData.roadmap || [];
+    
+    // Normalize days
+    days = normalizeDays(days, actualDays, hoursPerDay, roadmapStartDate);
+    
+    console.log(`✅ Phase 1 complete: ${days.length} days generated`);
+    
+    // ============================================
+    // PHASE 2: Validate với Content Check
+    // ============================================
+    console.log('🔍 Phase 2: Enhanced validation (with content check)...');
+    
+    const validationResults = await validateBatchLinksEnhanced(days);
+    const analysisResult = analyzeValidationResults(validationResults);
+    
+    console.log(`📊 Validation: ${analysisResult.failCount}/${analysisResult.totalDays} failed (${analysisResult.failPercent}%)`);
+    
+    // Log chi tiết các lỗi
+    const failedByReason = {};
+    validationResults.filter(r => !r.valid).forEach(r => {
+      failedByReason[r.reason] = (failedByReason[r.reason] || 0) + 1;
+    });
+    console.log('📊 Failure breakdown:', failedByReason);
+    
+    // ============================================
+    // PHASE 3: Retry với Enhanced Prompt
+    // ============================================
+    let finalDays = days;
+    let retryAttempts = 0;
+    let currentFailedIndices = analysisResult.failedIndices;
+    let currentFailedDayNumbers = analysisResult.failedDayNumbers;
+    
+    while (analysisResult.shouldRetry && retryAttempts < LINK_VALIDATION_CONFIG.MAX_RETRY_ATTEMPTS) {
+      retryAttempts++;
+      console.log(`\n🔄 Phase 3.${retryAttempts}: Retrying ${currentFailedDayNumbers.length} days with STRICT whitelist...`);
+      console.log(`📍 Failed day numbers: ${currentFailedDayNumbers.join(', ')}`);
+      
+      // ✅ Build enhanced retry prompt
+      const retryPrompt = buildEnhancedRetryPrompt(
+        userPrompt,
+        currentFailedDayNumbers,
+        analysis,
+        retryAttempts
+      );
+      
+      // ✅ Call AI với temperature thấp hơn
+      const retryCompletion = await callAIWithFallback({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: retryPrompt }
+        ],
+        desiredCompletionTokens: Math.min(
+          currentFailedDayNumbers.length * TOKENS_PER_DAY, 
+          MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS
+        ),
+        temperature: 1
+      });
+
+      if (!retryCompletion) {
+        console.warn('⚠️ Retry failed to get AI response');
+        break;
+      }
+
+      const retryResponse = extractTextFromCompletion(retryCompletion);
+
+      if (!retryResponse) {
+        console.warn('⚠️ Retry response content is empty');
+        break;
+      }
+
+      const retryRoadmapData = parseAIResponse(retryResponse);
+      let retryDays = retryRoadmapData.roadmap || [];
+      
+      // ✅ CRITICAL: Validate và fix day numbers
+      retryDays = validateAndFixDayNumbers(retryDays, currentFailedDayNumbers);
+      
+      console.log(`✅ Retry ${retryAttempts}: Generated ${retryDays.length} days`);
+      
+      // Validate retry results
+      const retryValidationResults = await validateBatchLinksEnhanced(retryDays);
+      const retryAnalysis = analyzeValidationResults(retryValidationResults);
+      
+      console.log(`📊 Retry validation: ${retryAnalysis.failCount}/${retryAnalysis.totalDays} failed`);
+      
+      // ✅ Merge với day_number đã được fix
+      retryValidationResults.forEach((result, i) => {
+        if (result.valid) {
+          const originalIndex = currentFailedIndices[i];
+          const retryDay = retryDays[i];
+          
+          console.log(`✅ Merging day ${retryDay.day_number} to index ${originalIndex}`);
+          
+          finalDays[originalIndex] = {
+            ...retryDay,
+            study_date: finalDays[originalIndex].study_date // Keep original date
+          };
+        }
+      });
+      
+      // Update failed lists
+      const stillFailedIndices = retryValidationResults
+        .filter(r => !r.valid)
+        .map(r => currentFailedIndices[r.index]);
+      
+      currentFailedIndices = stillFailedIndices;
+      currentFailedDayNumbers = stillFailedIndices.map(idx => finalDays[idx].day_number);
+      
+      if (currentFailedIndices.length === 0) {
+        console.log('✅ All links validated!');
+        break;
+      }
+    }
+    
+    // ============================================
+    // PHASE 4: Final Fallback
+    // ============================================
+    if (currentFailedIndices.length > 0) {
+      console.log(`🔧 Phase 4: Applying fallback for ${currentFailedIndices.length} remaining failures`);
+      
+      currentFailedIndices.forEach(idx => {
+        const fallbackLink = getImprovedFallbackLink(finalData.category, idx);
+        const warning = `⚠️ Link gốc không khả dụng sau ${retryAttempts} lần thử.\n\nLý do có thể:\n- Trang bị xóa/di chuyển\n- Nội dung không còn tồn tại\n- Domain không trong whitelist\n\nĐã thay thế bằng tài liệu tổng quan từ nguồn uy tín.`;
+        
+        finalDays[idx].learning_materials = fallbackLink;
+        finalDays[idx].study_guide = `${warning}\n\n---\n\n${finalDays[idx].study_guide || ''}`;
+      });
+    }
+    
+    // ============================================
+    // PHASE 5: Final Report & Return
+    // ============================================
+    const processingTime = Date.now() - startTime;
+    const finalValidation = await validateBatchLinksEnhanced(finalDays);
+    const finalFailCount = finalValidation.filter(r => !r.valid).length;
+    
+    console.log(`\n📊 FINAL REPORT:`);
+    console.log(`✅ Total days: ${finalDays.length}`);
+    console.log(`✅ Valid links: ${finalDays.length - finalFailCount}`);
+    console.log(`❌ Failed links: ${finalFailCount}`);
+    console.log(`⏱️  Processing time: ${(processingTime/1000).toFixed(2)}s`);
+    console.log(`🔄 Retry attempts: ${retryAttempts}`);
+
+    await pool.query(
+      `UPDATE ai_query_history 
+       SET status = 'SUCCESS', 
+           response_tokens = $1,
+           updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2`,
+      [finalDays.length, historyId]
+    );
+
+    return res.json({
+      success: true,
+      message: "Tạo lộ trình AI thành công",
+      analysis: analysis,
+      data: finalDays,
+      metadata: {
+        total_days: finalDays.length,
+        start_date: roadmapStartDate.toISOString().split('T')[0],
+        hours_per_day: hoursPerDay,
+        total_hours: totalHours,
+        history_id: historyId,
+        validation_stats: {
+          initial_fails: analysisResult.failCount,
+          retry_attempts: retryAttempts,
+          final_fails: finalFailCount,
+          processing_time_seconds: (processingTime / 1000).toFixed(2),
+          success_rate: Math.round(((finalDays.length - finalFailCount) / finalDays.length) * 100)
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ AI GENERATION ERROR:", error.message);
+    
+    if (historyId) {
+      await pool.query(
+        `UPDATE ai_query_history 
+         SET status = 'FAIL', 
+             error_message = $1,
+             updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $2`,
+        [error.message, historyId]
+      );
+    }
+    
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Lỗi khi tạo lộ trình AI"
+    });
+  }
+});
+// API cho user lấy manual prompt (không cần admin)
+app.post("/api/get-manual-prompt", requireAuth, async (req, res) => {
+  try {
+    const query = `
+      SELECT manual_prompt_template
+      FROM admin_settings
+      WHERE setting_key = 'prompt_template'
+      LIMIT 1
+    `;
+    
+    const result = await pool.query(query);
+    
+    let manualPromptTemplate = '';
+    if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
+      manualPromptTemplate = result.rows[0].manual_prompt_template;
+    } else {
+      const defaultPath = path.join(__dirname, 'default_prompt2.txt');
+      if (fs.existsSync(defaultPath)) {
+        manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
+      } else {
+        manualPromptTemplate = getDefaultManualPrompt();
+      }
+    }
+    
+    // Thay thế các biến với dữ liệu từ request
+    const { formData } = req.body;
+    
+    const variableMapping = {
+      'CATEGORY': formData.category || '',
+      'SUB_CATEGORY': formData.category_detail || '',
+      'ROADMAP_NAME': formData.roadmap_name || '',
+      'MAIN_PURPOSE': formData.main_purpose || '',
+      'SPECIFIC_GOAL': formData.specific_goal || '',
+      'CURRENT_JOB': formData.current_job || '',
+      'STUDY_TIME': formData.learning_duration || '',
+      'CURRENT_LEVEL': formData.current_level || '',
+      'SKILLS_TO_IMPROVE': formData.skills_text || '',
+      'DAILY_TIME': formData.daily_time || '',
+      'WEEKLY_FREQUENCY': formData.weekly_sessions || '',
+      'TOTAL_DURATION': formData.program_days || '',
+      'LEARNING_STYLE': Array.isArray(formData.learning_styles) ? formData.learning_styles.join(', ') : formData.learning_styles || '',
+      'LEARNING_METHOD': Array.isArray(formData.learning_combinations) ? formData.learning_combinations.join(', ') : formData.learning_combinations || '',
+      'DIFFICULTIES': Array.isArray(formData.challenges) ? formData.challenges.join(', ') : formData.challenges || '',
+      'MOTIVATION': Array.isArray(formData.motivation) ? formData.motivation.join(', ') : formData.motivation || '',
+      'MATERIAL_TYPE': Array.isArray(formData.material_types) ? formData.material_types.join(', ') : formData.material_types || '',
+      'MATERIAL_LANGUAGE': formData.material_language || '',
+      'ASSESSMENT_TYPE': Array.isArray(formData.assessment_types) ? formData.assessment_types.join(', ') : formData.assessment_types || '',
+      'RESULT_DISPLAY': Array.isArray(formData.result_display) ? formData.result_display.join(', ') : formData.result_display || '',
+      'ASSESSMENT_FREQUENCY': formData.assessment_frequency || ''
+    };
+    
+    let finalPrompt = manualPromptTemplate;
+    Object.keys(variableMapping).forEach(key => {
+      finalPrompt = finalPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
+    });
+    
+    res.json({
+      success: true,
+      prompt: finalPrompt
+    });
+  } catch (error) {
+    console.error('Error generating manual prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể tạo prompt'
+    });
+  }
+});
+// ============================================
+// ENHANCED CONFIGURATION
+// ============================================
+const LINK_VALIDATION_CONFIG = {
+  MAX_RETRY_ATTEMPTS: 1,
+  FAIL_THRESHOLD_PERCENT: 5,
+  MIN_FAIL_COUNT: 1,
+  VALIDATION_TIMEOUT: 8000, // Tăng lên 8s để fetch HTML
+  BATCH_VALIDATION_DELAY: 200, // Tăng delay
+  
+  // ✅ NEW: Soft 404 detection patterns
+  ERROR_PATTERNS: [
+    /oops/i,
+    /sorry.*page.*doesn't exist/i,
+    /we can't find/i,
+    /404/i,
+    /page not found/i,
+    /content not available/i,
+    /no longer available/i,
+    /moved or deleted/i,
+    /The requested page could not be found/i,
+    /Video này không còn hoạt động/i,
+    /Not Found/i,
+    /page can’t be found/i
+  ],
+  
+};
+
+// ============================================
+// ENHANCED: Validate URL with Content Check
+// ============================================
+// 📌 1. IMPROVED VALIDATION - Không dùng whitelist, kiểm tra thông minh hơn
+async function validateUrlSmart(url, maxRetries = 2, timeout = 8000) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      // ✅ Check HTTP status
+      if (!response.ok) {
+        console.log(`❌ HTTP ${response.status}: ${url}`);
+        return { valid: false, reason: `http_${response.status}`, url };
+      }
+      
+      // ✅ Check content-type
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('text/html')) {
+        console.log(`⚠️ Non-HTML content: ${contentType}`);
+        // Vẫn chấp nhận nếu là educational site
+        if (!url.includes('khan') && !url.includes('brilliant') && !url.includes('coursera')) {
+          return { valid: false, reason: 'non_html', url };
+        }
+      }
+      
+      // ✅ Fetch and analyze content
+      const html = await response.text();
+      const htmlLower = html.toLowerCase();
+      
+      // 🔍 CRITICAL: Chỉ reject nếu có ERROR MESSAGE rõ ràng trong title/h1
+      const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+      const h1Match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+      
+      const titleText = titleMatch ? titleMatch[1].toLowerCase() : '';
+      const h1Text = h1Match ? h1Match[1].toLowerCase() : '';
+      
+      // ❌ Chỉ reject nếu title/h1 chứa error message
+      const errorPhrases = [
+        'page not found',
+        'sorry, this page',
+        'oops',
+        'error 404',
+        '404 error',
+        'không tìm thấy',
+        'not available',
+        'removed or deleted',
+        'could not be found'
+      ];
+      
+      for (const phrase of errorPhrases) {
+        if (titleText.includes(phrase) || h1Text.includes(phrase)) {
+          console.log(`❌ Error phrase in title/h1: "${phrase}"`);
+          return { valid: false, reason: 'error_page', url };
+        }
+      }
+      
+      // ✅ Check if có content có ý nghĩa
+      const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      if (bodyMatch) {
+        const bodyContent = bodyMatch[1]
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '') // Remove scripts
+          .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')   // Remove styles
+          .replace(/<[^>]+>/g, '')                           // Remove tags
+          .replace(/\s+/g, ' ')                              // Normalize whitespace
+          .trim();
+        
+        if (bodyContent.length < 100) {
+          console.log(`❌ Insufficient content: ${bodyContent.length} chars`);
+          return { valid: false, reason: 'empty_page', url };
+        }
+      }
+      
+      // ✅ ALL CHECKS PASSED
+      console.log(`✅ Valid: ${url}`);
+      return { valid: true, url };
+      
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log(`⏱️ Timeout: ${url}`);
+      } else {
+        console.log(`❌ Network error: ${error.message}`);
+      }
+      
+      if (attempt === maxRetries) {
+        return { valid: false, reason: 'network_error', url };
+      }
+      
+      // Exponential backoff
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+    }
+  }
+  
+  return { valid: false, reason: 'max_retries', url };
+}
+
+// ============================================
+// ENHANCED: Build Retry Prompt with Whitelist
+// ============================================
+// Thay thế buildEnhancedRetryPrompt
+function buildEnhancedRetryPrompt(originalUserPrompt, failedDayNumbers, analysis, attemptNumber) {
+  const failedDaysStr = failedDayNumbers.join(', ');
+  
+  return `
+🔴 **LẦN THỬ ${attemptNumber}/3 - TÌM KIẾM LẠI**
+
+Các ngày ${failedDaysStr} có links KHÔNG HỢP LỆ.
+
+**⚠️ VẤN ĐỀ:**
+- Links trước đó không thể truy cập
+- Có thể do: domain không tồn tại, content bị xóa, hoặc paywall
+
+**✅ YÊU CẦU:**
+- day_number PHẢI là: ${failedDaysStr}
+- PHẢI TÌM KIẾM LẠI trên web
+- PHẢI tìm nguồn KHÁC HOÀN TOÀN so với lần trước
+
+**🔍 CHIẾN LƯỢC TÌM KIẾM LẦN ${attemptNumber}:**
+
+${attemptNumber === 1 ? `
+**Lần 1 - Tìm video tutorials:**
+Search queries:
+- "[topic] tutorial video"
+- "[topic] explained youtube"
+- "[topic] course free"
+
+Ưu tiên:
+- YouTube videos từ channels lớn (>100K subs)
+- Udemy/Coursera free courses
+- LinkedIn Learning free trials
+` : ''}
+
+${attemptNumber === 2 ? `
+**Lần 2 - Tìm written content:**
+Search queries:
+- "[topic] tutorial blog"
+- "[topic] guide documentation"
+- "[topic] examples github"
+
+Ưu tiên:
+- Documentation chính thức
+- Medium articles (>500 claps)
+- Dev.to tutorials
+- GitHub repos với README chi tiết
+` : ''}
+
+${attemptNumber >= 3 ? `
+**Lần 3 - Tìm interactive resources:**
+Search queries:
+- "[topic] interactive exercises"
+- "[topic] practice problems"
+- "[topic] coding challenges"
+
+Ưu tiên:
+- freeCodeCamp challenges
+- Codecademy free exercises
+- LeetCode free problems
+- Interactive documentation (W3Schools, MDN)
+` : ''}
+
+**📝 CÁCH TÌM KIẾM HIỆU QUẢ:**
+
+1. Search với query CỤ THỂ về chủ đề ngày học
+2. Lọc kết quả theo:
+   - Miễn phí (free, no paywall)
+   - Gần đây (recent, 2023-2025)
+   - Uy tín (từ org lớn, creator nổi tiếng)
+3. Kiểm tra:
+   - Link có thể truy cập
+   - Nội dung phù hợp level
+   - Có exercises/examples
+4. Chọn link TỐT NHẤT và ghi rõ cách dùng
+
+**VÍ DỤ CÁCH GHI:**
+{
+  "day_number": ${failedDayNumbers[0]},
+  "daily_goal": "Học về [topic]",
+  "learning_content": "...",
+  "practice_exercises": "...",
+  "learning_materials": "https://[LINK MỚI TÌM ĐƯỢC]",
+  "study_guide": "
+  📹 Nguồn: [Tên video/bài viết]
+  👤 Tác giả: [Tên]
+  ⏱️ Thời lượng: [X phút]
+  
+  📚 Nội dung cần học:
+  - Phần 1: [Tên section] (từ [time] đến [time])
+  - Phần 2: [Tên section] 
+  
+  ✍️ Thực hành:
+  - [Exercise cụ thể]
+  ",
+  "study_duration_hours": 1.0
+}
+
+---
+
+${originalUserPrompt}
+
+---
+
+**JSON FORMAT BẮT BUỘC:**
+{
+  "analysis": "${analysis}",
+  "roadmap": [
+    // ⚠️ CHÍNH XÁC ${failedDayNumbers.length} ngày
+    // ⚠️ day_number: ${failedDaysStr}
+    {
+      "day_number": ${failedDayNumbers[0]},
+      "daily_goal": "...",
+      "learning_content": "...",
+      "practice_exercises": "...",
+      "learning_materials": "URL từ WHITELIST trên",
+      "study_guide": "HƯỚNG DẪN CỤ THỂ: học bài gì, phút nào, bước nào",
+      "study_duration_hours": 0.5
+    }
+    // ... ${failedDayNumbers.length - 1} ngày còn lại
+  ]
+}
+`;
+}
+
+// ============================================
+// ENHANCED: Validate và Fix Day Numbers
+// ============================================
+function validateAndFixDayNumbers(retryDays, expectedDayNumbers) {
+  console.log('🔍 Validating day numbers...');
+  console.log('Expected:', expectedDayNumbers);
+  console.log('Received:', retryDays.map(d => d.day_number));
+  
+  const fixedDays = retryDays.map((day, index) => {
+    const expectedDayNum = expectedDayNumbers[index];
+    const actualDayNum = day.day_number;
+    
+    if (actualDayNum !== expectedDayNum) {
+      console.warn(`⚠️ Fixing day_number: ${actualDayNum} → ${expectedDayNum}`);
+      return {
+        ...day,
+        day_number: expectedDayNum
+      };
+    }
+    
+    return day;
+  });
+  
+  console.log('✅ Fixed day numbers:', fixedDays.map(d => d.day_number));
+  return fixedDays;
+}
+
+// ============================================
+// ENHANCED: Batch Validation với Content Check
+// ============================================
+async function validateBatchLinksEnhanced(days) {
+  const results = [];
+  
+  for (let i = 0; i < days.length; i++) {
+    const day = days[i];
+    const link = String(day.learning_materials || '').trim();
+    
+    if (!link) {
+      results.push({ 
+        index: i, 
+        dayNumber: day.day_number || i + 1,
+        valid: false, 
+        reason: 'no_link',
+        originalUrl: '',
+        validatedUrl: ''
+      });
+      continue;
+    }
+    
+    // Delay để tránh rate limit
+    if (i > 0) {
+      await new Promise(resolve => 
+        setTimeout(resolve, LINK_VALIDATION_CONFIG.BATCH_VALIDATION_DELAY)
+      );
+    }
+    
+    // ✅ Enhanced validation với content check
+    const validation = await validateUrlSmart(
+      link, 
+      2, 
+      LINK_VALIDATION_CONFIG.VALIDATION_TIMEOUT
+    );
+    
+    results.push({
+      index: i,
+      dayNumber: day.day_number || i + 1,
+      valid: validation.valid,
+      originalUrl: link,
+      validatedUrl: validation.url,
+      reason: validation.reason || null
+    });
+    
+    const icon = validation.valid ? '✅' : '❌';
+    const reason = validation.reason ? ` (${validation.reason})` : '';
+    console.log(`📋 Day ${day.day_number || i + 1}: ${icon} ${link.substring(0, 80)}...${reason}`);
+  }
+  
+  return results;
+}
+
+// ============================================
+// HELPER: Call OpenAI with custom temperature
+// ============================================
+async function callOpenAIWithFallback({ messages, desiredCompletionTokens, temperature = 1 }) {
+  const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
+  
+  try {
+    const params = {
+      model: PREFERRED_OPENAI_MODEL,
+      messages,
+      max_completion_tokens: capped,
+      temperature: temperature
+    };
+    
+    console.log(`📤 OpenAI call: model=${params.model}, temp=${temperature}, tokens=${capped}`);
+    return await openai.chat.completions.create(params);
+    
+  } catch (err) {
+    console.error("❌ Model failed:", PREFERRED_OPENAI_MODEL, err.message);
+    
+    const code = err && (err.code || (err.error && err.error.code));
+    const status = err && err.status;
+    
+    if (code === "model_not_found" || status === 404 || String(err.message).toLowerCase().includes("model")) {
+      console.warn(`⚠️ Falling back to ${FALLBACK_OPENAI_MODEL}`);
+      
+      const fallbackParams = {
+        model: FALLBACK_OPENAI_MODEL,
+        messages,
+        max_completion_tokens: Math.min(capped, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS),
+        temperature: temperature
+      };
+      
+      return await openai.chat.completions.create(fallbackParams);
+    }
+    
+    throw err;
+  }
+}
+// ============================================
+// FUNCTION: Call Claude API with Fallback
+// ============================================
+async function callClaudeWithFallback({ messages, desiredCompletionTokens, temperature = 1 }) {
+  if (!anthropic) {
+    throw new Error("Claude API key not configured");
+  }
+
+  const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
+  
+  try {
+    const systemMessage = messages.find(m => m.role === 'system');
+    const userMessages = messages.filter(m => m.role !== 'system');
+    
+    const params = {
+      model: CLAUDE_MODEL,
+      max_tokens: capped,
+      temperature: temperature,
+      system: systemMessage ? systemMessage.content : undefined,
+      messages: userMessages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content
+      })),
+      // Lưu ý: tốn nhiều chi phí token
+      // ✅ THÊM WEB SEARCH TOOL
+      tools: [
+        {
+          type: "web_search_20250305",
+          name: "web_search"
+        }
+      ],
+      stream: true
+    };
+    
+    console.log(`📤 Claude call with WEB SEARCH: model=${params.model}, temp=${temperature}, tokens=${capped}`);
+    
+    let fullText = '';
+    let chunkCount = 0;
+
+    const stream = await anthropic.messages.create(params);
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+        fullText += event.delta.text;
+        chunkCount++;
+
+        if (chunkCount % 50 === 0) {
+          console.log(`📝 [Claude] ${chunkCount} chunks, ${fullText.length} chars so far...`);
+        }
+      }
+    }
+
+    console.log(`✅ [Claude] Streaming complete: ${fullText.length} chars, ${chunkCount} chunks`);
+
+    return {
+      choices: [{
+        message: {
+          content: fullText
+        }
+      }]
+    };
+    
+  } catch (err) {
+    console.error("❌ Claude model failed:", CLAUDE_MODEL, err.message);
+    
+    const isModelError = err.status === 404 || 
+                         err.message?.toLowerCase().includes("model") ||
+                         err.error?.type === "invalid_request_error" ||
+                         err.error?.type === "not_found_error";
+    
+    if (isModelError) {
+      console.warn(`⚠️ Falling back to ${FALLBACK_CLAUDE_MODEL}`);
+      const fallbackMaxTokens = FALLBACK_CLAUDE_MODEL.includes('haiku') 
+        ? Math.min(4096, capped)
+        : Math.min(capped, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS);
+      
+      const systemMessage = messages.find(m => m.role === 'system');
+      const userMessages = messages.filter(m => m.role !== 'system');
+      
+      const fallbackParams = {
+        model: FALLBACK_CLAUDE_MODEL,
+        max_tokens: fallbackMaxTokens,
+        temperature: temperature,
+        system: systemMessage ? systemMessage.content : undefined,
+        messages: userMessages.map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content
+        })),
+        // Lưu ý: tốn nhiều chi phí token        
+        // ✅ THÊM WEB SEARCH CHO FALLBACK
+        tools: [
+          {
+            type: "web_search_20250305",
+            name: "web_search"
+          }
+        ],
+        stream: true
+      };
+      
+      let fullText = '';
+      let chunkCount = 0;
+
+      const stream = await anthropic.messages.create(fallbackParams);
+
+      for await (const event of stream) {
+        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
+          fullText += event.delta.text;
+          chunkCount++;
+
+          if (chunkCount % 50 === 0) {
+            console.log(`📝 [Claude fallback] ${chunkCount} chunks, ${fullText.length} chars so far...`);
+          }
+        }
+      }
+
+      console.log(`✅ [Claude fallback] Streaming complete: ${fullText.length} chars, ${chunkCount} chunks`);
+
+      return {
+        choices: [{
+          message: {
+            content: fullText
+          }
+        }]
+      };
+    }
+    
+    throw err;
+  }
+}
+
+// ============================================
+// FUNCTION: Universal AI Call (OpenAI or Claude)
+// ============================================
+async function callAIWithFallback({ messages, desiredCompletionTokens, temperature = 1 }) {
+  if (AI_PROVIDER === 'claude') {
+    return await callClaudeWithFallback({ messages, desiredCompletionTokens, temperature });
+  } else {
+    return await callOpenAIWithFallback({ messages, desiredCompletionTokens, temperature });
+  }
+}
+// ============================================
+// HELPER: Extract text from OpenAI completion
+// ============================================
+function extractTextFromCompletion(completion) {
+  if (!completion) {
+    return null;
+  }
+  
+  // Handle completion object
+  if (completion.choices && completion.choices[0]) {
+    return completion.choices[0].message?.content?.trim();
+  }
+  
+  // Already a string
+  if (typeof completion === 'string') {
+    return completion.trim();
+  }
+  
+  return null;
+}
+
+// ============================================
+// HELPER: Parse AI Response
+// ============================================
+function parseAIResponse(aiResponseText) {
+  const jsonMatch = aiResponseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const jsonText = jsonMatch ? jsonMatch[1] : aiResponseText;
+  
+  try {
+    return JSON.parse(jsonText);
+  } catch (e) {
+    const cleaned = jsonText
+      .replace(/[\u2018\u2019]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/^\s*[\r\n]+/gm, '')
+      .trim();
+    
+    return JSON.parse(cleaned);
+  }
+}
+
+// ============================================
+// HELPER: Normalize Days
+// ============================================
+function normalizeDays(days, targetCount, hoursPerDay, startDate) {
+  const normalized = [];
+  
+  for (let i = 0; i < targetCount; i++) {
+    const src = days[i] || {};
+    
+    normalized.push({
+      day_number: i + 1,
+      daily_goal: String(src.daily_goal || src.goal || `Mục tiêu ngày ${i + 1}`).trim().substring(0, 500),
+      learning_content: String(src.learning_content || src.content || '').trim().substring(0, 1000),
+      practice_exercises: String(src.practice_exercises || src.exercises || '').trim().substring(0, 1000),
+      learning_materials: String(src.learning_materials || src.materials || '').trim(),
+      study_guide: String(src.study_guide || src.usage_instructions || src.instructions || '').trim().substring(0, 2000),
+      study_duration_hours: parseFloat(src.study_duration_hours || src.hours || hoursPerDay) || hoursPerDay,
+      completion_status: 'NOT_STARTED',
+      study_date: new Date(startDate.getTime() + (i * 86400000)).toISOString().split('T')[0]
+    });
+  }
+  
+  return normalized;
+}
+
+// ============================================
+// HELPER: Analyze Validation Results
+// ============================================
+function analyzeValidationResults(validationResults) {
+  const failedIndices = validationResults
+    .filter(r => !r.valid)
+    .map(r => r.index);
+  
+  const failedDayNumbers = validationResults
+    .filter(r => !r.valid)
+    .map(r => r.dayNumber);
+  
+  const totalDays = validationResults.length;
+  const failCount = failedIndices.length;
+  const failPercent = (failCount / totalDays) * 100;
+  
+  const shouldRetry = failCount >= LINK_VALIDATION_CONFIG.MIN_FAIL_COUNT || 
+                     failPercent >= LINK_VALIDATION_CONFIG.FAIL_THRESHOLD_PERCENT;
+  
+  return {
+    totalDays,
+    failCount,
+    failPercent: Math.round(failPercent),
+    failedIndices,
+    failedDayNumbers,
+    shouldRetry,
+    validResults: validationResults.filter(r => r.valid)
+  };
+}
+
+// ============================================
+// HELPER: Get Improved Fallback Link
+// ============================================
+function getImprovedFallbackLink(category, dayIndex) {
+  const fallbackList = IMPROVED_FALLBACK_LINKS[category] || IMPROVED_FALLBACK_LINKS['default'];
+  return fallbackList.materials[dayIndex % fallbackList.materials.length];
+}
+
+// =end 01/01===========================================
+
 
 // ========== ROADMAP CRUD ENDPOINTS ==========
 
@@ -1531,17 +3202,16 @@ app.get("/api/roadmaps", requireAuth, async (req, res) => {
 });
 // Thêm endpoint này vào server.js, sau dòng app.get("/api/roadmaps", ...)
 
-
 app.post("/api/roadmaps", requireAuth, async (req, res) => {
   try {
-    const { roadmapData, roadmap_analyst } = req.body; // roadmap_analyst là TEXT từ AI
-    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome, days, history_id } = roadmapData;
+    const { roadmapData, roadmap_analyst, history_id } = req.body; // ✅ THÊM history_id
+    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome, days } = roadmapData;
     
     if (!roadmap_name || !category || !start_level || !duration_days || !duration_hours || !expected_outcome) {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
     }
     
-    // ✅ INSERT vào learning_roadmaps với roadmap_analyst
+    // ✅ INSERT vào learning_roadmaps
     const roadmapResult = await pool.query(
       `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING roadmap_id, created_at`,
@@ -1552,12 +3222,17 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const roadmapCreatedAt = new Date(roadmapResult.rows[0].created_at);
     roadmapCreatedAt.setHours(0, 0, 0, 0);
     
-    // Link với AI history nếu có
+    // ✅ CẬP NHẬT roadmap_id vào ai_query_history
     if (history_id) {
+      console.log(`✅ Updating AI history #${history_id} with roadmap_id: ${roadmapId}`);
       await pool.query(
-        `UPDATE ai_query_history SET roadmap_id = $1 WHERE id = $2`,
+        `UPDATE ai_query_history 
+         SET roadmap_id = $1, updated_at = CURRENT_TIMESTAMP 
+         WHERE id = $2`,
         [roadmapId, history_id]
-      ).catch(err => console.warn('Could not link AI history:', err));
+      ).catch(err => {
+        console.error('❌ Failed to link AI history:', err);
+      });
     }
     
     // ✅ INSERT chi tiết roadmap
@@ -1585,13 +3260,13 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
             parseFloat(day.study_duration_hours || day.hours || 2),
             studyDateStr,
             'NOT_STARTED',
-            day.study_guide
+            day.study_guide || day.usage_instructions || ""
           ]
         );
       }
     }
-
-    // ✅ INSERT vào learning_roadmaps_system với roadmap_analyst (TEXT)
+/*
+    // ✅ INSERT vào learning_roadmaps_system (code cũ giữ nguyên)
     const roadmapSystemResult = await pool.query(
       `INSERT INTO learning_roadmaps_system (roadmap_name, category, sub_category, start_level, total_user_learning, duration_days, duration_hours, overall_rating, learning_effectiveness, roadmap_analyst)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING roadmap_id, created_at`,
@@ -1619,22 +3294,23 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
             day.practice_exercises || day.exercises || "",
             day.learning_materials || day.materials || "",
             parseFloat(day.study_duration_hours || day.hours || 2),
-            day.study_guide
+            day.study_guide || day.usage_instructions || ""
           ]
         );
       }
     }
-    
+    */
     res.json({ success: true, roadmap_id: roadmapId, message: "Tạo lộ trình thành công" });
   } catch (err) {
     console.error("Error creating roadmap:", err?.message || err);
     res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
   }
 });
-
 //Tạo lộ trình mới từ danh sách lộ trình của hệ thống
 app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
+  let client;
   try {
+    client = await pool.connect(); // ✅ SỬ DỤNG TRANSACTION
     const { roadmapDataSystem } = req.body;
     const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, roadmap_analyst } = roadmapDataSystem;
     
@@ -1642,8 +3318,10 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
     }
     
-    // ✅ INSERT vào learning_roadmaps - roadmap_analyst nhận giá trị TEXT từ system
-    const roadmapResult = await pool.query(
+    await client.query('BEGIN');
+    
+    // ✅ INSERT vào learning_roadmaps
+    const roadmapResult = await client.query(
       `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING roadmap_id, created_at`,
       [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst || null]
@@ -1664,7 +3342,7 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
         studyDate.setDate(studyDate.getDate() + (dayNumber - 1));
         const studyDateStr = studyDate.toISOString().split('T')[0];
 
-        await pool.query(
+        await client.query(
           `INSERT INTO learning_roadmap_details 
            (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
             learning_materials, study_duration_hours, study_date, completion_status, usage_instructions)
@@ -1685,10 +3363,36 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
       }
     }
     
-    res.json({ success: true, roadmap_id: roadmapId, message: "Tạo lộ trình thành công" });
+    // ✅ TĂNG total_user_learning TRONG learning_roadmaps_system
+    const updateSystemQuery = `
+      UPDATE learning_roadmaps_system
+      SET total_user_learning = total_user_learning + 1,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE roadmap_name = $1 AND category = $2
+      RETURNING roadmap_id, total_user_learning
+    `;
+    
+    const systemUpdate = await client.query(updateSystemQuery, [roadmap_name, category]);
+    
+    if (systemUpdate.rows.length > 0) {
+      console.log(`✅ Updated system roadmap #${systemUpdate.rows[0].roadmap_id}, total_user_learning: ${systemUpdate.rows[0].total_user_learning}`);
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({ 
+      success: true, 
+      roadmap_id: roadmapId, 
+      message: "Tạo lộ trình thành công",
+      system_learners: systemUpdate.rows[0]?.total_user_learning || null
+    });
+    
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error("Error creating roadmap:", err?.message || err);
     res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
+  } finally {
+    client.release();
   }
 });
 app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req, res) => {
@@ -1707,39 +3411,26 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     
     // ✅ ĐỌC DỮ LIỆU VÀ TỰ ĐỘNG TRIM TÊN CỘT
     const data = XLSX.utils.sheet_to_json(sheet, {
-      raw: false,  // Convert tất cả thành string
-      defval: ''   // Giá trị mặc định cho ô trống
+      raw: false,
+      defval: '',
+      header: 1 // ✅ ĐỌC DƯỚI DẠNG ARRAY ĐỂ XỬ LÝ DÒNG 1 RIÊNG
     });
 
     console.log('📊 Rows parsed:', data.length);
 
-    if (data.length === 0) {
-      return res.status(400).json({ success: false, error: "File Excel rỗng" });
+    if (data.length < 2) { // Cần ít nhất 2 dòng (header + 1 dòng data)
+      return res.status(400).json({ success: false, error: "File Excel phải có ít nhất 2 dòng (header + data)" });
     }
 
-    // ✅ DEBUG: In ra tên cột thực tế từ Excel
-    const firstRow = data[0];
-    const actualColumns = Object.keys(firstRow);
-    console.log('📋 Actual columns from Excel:', actualColumns);
-    console.log('📋 Column details:', actualColumns.map(col => ({
-      name: col,
-      length: col.length,
-      charCodes: [...col].map(c => c.charCodeAt(0))
-    })));
+    // ✅ LẤY ROADMAP_ANALYST TỪ DÒNG 1 (index 0)
+    const roadmapAnalyst = data[0][0] || ''; // Cột đầu tiên của dòng 1
+    console.log('📝 Roadmap Analyst:', roadmapAnalyst);
 
-    // ✅ CHUẨN HÓA TÊN CỘT: Trim + lowercase
-    const normalizedData = data.map(row => {
-      const normalized = {};
-      Object.keys(row).forEach(key => {
-        const normalizedKey = key.trim().toLowerCase().replace(/\s+/g, '_');
-        normalized[normalizedKey] = row[key];
-      });
-      return normalized;
-    });
+    // ✅ LẤY HEADER TỪ DÒNG 2 (index 1)
+    const headers = data[1].map(h => String(h).trim().toLowerCase().replace(/\s+/g, '_'));
+    console.log('📋 Headers:', headers);
 
-    console.log('📋 Normalized columns:', Object.keys(normalizedData[0]));
-
-    // ✅ KIỂM TRA 8 CỘT CHUẨN HÓA
+    // ✅ KIỂM TRA 8 CỘT THEO THỨ TỰ MỚI
     const requiredColumns = [
       'day_number',
       'day_study', 
@@ -1751,41 +3442,103 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       'study_duration_hours'
     ];
     
-    const normalizedFirstRow = normalizedData[0];
-    const missingColumns = requiredColumns.filter(col => !(col in normalizedFirstRow));
+    const missingColumns = requiredColumns.filter((col, idx) => headers[idx] !== col);
     
     if (missingColumns.length > 0) {
       return res.status(400).json({ 
         success: false, 
-        error: `Thiếu các cột bắt buộc: ${missingColumns.join(', ')}. \n\nCột hiện có: ${Object.keys(normalizedFirstRow).join(', ')}`,
+        error: `Thiếu các cột bắt buộc hoặc sai thứ tự: ${missingColumns.join(', ')}. \n\nCột hiện có: ${headers.join(', ')}`,
         details: {
           required: requiredColumns,
-          found: Object.keys(normalizedFirstRow),
+          found: headers,
           missing: missingColumns
         }
       });
     }
 
-    // ✅ VALIDATION CHỈ day_number VÀ study_duration_hours
+    // ✅ XỬ LÝ DATA TỪ DÒNG 3 TRỞ ĐI (index 2+)
+    const normalizedData = [];
+    for (let i = 2; i < data.length; i++) {
+      const row = data[i];
+      if (!row || row.length === 0 || !row[0]) continue; // Skip empty rows
+      
+      const normalized = {};
+      headers.forEach((header, idx) => {
+        normalized[header] = row[idx] || '';
+      });
+      normalizedData.push(normalized);
+    }
+
+    console.log('📊 Normalized data rows:', normalizedData.length);
+
+    if (normalizedData.length === 0) {
+      return res.status(400).json({ success: false, error: "File Excel không có dữ liệu chi tiết" });
+    }
+
+    // ✅ VALIDATION NÂNG CAO
     const errors = [];
+    let hasInvalidDayStudy = false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     for (let i = 0; i < normalizedData.length; i++) {
       const row = normalizedData[i];
-      const rowNumber = i + 2;
+      const rowNumber = i + 3; // Row 3 = first data row (row 1 = analyst, row 2 = header)
       
-      // Validate day_number
+      // ✅ 1. VALIDATE day_number: phải tăng 1 đơn vị từ 1
       const dayNumber = parseInt(row.day_number);
-      const expectedDayNumber = i + 1;
+      const expectedDayNumber = i;
       
-      if (isNaN(dayNumber) || dayNumber !== expectedDayNumber) {
-        errors.push(`Hàng ${rowNumber}: Số ngày không hợp lệ (mong đợi ${expectedDayNumber}, nhận được "${row.day_number}")`);
+      if (isNaN(dayNumber) || dayNumber !== expectedDayNumber+1) {
+        errors.push(`Hàng ${rowNumber}: day_number không hợp lệ (mong đợi ${expectedDayNumber}, nhận được "${row.day_number}")`);
       }
       
-      // Validate study_duration_hours
-      const hours = parseFloat(String(row.study_duration_hours || '').replace(/[^\d.]/g, ''));
+      // ✅ 2. VALIDATE study_duration_hours: phải là số > 0, có thể có dấu thập phân
+      const hoursStr = String(row.study_duration_hours || '').trim();
+      const hours = parseFloat(hoursStr.replace(',', '.'));
       
-      if (isNaN(hours) || hours <= 0) {
-        errors.push(`Hàng ${rowNumber}: Số giờ học không hợp lệ (phải là số > 0, nhận được "${row.study_duration_hours}")`);
+      if (isNaN(hours) || hours < 0.5) {
+        errors.push(`Hàng ${rowNumber}: study_duration_hours không hợp lệ (phải >= 0.5, nhận được "${row.study_duration_hours}")`);
+      }
+      
+      // ✅ 3. VALIDATE day_study: ngày đầu tiên phải sau ngày hiện tại
+      if (row.day_study && row.day_study.trim() !== '') {
+        try {
+          let studyDate;
+          
+          // Xử lý Excel serial number
+          if (typeof row.day_study === 'number') {
+            const excelEpoch = new Date(1899, 11, 30);
+            studyDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
+          } else {
+            // Parse dd/mm/yyyy format
+            const parts = row.day_study.split('/');
+            if (parts.length === 3) {
+              const day = parseInt(parts[0]);
+              const month = parseInt(parts[1]) - 1;
+              const year = parseInt(parts[2]);
+              studyDate = new Date(year, month, day);
+            } else {
+              studyDate = new Date(row.day_study);
+            }
+          }
+          
+          if (isNaN(studyDate.getTime())) {
+            hasInvalidDayStudy = true;
+            errors.push(`Hàng ${rowNumber}: day_study không đúng định dạng dd/mm/yyyy (nhận được "${row.day_study}")`);
+          } else {
+            // ✅ Kiểm tra ngày đầu tiên phải sau ngày hiện tại
+            if (i === 0) {
+              studyDate.setHours(0, 0, 0, 0);
+              if (studyDate < today) {
+                errors.push(`Hàng ${rowNumber}: Ngày học đầu tiên phải sau ngày hôm qua (${today.toLocaleDateString('vi-VN')})`);
+              }
+            }
+          }
+        } catch (e) {
+          hasInvalidDayStudy = true;
+          errors.push(`Hàng ${rowNumber}: day_study không hợp lệ (${e.message})`);
+        }
       }
     }
     
@@ -1797,7 +3550,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
-    // Lấy thông tin roadmap từ body
+    // ✅ LẤY THÔNG TIN ROADMAP TỪ BODY
     const { roadmap_name, category, sub_category, start_level, expected_outcome } = req.body;
     
     if (!roadmap_name || !category || !start_level || !expected_outcome) {
@@ -1806,78 +3559,52 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
 
     const duration_days = normalizedData.length;
     const duration_hours = normalizedData.reduce((sum, row) => {
-      const hours = parseFloat(String(row.study_duration_hours || '0').replace(/[^\d.]/g, '')) || 0;
+      const hours = parseFloat(String(row.study_duration_hours || '0').replace(',', '.')) || 0;
       return sum + hours;
     }, 0);
 
-    // CHECK day_study validity
-    let hasInvalidDayStudy = false;
-    
-    for (let i = 0; i < normalizedData.length; i++) {
-      const row = normalizedData[i];
-      let isValid = false;
-      
-      if (row.day_study && row.day_study.trim() !== '') {
-        try {
-          if (typeof row.day_study === 'number') {
-            const excelEpoch = new Date(1899, 11, 30);
-            const jsDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
-            if (!isNaN(jsDate.getTime())) {
-              isValid = true;
-            }
-          } else {
-            const parsed = new Date(row.day_study);
-            if (!isNaN(parsed.getTime())) {
-              isValid = true;
-            }
-          }
-        } catch (e) {
-          isValid = false;
-        }
-      } else {
-        // ✅ Nếu để trống thì coi như valid (sẽ set NULL)
-        isValid = true;
-      }
-      
-      if (!isValid) {
-        hasInvalidDayStudy = true;
-        break;
-      }
-    }
-
-    // Tạo roadmap
+    // ✅ TẠO ROADMAP VỚI ROADMAP_ANALYST
     const roadmapResult = await pool.query(
       `INSERT INTO learning_roadmaps 
-       (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) 
+       (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) 
        RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome]
+      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmapAnalyst]
     );
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
-    const roadmapCreatedAt = new Date(roadmapResult.rows[0].created_at);
-    roadmapCreatedAt.setHours(0, 0, 0, 0);
 
-    console.log('✅ Roadmap created, ID:', roadmapId);
+    console.log('✅ Roadmap created with analyst, ID:', roadmapId);
 
-    // Insert chi tiết
+    // ✅ INSERT CHI TIẾT VỚI XỬ LÝ day_study
     for (let i = 0; i < normalizedData.length; i++) {
       const row = normalizedData[i];
       const dayNumber = parseInt(row.day_number);
       
       let studyDateStr = null;
       
+      // Chỉ xử lý day_study nếu không có invalid dates
       if (!hasInvalidDayStudy && row.day_study && row.day_study.trim() !== '') {
         try {
+          let studyDate;
+          
           if (typeof row.day_study === 'number') {
             const excelEpoch = new Date(1899, 11, 30);
-            const jsDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
-            studyDateStr = jsDate.toISOString().split('T')[0];
+            studyDate = new Date(excelEpoch.getTime() + row.day_study * 86400000);
           } else {
-            const parsed = new Date(row.day_study);
-            if (!isNaN(parsed.getTime())) {
-              studyDateStr = parsed.toISOString().split('T')[0];
+            const parts = row.day_study.split('/');
+            if (parts.length === 3) {
+              const day = parseInt(parts[0]);
+              const month = parseInt(parts[1]) - 1;
+              const year = parseInt(parts[2]);
+              studyDate = new Date(year, month, day);
+            } else {
+              studyDate = new Date(row.day_study);
             }
+          }
+          
+          if (!isNaN(studyDate.getTime())) {
+            studyDateStr = studyDate.toISOString().split('T')[0];
           }
         } catch (e) {
           studyDateStr = null;
@@ -1897,7 +3624,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
           String(row.practice_exercises || '').trim() || '',
           String(row.learning_materials || '').trim() || '',
           String(row.guide_learning || '').trim() || '',
-          parseFloat(String(row.study_duration_hours).replace(/[^\d.]/g, '')),
+          parseFloat(String(row.study_duration_hours).replace(',', '.')),
           studyDateStr,
           'NOT_STARTED'
         ]
@@ -2707,6 +4434,227 @@ app.get("/api/admin/stats", requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Không thể lấy thống kê" });
   }
 });
+// 1️⃣ REQUEST RESET CODE
+app.post("/api/password-reset/request", async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email không được để trống'
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Kiểm tra email có tồn tại trong hệ thống
+    const userCheck = await pool.query(
+      'SELECT id, email FROM users WHERE LOWER(email) = $1',
+      [normalizedEmail]
+    );
+    
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Email không tồn tại trong hệ thống'
+      });
+    }
+    
+    // Tạo mã reset
+    const code = generateResetCode();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 phút
+    
+    // Lưu mã vào database
+    await pool.query(
+      `INSERT INTO password_reset_codes (email, code, expires_at) 
+       VALUES ($1, $2, $3)`,
+      [normalizedEmail, code, expiresAt]
+    );
+    
+    // Gửi email
+    const emailSent = await sendResetEmail(normalizedEmail, code);
+    
+    if (!emailSent) {
+      return res.status(500).json({
+        success: false,
+        error: 'Không thể gửi email. Vui lòng thử lại sau.'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Mã xác thực đã được gửi đến email của bạn',
+      expiresIn: 600 // 10 phút tính bằng giây
+    });
+    
+  } catch (error) {
+    console.error('Error requesting reset code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể xử lý yêu cầu'
+    });
+  }
+});
+
+// 2️⃣ VERIFY CODE
+app.post("/api/password-reset/verify", async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email và mã xác thực không được để trống'
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Tìm mã reset hợp lệ
+    const result = await pool.query(
+      `SELECT id, expires_at, used 
+       FROM password_reset_codes 
+       WHERE email = $1 AND code = $2 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [normalizedEmail, code.trim()]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực không đúng'
+      });
+    }
+    
+    const resetCode = result.rows[0];
+    
+    // Kiểm tra đã dùng chưa
+    if (resetCode.used) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã được sử dụng'
+      });
+    }
+    
+    // Kiểm tra hết hạn
+    if (new Date() > new Date(resetCode.expires_at)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã hết hạn'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Mã xác thực hợp lệ'
+    });
+    
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể xác thực mã'
+    });
+  }
+});
+
+// 3️⃣ RESET PASSWORD
+app.post("/api/password-reset/reset", async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Thiếu thông tin bắt buộc'
+      });
+    }
+    
+    // Validate password
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mật khẩu phải có ít nhất 8 ký tự'
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Kiểm tra mã reset
+    const codeResult = await pool.query(
+      `SELECT id, expires_at, used 
+       FROM password_reset_codes 
+       WHERE email = $1 AND code = $2 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [normalizedEmail, code.trim()]
+    );
+    
+    if (codeResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực không đúng'
+      });
+    }
+    
+    const resetCode = codeResult.rows[0];
+    
+    if (resetCode.used) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã được sử dụng'
+      });
+    }
+    
+    if (new Date() > new Date(resetCode.expires_at)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã hết hạn'
+      });
+    }
+    
+    // Hash mật khẩu mới
+    const hashedPassword = await hashPassword(newPassword, 10);
+    
+    // Cập nhật mật khẩu
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE LOWER(email) = $2',
+      [hashedPassword, normalizedEmail]
+    );
+    
+    // Đánh dấu mã đã sử dụng
+    await pool.query(
+      'UPDATE password_reset_codes SET used = TRUE WHERE id = $1',
+      [resetCode.id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Đặt lại mật khẩu thành công'
+    });
+    
+  } catch (error) {
+    console.error('Error resetting password:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể đặt lại mật khẩu'
+    });
+  }
+});
+
+// ========== CLEANUP OLD CODES (Chạy mỗi giờ) ==========
+setInterval(async () => {
+  try {
+    await pool.query(
+      'DELETE FROM password_reset_codes WHERE expires_at < NOW()'
+    );
+    console.log('✅ Cleaned up expired reset codes');
+  } catch (error) {
+    console.error('❌ Error cleaning up codes:', error);
+  }
+}, 60 * 60 * 1000); // 1 giờ
 
 // ============ CATEGORY API ENDPOINTS ============
 
@@ -2818,7 +4766,6 @@ app.delete("/api/admin/sub-categories/:id", requireAdmin, async (req, res) => {
 });
 
 // ========== AI HISTORY ENDPOINTS ==========
-
 app.get("/api/admin/ai-history", requireAdmin, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
@@ -2828,11 +4775,11 @@ app.get("/api/admin/ai-history", requireAdmin, async (req, res) => {
       SELECT 
         h.id, 
         h.query_time, 
-        h.prompt_content, 
+        h.prompt_content,  -- ✅ THÊM CỘT NÀY
         h.status, 
         h.error_message,
         h.response_tokens,
-        h.roadmap_id, 
+        h.roadmap_id,  -- ✅ THÊM CỘT NÀY
         r.roadmap_name, 
         u.username,
         u.email
@@ -2855,7 +4802,6 @@ app.get("/api/admin/ai-history", requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Không thể lấy lịch sử AI" });
   }
 });
-
 app.delete("/api/admin/ai-history/:id", requireAdmin, async (req, res) => {
   try {
     const historyId = parseInt(req.params.id);
@@ -2885,7 +4831,192 @@ app.use((req, res, next) => {
   if (fs.existsSync(publicDir)) return res.status(404).send("Not found");
   return res.status(404).send("No frontend found in " + publicDir);
 });
+// ========== FEEDBACK ENDPOINTS ==========
 
+// Submit feedback
+app.post("/api/feedback/submit", requireAuth, async (req, res) => {
+  try {
+    const {
+      rating_1, rating_2, rating_3, rating_4, rating_5, rating_6, rating_7, rating_8,
+      question_1, question_2, question_3
+    } = req.body;
+
+    // Validate ratings
+    const ratings = [rating_1, rating_2, rating_3, rating_4, rating_5, rating_6, rating_7, rating_8];
+    for (let i = 0; i < ratings.length; i++) {
+      const rating = parseInt(ratings[i]);
+      if (isNaN(rating) || rating < 1 || rating > 5) {
+        return res.status(400).json({
+          success: false,
+          error: `Đánh giá ${i + 1} không hợp lệ (phải từ 1-5)`
+        });
+      }
+    }
+
+    const query = `
+      INSERT INTO user_feedback (
+        user_id, rating_1, rating_2, rating_3, rating_4, rating_5, 
+        rating_6, rating_7, rating_8, question_1, question_2, question_3
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING feedback_id, created_at
+    `;
+
+    const result = await pool.query(query, [
+      req.user.id,
+      rating_1, rating_2, rating_3, rating_4, rating_5, rating_6, rating_7, rating_8,
+      question_1 || null, question_2 || null, question_3 || null
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Cảm ơn bạn đã gửi phản hồi!',
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể gửi phản hồi'
+    });
+  }
+});
+
+// Get all feedback (admin only)
+app.get("/api/admin/feedback", requireAdmin, async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const query = `
+      SELECT 
+        f.feedback_id,
+        f.user_id,
+        u.name as user_name,
+        u.email as user_email,
+        f.rating_1, f.rating_2, f.rating_3, f.rating_4,
+        f.rating_5, f.rating_6, f.rating_7, f.rating_8,
+        f.question_1, f.question_2, f.question_3,
+        f.created_at
+      FROM user_feedback f
+      LEFT JOIN users u ON f.user_id = u.id
+      ORDER BY f.created_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+
+    const countQuery = `SELECT COUNT(*) as total FROM user_feedback`;
+
+    const result = await pool.query(query, [limit, offset]);
+    const countResult = await pool.query(countQuery);
+
+    res.json({
+      success: true,
+      data: result.rows,
+      total: parseInt(countResult.rows[0].total),
+      pagination: {
+        limit,
+        offset,
+        totalPages: Math.ceil(countResult.rows[0].total / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể lấy danh sách phản hồi'
+    });
+  }
+});
+
+// Get feedback statistics (admin only)
+app.get("/api/admin/feedback/stats", requireAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        COUNT(*) as total_feedback,
+        AVG(rating_1) as avg_rating_1,
+        AVG(rating_2) as avg_rating_2,
+        AVG(rating_3) as avg_rating_3,
+        AVG(rating_4) as avg_rating_4,
+        AVG(rating_5) as avg_rating_5,
+        AVG(rating_6) as avg_rating_6,
+        AVG(rating_7) as avg_rating_7,
+        AVG(rating_8) as avg_rating_8
+      FROM user_feedback
+    `;
+
+    const result = await pool.query(query);
+    
+    res.json({
+      success: true,
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error fetching feedback stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể lấy thống kê'
+    });
+  }
+});
+// Thêm endpoint DELETE /api/admin/feedback/:feedbackId vào phần ADMIN ROUTES trong server.js
+// (Thêm sau phần code cho GET /api/admin/feedback/stats, khoảng dòng ~1180 hoặc cuối phần admin routes)
+
+// Thêm endpoint DELETE vào phần ADMIN ROUTES
+app.delete('/api/admin/feedback/:feedbackId', requireAdmin, async (req, res) => {
+  const client = await pool.connect();
+  
+  try {
+    const feedbackId = parseInt(req.params.feedbackId);
+    
+    if (isNaN(feedbackId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid feedback ID',
+        message: 'ID phản hồi không hợp lệ'
+      });
+    }
+    
+    await client.query('BEGIN');
+    
+    const deleteQuery = `
+      DELETE FROM user_feedback
+      WHERE feedback_id = $1
+      RETURNING feedback_id
+    `;
+    
+    const result = await client.query(deleteQuery, [feedbackId]);
+    
+    if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({
+        success: false,
+        error: 'Feedback not found',
+        message: 'Không tìm thấy phản hồi'
+      });
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({
+      success: true,
+      message: 'Phản hồi đã được xóa thành công'
+    });
+    
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting feedback:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database error',
+      message: 'Không thể xóa phản hồi'
+    });
+  } finally {
+    client.release();
+  }
+});
 // ========== START SERVER ==========
 
 const PORT = parseInt(process.env.PORT || "5000", 10);
@@ -3316,67 +5447,98 @@ const updateDetailStatusSchema = Joi.object({
 
 app.get("/api/roadmap", requireAuth, async (req, res) => {
   try {
-    // ✅ DEBUG: Log toàn bộ req.user
-    console.log('🔍 /api/roadmap - req.user:', JSON.stringify(req.user, null, 2));
-    console.log('🔍 req.user.id type:', typeof req.user?.id);
-    console.log('🔍 req.user.id value:', req.user?.id);
+    console.log('📊 /api/roadmap - req.user:', JSON.stringify(req.user, null, 2));
     
     const userId = req.user?.id;
     
-    // ✅ VALIDATE trước khi parse
     if (!userId) {
       console.error('❌ userId is falsy:', userId);
       return res.status(401).json({ message: 'User ID missing' });
     }
     
-    // ✅ Parse và validate
     const userIdInt = parseInt(userId);
-    console.log('🔍 After parseInt:', userIdInt, 'isNaN:', isNaN(userIdInt));
     
     if (isNaN(userIdInt)) {
       console.error('❌ userId cannot be parsed to int:', userId);
       return res.status(401).json({ message: 'Invalid user ID format' });
     }
     
+    // ✅ QUERY MỚI: Tính toán status dựa trên completion_status của các ngày học
     const query = `
       SELECT 
-        roadmap_id,
-        roadmap_name,
-        category,
-        sub_category,
-        start_level,
-        duration_days,
-        duration_hours,
-        status,
-        progress_percentage,
-        total_studied_hours,
-        overall_rating,
-        roadmap_analyst,
-        expected_outcome,
-        created_at
-      FROM learning_roadmaps
-      WHERE user_id = $1::integer
-      ORDER BY created_at DESC
+        r.roadmap_id,
+        r.roadmap_name,
+        r.category,
+        r.sub_category,
+        r.start_level,
+        r.duration_days,
+        r.duration_hours,
+        r.progress_percentage,
+        r.total_studied_hours,
+        r.overall_rating,
+        r.roadmap_analyst,
+        r.expected_outcome,
+        r.created_at,
+        -- ✅ Đếm số ngày đang học (IN_PROGRESS)
+        COUNT(d.detail_id) FILTER (WHERE d.completion_status = 'IN_PROGRESS') as in_progress_count,
+        -- ✅ Đếm số ngày hoàn thành (COMPLETED)
+        COUNT(d.detail_id) FILTER (WHERE d.completion_status = 'COMPLETED') as completed_count,
+        -- ✅ Tổng số ngày
+        COUNT(d.detail_id) as total_days
+      FROM learning_roadmaps r
+      LEFT JOIN learning_roadmap_details d ON r.roadmap_id = d.roadmap_id
+      WHERE r.user_id = $1::integer
+      GROUP BY r.roadmap_id
+      ORDER BY r.created_at DESC
     `;
 
-    console.log('🔍 Executing query with userId:', userIdInt);
+    console.log('📊 Executing query with userId:', userIdInt);
     
     const result = await pool.query(query, [userIdInt]);
     
     console.log('✅ Query success, rows:', result.rows.length);
 
+    // ✅ Xử lý status logic trong backend
+    const processedRows = result.rows.map(row => {
+      let computed_status = 'NOT_STARTED';
+      
+      // Nếu có progress > 0 hoặc có ngày IN_PROGRESS/COMPLETED
+      if (row.progress_percentage > 0 || row.in_progress_count > 0 || row.completed_count > 0) {
+        computed_status = 'IN_PROGRESS';
+      }
+      
+      // Nếu progress = 100% hoặc tất cả ngày đã COMPLETED
+      if (row.progress_percentage >= 100 || (row.total_days > 0 && row.completed_count === row.total_days)) {
+        computed_status = 'COMPLETED';
+      }
+      
+      return {
+        roadmap_id: row.roadmap_id,
+        roadmap_name: row.roadmap_name,
+        category: row.category,
+        sub_category: row.sub_category,
+        start_level: row.start_level,
+        duration_days: row.duration_days,
+        duration_hours: row.duration_hours,
+        status: computed_status, // ✅ Status được tính toán đúng
+        progress_percentage: row.progress_percentage,
+        total_studied_hours: row.total_studied_hours,
+        overall_rating: row.overall_rating,
+        roadmap_analyst: row.roadmap_analyst,
+        expected_outcome: row.expected_outcome,
+        created_at: row.created_at
+      };
+    });
+
     res.json({
       success: true,
-      data: result.rows
+      data: processedRows
     });
 
   } catch (error) {
     console.error('❌❌❌ ERROR in /api/roadmap:');
     console.error('Message:', error?.message);
     console.error('Stack:', error?.stack);
-    console.error('Code:', error?.code);
-    console.error('Detail:', error?.detail);
-    console.error('Position:', error?.position);
     
     res.status(500).json({
       error: 'Database query failed',
@@ -3613,9 +5775,7 @@ const submitEvaluationSchema = Joi.object({
     would_recommend: Joi.boolean()
 });
 
-// cập nhật các đánh giá của lộ trình
 app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => {
-// POST /api/roadmap/:id/submit-evaluation - Submit đánh giá
     const client = await pool.connect();
 
     try {
@@ -3631,12 +5791,11 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
 
         await client.query('BEGIN');
 
-        // Verify roadmap belongs to user
+        // ✅ VERIFY OWNERSHIP
         const verifyQuery = `
             SELECT roadmap_id FROM learning_roadmaps
             WHERE roadmap_id = $1 AND user_id = $2
         `;
-
         const verifyResult = await client.query(verifyQuery, [roadmapId, req.user.id]);
 
         if (verifyResult.rows.length === 0) {
@@ -3647,7 +5806,7 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
             });
         }
 
-        // Update roadmap with evaluation
+        // ✅ UPDATE EVALUATION IN learning_roadmaps
         const updateQuery = `
             UPDATE learning_roadmaps
             SET 
@@ -3663,7 +5822,7 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
                 would_recommend = $10,
                 updated_at = CURRENT_TIMESTAMP
             WHERE roadmap_id = $11
-            RETURNING roadmap_id, overall_rating, status
+            RETURNING *
         `;
 
         const result = await client.query(updateQuery, [
@@ -3680,12 +5839,93 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
             roadmapId
         ]);
 
+        const updatedRoadmap = result.rows[0];
+
+        // ✅ LOGIC MỚI: Nếu rating >= 4 sao → ADD TO SYSTEM
+        if (value.overall_rating >= 4) {
+            console.log(`⭐ Rating >= 4, adding roadmap #${roadmapId} to system...`);
+
+            // 1️⃣ Check xem đã tồn tại trong system chưa
+            const checkSystemQuery = `
+                SELECT roadmap_id 
+                FROM learning_roadmaps_system 
+                WHERE roadmap_name = $1 AND category = $2
+                LIMIT 1
+            `;
+            const existingSystem = await client.query(checkSystemQuery, [
+                updatedRoadmap.roadmap_name,
+                updatedRoadmap.category
+            ]);
+
+            if (existingSystem.rows.length === 0) {
+                // 2️⃣ INSERT vào learning_roadmaps_system
+                const insertSystemQuery = `
+                    INSERT INTO learning_roadmaps_system (
+                        roadmap_name, category, sub_category, start_level,
+                        total_user_learning, duration_days, duration_hours,
+                        overall_rating, learning_effectiveness, roadmap_analyst
+                    ) VALUES ($1, $2, $3, $4, 1, $5, $6, $7, $8, $9)
+                    RETURNING roadmap_id
+                `;
+
+                const systemResult = await client.query(insertSystemQuery, [
+                    updatedRoadmap.roadmap_name,
+                    updatedRoadmap.category,
+                    updatedRoadmap.sub_category,
+                    updatedRoadmap.start_level,
+                    updatedRoadmap.duration_days,
+                    updatedRoadmap.duration_hours,
+                    updatedRoadmap.overall_rating,
+                    updatedRoadmap.learning_effectiveness,
+                    updatedRoadmap.roadmap_analyst
+                ]);
+
+                const systemRoadmapId = systemResult.rows[0].roadmap_id;
+                console.log(`✅ Created system roadmap #${systemRoadmapId}`);
+
+                // 3️⃣ Copy chi tiết vào learning_roadmap_details_system
+                const copyDetailsQuery = `
+                    INSERT INTO learning_roadmap_details_system (
+                        roadmap_id, day_number, daily_goal, learning_content,
+                        practice_exercises, learning_materials, usage_instructions,
+                        study_duration_hours
+                    )
+                    SELECT 
+                        $1, day_number, daily_goal, learning_content,
+                        practice_exercises, learning_materials, usage_instructions,
+                        study_duration_hours
+                    FROM learning_roadmap_details
+                    WHERE roadmap_id = $2
+                    ORDER BY day_number ASC
+                `;
+
+                await client.query(copyDetailsQuery, [systemRoadmapId, roadmapId]);
+                console.log(`✅ Copied ${updatedRoadmap.duration_days} days to system`);
+
+} else {
+    // UPDATE thay vì skip
+    const updateSystemQuery = `
+        UPDATE learning_roadmaps_system
+        SET 
+            overall_rating = $1,
+            learning_effectiveness = $2,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE roadmap_id = $3
+    `;
+    await client.query(updateSystemQuery, [
+        updatedRoadmap.overall_rating,
+        updatedRoadmap.learning_effectiveness,
+        existingSystem.rows[0].roadmap_id
+    ]);
+}
+        }
+
         await client.query('COMMIT');
 
         res.json({
             success: true,
             message: 'Đánh giá đã được lưu thành công',
-            data: result.rows[0]
+            data: updatedRoadmap
         });
 
     } catch (error) {
@@ -3780,6 +6020,196 @@ app.post("/api/admin/prompt/save", requireAdmin, async (req, res) => {
         });
     }
 });
+// ============ MANUAL PROMPT API ENDPOINTS ============
+app.get("/api/admin/manual-prompt", requireAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT manual_prompt_template
+      FROM admin_settings
+      WHERE setting_key = 'prompt_template'
+      LIMIT 1
+    `;
+    
+    const result = await pool.query(query);
+    
+    // Nếu không có trong DB, đọc từ file default
+    let manualPromptTemplate = '';
+    if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
+      manualPromptTemplate = result.rows[0].manual_prompt_template;
+    } else {
+      // Đọc từ file default_prompt2.txt
+      const defaultPath = path.join(__dirname, 'default_prompt2.txt');
+      if (fs.existsSync(defaultPath)) {
+        manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
+      } else {
+        manualPromptTemplate = getDefaultManualPrompt();
+      }
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        manual_prompt_template: manualPromptTemplate
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching manual prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể lấy manual prompt template'
+    });
+  }
+});
+
+app.post("/api/admin/manual-prompt/save", requireAdmin, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { manualPromptContent } = req.body;
+    
+    if (!manualPromptContent) {
+      return res.status(400).json({
+        success: false,
+        error: 'Manual prompt content không được để trống'
+      });
+    }
+    
+    const query = `
+      UPDATE admin_settings
+      SET 
+        manual_prompt_template = $1,
+        updated_at = CURRENT_TIMESTAMP,
+        updated_by = $2
+      WHERE setting_key = 'prompt_template'
+      RETURNING setting_id
+    `;
+    
+    const result = await pool.query(query, [manualPromptContent, userId]);
+    
+    if (result.rows.length === 0) {
+      const insertQuery = `
+        INSERT INTO admin_settings (
+          setting_key, manual_prompt_template, updated_by
+        ) VALUES ('prompt_template', $1, $2)
+        RETURNING setting_id
+      `;
+      await pool.query(insertQuery, [manualPromptContent, userId]);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Manual Prompt đã được lưu thành công',
+      updatedAt: new Date()
+    });
+  } catch (error) {
+    console.error('Error saving manual prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể lưu Manual Prompt'
+    });
+  }
+});
+
+app.post("/api/admin/manual-prompt/reset", requireAdmin, async (req, res) => {
+  try {
+    const defaultPrompt = getDefaultManualPrompt();
+    
+    const checkQuery = `
+      SELECT setting_id FROM admin_settings 
+      WHERE setting_key = 'prompt_template'
+      LIMIT 1
+    `;
+    const checkResult = await pool.query(checkQuery);
+    
+    if (checkResult.rows.length > 0) {
+      const updateQuery = `
+        UPDATE admin_settings
+        SET 
+          manual_prompt_template = $1,
+          updated_at = CURRENT_TIMESTAMP,
+          updated_by = $2
+        WHERE setting_key = 'prompt_template'
+        RETURNING setting_id, updated_at
+      `;
+      const result = await pool.query(updateQuery, [defaultPrompt, req.user.id]);
+      
+      res.json({
+        success: true,
+        message: '✅ Đã khôi phục manual prompt về mặc định',
+        data: {
+          manual_prompt_template: defaultPrompt,
+          updated_at: result.rows[0].updated_at
+        }
+      });
+    } else {
+      const insertQuery = `
+        INSERT INTO admin_settings (
+          setting_key, manual_prompt_template, updated_by
+        ) VALUES ('prompt_template', $1, $2)
+        RETURNING setting_id, created_at
+      `;
+      const result = await pool.query(insertQuery, [defaultPrompt, req.user.id]);
+      
+      res.json({
+        success: true,
+        message: '✅ Đã tạo manual prompt mặc định',
+        data: {
+          manual_prompt_template: defaultPrompt,
+          created_at: result.rows[0].created_at
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error resetting manual prompt:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể khôi phục manual prompt'
+    });
+  }
+});
+
+function getDefaultManualPrompt() {
+  return `**THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: <CATEGORY> -- <SUB_CATEGORY>**
+
+**I/ Vai trò của AI**
+Bạn là một chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh nghiệm.
+
+**II/ Thông tin từ học viên:**
+- Tên lộ trình: <ROADMAP_NAME>
+- Mục đích chính: <MAIN_PURPOSE>
+- Mục tiêu cụ thể: <SPECIFIC_GOAL>
+- Công việc hiện tại: <CURRENT_JOB>
+- Đã học được: <STUDY_TIME>
+- Trình độ hiện tại: <CURRENT_LEVEL>
+- Kỹ năng muốn cải thiện: <SKILLS_TO_IMPROVE>
+- Thời gian học mỗi ngày: <DAILY_TIME>
+- Số buổi mỗi tuần: <WEEKLY_FREQUENCY>
+- Tổng thời gian lộ trình: <TOTAL_DURATION> ngày
+- Phong cách học: <LEARNING_STYLE>
+- Phương pháp học: <LEARNING_METHOD>
+- Khó khăn: <DIFFICULTIES>
+- Động lực: <MOTIVATION>
+- Loại tài liệu ưa thích: <MATERIAL_TYPE>
+- Ngôn ngữ tài liệu: <MATERIAL_LANGUAGE>
+- Loại đánh giá: <ASSESSMENT_TYPE>
+- Hiển thị kết quả: <RESULT_DISPLAY>
+- Tần suất đánh giá: <ASSESSMENT_FREQUENCY>
+
+**III/ Yêu cầu**
+Tạo lộ trình với 7 cột theo định dạng Excel:
+1. day_number (số ngày)
+2. day_study (ngày học thực tế, format dd/mm/yyyy, ô excel phải có dấu ' ở đầu)
+3. daily_goal (Mục tiêu ngày)
+4. learning_content (Nội dung học tập)
+5. practice_exercises (Bài tập thực hành)
+6. learning_materials (Công cụ/Tài liệu học tập - LINK CỤ THỂ)
+7. guide_learning (Hướng dẫn sử dụng)
+8. study_duration_hours (Thời gian học - số giờ, format số thập phân vd: 1.5)
+
+**QUAN TRỌNG:**
+- day_number phải tăng đều từ 1 đến <TOTAL_DURATION>
+- day_study phải theo format dd/mm/yyyy (ví dụ: '01/01/2025) và có dấu ' ở đầu trong Excel
+- Tất cả các cột phải có giá trị, không để trống`;
+}
 // ============ API ENDPOINT: Reset Prompt Template ============
 app.post("/api/admin/prompt-template/reset", requireAdmin, async (req, res) => {
   try {
@@ -3917,8 +6347,9 @@ app.get('/api/categories/top', async (req, res) => {
                 COUNT(lr.roadmap_id) as roadmap_count
             FROM categories c
             LEFT JOIN learning_roadmaps_system lr ON lr.category = c.name
+                AND lr.overall_rating >= 4  /* ✅ CHỈ ĐẾM LỘ TRÌNH >= 4 SAO */
             GROUP BY c.id, c.name, c.description
-            HAVING COUNT(lr.roadmap_id) > 0
+            HAVING COUNT(lr.roadmap_id) > 0  /* ✅ CHỈ HIỂN THỊ CATEGORY CÓ ROADMAP */
             ORDER BY roadmap_count DESC
             LIMIT 6
         `;
@@ -4021,25 +6452,30 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
   try {
     const { roadmapId } = req.params;
     
+    // ✅ Query mới: Đếm số người đánh giá >= 4 sao
     const query = `
       SELECT 
-        lr.roadmap_id,
-        lr.roadmap_name,
-        lr.category,
-        lr.sub_category,
-        lr.start_level,
-        lr.total_user_learning,
-        lr.duration_days,
-        lr.duration_hours,
-        lr.overall_rating,
-        lr.learning_effectiveness,
-        lr.created_at,
-        lr.updated_at,
-        lr.roadmap_analyst,
-        c.id as category_id  -- ✅ THÊM DÒNG NÀY
-      FROM learning_roadmaps_system lr
-      LEFT JOIN categories c ON c.name = lr.category  -- ✅ THÊM JOIN
-      WHERE lr.roadmap_id = $1
+        lrs.roadmap_id,
+        lrs.roadmap_name,
+        lrs.category,
+        lrs.sub_category,
+        lrs.start_level,
+        lrs.total_user_learning,
+        lrs.duration_days,
+        lrs.duration_hours,
+        lrs.created_at,
+        lrs.updated_at,
+        lrs.roadmap_analyst,
+        c.id as category_id,
+        -- ✅ Đếm số người đánh giá >= 4 sao tổng thể
+        COUNT(DISTINCT lr.user_id) FILTER (WHERE lr.overall_rating >= 4) as high_overall_rating_count,
+        -- ✅ Đếm số người đánh giá >= 4 sao hiệu quả
+        COUNT(DISTINCT lr.user_id) FILTER (WHERE lr.learning_effectiveness >= 4) as high_effectiveness_count
+      FROM learning_roadmaps_system lrs
+      LEFT JOIN categories c ON c.name = lrs.category
+      LEFT JOIN learning_roadmaps lr ON lr.roadmap_name = lrs.roadmap_name AND lr.category = lrs.category
+      WHERE lrs.roadmap_id = $1
+      GROUP BY lrs.roadmap_id, c.id
     `;
     
     const result = await pool.query(query, [roadmapId]);
