@@ -8,6 +8,10 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
+      <script>
+    const tokeen = localStorage.getItem('token');
+    if(!tokeen) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
+  </script>
  <style>
     * {
         margin: 0;
@@ -163,15 +167,23 @@
         margin-left: 10px;
     }
 
-    .status-active {
-        background: #dcfdf4;
-        color: #065f46;
-    }
+.status-not-started {
+    background: #dc2626;
+    color: #ffffff;
+    font-weight: 700;
+}
 
-    .status-completed {
-        background: #ddd6fe;
-        color: #007bff;
-    }
+.status-active {
+    background: #f59e0b;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.status-completed {
+    background: #16a34a;
+    color: #ffffff;
+    font-weight: 700;
+}
 
     .roadmap-meta {
         display: flex;
@@ -797,7 +809,7 @@
 .brand-text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     line-height: 1;
     min-width: 0;
 }
@@ -885,7 +897,6 @@
     .toMain:hover {
         background: #222;
     }
-
     @media (max-width: 768px) {
         .bar-inner {
             flex-direction: column;
@@ -1023,7 +1034,10 @@
         color: white;
         box-shadow: 0 2px 5px rgba(0,0,0,0.12);
     }
-
+    /*.logout-btn:hover {
+        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+        opacity: 0.9;
+    }*/
     .toApp-btn {
         background: #000;
         color: white;
@@ -1227,13 +1241,25 @@
 
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
+    const token = localStorage.getItem('token');
     // (Phần script giữ nguyên hoàn toàn từ path.html gốc)
     // Mình chèn nguyên các hàm chính: fetchRoadmaps, renderRoadmaps, displayRoadmapDetails,
     // updateStatus, submitEvaluation, upload handling, setupNavigation, initApp, v.v.
     let currentRoadmapId = null;
     let evaluationData = {};
     let allRoadmaps = [];
-
+    // ✅ HÀM FORMAT GIỜ: Chuyển số thập phân thành "X giờ Y phút"
+    function formatHours(hours) {
+        if (!hours || isNaN(hours)) return '0m';
+        
+        const totalMinutes = Math.round(hours * 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        
+        if (h === 0) return `${m}m`;
+        if (m === 0) return `${h}h`;
+        return `${h}h ${m}m`;
+    }
     // Utility functions
     function getAuthHeaders() {
         const token = localStorage.getItem('token');
@@ -1299,85 +1325,106 @@
         }
     }
 
-    function getStatusBadge(status, rating) {
-        if (status === 'COMPLETED') {
-            return `<span class="status-badge status-completed">Hoàn thành</span>`;
-        }
+function getStatusBadge(roadmap) {
+    const progress = parseFloat(roadmap.progress_percentage || 0);
+    const status = roadmap.status; // ✅ Nhận status đã được tính toán từ backend
+    
+    if (progress >= 100 || status === 'COMPLETED') {
+        return `<span class="status-badge status-completed">Hoàn thành</span>`;
+    }
+    
+    if (progress > 0 || status === 'IN_PROGRESS') {
         return `<span class="status-badge status-active">Đang học</span>`;
     }
-
+    
+    return `<span class="status-badge status-not-started">Chưa học</span>`;
+}
 function renderRoadmaps(roadmaps) {
     const contentArea = document.getElementById('content-area');
     const subtitle = document.getElementById('header-subtitle');
 
-    if (!roadmaps || roadmaps.length === 0) {
+    if (roadmaps.length === 0) {
         subtitle.textContent = "Bạn chưa có lộ trình học nào";
         contentArea.innerHTML = `
             <div class="empty-state">
                 <div class="empty-icon">📚</div>
                 <div class="empty-title">Chưa có lộ trình học</div>
                 <div class="empty-text">Hãy tạo lộ trình học đầu tiên để bắt đầu hành trình học tập của bạn</div>
-<button class="empty-btn" onclick="goToCreateRoadmap()">
-➕ Tạo Lộ Trình Mới
-</button>
-</div>
-`;
-return;
-}subtitle.textContent = `Bạn đang có ${roadmaps.length} lộ trình học`;
+                <button class="empty-btn" onclick="goToCreateRoadmap()">
+                    ➕ Tạo Lộ Trình Mới
+                </button>
+            </div>
+        `;
+        return;
+    }
 
-const roadsHTML = roadmaps.map(r => `
-    <div class="roadmap-card">
-        <button class="delete-roadmap-btn" onclick="event.stopPropagation(); confirmDeleteRoadmap(${r.roadmap_id}, '${(r.roadmap_name || '').replace(/'/g, "\\'")}')">
-            <i class="fa-solid fa-trash"></i> Xóa
-        </button>
-        <div class="roadmap-header">
-            <div class="roadmap-title">${r.roadmap_name || 'Lộ trình'}</div>
-            ${getStatusBadge(r.status, r.overall_rating)}
+    subtitle.textContent = `Bạn đang có ${roadmaps.length} lộ trình học`;
+
+    const roadsHTML = roadmaps.map(r => {
+        // ✅ TÍNH TRUNG BÌNH 5 TIÊU CHÍ
+        let avgRating = null;
+        if (r.overall_rating && r.learning_effectiveness && r.difficulty_suitability && r.content_relevance && r.engagement_level) {
+            const sum = parseFloat(r.overall_rating) + 
+                       parseFloat(r.learning_effectiveness) + 
+                       parseFloat(r.difficulty_suitability) + 
+                       parseFloat(r.content_relevance) + 
+                       parseFloat(r.engagement_level);
+            avgRating = (sum / 5).toFixed(1);
+        }
+        
+        return `
+        <div class="roadmap-card">
+            <button class="delete-roadmap-btn" onclick="event.stopPropagation(); confirmDeleteRoadmap(${r.roadmap_id}, '${r.roadmap_name.replace(/'/g, "\\'")}')">
+                <i class="fa-solid fa-trash"></i> Xóa
+            </button>
+            <div class="roadmap-header">
+                <div class="roadmap-title">${r.roadmap_name}</div>
+                ${getStatusBadge(r)}
+            </div>
+
+            <div class="roadmap-meta">
+                <div class="meta-item">📂 ${r.category}</div>
+                <div class="meta-item">⏱️ ${r.duration_days} ngày</div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>Tiến độ</span>
+                    <span>${parseFloat(r.progress_percentage).toFixed(0)}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${r.progress_percentage}%"></div>
+                </div>
+            </div>
+
+            <div class="roadmap-stats">
+                <div class="stat-item">
+                    <div class="stat-value">${r.duration_days}</div>
+                    <div class="stat-label">Ngày học</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${formatHours(r.total_studied_hours)}</div>
+                    <div class="stat-label">Đã học</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${r.start_level}</div>
+                    <div class="stat-label">Trình độ</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${avgRating ? avgRating + '⭐' : '-'}</div>
+                    <div class="stat-label">Đánh giá</div>
+                </div>
+            </div>
+
+            <button class="view-details-btn" onclick="openDetails(${r.roadmap_id})">
+                👁️ Xem Chi Tiết
+            </button>
         </div>
+        `;
+    }).join('');
 
-        <div class="roadmap-meta">
-            <div class="meta-item">📁 ${r.category || 'N/A'}</div>
-            <div class="meta-item">⏱️ ${r.duration_days || 0} ngày</div>
-        </div>
-
-        <div class="progress-section">
-            <div class="progress-label">
-                <span>Tiến độ</span>
-                <span>${parseFloat(r.progress_percentage || 0).toFixed(0)}%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: ${r.progress_percentage || 0}%"></div>
-            </div>
-        </div>
-
-        <div class="roadmap-stats">
-            <div class="stat-item">
-                <div class="stat-value">${r.duration_days || 0}</div>
-                <div class="stat-label">Ngày học</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${parseFloat(r.total_studied_hours || 0).toFixed(1)}h</div>
-                <div class="stat-label">Đã học</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${r.start_level || '-'}</div>
-                <div class="stat-label">Trình độ</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">${r.overall_rating ? r.overall_rating + '⭐' : '-'}</div>
-                <div class="stat-label">Đánh giá</div>
-            </div>
-        </div>
-
-        <button class="view-details-btn" onclick="openDetails(${r.roadmap_id})">
-            👁️ Xem Chi Tiết
-        </button>
-    </div>
-`).join('');
-
-contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
+    contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
 }
-
     async function openDetails(roadmapId) {
         currentRoadmapId = roadmapId;
         document.getElementById('detailsModal').classList.add('active');
@@ -1422,107 +1469,113 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
         }
     }
 
-    function displayRoadmapDetails(roadmap, details) {
-        // Chỉ hiển thị phân tích AI nếu có nội dung phân tích (không phải từ Excel upload)
-        const analysisHTML = roadmap.roadmap_analyst && roadmap.roadmap_analyst.trim() !== '' ? `
-            <div class="analysis-section">
-                <h3>📊 Phân Tích AI</h3>
-                <div class="analysis-content">${roadmap.roadmap_analyst}</div>
-            </div>
-        ` : '';
+function displayRoadmapDetails(roadmap, details) {
+    const analysisHTML = `
+        <div class="analysis-section">
+            <h3>📊 Phân Tích AI</h3>
+            <div class="analysis-content">${roadmap.roadmap_analyst}</div>
+        </div>
+    `;
 
-        const tableHTML = `
-            <div class="roadmap-section">
-                <h3>📅 Lộ Trình Chi Tiết</h3>
-                <table>
-                    <thead>
+    const tableHTML = `
+        <div class="roadmap-section">
+            <h3>📅 Lộ Trình Chi Tiết</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">Ngày</th>
+                        <th style="width: 100px;">Ngày học</th>
+                        <th style="min-width: 150px;">Mục tiêu</th>
+                        <th style="min-width: 150px;">Nội dung</th>
+                        <th style="min-width: 120px;">Bài tập</th>
+                        <th style="min-width: 120px;">Tài liệu</th>
+                        <th style="min-width: 100px;">Hướng dẫn</th>
+                        <th style="width: 80px;">Thời lượng</th>
+                        <th style="width: 120px;">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${details.map(d => {
+                        // ✅ Parse multiple links from materials
+                        let materialsHTML = 'N/A';
+                        if (d.learning_materials) {
+                            const links = d.learning_materials
+                                .split(/[;\n]/)
+                                .map(link => link.trim())
+                                .filter(link => link && link.match(/^https?:\/\//i));
+                            
+                            if (links.length > 0) {
+                                materialsHTML = links.map((link, idx) => {
+                                    try {
+                                        const domain = new URL(link).hostname.replace(/^www\./, '');
+                                        return `<a href="${link}" target="_blank" style="color: #007bff; display: block; margin: 2px 0; font-size: 0.85rem;"> ${domain}</a>`;
+                                    } catch (e) {
+                                        return `<span style="color: #6b7280; font-size: 0.85rem;">Link ${idx + 1}</span>`;
+                                    }
+                                }).join('');
+                            } else if (d.learning_materials.trim()) {
+                                materialsHTML = `<span style="font-size: 0.85rem;">${d.learning_materials}</span>`;
+                            }
+                        }
+
+                        return `
                         <tr>
-                            <th style="width: 60px;">Ngày</th>
-                            <th style="width: 100px;">Ngày học</th>
-                            <th style="min-width: 150px;">Mục tiêu</th>
-                            <th style="min-width: 150px;">Nội dung</th>
-                            <th style="min-width: 120px;">Bài tập</th>
-                            <th style="min-width: 100px;">Tài liệu</th>
-                            <th style="min-width: 100px;">Hướng dẫn</th>
-                            <th style="width: 80px;">Thời lượng</th>
-                            <th style="width: 120px;">Trạng thái</th>
+                            <td class="day-cell">${d.day_number}</td>
+                            <td class="date-cell">${d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN') : 'N/A'}</td>
+                            <td><strong>${d.daily_goal || 'N/A'}</strong></td>
+                            <td>${d.learning_content || 'N/A'}</td>
+                            <td>${d.practice_exercises || 'N/A'}</td>
+                            <td>${materialsHTML}</td>
+                            <td>${d.usage_instructions || 'N/A'}</td>
+                            <td style="text-align: center;"><strong>${formatHours(d.study_duration_hours)}</strong></td>
+                            <td>
+                                <select onchange="updateStatus(${roadmap.roadmap_id}, ${d.detail_id}, this.value)">
+                                    <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa bắt đầu</option>
+                                    <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
+                                    <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+                                    <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
+                                </select>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        ${ (details || []).map(d => `
-                            <tr>
-                                <td class="day-cell">${d.day_number}</td>
-                                <td class="date-cell">${d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN') : 'N/A'}</td>
-                                <td><strong>${d.daily_goal || 'N/A'}</strong></td>
-                                <td>${d.learning_content || 'N/A'}</td>
-                                <td>${d.practice_exercises || 'N/A'}</td>
-                                <td>${d.learning_materials ? `<a href="${d.learning_materials}" target="_blank" style="color: #007bff;">Xem</a>` : 'N/A'}</td>
-                                <td>${d.usage_instructions || d.guide_learning || 'N/A'}</td>
-                                <td style="text-align: center;"><strong>${d.study_duration_hours || 0}h</strong></td>
-                                <td>
-                                    <select onchange="updateStatus(${roadmap.roadmap_id}, ${d.detail_id || d.id}, this.value)">
-                                        <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa bắt đầu</option>
-                                        <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
-                                        <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
-                                        <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
-                                    </select>
-                                </td>
-                            </tr>
-                        `).join('') }
-                    </tbody>
-                </table>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    const evaluationHTML = buildEvaluationForm(roadmap);
+
+    document.getElementById('modal-body').innerHTML = analysisHTML + tableHTML + evaluationHTML;
+}
+function buildEvaluationForm(roadmap) {
+    // ✅ Hàm helper để render stars với giá trị hiện tại
+    const renderRatingGroup = (fieldName, label, currentValue) => {
+        const value = currentValue || 0;
+        const starsHtml = [1,2,3,4,5].map(i => 
+            `<span class="star ${value >= i ? 'active' : ''}" onclick="setRating('${fieldName}', ${i})">★</span>`
+        ).join('');
+        
+        return `
+            <div class="rating-group">
+                <label>${label} *</label>
+                <div class="rating-stars" id="${fieldName}">
+                    ${starsHtml}
+                </div>
+                <div class="rating-value">Chọn: <span id="${fieldName}-value">${value}</span>/5</div>
             </div>
         `;
+    };
 
-        const evaluationHTML = buildEvaluationForm(roadmap);
-
-        document.getElementById('modal-body').innerHTML = analysisHTML + tableHTML + evaluationHTML;
-    }
-
-    function buildEvaluationForm(roadmap) {
     return `
         <div class="evaluation-section">
             <h3>⭐ Đánh Giá Lộ Trình</h3>
             
-            <div class="rating-group">
-                <label>Đánh giá tổng thể lộ trình (1-5 sao) *</label>
-                <div class="rating-stars" id="overall_rating">
-                    ${[1,2,3,4,5].map(i => `<span class="star ${(roadmap.overall_rating || 0) >= i ? 'active' : ''}" onclick="setRating('overall_rating', ${i})">★</span>`).join('')}
-                </div>
-                <div class="rating-value">Chọn: <span id="overall_rating-value">${roadmap.overall_rating || 0}</span>/5</div>
-            </div>
-
-            <div class="rating-group">
-                <label>Hiệu quả học tập (1-5 sao) *</label>
-                <div class="rating-stars" id="learning_effectiveness">
-                    ${[1,2,3,4,5].map(i => `<span class="star ${(roadmap.learning_effectiveness || 0) >= i ? 'active' : ''}" onclick="setRating('learning_effectiveness', ${i})">★</span>`).join('')}
-                </div>
-                <div class="rating-value">Chọn: <span id="learning_effectiveness-value">${roadmap.learning_effectiveness || 0}</span>/5</div>
-            </div>
-
-            <div class="rating-group">
-                <label>Độ khó phù hợp (1-5 sao) *</label>
-                <div class="rating-stars" id="difficulty_suitability">
-                    ${[1,2,3,4,5].map(i => `<span class="star ${(roadmap.difficulty_suitability || 0) >= i ? 'active' : ''}" onclick="setRating('difficulty_suitability', ${i})">★</span>`).join('')}
-                </div>
-                <div class="rating-value">Chọn: <span id="difficulty_suitability-value">${roadmap.difficulty_suitability || 0}</span>/5</div>
-            </div>
-
-            <div class="rating-group">
-                <label>Tính liên quan nội dung (1-5 sao) *</label>
-                <div class="rating-stars" id="content_relevance">
-                    ${[1,2,3,4,5].map(i => `<span class="star ${(roadmap.content_relevance || 0) >= i ? 'active' : ''}" onclick="setRating('content_relevance', ${i})">★</span>`).join('')}
-                </div>
-                <div class="rating-value">Chọn: <span id="content_relevance-value">${roadmap.content_relevance || 0}</span>/5</div>
-            </div>
-
-            <div class="rating-group">
-                <label>Tính hấp dẫn lộ trình (1-5 sao) *</label>
-                <div class="rating-stars" id="engagement_level">
-                    ${[1,2,3,4,5].map(i => `<span class="star ${(roadmap.engagement_level || 0) >= i ? 'active' : ''}" onclick="setRating('engagement_level', ${i})">★</span>`).join('')}
-                </div>
-                <div class="rating-value">Chọn: <span id="engagement_level-value">${roadmap.engagement_level || 0}</span>/5</div>
-            </div>
+            ${renderRatingGroup('overall_rating', 'Đánh giá tổng thể lộ trình (1-5 sao)', roadmap.overall_rating)}
+            ${renderRatingGroup('learning_effectiveness', 'Hiệu quả học tập (1-5 sao)', roadmap.learning_effectiveness)}
+            ${renderRatingGroup('difficulty_suitability', 'Độ khó phù hợp (1-5 sao)', roadmap.difficulty_suitability)}
+            ${renderRatingGroup('content_relevance', 'Tính liên quan nội dung (1-5 sao)', roadmap.content_relevance)}
+            ${renderRatingGroup('engagement_level', 'Tính hấp dẫn lộ trình (1-5 sao)', roadmap.engagement_level)}
 
             <div class="textarea-group">
                 <label>Nhận xét chi tiết về lộ trình</label>
@@ -1564,23 +1617,28 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
         </div>
     `;
 }
-
     // SET RATING
-    function setRating(fieldName, value) {
-        evaluationData[fieldName] = value;
-        
-        const starContainer = document.getElementById(fieldName);
-        if (starContainer) {
-            const stars = starContainer.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                if (index < value) {
-                    star.classList.add('active');
-                } else {
-                    star.classList.remove('active');
-                }
-            });
-        }
+function setRating(fieldName, value) {
+    evaluationData[fieldName] = value;
+    
+    const starContainer = document.getElementById(fieldName);
+    if (starContainer) {
+        const stars = starContainer.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < value) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
     }
+    
+    // ✅ CẬP NHẬT TEXT HIỂN THỊ
+    const valueSpan = document.getElementById(`${fieldName}-value`);
+    if (valueSpan) {
+        valueSpan.textContent = value;
+    }
+}
 
     // UPDATE STATUS
     async function updateStatus(roadmapId, detailId, status) {
@@ -1613,61 +1671,62 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
             showNotification('✗ Không thể cập nhật trạng thái', 'error');
         }
     }
-
-    // SUBMIT EVALUATION
-    async function submitEvaluation() {
-        if (!evaluationData.overall_rating || !evaluationData.learning_effectiveness ||
-            !evaluationData.difficulty_suitability || !evaluationData.content_relevance ||
-            !evaluationData.engagement_level) {
-            showNotification('⚠ Vui lòng đánh giá tất cả 5 tiêu chí!', 'error');
-            return;
-        }
-
-        const submitBtn = document.querySelector('.submit-evaluation-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<div class="loading"><div class="spinner"></div> Đang lưu...</div>';
-
-        try {
-            const payload = {
-                overall_rating: evaluationData.overall_rating,
-                learning_effectiveness: evaluationData.learning_effectiveness,
-                difficulty_suitability: evaluationData.difficulty_suitability,
-                content_relevance: evaluationData.content_relevance,
-                engagement_level: evaluationData.engagement_level,
-                recommended_category: evaluationData.recommended_category || '',
-                actual_learning_outcomes: document.getElementById('actual_learning_outcomes').value || '',
-                improvement_suggestions: document.getElementById('improvement_suggestions').value || '',
-                would_recommend: document.getElementById('would_recommend').checked
-            };
-
-            const response = await fetch(`/api/roadmap/${currentRoadmapId}/submit-evaluation`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to submit evaluation');
-            }
-
-            showNotification('✓ Đánh giá đã được lưu thành công!', 'success');
-            
-            setTimeout(() => {
-                closeModal();
-                fetchRoadmaps();
-            }, 1500);
-
-        } catch (error) {
-            console.error('Error submitting evaluation:', error);
-            showNotification('✗ Có lỗi xảy ra khi lưu đánh giá', 'error');
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '💾 Lưu Đánh Giá';
-        }
+// SUBMIT EVALUATION
+async function submitEvaluation() {
+    // ✅ CHỈ KIỂM TRA CÁC FIELD CHƯA CÓ GIÁ TRỊ
+    const requiredFields = ['overall_rating', 'learning_effectiveness', 'difficulty_suitability', 'content_relevance', 'engagement_level'];
+    const missingFields = requiredFields.filter(field => !evaluationData[field]);
+    
+    if (missingFields.length > 0) {
+        showNotification(`⚠ Vui lòng đánh giá tất cả 5 tiêu chí!`, 'error');
+        return;
     }
 
+    const submitBtn = document.querySelector('.submit-evaluation-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="loading"><div class="spinner"></div> Đang lưu...</div>';
+
+    try {
+        const payload = {
+            overall_rating: evaluationData.overall_rating,
+            learning_effectiveness: evaluationData.learning_effectiveness,
+            difficulty_suitability: evaluationData.difficulty_suitability,
+            content_relevance: evaluationData.content_relevance,
+            engagement_level: evaluationData.engagement_level,
+            detailed_feedback: document.getElementById('detailed_feedback').value || '',
+            recommended_category: document.getElementById('recommended_category').value || '',
+            actual_learning_outcomes: document.getElementById('actual_learning_outcomes').value || '',
+            improvement_suggestions: document.getElementById('improvement_suggestions').value || '',
+            would_recommend: document.getElementById('would_recommend').checked
+        };
+
+        const response = await fetch(`/api/roadmap/${currentRoadmapId}/submit-evaluation`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to submit evaluation');
+        }
+
+        showNotification('✓ Đánh giá đã được lưu thành công!', 'success');
+        
+        setTimeout(() => {
+            closeModal();
+            fetchRoadmaps();
+        }, 1500);
+
+    } catch (error) {
+        console.error('Error submitting evaluation:', error);
+        showNotification('✗ Có lỗi xảy ra khi lưu đánh giá', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Lưu Đánh Giá';
+    }
+}
     function closeModal() {
         document.getElementById('detailsModal').classList.remove('active');
     }
@@ -1689,13 +1748,13 @@ contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
 
       if (btnPath) {
         btnPath.addEventListener('click', () => { 
-          window.location.href = 'auth-check.html?target=path.html';
+          window.location.href = 'path.html';
         });
       }
 
       if (btnProgress) {
         btnProgress.addEventListener('click', () => { 
-          window.location.href = 'auth-check.html?target=progress.html';
+          window.location.href = 'progress.html';
         });
       }
 
@@ -1902,27 +1961,30 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="info-box">
                 <strong>⚠️ Lưu ý:</strong> File Excel phải có <strong>đúng 8 cột</strong> theo thứ tự:
                 <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
-                    <li><code>day_number</code> - Số ngày (1, 2, 3...)</li>
-                    <li><code>day_study</code> - Ngày học (có thể để trống)</li>
-                    <li><code>daily_goal</code> - Mục tiêu ngày (có thể để trống)</li>
-                    <li><code>learning_content</code> - Nội dung học (có thể để trống)</li>
-                    <li><code>practice_exercises</code> - Bài tập (có thể để trống)</li>
-                    <li><code>learning_materials</code> - Tài liệu (có thể để trống)</li>
-                    <li><code>guide_learning</code> - Hướng dẫn học tập (có thể để trống)</li>
-                    <li><code>study_duration_hours</code> - Số giờ (ví dụ: 2.5)</li>
+                    <li><code>day_number</code> - Số ngày</li>
+                    <li><code>day_study</code> - Ngày học</li>
+                    <li><code>daily_goal</code> - Mục tiêu ngày</li>
+                    <li><code>learning_content</code> - Nội dung học</li>
+                    <li><code>practice_exercises</code> - Bài tập</li>
+                    <li><code>learning_materials</code> - Tài liệu</li>
+                    <li><code>guide_learning</code> - Hướng dẫn học tập</li>
+                    <li><code>study_duration_hours</code> - Số giờ</li>
                 </ol>
 
                 <br>
                 Ví dụ hình cho file excel mẫu:
                 <br><br>
-                <img src="https://i.postimg.cc/xC31zfBf/excel.jpg">
+                <img src="https://i.postimg.cc/sfP8Rhch/image.png">
                 <p style="margin-top: 10px; color: #856404;">
-                    <strong>Lưu ý:</strong>
+                    <strong>Lưu ý thêm:</strong>
                     <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
                         <li>Ở dòng đâu tiên của file excel phải là tên các cột theo thứ tự như trên</li>
                         <li><code>day_number</code> và <code>study_duration_hours</code> là bắt buộc phải có giá trị. Các cột khác có thể để trống.</li>
-                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi</li>
-                        <li><code>study_duration_hours</code> có dấu thập phân là . và tối thiểu là 0.5</li>
+                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
+                        <li><code>study_duration_hours</code> có dấu thập phân là . và tối thiểu là 0.5 (ví dụ 0.5, 2, 3.5,...)</li>
+                        <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy (nếu số trong day hoặc month có 1 chữ số thì thêm số 0 ở đầu) (ví dụ 26/10/2027 hay 06/01/2027)</li>
+                        <li>Ngày đầu tiên của lộ trình bắt buộc phải có <code>day_study</code> ngày sau ngày hiện tại</li>
+                        <li>Cột <code>day_study</code> phải có dấu ' đằng trước</li>
                         <li>File định dạng phải là .xlsx hoặc .xls</li>
                     </ul>
                 </p>
@@ -1998,9 +2060,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="footer-section">
                 <h3>Tính Năng</h3>
                 <div class="footer-links">
-                    <a href="auth-check.html?target=create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="auth-check.html?target=path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="auth-check.html?target=progress.html" class="footer-link">Theo dõi tiến độ</a>
+                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
                 </div>
             </div>
 
@@ -2009,7 +2071,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="footer-links">
                 <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
                 <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                <a href="#" class="footer-link">Thu thập ý kiến</a>
+                <a href="javascript:void(0)" onclick="openFeedbackModal()" class="footer-link">Thu thập ý kiến</a>
             </div>
         </div>
     </div>
@@ -2128,6 +2190,278 @@ if (document.readyState === 'loading') {
   loadUser();
 }
 </script>
+<!-- Modal Thu thập ý kiến -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <div>
+                <h2>📋 Thu Thập Ý Kiến</h2>
+                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
+            </div>
+            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <strong>📌 Mục đích thu thập:</strong>
+                <p style="margin: 10px 0 0 0; line-height: 1.6;">
+                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
+                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
+                </p>
+            </div>
 
+            <form id="feedbackForm">
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
+                    <p class="small" style="margin-bottom: 20px;">
+                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
+                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
+                    </p>
+
+                    <!-- Rating 1 -->
+                    <div class="rating-group">
+                        <label>1. Mức độ phù hợp của nội dung học *</label>
+                        <div class="rating-stars" id="rating_1">
+                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 2 -->
+                    <div class="rating-group">
+                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
+                        <div class="rating-stars" id="rating_2">
+                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 3 -->
+                    <div class="rating-group">
+                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
+                        <div class="rating-stars" id="rating_3">
+                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 4 -->
+                    <div class="rating-group">
+                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
+                        <div class="rating-stars" id="rating_4">
+                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 5 -->
+                    <div class="rating-group">
+                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
+                        <div class="rating-stars" id="rating_5">
+                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 6 -->
+                    <div class="rating-group">
+                        <label>6. Mức độ duy trì động lực học *</label>
+                        <div class="rating-stars" id="rating_6">
+                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 7 -->
+                    <div class="rating-group">
+                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
+                        <div class="rating-stars" id="rating_7">
+                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 8 -->
+                    <div class="rating-group">
+                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
+                        <div class="rating-stars" id="rating_8">
+                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
+                    </div>
+                </div>
+
+                <!-- Câu hỏi mở -->
+                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
+
+                    <div class="textarea-group">
+                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
+                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
+                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
+                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
+                    💾 Gửi Phản Hồi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Feedback modal logic
+let feedbackRatings = {};
+
+function openFeedbackModal() {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để gửi phản hồi!');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('feedbackModal').classList.add('active');
+    feedbackRatings = {}; // Reset ratings
+    
+    // Reset all stars
+    for (let i = 1; i <= 8; i++) {
+        const stars = document.querySelectorAll(`#rating_${i} .star`);
+        stars.forEach(star => star.classList.remove('active'));
+        document.getElementById(`rating_${i}-value`).textContent = '0';
+    }
+    
+    // Reset textareas
+    document.getElementById('question_1').value = '';
+    document.getElementById('question_2').value = '';
+    document.getElementById('question_3').value = '';
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.remove('active');
+}
+
+function setFeedbackRating(ratingId, value) {
+    feedbackRatings[ratingId] = value;
+    
+    const stars = document.querySelectorAll(`#${ratingId} .star`);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    document.getElementById(`${ratingId}-value`).textContent = value;
+}
+
+// Handle feedback form submission
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validate all 8 ratings are filled
+    for (let i = 1; i <= 8; i++) {
+        if (!feedbackRatings[`rating_${i}`]) {
+            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
+            return;
+        }
+    }
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
+    
+    try {
+        const payload = {
+            rating_1: feedbackRatings.rating_1,
+            rating_2: feedbackRatings.rating_2,
+            rating_3: feedbackRatings.rating_3,
+            rating_4: feedbackRatings.rating_4,
+            rating_5: feedbackRatings.rating_5,
+            rating_6: feedbackRatings.rating_6,
+            rating_7: feedbackRatings.rating_7,
+            rating_8: feedbackRatings.rating_8,
+            question_1: document.getElementById('question_1').value.trim(),
+            question_2: document.getElementById('question_2').value.trim(),
+            question_3: document.getElementById('question_3').value.trim()
+        };
+        
+        const response = await fetch('/api/feedback/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+            setTimeout(() => {
+                closeFeedbackModal();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Không thể gửi phản hồi');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        showNotification('❌ ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('feedbackModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
+});
+</script>
 </body>
 </html>
