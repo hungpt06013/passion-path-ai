@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script>
+    const token = localStorage.getItem('token');
+    if(!token) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
+  </script>
     <title>Tạo Lộ Trình Học Mới</title>
 <style>
     * {
@@ -13,13 +17,240 @@
         box-sizing: border-box;
     }
 
-    body {
-        font-family: Inter, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #85ccff);
-        min-height: 100vh;
-        padding: 20px;
-    }
+body {
+    font-family: Inter, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #ffffff);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;  /* XÓA padding: 20px; */
+    margin: 0;
+}
+/* ============ HEADER & FOOTER STYLES ============ */
+:root {
+    --header-height: 80px;
+}
 
+.fixed-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: #007bff;
+    box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+    z-index: 50;
+}
+
+.bar-inner {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    gap: 16px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.brand-sub {
+    color: rgba(255,255,255,0.9);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 22px;
+}
+
+.nav-btn {
+    background: none;
+    color: #fff;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-btn.active {
+    color: #e6f2ff;
+    text-decoration: underline;
+}
+
+.userInfo {
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.login-btn, .register-btn, .logout-btn {
+    padding: 10px 20px; /* Tăng padding ngang để vừa icon + chữ */
+    border-radius: 9999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    display: inline-flex; /* Để icon và chữ center */
+    align-items: center;
+    gap: 8px; /* Gap giữa icon và chữ */
+    transition: all 0.3s ease; /* Thêm hover smooth */
+}
+
+.login-btn:hover, .register-btn:hover, .logout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.login-btn {
+    background: white;
+    color: #333;
+}
+
+.register-btn {
+    background: #28a745;
+    color: white;
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+    color: white;
+}
+/* ============ FOOTER STYLES ============ */
+footer {
+    background: #1a202c;
+    color: #e5e7eb;
+    padding: 28px 20px 16px;
+    margin-top: 40px;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.footer-logo-icon {
+    width: 44px;
+    height: 44px;
+    background: #007bff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.footer-logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-logo-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.footer-logo-sub {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.footer-desc {
+    color: #9ca3af;
+    line-height: 1.5;
+    font-size: 13px;
+    margin: 0;
+}
+
+.footer-section h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    margin: 0 0 12px 0;
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.footer-link {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #007bff;
+}
+
+.footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 16px;
+    border-top: 1px solid #374151;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
     .analysis-section {
             background: #f0fdf4;
             padding: 25px;
@@ -40,54 +271,16 @@
             white-space: pre-wrap;
         }
 
-    .container {
-        max-width: 1000px;
-        margin: 0 auto;
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        overflow: hidden;
-    }
+.container {
+    max-width: 1000px;
+    margin: 100px auto 0 auto; /* Thêm margin-top để tránh bị header che */
+    width: 1000px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
 
-    .header {
-        background: linear-gradient(135deg,  #007bff 0%,  #007bff 100%);
-        color: white;
-        padding: 30px;
-        text-align: center;
-        position: relative;
-    }
-
-    .back-btn {
-        position: absolute;
-        left: 30px;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        backdrop-filter: blur(10px);
-    }
-
-    .back-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .header h1 {
-        font-size: 2.5rem;
-        margin-bottom: 10px;
-        font-weight: 700;
-    }
-
-    .header p {
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
 
     .form-container {
         padding: 40px;
@@ -159,28 +352,31 @@
         gap: 20px;
     }
 
-    .checkbox-group {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
-    }
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* ✅ THAY ĐỔI: 2 cột bằng nhau thay vì auto-fit */
+    gap: 10px;
+}
 
-    .checkbox-group label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px;
-        background: white;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%; /* ✅ BẮT BUỘC full width */
+    box-sizing: border-box;
+    min-width: 0; /* ✅ THÊM: Cho phép text wrap */
+}
 
-    .checkbox-group label:hover {
-        border-color: #4f46e5;
-        background: #f0f9ff;
-    }
+.checkbox-group label:hover {
+    border-color: #4f46e5;
+    background: #f0f9ff;
+}
 
     .checkbox-group input[type="checkbox"],
     .checkbox-group input[type="radio"] {
@@ -360,6 +556,7 @@
         background: #9ca3af;
         cursor: not-allowed;
         transform: none;
+        opacity: 0.6;
     }
 
     .loading {
@@ -404,46 +601,67 @@
     /* ======================== */
     /* Styles for "Khác" box   */
     /* ======================== */
-    .other-box {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 10px;
-      background: white;
-      border: 2px solid #e5e7eb;
-      border-radius: 8px;
-      min-width: 160px;
-      box-sizing: border-box;
-    }
+/*
+.other-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  min-width: 160px;
+  box-sizing: border-box;
+}
 
-    .other-box .other-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+.other-box .other-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .other-box .other-input {
-      display: none;
-      width: 100%;
-      padding: 10px 12px;
-      border: 2px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      background: white;
-      transition: border-color 0.2s, box-shadow 0.15s;
-    }
+.other-box .other-input {
+  display: none;
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.15s;
+}
 
-    .other-box .other-input:focus {
-      outline: none;
-      border-color:#007bff;
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
-    }
+.other-box .other-input:focus {
+  outline: none;
+  border-color:#007bff;
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+}
 
-    .other-box:hover {
-      border-color: #007bff;
-      background: #f0f9ff;
-    }
+.other-box:hover {
+  border-color: #007bff;
+  background: #f0f9ff;
+}
+*/
+/* ✅ INPUT "KHÁC" - ẨN MẶC ĐỊNH, HIỂN THỊ KHI CHECKED */
+.other-input {
+    display: none;
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-top: 10px;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.other-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
     /* Q4 - Main Purpose */
     #q4_other_text {
         margin-top: 10px;
@@ -497,16 +715,78 @@
     display: flex;
     }
 
-    .modal-content {
+/* Thêm vào phần modal-content */
+.modal-content {
     background: white;
-    width: 90%;
+    width: 95%;
     max-width: 900px;
     max-height: 90vh;
-    border-radius: 12px;
+    border-radius: 20px;
     overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.3s ease-out;  /* ← THÊM DÒNG NÀY */
+}
+
+/* Thêm keyframe animation */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* ============ NAVIGATION BUTTONS ============ */
+.nav-buttons {
+    display: flex;
+    gap: 22px;
+    align-items: center;
+}
+
+.nav-btn {
+    background: none;
+    color: #fff;
+    padding: 0;
+    font-size: 15px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+
+.nav-btn.active {
+    color: #e6f2ff;
+    text-decoration: underline;
+}
+
+.nav-btn .fa,
+.nav-btn .fa-solid {
+    margin-right: 4px;
+    opacity: 0.95;
+}
+    .back-btn {
+        position: absolute;
+        left: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        backdrop-filter: blur(10px);
+    }
+
+    .back-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
     }
 
     .modal-header {
@@ -581,6 +861,146 @@
     border-color:#007bff;
     box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
+    /* Modal styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: transform 0.2s;
+}
+
+.close-modal:hover {
+    transform: scale(1.1);
+}
+
+.info-box {
+    background: #fff3cd;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+}
+
+.rating-group {
+    margin-bottom: 25px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.rating-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+
+.rating-stars {
+    display: flex;
+    gap: 8px;
+    font-size: 32px;
+}
+
+.star {
+    cursor: pointer;
+    color: #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+    transform: scale(1.2);
+}
+
+.rating-value {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
+}
+
+.textarea-group {
+    margin-bottom: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+}
+
+.textarea-group label {
+    display: block;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.textarea-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.textarea-group textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.submit-evaluation-btn {
+    width: 100%;
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submit-evaluation-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+}
+
+.submit-evaluation-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
     @media (max-width: 768px) {
         body {
             padding: 10px;
@@ -759,15 +1179,34 @@
 </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <a href="path.html" class="back-btn">← Quay lại</a>
-            <h1>Tạo Lộ Trình Học Mới</h1>
-            <p>Sử dụng AI để tạo lộ trình học cá nhân hóa cho bạn</p>
-        </div>
-
-        <div class="form-container">
-            <form id="roadmapForm">
+    <div class="fixed-bar">
+  <div class="bar-inner">
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">Con đường đam mê</div>
+        <div class="brand-sub">AI-Powered Learning Path</div>
+      </div>
+    </div>
+    <div class="nav-buttons" id="mainNavButtons">
+      <!-- Buttons sẽ được thêm bằng JavaScript -->
+    </div>
+    <div id="userArea" class="userInfo">
+      <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+      <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+    </div>
+  </div>
+</div>
+<div class="container">
+<div class="form-container">
+    <div style="background: #007bff; padding: 40px; margin: -40px -40px 30px -40px; border-radius: 20px 20px 0 0; position: relative;">
+        <a href="path.html" class="back-btn" style="color: white; margin-left: 40px;">← Quay lại</a>
+        <h1 style="text-align: center; margin-bottom: 10px; color: white;">Tạo Lộ Trình Học Mới</h1>
+        <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 0;">Sử dụng AI để tạo lộ trình học cá nhân hóa cho bạn</p>
+    </div>
+        <form id="roadmapForm">
                 <!-- =============== PHẦN HỎI 20 CÂU =============== -->
 
                 <!-- PHẦN 1: THÔNG TIN CƠ BẢN -->
@@ -872,14 +1311,21 @@
 
                     <!-- Q7: Thời gian học mỗi ngày -->
                     <div class="form-group">
-                        <label class="form-label">7. Bạn có thể dành bao nhiêu thời gian học mỗi ngày? *</label>
-                        <select class="form-select" name="q9_daily_time" required>
-                            <option value="">-- Chọn --</option>
-                            <option value="30 phút">30 phút</option>
-                            <option value="60 phút">60 phút</option>
-                            <option value="2 giờ">2 giờ</option>
-                            <option value=">2 giờ">Trên 2 giờ</option>
-                        </select>
+                        <label class="form-label">7. Bạn có thể dành bao nhiêu thời gian học mỗi ngày? (phút) *</label>
+                        <input 
+                            type="number" 
+                            class="form-input" 
+                            name="q9_daily_time" 
+                            id="q9_daily_time_input"
+                            min="15" 
+                            max="720" 
+                            step="15"
+                            required
+                            placeholder="Nhập số phút (15 - 720)"
+                        >
+                        <small id="minutesWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
+                            ⚠️ Vui lòng nhập từ 15 đến 720 phút (15 phút - 12 giờ).
+                        </small>
                     </div>
 
                     <!-- Q8: Số buổi mỗi tuần -->
@@ -913,34 +1359,36 @@
                     <h3 class="section-title">🎨 Phần 4: Phong Cách Học Tập</h3>
 
                     <!-- Q10: Phương pháp học -->
-                    <div class="form-group">
-                        <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
-                        </div>
-                        <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
-                            placeholder="Ghi rõ phương pháp...">
-                    </div>
+<div class="form-group">
+    <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
+    <div class="checkbox-group">
+        <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
+        <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
+        <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
+        <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
+        <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
+    </div>
+    <!-- ✅ THÊM margin-top để tách biệt -->
+    <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
+        placeholder="Ghi rõ phương pháp..." style="margin-top: 10px;">
+</div>
 
                     <!-- Q11: Kết hợp học -->
-                    <div class="form-group">
-                        <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
-                        </div>
-                        <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
-                            placeholder="Ghi rõ...">
-                    </div>
+<div class="form-group">
+    <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
+    <div class="checkbox-group">
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
+        <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
+    </div>
+    <!-- ✅ THÊM margin-top -->
+    <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
+        placeholder="Ghi rõ..." style="margin-top: 10px;">
+</div>
                 </div>
                  <!-- PHẦN 5: KHÓ KHĂN & ĐỘNG LỰC -->
                 <div class="form-section">
@@ -1046,16 +1494,18 @@
                 <div class="form-section ai-generate-section">
                     <h3 class="section-title">🤖 Tạo Với AI</h3>
                     <div class="ai-notice">
-                        <strong>Lưu ý:</strong> AI sẽ tạo lộ trình dựa trên câu trả lời của bạn. Bạn có thể chỉnh sửa sau.
+                        <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn nút này trước khi có thể tạo lộ trình.
                     </div>
-                    <button type="button" id="generateAI" class="ai-btn">🤖 Tạo lộ trình với AI</button>
+                    <button type="button" id="generateAI" class="ai-btn">
+                    <span id="generateBtnText">🤖 Tạo lộ trình với AI</span>
+                    </button>
                     <!--<div class="btn-group">
                         <button type="button" id="viewPromptBtn" class="prompt-btn">👁️ Xem Prompt</button>
                         <button type="button" id="customizePromptBtn" class="prompt-btn">✏️ Sửa Prompt</button>
                     </div>-->
                 </div>
                 <div class="analysis-section">
-                    <h3>📊 1. PHÂN TÍCH HIỆN TRẠNG</h3>
+                    <h3>📊 PHÂN TÍCH HIỆN TRẠNG</h3>
                     <div class="analysis-content" id="analysisContent">
                         <!-- AI generated analysis will be displayed here -->
                     </div>
@@ -1069,8 +1519,8 @@
 
                 <!-- NÚT SUBMIT -->
                 <div class="submit-section">
-                    <button type="submit" class="submit-btn" id="submitBtn">
-                        <span id="submit-btn-text">&#127881; Tạo Lộ Trình</span>
+                    <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                        <span id="submit-btn-text">⏳ Vui lòng tạo với AI trước</span>
                     </button>
                 </div>
             </form>
@@ -1109,9 +1559,352 @@
             </div>
         </div>
     </div>
+<footer>
+    <div class="footer-content">
+        <div class="footer-brand">
+            <div class="footer-logo">
+                <div class="footer-logo-icon">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="footer-logo-text">
+                    <div class="footer-logo-title">Con đường đam mê</div>
+                    <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                </div>
+            </div>
+            <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
+        </div>
+
+        <div class="footer-section">
+            <h3>Tính Năng</h3>
+            <div class="footer-links">
+                <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
+                <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
+                <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <h3>Hỗ Trợ</h3>
+            <div class="footer-links">
+                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
+                <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
+                <a href="javascript:void(0)" onclick="openFeedbackModal()" class="footer-link">Thu thập ý kiến</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
+    </div>
+</footer>
+<!-- Modal Thu thập ý kiến -->
+<div class="modal-overlay" id="feedbackModal">
+    <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+            <div>
+                <h2>📋 Thu Thập Ý Kiến</h2>
+                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
+            </div>
+            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-box" style="margin-bottom: 20px;">
+                <strong>📌 Mục đích thu thập:</strong>
+                <p style="margin: 10px 0 0 0; line-height: 1.6;">
+                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
+                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
+                </p>
+            </div>
+
+            <form id="feedbackForm">
+                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
+                    <p class="small" style="margin-bottom: 20px;">
+                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
+                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
+                    </p>
+
+                    <!-- Rating 1 -->
+                    <div class="rating-group">
+                        <label>1. Mức độ phù hợp của nội dung học *</label>
+                        <div class="rating-stars" id="rating_1">
+                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 2 -->
+                    <div class="rating-group">
+                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
+                        <div class="rating-stars" id="rating_2">
+                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 3 -->
+                    <div class="rating-group">
+                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
+                        <div class="rating-stars" id="rating_3">
+                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 4 -->
+                    <div class="rating-group">
+                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
+                        <div class="rating-stars" id="rating_4">
+                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 5 -->
+                    <div class="rating-group">
+                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
+                        <div class="rating-stars" id="rating_5">
+                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 6 -->
+                    <div class="rating-group">
+                        <label>6. Mức độ duy trì động lực học *</label>
+                        <div class="rating-stars" id="rating_6">
+                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 7 -->
+                    <div class="rating-group">
+                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
+                        <div class="rating-stars" id="rating_7">
+                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
+                    </div>
+
+                    <!-- Rating 8 -->
+                    <div class="rating-group">
+                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
+                        <div class="rating-stars" id="rating_8">
+                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
+                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
+                        </div>
+                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
+                    </div>
+                </div>
+
+                <!-- Câu hỏi mở -->
+                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
+                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
+
+                    <div class="textarea-group">
+                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
+                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
+                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+
+                    <div class="textarea-group">
+                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
+                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
+                    💾 Gửi Phản Hồi
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
     <script>
+
+        
         //document.getElementById('viewPromptBtn').addEventListener('click', viewPrompt);
         //document.getElementById('customizePromptBtn').addEventListener('click', customizePrompt);
+function validateAllQuestions() {
+    const errors = [];
+    
+    // Q1: Tên lộ trình
+    const q1 = document.querySelector('input[name="q1_roadmap_name"]');
+    if (!q1 || !q1.value.trim()) {
+        errors.push('Câu tên lộ trình');
+    }
+    
+    // Q2: Danh mục
+    const q2 = document.querySelector('input[name="q2_category"]:checked');
+    if (!q2 || ((q2.value === 'Khác' || q2.value === 'Other') && !document.getElementById('q2_other_text')?.value.trim())) {
+        errors.push('Câu danh mục');
+    }
+    
+    // Q3: Danh mục chi tiết
+    const q3 = document.querySelector('input[name="q3_category_detail"]');
+    if (!q3 || !q3.value.trim()) {
+        errors.push('Câu danh mục chi tiết');
+    }
+    
+    // Q4: Mục đích chính
+    const q4 = document.querySelector('input[name="q4_main_purpose"]:checked');
+    if (!q4 || ((q4.value === 'Khác' || q4.value === 'Other') && !document.getElementById('q4_other_text')?.value.trim())) {
+        errors.push('Câu mục đích chính');
+    }
+    // Q5: Mục tiêu cụ thể
+    const q5_goal = document.querySelector('textarea[name="q5_specific_goal"]');
+    if (!q5_goal || !q5_goal.value.trim()) {
+        errors.push('Câu mục tiêu cụ thể');
+    }
+    
+    // Q5: Công việc hiện tại
+    const q5_job = document.querySelector('input[name="q5_current_job"]');
+    if (!q5_job || !q5_job.value.trim()) {
+        errors.push('Câu công việc hiện tại');
+    }
+    
+    // Q6: Thời gian đã học
+    const q6 = document.querySelector('select[name="q6_learning_duration"]');
+    if (!q6 || !q6.value) {
+        errors.push('Câu thời gian đã học');
+    }
+    
+    // Q7: Trình độ hiện tại
+    const q7 = document.querySelector('select[name="q7_current_level"]');
+    if (!q7 || !q7.value) {
+        errors.push('Câu trình độ hiện tại');
+    }
+    
+    // Q8: Kỹ năng muốn cải thiện
+    const q8 = document.querySelector('input[name="q8_skills_text"]');
+    if (!q8 || !q8.value.trim()) {
+        errors.push('Câu kỹ năng muốn cải thiện');
+    }
+    
+    // Q9: Thời gian học mỗi ngày
+    const q9 = document.getElementById('q9_daily_time_input');
+    if (!q9 || !q9.value || parseInt(q9.value) < 15 || parseInt(q9.value) > 720) {
+        errors.push('Câu thời gian học mỗi ngày');
+    }
+    
+    // Q10: Số buổi mỗi tuần
+    const q10 = document.querySelector('select[name="q10_weekly_sessions"]');
+    if (!q10 || !q10.value) {
+        errors.push('Câu số buổi mỗi tuần');
+    }
+    
+    // Q11: Thời gian lộ trình
+    const q11 = document.getElementById('q11_program_days');
+    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 180) {
+        errors.push('Câu thời gian lộ trình');
+    }
+    
+    // Q12: Phương pháp học
+    const q12 = document.querySelectorAll('input[name="q12_learning_styles[]"]:checked, input[name="q12_learning_styles"]:checked');
+    if (q12.length === 0) {
+        errors.push('Câu phương pháp học');
+    }
+    // Q13: Kết hợp học
+    const q13 = document.querySelectorAll('input[name="q13_learning_combinations[]"]:checked, input[name="q13_learning_combinations"]:checked');
+    const q13Other = document.getElementById('q13_other_text');
+    if (q13.length === 0 && !(q13Other && q13Other.value.trim())) {
+        errors.push('Câu kết hợp học');
+    }
+
+    // Q14: Thách thức
+    const q14 = document.querySelectorAll('input[name="q14_challenges[]"]:checked, input[name="q14_challenges"]:checked');
+    const q14Other = document.getElementById('q14_other_text');
+    if (q14.length === 0 && !(q14Other && q14Other.value.trim())) {
+        errors.push('Câu thách thức');
+    }
+
+    // Q15: Động lực
+    const q15 = document.querySelectorAll('input[name="q15_motivation[]"]:checked, input[name="q15_motivation"]:checked');
+    const q15Other = document.getElementById('q15_other_text');
+    if (q15.length === 0 && !(q15Other && q15Other.value.trim())) {
+        errors.push('Câu động lực');
+    }
+
+    // Q16: Loại tài liệu
+    const q16 = document.querySelectorAll('input[name="q16_material_types[]"]:checked, input[name="q16_material_types"]:checked');
+    const q16Other = document.getElementById('q16_other_text');
+    if (q16.length === 0 && !(q16Other && q16Other.value.trim())) {
+        errors.push('Câu loại tài liệu');
+    }
+
+    // Q17: Ngôn ngữ tài liệu
+    const q17 = document.querySelector('select[name="q17_material_language"]');
+    if (!q17 || !q17.value) {
+        errors.push('Câu ngôn ngữ tài liệu');
+    }
+
+    // Q18: Loại đánh giá
+    const q18 = document.querySelectorAll('input[name="q18_assessment_types[]"]:checked, input[name="q18_assessment_types"]:checked');
+    if (q18.length === 0) {
+        errors.push('Câu loại đánh giá');
+    }
+
+    // Q19: Hiển thị kết quả
+    const q19 = document.querySelectorAll('input[name="q19_result_display[]"]:checked, input[name="q19_result_display"]:checked');
+    if (q19.length === 0) {
+        errors.push('Câu hiển thị kết quả');
+    }
+
+    // Q20: Tần suất đánh giá
+    const q20 = document.querySelector('input[name="q20_assessment_frequency"]:checked');
+    const q20Other = document.getElementById('q20_other_text');
+    if (!q20) {
+        errors.push('Câu tần suất đánh giá');
+    } else if ((q20.value === 'Khác' || q20.value === 'Khac' || q20.value === 'Other') && !(q20Other && q20Other.value.trim())) {
+        errors.push('Câu tần suất đánh giá (vui lòng điền "Khác")');
+    }
+
+    // Cuối cùng: hiển thị các lỗi nếu có
+    if (errors.length > 0) {
+        // Alert ra các value trong mảng errors (mỗi dòng 1 lỗi)
+        alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
+        return errors;
+    }
+
+    return [];
+}
 function attachOtherEventsForQ2() {
     const q2_other_radio = document.getElementById('q2_other_radio');
     const q2_other_text = document.getElementById('q2_other_text');
@@ -1178,18 +1971,35 @@ async function loadCategories() {
             html += '<div class="error-message">⚠️ Không có danh mục nào. Vui lòng liên hệ admin.</div>';
         } else {
             data.data.forEach(cat => {
-                html += `<label><input type="radio" name="q2_category" value="${escapeHtmlAttr(cat.name)}" required> ${escapeHtml(cat.name)}</label>`;
+                // ✅ LƯU CẢ ID VÀ NAME
+                html += `
+                    <label>
+                        <input type="radio" 
+                               name="q2_category" 
+                               value="${cat.id}" 
+                               data-category-name="${escapeHtml(cat.name)}"
+                               required> 
+                        ${escapeHtml(cat.name)}
+                    </label>
+                `;
             });
         }
 
-        // Thêm "Khác" với format giống Q4, Q12, etc.
+        // Thêm "Khác"
         html += `
-            <label><input type="radio" name="q2_category" value="Khác" id="q2_other_radio" required> Khác</label>
+            <label>
+                <input type="radio" 
+                       name="q2_category" 
+                       value="Khác" 
+                       id="q2_other_radio" 
+                       required> 
+                Khác
+            </label>
         `;
         
         categoryGroup.innerHTML = html;
         
-        // Thêm input "Khác" bên ngoài checkbox-group (sau)
+        // Thêm input "Khác"
         const otherInput = document.createElement('input');
         otherInput.type = 'text';
         otherInput.id = 'q2_other_text';
@@ -1200,12 +2010,12 @@ async function loadCategories() {
         
         categoryGroup.appendChild(otherInput);
 
-        // Attach events cho "Khác"
+        // Attach events
         attachOtherEventsForQ2();
 
     } catch (err) {
         console.error('Lỗi tải danh mục:', err.message || err);
-        categoryGroup.innerHTML = `<div class="error-message">❌ Không thể tải danh mục: ${err.message || 'Vui lòng kiểm tra kết nối mạng hoặc đăng nhập lại.'}. Thử lại sau.</div>`;
+        categoryGroup.innerHTML = `<div class="error-message">❌ Không thể tải danh mục: ${err.message}</div>`;
     }
 }
 function renderCategories(categories) {
@@ -1302,7 +2112,31 @@ function validateDays() {
             warning.style.display = 'none';
         }
     }
+function validateMinutes() {
+    const minutesInput = document.getElementById('q9_daily_time_input');
+    const warning = document.getElementById('minutesWarning');
 
+    if (!minutesInput || !warning) return;
+
+    const minutes = parseInt(minutesInput.value);
+    
+    // ✅ Chỉ validate khi đã nhập giá trị
+    if (minutesInput.value === '' || minutesInput.value === null) {
+        warning.style.display = 'none';
+        return;
+    }
+    
+    if (isNaN(minutes) || minutes < 15 || minutes > 720) {
+        warning.style.display = 'block';
+        if (minutes > 720) {
+            warning.textContent = '⚠️ Thời gian tối đa là 720 phút (12 giờ).';
+        } else if (minutes < 15) {
+            warning.textContent = '⚠️ Thời gian tối thiểu là 15 phút.';
+        }
+    } else {
+        warning.style.display = 'none';
+    }
+}
 function updateTotalHours() {
         const daysInput = document.getElementById('q11_program_days');
         const hoursInput = document.querySelector('select[name="q9_daily_time"]');
@@ -1313,7 +2147,21 @@ function updateTotalHours() {
             console.log(`Total hours: ${total}`);
         }
     }
+    let aiHistoryId = null;
 async function generateRoadmapWithAI() {
+    // Run full-form validation first; if errors exist, abort and let validateAllQuestions() alert them
+    try {
+        const validationErrors = validateAllQuestions();
+        if (validationErrors && validationErrors.length > 0) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return; // stop further processing
+        }
+    } catch (ve) {
+        console.error('Validation function threw:', ve);
+        alert('Lỗi khi kiểm tra form: ' + (ve && ve.message ? ve.message : ve));
+        return;
+    }
+
     const generateBtn = document.getElementById('generateAI');
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submit-btn-text');
@@ -1381,21 +2229,20 @@ async function generateRoadmapWithAI() {
     // Q1
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
-    // Q2 category (radio single) + other
-    let q2_category = getField(formData, 'q2_category');
-    let q2_category_other = '';
-    if (q2_category === 'Khác' || q2_category === 'Khac' || q2_category === 'Other') {
-        const otherInput = document.getElementById('q2_other_text');
-        q2_category_other = otherInput ? (otherInput.value || '').trim() : '';
-        if (!q2_category_other) {
-            showNotification('Vui lòng nhập danh mục khi chọn "Khác"', 'error');
-            generateBtn.disabled = false;
-            submitBtn.disabled = false;
-            generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-            submitText.innerHTML = '🎉 Tạo Lộ Trình';
-            return;
-        }
-        q2_category = q2_category_other;
+    // Q2
+    let q2_category_id = getField(formData, 'q2_category');
+    let q2_category = '';
+    
+    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
+      const otherInput = document.getElementById('q2_other_text');
+      q2_category = otherInput ? (otherInput.value || '').trim() : '';
+    } else {
+      const selectedRadio = document.querySelector('input[name="q2_category"]:checked');
+      if (selectedRadio) {
+        q2_category = selectedRadio.getAttribute('data-category-name') || q2_category_id;
+      } else {
+        q2_category = q2_category_id;
+      }
     }
 
     // Q3
@@ -1455,71 +2302,47 @@ async function generateRoadmapWithAI() {
         q20_assessment_frequency_other = getField(formData, 'q20_assessment_frequency_other');
     }
 
-    // VALIDATION CƠ BẢN TRƯỚC KHI GỌI AI
     console.log('🔍 Validation Check:', {
-        q1_roadmap_name,
-        q2_category,
-        q5_specific_goal,
-        q7_current_level,
-        q9_daily_time,
-        q11_program_days
+    q1_roadmap_name, 
+    q2_category, 
+    q3_category_detail,
+    q5_specific_goal, 
+    q7_current_level, 
+    q9_daily_time,
+    q11_program_days
     });
 
-    if (!q1_roadmap_name) {
-        alert('❌ Thiếu: Tên lộ trình');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (!q1_roadmap_name) throw new Error('❌ Vui lòng nhập tên lộ trình');
+    if (!q2_category) throw new Error('❌ Vui lòng chọn danh mục');
+    if (!q3_category_detail) throw new Error('❌ Vui lòng nhập danh mục chi tiết');
+    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
+    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
+    if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
+    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
+    throw new Error('❌ Số ngày phải từ 15 đến 30 (Q9)');
     }
-    if (!q2_category) {
-        alert('❌ Thiếu: Danh mục');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+
+    // ✅ THÊM VALIDATION CHO CÂU HỎI NHIỀU LỰA CHỌN
+    if (q12_learning_styles.length === 0 && !q12_learning_styles_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 phương pháp học (Q10)');
     }
-    if (!q5_specific_goal) {
-        alert('❌ Thiếu: Mục tiêu cụ thể (Q2)');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (q13_learning_combinations.length === 0 && !q13_learning_combinations_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 kết hợp học (Q11)');
     }
-    if (!q5_current_job) {
-        alert('❌ Thiếu: Công việc hiện tại (Q3)');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (q14_challenges.length === 0 && !q14_challenges_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 thách thức (Q12)');
     }
-    if (!q7_current_level) {
-        alert('❌ Thiếu: Trình độ hiện tại (Q5)');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (q15_motivation.length === 0 && !q15_motivation_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 động lực (Q13)');
     }
-    if (!q9_daily_time) {
-        alert('❌ Thiếu: Thời gian học mỗi ngày (Q7)');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (q16_material_types.length === 0 && !q16_material_types_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 loại tài liệu (Q14)');
     }
-    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 180) {
-        alert('❌ Thiếu hoặc không hợp lệ: Số ngày (Q9) - phải từ 15-180');
-        generateBtn.disabled = false;
-        submitBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        return;
+    if (q18_assessment_types.length === 0) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 loại đánh giá (Q16)');
+    }
+    if (q19_result_display.length === 0) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 cách hiển thị kết quả (Q17)');
     }
 
     console.log('✅ Validation passed!');
@@ -1614,49 +2437,52 @@ async function generateRoadmapWithAI() {
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-        const result = await response.json().catch(() => ({}));
-        if (!result || !result.success || !result.data) {
-            throw new Error('AI response không hợp lệ');
+const result = await response.json().catch(() => ({}));
+if (!result || !result.success || !result.data) {
+    throw new Error('AI response không hợp lệ');
+}
+
+// ✅ LƯU history_id NGAY SAU KHI VALIDATE
+aiHistoryId = result.metadata?.history_id;
+console.log('✅ Saved aiHistoryId:', aiHistoryId);
+
+// CLEAR EXISTING DAYS & RENDER AI DAYS
+if (typeof dayCount !== 'undefined') dayCount = 0;
+const daysContainer = document.getElementById('daysContainer');
+if (daysContainer) daysContainer.innerHTML = '';
+
+result.data.forEach((aiDay, index) => {
+    const dayData = {
+        day_number: aiDay.day_number || aiDay.day || (index + 1),
+        study_date: aiDay.study_date || aiDay.study_date_iso || null,
+        study_date_iso: aiDay.study_date || aiDay.study_date_iso || null,
+        daily_goal: aiDay.daily_goal || aiDay.goal || '',
+        learning_content: aiDay.learning_content || aiDay.content || '',
+        practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
+        learning_materials: aiDay.learning_materials || aiDay.materials || '',
+        study_guide: aiDay.study_guide || '',
+        study_duration_hours: (typeof aiDay.study_duration_hours !== 'undefined') ? aiDay.study_duration_hours : (aiDay.hours || 2),
+        completion_status: aiDay.completion_status || 'NOT_STARTED'
+    };
+    
+    if (typeof addDay === 'function') {
+        addDay(dayData);
+    } else {
+        const container = document.getElementById('daysContainer');
+        if (container) {
+            const row = document.createElement('div');
+            row.className = 'day-item';
+            row.textContent = `Ngày ${dayData.day_number}: ${dayData.daily_goal}`;
+            container.appendChild(row);
         }
+    }
+});
 
-        // CLEAR EXISTING DAYS & RENDER AI DAYS
-        if (typeof dayCount !== 'undefined') dayCount = 0;
-        const daysContainer = document.getElementById('daysContainer');
-        if (daysContainer) daysContainer.innerHTML = '';
-
-        result.data.forEach((aiDay, index) => {
-            const dayData = {
-                day_number: aiDay.day_number || aiDay.day || (index + 1),
-                study_date: aiDay.study_date || aiDay.study_date_iso || null,
-                study_date_iso: aiDay.study_date || aiDay.study_date_iso || null,
-                daily_goal: aiDay.daily_goal || aiDay.goal || '',
-                learning_content: aiDay.learning_content || aiDay.content || '',
-                practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
-                learning_materials: aiDay.learning_materials || aiDay.materials || '',
-                study_guide: aiDay.study_guide || '',
-                study_duration_hours: (typeof aiDay.study_duration_hours !== 'undefined') ? aiDay.study_duration_hours : (aiDay.hours || 2),
-                completion_status: aiDay.completion_status || 'NOT_STARTED'
-            };
-            
-            if (typeof addDay === 'function') {
-                addDay(dayData);
-            } else {
-                const container = document.getElementById('daysContainer');
-                if (container) {
-                    const row = document.createElement('div');
-                    row.className = 'day-item';
-                    row.textContent = `Ngày ${dayData.day_number}: ${dayData.daily_goal}`;
-                    container.appendChild(row);
-                }
-            }
-        });
-        
-         // Display analysis
-        document.getElementById('analysisContent').textContent = result.analysis;
-        submitBtn.disabled = false;
-        submitText.innerHTML = '🎉 Tạo Lộ Trình';
-        showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể chỉnh sửa nếu cần.', 'success');
-
+// Display analysis
+document.getElementById('analysisContent').textContent = result.analysis;
+submitBtn.disabled = false;
+submitText.innerHTML = '🎉 Tạo Lộ Trình';
+showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể chỉnh sửa nếu cần.', 'success');
     } catch (error) {
         console.error('❌ AI ERROR FULL:', error);
         console.error('❌ Error message:', error.message);
@@ -1691,6 +2517,19 @@ function addDay(dayData = null) {
         month: '2-digit', 
         year: 'numeric' 
     });
+
+    // ✅ Format materials để hiển thị multiple links
+    let materialsDisplay = '';
+    if (dayData?.learning_materials) {
+        const links = dayData.learning_materials.split(/[;\n]/).map(l => l.trim()).filter(Boolean);
+        materialsDisplay = links.map(link => {
+            if (link.match(/^https?:\/\//i)) {
+                const domain = new URL(link).hostname.replace(/^www\./, '');
+                return `<a href="${escapeHtmlAttr(link)}" target="_blank" style="color: #007bff; display: block; margin: 2px 0;">${domain}</a>`;
+            }
+            return link;
+        }).join('<br>');
+    }
 
     const dayElement = document.createElement('div');
     dayElement.className = 'day-item';
@@ -1735,8 +2574,9 @@ function addDay(dayData = null) {
         <div class="form-group">
             <label class="form-label">Công cụ/Tài liệu học tập</label>
             <input type="text" class="form-input" name="days[${dayCount-1}][materials]"
-                   placeholder="Công cụ, tài liệu cần thiết"
+                   placeholder="Công cụ, tài liệu cần thiết (mỗi link xuống dòng hoặc cách nhau bởi dấu ;)"
                    value="${escapeHtmlAttr(dayData?.learning_materials || '')}">
+            ${materialsDisplay ? `<div style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem;">${materialsDisplay}</div>` : ''}
         </div>
         
         <div class="form-group">
@@ -1805,20 +2645,48 @@ function addDay(dayData = null) {
             }
         }
 
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = type === 'success' ? 'success-message' : 'error-message';
-            notification.textContent = message;
-
-            const form = document.getElementById('roadmapForm');
-            form.insertBefore(notification, form.firstChild);
-
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 5000);
-        }
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        min-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#059669';
+    } else {
+        notification.style.background = '#dc2626';
+    }
+    
+    document.body.appendChild(notification);
+    
+    // Slide in animation
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Slide out and remove
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 5000);
+}
 document.getElementById('roadmapForm').addEventListener('submit', async function(e) {
   e.preventDefault();
 
@@ -1881,10 +2749,19 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
     // Q2 (category) - xử lý "Khác"
-    let q2_category = getField(formData, 'q2_category');
-    if (q2_category === 'Khác' || q2_category === 'Khac' || q2_category === 'Other') {
-      const other = document.getElementById('q2_other_text');
-      q2_category = other ? (other.value || '').trim() : '';
+    let q2_category_id = getField(formData, 'q2_category');
+    let q2_category = '';
+
+    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
+    const other = document.getElementById('q2_other_text');
+    q2_category = other ? (other.value || '').trim() : '';
+    } else {
+    // ✅ TÌM TÊN CATEGORY TỪ ID
+    const selectedRadio = document.querySelector(`input[name="q2_category"]:checked`);
+    if (selectedRadio) {
+        const label = selectedRadio.closest('label');
+        q2_category = label ? label.textContent.trim() : q2_category_id;
+    }
     }
 
     // Q3
@@ -1969,9 +2846,9 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
     if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
     if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
-    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 180) {
-      throw new Error('❌ Số ngày phải từ 15 đến 180 (Q9)');
-    }
+if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
+  throw new Error('❌ Số ngày phải từ 15 đến 30 (Q9)');
+}
 
     // =========================================
     // BƯỚC 3: TẠO OBJECT GỬI LÊN SERVER
@@ -2136,7 +3013,8 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
                     },
                     body: JSON.stringify({
                         roadmapData: roadmapData,
-                        roadmap_analyst: document.getElementById('analysisContent').textContent
+                        roadmap_analyst: document.getElementById('analysisContent').textContent,
+                        history_id: aiHistoryId
                     })
                 })
 
@@ -2170,20 +3048,13 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
 
 function updateTotalHours() {
     const daysInput = document.querySelector('input[name="q11_program_days"]');
-    const hoursInput = document.querySelector('select[name="q9_daily_time"]');
+    const minutesInput = document.getElementById('q9_daily_time_input');
 
-    if (daysInput?.value && hoursInput?.value) {
-        const str = String(hoursInput.value).trim();
-        const m = str.match(/(\d+(?:\.\d+)?)/);
-        let hours = 2; // default
-        if (m) {
-            hours = parseFloat(m[1]);
-            if (str.toLowerCase().includes('phút')) {
-                hours = hours / 60;
-            }
-        }
+    if (daysInput?.value && minutesInput?.value) {
+        const minutes = parseInt(minutesInput.value) || 0;
+        const hours = minutes / 60;
         const total = parseInt(daysInput.value) * hours;
-        console.log(`✅ Total hours: ${total.toFixed(2)} (${hours}h/day × ${daysInput.value} days)`);
+        //console.log(`✅ Total hours: ${total.toFixed(2)} (${minutes} min = ${hours.toFixed(2)}h/day × ${daysInput.value} days)`);
     }
 }
 
@@ -2195,9 +3066,12 @@ if (daysInputEl) {
     });
 }
 
-const hoursInputEl = document.querySelector('select[name="q9_daily_time"]');
-if (hoursInputEl) {
-    hoursInputEl.addEventListener('change', updateTotalHours);
+const minutesInputEl = document.getElementById('q9_daily_time_input');
+if (minutesInputEl) {
+    minutesInputEl.addEventListener('input', function() {
+        updateTotalHours();
+        validateMinutes(); // ✅ THÊM DÒNG NÀY
+    });
 }
 // ============ MODAL FUNCTIONS ============
     let customizedPrompt = null;
@@ -2219,6 +3093,124 @@ if (hoursInputEl) {
             .catch(() => alert('❌ Không thể copy.'));
     }
 
+// For non-admin users: show the prompt modal so they can view/copy the AI prompt
+async function showManualPromptForUser() {
+  try {
+    const promptEl = document.getElementById('promptContent');
+    if (!promptEl) return alert('Không tìm thấy vùng hiển thị prompt.');
+
+    // ✅ FIX: Gọi API để lấy prompt với form data
+    const form = document.getElementById('roadmapForm');
+    const formData = new FormData(form);
+    
+    // Thu thập data từ form (tương tự logic trong generateRoadmapWithAI)
+    const getField = (fd, name, fallback = '') => {
+      const v = fd.get(name);
+      return v == null ? fallback : String(v).trim();
+    };
+    
+    const collectCheckedWithOther = (selectorNames, otherInputId) => {
+      const values = [];
+      let other = '';
+      selectorNames.forEach(sel => {
+        document.querySelectorAll(sel).forEach(cb => {
+          if (!cb.checked) return;
+          if (cb.value === 'Khác' || cb.value === 'Khac' || cb.value === 'Other') {
+            const el = document.getElementById(otherInputId);
+            if (el) other = (el.value || '').trim();
+          } else {
+            values.push(cb.value);
+          }
+        });
+      });
+      return { values, other };
+    };
+    
+    const processArrayWithOther = (arr, otherValue) => {
+      if (!Array.isArray(arr)) return '';
+      const filtered = arr.filter(v => v && v !== 'Khác' && v !== 'AI gợi ý');
+      if (otherValue && otherValue.trim()) filtered.push(otherValue.trim());
+      return filtered.length > 0 ? filtered.join(', ') : 'Chưa xác định';
+    };
+    let q2_category_id = getField(formData, 'q2_category');
+    let q2_category = '';
+    
+    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
+      const otherInput = document.getElementById('q2_other_text');
+      q2_category = otherInput ? (otherInput.value || '').trim() : '';
+    } else {
+      const selectedRadio = document.querySelector('input[name="q2_category"]:checked');
+      if (selectedRadio) {
+        q2_category = selectedRadio.getAttribute('data-category-name') || q2_category_id;
+      } else {
+        q2_category = q2_category_id;
+      }
+    }
+    // ✅ Thu thập toàn bộ form data
+    const finalData = {
+      roadmap_name: getField(formData, 'q1_roadmap_name'),
+      category: q2_category,
+      category_detail: getField(formData, 'q3_category_detail'),
+      main_purpose: getField(formData, 'q4_main_purpose'),
+      specific_goal: getField(formData, 'q5_specific_goal'),
+      current_job: getField(formData, 'q5_current_job'),
+      learning_duration: getField(formData, 'q6_learning_duration'),
+      current_level: getField(formData, 'q7_current_level'),
+      skills_text: getField(formData, 'q8_skills_text'),
+      daily_time: getField(formData, 'q9_daily_time'),
+      weekly_sessions: getField(formData, 'q10_weekly_sessions'),
+      program_days: getField(formData, 'q11_program_days'),
+      learning_styles: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q12_learning_styles[]"]'], 'q12_other_text').values,
+        collectCheckedWithOther(['input[name="q12_learning_styles[]"]'], 'q12_other_text').other
+      ),
+      learning_combinations: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q13_learning_combinations[]"]'], 'q13_other_text').values,
+        collectCheckedWithOther(['input[name="q13_learning_combinations[]"]'], 'q13_other_text').other
+      ),
+      challenges: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q14_challenges[]"]'], 'q14_other_text').values,
+        collectCheckedWithOther(['input[name="q14_challenges[]"]'], 'q14_other_text').other
+      ),
+      motivation: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q15_motivation[]"]'], 'q15_other_text').values,
+        collectCheckedWithOther(['input[name="q15_motivation[]"]'], 'q15_other_text').other
+      ),
+      material_types: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q16_material_types[]"]'], 'q16_other_text').values,
+        collectCheckedWithOther(['input[name="q16_material_types[]"]'], 'q16_other_text').other
+      ),
+      material_language: getField(formData, 'q17_material_language'),
+      assessment_types: Array.from(document.querySelectorAll('input[name="q18_assessment_types[]"]:checked')).map(cb => cb.value).join(', '),
+      result_display: Array.from(document.querySelectorAll('input[name="q19_result_display[]"]:checked')).map(cb => cb.value).join(', '),
+      assessment_frequency: getField(formData, 'q20_assessment_frequency')
+    };
+    
+    // ✅ Gọi API với form data
+    const response = await fetch('/api/get-manual-prompt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      },
+      body: JSON.stringify({ formData: finalData })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Không thể lấy prompt từ server');
+    }
+    
+    const data = await response.json();
+    const promptText = data.prompt || 'Prompt chưa được cấu hình. Vui lòng liên hệ quản trị viên.';
+    
+    promptEl.textContent = promptText;
+    document.getElementById('promptModal').classList.add('show');
+    
+  } catch (err) {
+    console.error('showManualPromptForUser error:', err);
+    alert('Không thể hiển thị prompt: ' + (err && err.message));
+  }
+}
     function customizePrompt() {
         const prompt = customizedPrompt || generatePrompt();
         document.getElementById('customPromptContent').value = prompt;
@@ -2258,9 +3250,10 @@ window.addEventListener('load', function() {
         window.location.href = 'login.html';
         return;
     }
-    
     loadCategories();
+    checkUserRoleAndUpdateUI();
     validateDays();
+    //validateMinutes();
 
     const daysInputEl = document.getElementById('q11_program_days');
     if (daysInputEl) {
@@ -2307,6 +3300,143 @@ window.addEventListener('load', function() {
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#39;');
         }
+        // ============ HEADER USER LOGIC ============
+const loginBtn = document.querySelector(".login-btn");
+const registerBtn = document.querySelector(".register-btn");
+const userArea = document.getElementById("userArea");
+const ADMIN_TOKEN = 'admin-token';
+
+function showAuthButtons() {
+  if (loginBtn) loginBtn.style.display = "inline-flex";
+  if (registerBtn) registerBtn.style.display = "inline-flex";
+  const children = Array.from(userArea.children);
+  children.forEach(c => {
+    if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
+      try { userArea.removeChild(c); } catch (e) {}
+    }
+  });
+}
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", () => { window.location.href = "login.html"; });
+}
+
+if (registerBtn) {
+  registerBtn.addEventListener("click", () => { window.location.href = "register.html"; });
+}
+
+async function loadUser() {
+  const token = localStorage.getItem('token');
+  const navButtons = document.getElementById('mainNavButtons');
+  
+  // Tạo navigation buttons
+  if (navButtons) {
+    navButtons.innerHTML = `
+      <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+      <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+      <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+    `;
+    
+    document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
+    document.getElementById('btnPath').addEventListener('click', () => { window.location.href = 'path.html'; });
+    document.getElementById('btnProgress').addEventListener('click', () => { 
+      if (!localStorage.getItem('token')) window.location.href = 'login.html';
+      else window.location.href = 'progress.html';
+    });
+  }
+  
+  showAuthButtons();
+  if (!token) return;
+
+  let name = 'Người dùng';
+  let serverRole = 'user';
+
+  if (token === ADMIN_TOKEN) {
+    name = 'Admin';
+    serverRole = 'admin';
+    localStorage.setItem('role', 'admin');
+  } else {
+    try {
+      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
+      if (!res.ok) { showAuthButtons(); return; }
+      const data = await res.json();
+      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+      name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+      localStorage.setItem('role', serverRole);
+    } catch (err) {
+      console.error(err);
+      showAuthButtons();
+      return;
+    }
+  }
+
+  if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
+  if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
+
+  userArea.innerHTML = `
+    <span>Xin chào <strong style="color:white;">${name}</strong></span>
+    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+  `;
+  
+  document.getElementById('logout').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    window.location.href = 'main.html';
+  });
+
+  if (serverRole === 'admin') {
+    const adminBtn = document.createElement('button');
+    adminBtn.className = 'nav-btn';
+    adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+    adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
+    navButtons.appendChild(adminBtn);
+  }
+}
+// ============ PHÂN QUYỀN NÚT TẠO LỘ TRÌNH ============
+async function checkUserRoleAndUpdateUI() {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const generateBtn = document.getElementById('generateAI');
+  const generateBtnText = document.getElementById('generateBtnText');
+  const analysisSection = document.querySelector('.analysis-section');
+  const daysSection = document.querySelectorAll('.form-section')[document.querySelectorAll('.form-section').length - 1];
+  const submitSection = document.querySelector('.submit-section');
+  
+  if (!token || role !== 'admin') {
+    // User thường: Đổi nút thành "Tạo lộ trình"
+    if (generateBtnText) {
+      generateBtnText.textContent = '📝 Tạo lộ trình';
+    }
+    
+    // Ẩn analysis section, days section, submit section
+    if (analysisSection) analysisSection.style.display = 'none';
+    if (daysSection) daysSection.style.display = 'none';
+    if (submitSection) submitSection.style.display = 'none';
+    
+    // ✅ FIX: Validate form trước khi hiện prompt
+    if (generateBtn) {
+      generateBtn.removeEventListener('click', generateRoadmapWithAI);
+      generateBtn.addEventListener('click', function() {
+        // ✅ VALIDATE FORM TRƯỚC
+        const validationErrors = validateAllQuestions();
+        if (validationErrors && validationErrors.length > 0) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return; // Dừng nếu có lỗi
+        }
+        
+        // ✅ Nếu pass validation, hiện prompt
+        showManualPromptForUser();
+      });
+    }
+  } else {
+    // Admin: giữ nguyên
+    if (generateBtnText) {
+      generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
+    }
+  }
+}
+
+loadUser().catch(e => console.error(e));
     // Q4 - Main Purpose
 const q4_other_radio = document.getElementById('q4_other_radio');
 const q4_other_text = document.getElementById('q4_other_text');
@@ -2421,6 +3551,111 @@ if (q20_other_radio && q20_other_text) {
         }
     });
 }
+// Feedback modal logic
+let feedbackRatings = {};
+
+function openFeedbackModal() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để gửi phản hồi!');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('feedbackModal').classList.add('active');
+    feedbackRatings = {};
+    
+    for (let i = 1; i <= 8; i++) {
+        const stars = document.querySelectorAll(`#rating_${i} .star`);
+        stars.forEach(star => star.classList.remove('active'));
+        document.getElementById(`rating_${i}-value`).textContent = '0';
+    }
+    
+    document.getElementById('question_1').value = '';
+    document.getElementById('question_2').value = '';
+    document.getElementById('question_3').value = '';
+}
+
+function closeFeedbackModal() {
+    document.getElementById('feedbackModal').classList.remove('active');
+}
+
+function setFeedbackRating(ratingId, value) {
+    feedbackRatings[ratingId] = value;
+    
+    const stars = document.querySelectorAll(`#${ratingId} .star`);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    document.getElementById(`${ratingId}-value`).textContent = value;
+}
+
+document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    for (let i = 1; i <= 8; i++) {
+        if (!feedbackRatings[`rating_${i}`]) {
+            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
+            return;
+        }
+    }
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
+    
+    try {
+        const payload = {
+            rating_1: feedbackRatings.rating_1,
+            rating_2: feedbackRatings.rating_2,
+            rating_3: feedbackRatings.rating_3,
+            rating_4: feedbackRatings.rating_4,
+            rating_5: feedbackRatings.rating_5,
+            rating_6: feedbackRatings.rating_6,
+            rating_7: feedbackRatings.rating_7,
+            rating_8: feedbackRatings.rating_8,
+            question_1: document.getElementById('question_1').value.trim(),
+            question_2: document.getElementById('question_2').value.trim(),
+            question_3: document.getElementById('question_3').value.trim()
+        };
+        
+        const response = await fetch('/api/feedback/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+            setTimeout(() => {
+                closeFeedbackModal();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'Không thể gửi phản hồi');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        showNotification('✗ ' + error.message, 'error');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
+    }
+});
+
+document.getElementById('feedbackModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFeedbackModal();
+});
     </script>
 </body>
 </html>
