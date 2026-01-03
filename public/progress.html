@@ -6,20 +6,25 @@
   <title>Tiến Độ - App</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <script>
+    const tokeen = localStorage.getItem('token');
+    if(!tokeen) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
+  </script>
   <style>
-    html, body {
+html, body {
   height: 100%;
   margin: 0;
 }
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f5f5f5;
-        display: flex;
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: #f5f5f5;
+  display: flex;
   flex-direction: column;
   min-height: 100vh;
   overflow-x: hidden;
-    }
+}
     main {
   flex: 1 0 auto;  /* Quan trọng nhất! */
   box-sizing: border-box;
@@ -44,13 +49,6 @@
       font-size: 15px;
       font-weight: 600;
     }
-footer {
-  flex-shrink: 0;  /* Quan trọng! */
-  background: #1a202c;
-  color: #e5e7eb;
-  padding: 28px 20px 16px;
-  margin-top: 40px;
-}
 :root {
   --primary: #007bff;
   --primary-dark: #1e6fe6;
@@ -106,7 +104,7 @@ footer {
 .brand-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   line-height: 1;
   min-width: 0;
 }
@@ -209,7 +207,9 @@ footer {
   color: white;
   box-shadow: 0 2px 5px rgba(0,0,0,0.12);
 }
-
+.logout-btn:hover {
+  background: linear-gradient(135deg, #3a0bbd 0%, #056bb3 100%);
+}
 .admin-btn {
   background: #6f42c1;
   color: white;
@@ -366,7 +366,6 @@ footer {
       animation: spin 1s linear infinite;
       margin: 0 auto 15px;
     }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -441,6 +440,7 @@ footer {
       }
     }
   </style>
+  <link rel="stylesheet" href="footer.css">
 </head>
 <body>
 <div class="fixed-bar">
@@ -503,44 +503,7 @@ footer {
       </div>
     </div>
   </main>
-<footer style="background: #1a202c; color: #e5e7eb; padding: 28px 20px 16px; margin-top: 40px;">
-  <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; margin-bottom: 20px;">
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 44px; height: 44px; background: #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div>
-          <div style="font-size: 18px; font-weight: 700; color: white;">Con đường đam mê</div>
-          <div style="font-size: 11px; color: #9ca3af;">AI-Powered Learning Path</div>
-        </div>
-      </div>
-      <p style="color: #9ca3af; line-height: 1.5; font-size: 13px; margin: 0;">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-    </div>
-
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Tính Năng</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="auth-check.html?target=create_roadmap_page.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Tạo lộ trình với AI</a>
-        <a href="auth-check.html?target=path.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Lưu trữ các lộ trình</a>
-        <a href="auth-check.html?target=progress.html" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Theo dõi tiến độ</a>
-      </div>
-    </div>
-
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Hỗ Trợ</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Liên hệ</a>
-        <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Trung tâm trợ giúp</a>
-        <a href="#" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
-      </div>
-    </div>
-  </div>
-
-  <div style="max-width: 1200px; margin: 0 auto; padding-top: 16px; border-top: 1px solid #374151; text-align: center; color: #9ca3af; font-size: 13px;">
-    © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-  </div>
-</footer>
+<div id="footer"></div>
   <script>
 const loginBtn = document.querySelector(".login-btn");
 const registerBtn = document.querySelector(".register-btn");
@@ -823,5 +786,6 @@ if (!token) {
   loadProgress();
 }
   </script>
+  <script src="footer.js"></script>
 </body>
 </html>
