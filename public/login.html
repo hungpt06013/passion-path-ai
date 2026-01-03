@@ -6,16 +6,19 @@
   <title>Đăng nhập</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
     :root {
       --bg: #f7faff;
       --card: #ffffff;
-      --primary: #28a745;
+      --primary: #007bff;
       --muted: #6c757d;
       --danger: #dc3545;
+      --success: #28a745;
       --radius: 10px;
       --shadow: 0 6px 18px rgba(20,20,40,0.06);
+      --header-height: 80px;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     }
 
@@ -27,17 +30,31 @@
     body {
       height: 100%;
       margin: 0;
-      background: linear-gradient(135deg, #85ccff);
+      background: linear-gradient(135deg, #ffffff);
       color: #111;
       -webkit-font-smoothing: antialiased;
     }
 
-    .page {
-      min-height: 100%;
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    main {
+      flex: 1 0 auto;
+      box-sizing: border-box;
+      max-width: 1200px;
+      width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+      padding-top: calc(var(--header-height) + 20px);
+      padding-left: 20px;
+      padding-right: 20px;
+      padding-bottom: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
     }
 
     .card {
@@ -117,7 +134,8 @@
       margin-top: 6px;
     }
 
-    button[type="submit"] {
+    button[type="submit"],
+    .btn-primary {
       flex: 1;
       background: var(--primary);
       color: white;
@@ -126,9 +144,11 @@
       border-radius: 8px;
       font-weight: 700;
       cursor: pointer;
+      font-size: 14px;
     }
 
-    button[type="submit"]:disabled {
+    button[type="submit"]:disabled,
+    .btn-primary:disabled {
       opacity: 0.7;
       cursor: not-allowed;
     }
@@ -147,13 +167,15 @@
       margin-top: 4px;
     }
 
+    .success-text {
+      color: var(--success);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
     .info-text {
       color: var(--muted);
       font-size: 13px;
-    }
-
-    .hint-row {
-      margin-top: 4px;
     }
 
     .footer {
@@ -170,11 +192,219 @@
       cursor: pointer;
     }
 
-    @media (max-width: 480px) {
-      .page {
-        padding: 15px;
-      }
+    .back-btn {
+      background: transparent;
+      border: 1px solid rgba(10,20,40,0.12);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
 
+    .back-btn:hover {
+      background: rgba(10,20,40,0.04);
+      border-color: rgba(10,20,40,0.18);
+    }
+
+    /* Fixed Bar Styles */
+    .fixed-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 80px;
+      background: var(--primary);
+      box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+      z-index: 50;
+    }
+
+    .bar-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 48px;
+      height: 48px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .brand-sub {
+      color: rgba(255,255,255,0.9);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nav-buttons {
+      display: flex;
+      align-items: center;
+    }
+
+    .nav-btn {
+      background: none;
+      color: #fff;
+      padding: 10px 11px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+    }
+
+    .login-btn, .register-btn {
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .login-btn {
+      background: white;
+      color: #333;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    .register-btn {
+      background: #28a745;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+    }
+
+    /* FORGOT PASSWORD MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 450px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .close-modal {
+      background: transparent;
+      border: none;
+      font-size: 24px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .close-modal:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    .code-inputs {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .code-input {
+      width: 100%;
+      height: 50px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      border: 2px solid rgba(10,20,40,0.1);
+      border-radius: 8px;
+    }
+
+    .code-input:focus {
+      border-color: var(--primary);
+      outline: none;
+    }
+
+    .timer {
+      text-align: center;
+      color: var(--danger);
+      font-size: 14px;
+      font-weight: 600;
+      margin: 12px 0;
+    }
+
+    @media (max-width: 480px) {
       .card {
         padding: 16px;
       }
@@ -183,46 +413,52 @@
         font-size: 18px;
       }
 
-      input[type="text"],
-      input[type="password"],
-      input[type="email"] {
-        font-size: 16px;
+      .code-input {
+        height: 45px;
+        font-size: 18px;
       }
     }
-    .back-btn {
-  background: transparent;
-  border: 1px solid rgba(10,20,40,0.12);
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--muted);
-  font-weight: 600;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-}
-
-.back-btn:hover {
-  background: rgba(10,20,40,0.04);
-  border-color: rgba(10,20,40,0.18);
-}
-</style>
+  </style>
+  <link rel="stylesheet" href="footer.css">
 </head>
 <body>
+  <!-- Fixed Bar -->
+  <div class="fixed-bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">Con đường đam mê</div>
+          <div class="brand-sub">AI-Powered Learning Path</div>
+        </div>
+      </div>
+      <div class="nav-buttons" id="mainNavButtons">
+        <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
+        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
+        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+      </div>
+      <div id="userArea" class="userInfo">
+        <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+        <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
   <main class="page">
     <section class="card" aria-labelledby="login-heading">
       <header>
-        
-<div style="margin-bottom: 16px;">
-  <button type="button" id="backButton" class="back-btn">
-    ← Quay lại
-  </button>
-</div>
+        <div style="margin-bottom: 16px;">
+          <button type="button" id="backButton" class="back-btn">
+            ← Quay lại
+          </button>
+        </div>
         <h1 id="login-heading">Đăng nhập</h1>
         <p class="lead">Đăng nhập bằng tên đăng nhập hoặc email. Nhập ít nhất 1 trong 2 (cả hai cũng được) và mật khẩu.</p>
       </header>
+
       <form id="loginForm" novalidate>
         <div class="form-row">
           <label for="loginUsernameInput">Tên đăng nhập</label>
@@ -252,13 +488,83 @@
         <div id="loginGeneralMessage" class="info-text" role="status" aria-live="polite" style="min-height:1.2em;"></div>
 
         <div class="footer">
+          <a id="forgotPasswordLink" class="link" style="display:block;margin-bottom:8px;">Quên mật khẩu?</a>
           <span>Bạn chưa có tài khoản? <a id="registerLink" class="link" href="/register.html">Đăng ký</a></span>
         </div>
       </form>
     </section>
   </main>
 
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Quên mật khẩu</h2>
+        <button class="close-modal" id="closeModal">&times;</button>
+      </div>
+
+      <!-- Step 1: Email Input -->
+      <div id="step1" style="display:block;">
+        <p class="lead">Nhập email của bạn để nhận mã xác thực</p>
+        <div class="form-row">
+          <label for="resetEmail">Email</label>
+          <input id="resetEmail" type="email" placeholder="email@example.com">
+          <div id="resetEmailError" class="error-text" hidden></div>
+        </div>
+        <button id="sendCodeBtn" class="btn-primary" style="width:100%;margin-top:12px;">
+          Gửi mã xác thực
+        </button>
+      </div>
+
+      <!-- Step 2: Code Verification -->
+      <div id="step2" style="display:none;">
+        <p class="lead">Nhập mã 6 số đã được gửi đến email của bạn</p>
+        <div class="code-inputs">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+          <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        </div>
+        <div id="timer" class="timer"></div>
+        <div id="codeError" class="error-text" hidden></div>
+        <button id="verifyCodeBtn" class="btn-primary" style="width:100%;margin-top:12px;">
+          Xác thực
+        </button>
+        <button id="resendCodeBtn" class="secondary" style="width:100%;margin-top:8px;">
+          Gửi lại mã
+        </button>
+      </div>
+
+      <!-- Step 3: New Password -->
+      <div id="step3" style="display:none;">
+        <p class="lead">Đặt mật khẩu mới</p>
+        <div class="form-row">
+          <label for="newPassword">Mật khẩu mới</label>
+          <input id="newPassword" type="password" placeholder="Ít nhất 8 ký tự">
+          <div id="newPasswordError" class="error-text" hidden></div>
+        </div>
+        <div class="form-row" style="margin-top:12px;">
+          <label for="confirmPassword">Xác nhận mật khẩu</label>
+          <input id="confirmPassword" type="password" placeholder="Nhập lại mật khẩu">
+          <div id="confirmPasswordError" class="error-text" hidden></div>
+        </div>
+        <button id="resetPasswordBtn" class="btn-primary" style="width:100%;margin-top:12px;">
+          Đặt lại mật khẩu
+        </button>
+      </div>
+
+      <div id="modalMessage" class="info-text" style="margin-top:12px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <div id="footer"></div>
+
   <script>
+    const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
+    
+    // Login Form Elements
     const loginForm = document.getElementById('loginForm');
     const inpUser = document.getElementById('loginUsernameInput');
     const inpEmail = document.getElementById('loginEmailInput');
@@ -271,6 +577,32 @@
     const genMsg = document.getElementById('loginGeneralMessage');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+    // Forgot Password Elements
+    const modal = document.getElementById('forgotPasswordModal');
+    const forgotLink = document.getElementById('forgotPasswordLink');
+    const closeModalBtn = document.getElementById('closeModal');
+    
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const step3 = document.getElementById('step3');
+    
+    const resetEmail = document.getElementById('resetEmail');
+    const sendCodeBtn = document.getElementById('sendCodeBtn');
+    const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+    const resendCodeBtn = document.getElementById('resendCodeBtn');
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    
+    const codeInputs = document.querySelectorAll('.code-input');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    const modalMessage = document.getElementById('modalMessage');
+    const timerDiv = document.getElementById('timer');
+    
+    let timerInterval = null;
+    let expiresAt = null;
+
+    // ========== LOGIN FUNCTIONS ==========
     function clearErrors(){
       errUser.hidden = true; errUser.textContent = '';
       errEmail.hidden = true; errEmail.textContent = '';
@@ -295,7 +627,6 @@
         errEmail.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; errEmail.hidden = false;
         ok = false;
       } else if (emailRaw && !emailRegex.test(emailRaw) && !username){
-        // only fail when email is provided and invalid AND username absent
         errEmail.textContent = 'Định dạng email không hợp lệ.'; errEmail.hidden = false;
         ok = false;
       }
@@ -311,21 +642,6 @@
     function disableSubmit(){ submitBtn.disabled = true; submitBtn.textContent = 'Đang đăng nhập...'; }
     function enableSubmit(){ submitBtn.disabled = false; submitBtn.textContent = 'Đăng nhập'; }
 
-    function buildPayload(){
-      const username = (inpUser.value||'').trim();
-      const emailRaw = (inpEmail.value||'').trim();
-      // **GHI CHÚ:** không chuyển về toLowerCase — gửi nguyên trạng để áp dụng case-sensitive
-      const email = emailRaw ? emailRaw : '';
-      const password = inpPass.value || '';
-
-      // always include the fields that user expects, not undefined
-      const p = {};
-      if (username) p.username = username;
-      if (email) p.email = email;
-      p.password = password;
-      return p;
-    }
-
     async function submitHandler(e){
       e.preventDefault();
       if (!validateForm()){
@@ -335,52 +651,57 @@
       disableSubmit();
       setGeneralMessage('', false);
 
-      const payload = buildPayload();
-      console.log('Sending login payload:', payload);
-
-      // if file:// (opened directly), default to localhost:5000 API (common dev case)
-      const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
-      const url = apiBase.replace(/\/$/, '') + '/api/login';
+      const payload = {
+        password: inpPass.value || ''
+      };
+      
+      const username = (inpUser.value||'').trim();
+      const email = (inpEmail.value||'').trim();
+      
+      if (username) payload.username = username;
+      if (email) payload.email = email;
 
       try {
-        const res = await fetch(url, {
+        const res = await fetch(`${API_BASE}/api/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
 
-        let body = null;
-        try { body = await res.json(); } catch(_) { body = null; }
-
-        console.log('Login response status:', res.status, 'body:', body);
+        const body = await res.json().catch(() => null);
 
         if (res.ok){
           if (body && body.token) localStorage.setItem('token', body.token);
-          setGeneralMessage((body && body.message) ? body.message : 'Đăng nhập thành công. Đang chuyển...', false);
+          setGeneralMessage('Đăng nhập thành công. Đang chuyển...', false);
 
           try {
             const token = body && body.token ? body.token : localStorage.getItem('token');
             if (token){
-              const me = await fetch(apiBase.replace(/\/$/, '') + '/api/me', { headers: { Authorization: 'Bearer ' + token }});
-              if (me.ok){ const meBody = await me.json().catch(()=>null); if (meBody && meBody.user && meBody.user.role) localStorage.setItem('role', meBody.user.role); else localStorage.setItem('role','user'); }
+              const me = await fetch(`${API_BASE}/api/me`, { 
+                headers: { Authorization: 'Bearer ' + token }
+              });
+              if (me.ok){
+                const meBody = await me.json().catch(()=>null);
+                if (meBody && meBody.user && meBody.user.role) {
+                  localStorage.setItem('role', meBody.user.role);
+                } else {
+                  localStorage.setItem('role','user');
+                }
+              }
             }
-          } catch(e){ console.warn('me fetch failed', e); localStorage.setItem('role','user'); }
+          } catch(e){ 
+            localStorage.setItem('role','user');
+          }
 
-          // redirect (keep same behavior)
           window.location.href = '/path.html';
           return;
         } else {
           const serverMsg = (body && body.message) ? body.message : 'Đăng nhập thất bại.';
           setGeneralMessage(serverMsg, true);
-          if (body && body.errors){
-            if (body.errors.username){ errUser.textContent = body.errors.username; errUser.hidden = false; }
-            if (body.errors.password){ errPass.textContent = body.errors.password; errPass.hidden = false; }
-            if (body.errors.email){ errEmail.textContent = body.errors.email; errEmail.hidden = false; }
-          }
         }
       } catch(err){
         console.error('Network error during login', err);
-        setGeneralMessage('Không thể kết nối tới server. Vui lòng kiểm tra mạng hoặc server.', true);
+        setGeneralMessage('Không thể kết nối tới server.', true);
       } finally {
         enableSubmit();
       }
@@ -389,20 +710,379 @@
     function togglePassword(e){
       e && e.preventDefault();
       const isPass = inpPass.type === 'password';
-      if (isPass){ inpPass.type = 'text'; toggleBtn.textContent = 'Ẩn'; toggleBtn.setAttribute('aria-pressed','true'); toggleBtn.setAttribute('aria-label','Ẩn mật khẩu'); }
-      else { inpPass.type = 'password'; toggleBtn.textContent = 'Hiện'; toggleBtn.setAttribute('aria-pressed','false'); toggleBtn.setAttribute('aria-label','Hiện mật khẩu'); }
+      if (isPass){
+        inpPass.type = 'text';
+        toggleBtn.textContent = 'Ẩn';
+      } else {
+        inpPass.type = 'password';
+        toggleBtn.textContent = 'Hiện';
+      }
     }
 
+    // ========== FORGOT PASSWORD FUNCTIONS ==========
+    function openModal(){
+      modal.classList.add('active');
+      resetToStep1();
+    }
+
+    function closeModal(){
+      modal.classList.remove('active');
+      resetToStep1();
+      clearTimer();
+    }
+
+    function resetToStep1(){
+      step1.style.display = 'block';
+      step2.style.display = 'none';
+      step3.style.display = 'none';
+      document.getElementById('modalTitle').textContent = 'Quên mật khẩu';
+      modalMessage.textContent = '';
+      modalMessage.className = 'info-text';
+      resetEmail.value = '';
+      codeInputs.forEach(input => input.value = '');
+      newPassword.value = '';
+      confirmPassword.value = '';
+      document.getElementById('resetEmailError').hidden = true;
+      document.getElementById('codeError').hidden = true;
+      document.getElementById('newPasswordError').hidden = true;
+      document.getElementById('confirmPasswordError').hidden = true;
+    }
+
+    function goToStep2(){
+      step1.style.display = 'none';
+      step2.style.display = 'block';
+      step3.style.display = 'none';
+      document.getElementById('modalTitle').textContent = 'Xác thực mã';
+      codeInputs[0].focus();
+      startTimer();
+    }
+
+    function goToStep3(){
+      step1.style.display = 'none';
+      step2.style.display = 'none';
+      step3.style.display = 'block';
+      document.getElementById('modalTitle').textContent = 'Đặt lại mật khẩu';
+      clearTimer();
+      newPassword.focus();
+    }
+
+    function setModalMessage(text, isError = false){
+      modalMessage.textContent = text;
+      modalMessage.className = isError ? 'error-text' : 'success-text';
+    }
+
+    function startTimer(){
+      if (!expiresAt) return;
+      
+      clearTimer();
+      
+      timerInterval = setInterval(() => {
+        const now = Date.now();
+        const remaining = Math.max(0, Math.floor((expiresAt - now) / 1000));
+        
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
+        
+        timerDiv.textContent = `⏰ Mã hết hạn sau: ${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (remaining === 0) {
+          clearTimer();
+          timerDiv.textContent = '❌ Mã đã hết hạn';
+          setModalMessage('Mã xác thực đã hết hạn. Vui lòng gửi lại.', true);
+        }
+      }, 1000);
+    }
+
+    function clearTimer(){
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      timerDiv.textContent = '';
+    }
+
+    // Code Input Auto-Focus
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < codeInputs.length - 1) {
+          codeInputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          codeInputs[index - 1].focus();
+        }
+      });
+
+      // Only allow numbers
+      input.addEventListener('beforeinput', (e) => {
+        if (e.data && !/[0-9]/.test(e.data)) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    function getCodeFromInputs(){
+      return Array.from(codeInputs).map(input => input.value).join('');
+    }
+
+    // ========== API CALLS ==========
+    async function sendResetCode(){
+      const email = resetEmail.value.trim();
+      const errorDiv = document.getElementById('resetEmailError');
+      
+      if (!email || !emailRegex.test(email)) {
+        errorDiv.textContent = 'Vui lòng nhập email hợp lệ';
+        errorDiv.hidden = false;
+        return;
+      }
+      
+      errorDiv.hidden = true;
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.textContent = 'Đang gửi...';
+      setModalMessage('', false);
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/password-reset/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          expiresAt = Date.now() + (data.expiresIn * 1000);
+          setModalMessage('Mã xác thực đã được gửi đến email của bạn', false);
+          goToStep2();
+        } else {
+          errorDiv.textContent = data.error || 'Không thể gửi mã';
+          errorDiv.hidden = false;
+        }
+      } catch (err) {
+        console.error('Send code error:', err);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.hidden = false;
+      } finally {
+        sendCodeBtn.disabled = false;
+        sendCodeBtn.textContent = 'Gửi mã xác thực';
+      }
+    }
+
+    async function verifyCode(){
+      const email = resetEmail.value.trim();
+      const code = getCodeFromInputs();
+      const errorDiv = document.getElementById('codeError');
+      
+      if (code.length !== 6) {
+        errorDiv.textContent = 'Vui lòng nhập đủ 6 số';
+        errorDiv.hidden = false;
+        return;
+      }
+      
+      errorDiv.hidden = true;
+      verifyCodeBtn.disabled = true;
+      verifyCodeBtn.textContent = 'Đang xác thực...';
+      setModalMessage('', false);
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/password-reset/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, code })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          setModalMessage('Xác thực thành công!', false);
+          setTimeout(() => goToStep3(), 500);
+        } else {
+          errorDiv.textContent = data.error || 'Mã xác thực không đúng';
+          errorDiv.hidden = false;
+        }
+      } catch (err) {
+        console.error('Verify code error:', err);
+        errorDiv.textContent = 'Lỗi kết nối. Vui lòng thử lại.';
+        errorDiv.hidden = false;
+      } finally {
+        verifyCodeBtn.disabled = false;
+        verifyCodeBtn.textContent = 'Xác thực';
+      }
+    }
+
+    async function resetPassword(){
+      const email = resetEmail.value.trim();
+      const code = getCodeFromInputs();
+      const newPass = newPassword.value;
+      const confirmPass = confirmPassword.value;
+      
+      const newPassError = document.getElementById('newPasswordError');
+      const confirmPassError = document.getElementById('confirmPasswordError');
+      
+      newPassError.hidden = true;
+      confirmPassError.hidden = true;
+      setModalMessage('', false);
+      
+      let hasError = false;
+      
+      if (newPass.length < 8) {
+        newPassError.textContent = 'Mật khẩu phải có ít nhất 8 ký tự';
+        newPassError.hidden = false;
+        hasError = true;
+      }
+      
+      if (newPass !== confirmPass) {
+        confirmPassError.textContent = 'Mật khẩu xác nhận không khớp';
+        confirmPassError.hidden = false;
+        hasError = true;
+      }
+      
+      if (hasError) return;
+      
+      resetPasswordBtn.disabled = true;
+      resetPasswordBtn.textContent = 'Đang xử lý...';
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/password-reset/reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email, 
+            code, 
+            newPassword: newPass 
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+          setModalMessage('✅ Đặt lại mật khẩu thành công!', false);
+          setTimeout(() => {
+            closeModal();
+            setGeneralMessage('Mật khẩu đã được đặt lại. Vui lòng đăng nhập.', false);
+          }, 2000);
+        } else {
+          setModalMessage(data.error || 'Không thể đặt lại mật khẩu', true);
+        }
+      } catch (err) {
+        console.error('Reset password error:', err);
+        setModalMessage('Lỗi kết nối. Vui lòng thử lại.', true);
+      } finally {
+        resetPasswordBtn.disabled = false;
+        resetPasswordBtn.textContent = 'Đặt lại mật khẩu';
+      }
+    }
+
+    // ========== EVENT LISTENERS ==========
     loginForm.addEventListener('submit', submitHandler);
     toggleBtn.addEventListener('click', togglePassword);
-    document.getElementById('registerLink').addEventListener('click', (ev)=>{ ev.preventDefault(); window.location.href = '/register.html'; });
+    
+    forgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      openModal();
+    });
+    
+    closeModalBtn.addEventListener('click', closeModal);
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+    
+    sendCodeBtn.addEventListener('click', sendResetCode);
+    verifyCodeBtn.addEventListener('click', verifyCode);
+    resendCodeBtn.addEventListener('click', sendResetCode);
+    resetPasswordBtn.addEventListener('click', resetPassword);
+    
+    document.getElementById('registerLink').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = '/register.html';
+    });
+    
+    document.getElementById('backButton').addEventListener('click', () => {
+      window.location.href = '/main.html';
+    });
+
+    // ========== NAVIGATION ==========
+    document.getElementById('btnHome').addEventListener('click', () => {
+      window.location.href = 'main.html';
+    });
+    
+    document.getElementById('btnPath').addEventListener('click', () => {
+      window.location.href = 'path.html';
+    });
+    
+    document.getElementById('btnProgress').addEventListener('click', () => {
+      window.location.href = 'progress.html';
+    });
+
+    // ========== LOAD USER INFO ==========
+    async function loadUser() {
+      const token = localStorage.getItem('token');
+      const userArea = document.getElementById('userArea');
+      
+      if (!token) {
+        userArea.innerHTML = `
+          <button class="login-btn" onclick="window.location.href='login.html'">
+            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
+          </button>
+          <button class="register-btn" onclick="window.location.href='register.html'">
+            <i class="fa-solid fa-user-plus"></i> Đăng ký
+          </button>
+        `;
+        return;
+      }
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          const userName = data.user?.name || 'Người dùng';
+          const userRole = data.user?.role || 'user';
+          
+          userArea.innerHTML = `
+            <span>Xin chào <strong style="color:white;">${userName}</strong></span>
+            <button id="logoutBtn" class="logout-btn">
+              <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+            </button>
+          `;
+          
+          document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            window.location.href = 'main.html';
+          });
+          
+          if (userRole === 'admin') {
+            const navButtons = document.getElementById('mainNavButtons');
+            const adminBtn = document.createElement('button');
+            adminBtn.className = 'nav-btn';
+            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
+            adminBtn.addEventListener('click', () => {
+              window.location.href = 'admin.html?page=admin';
+            });
+            navButtons.appendChild(adminBtn);
+          }
+        } else {
+          localStorage.removeItem('token');
+          localStorage.removeItem('role');
+          loadUser();
+        }
+      } catch (err) {
+        console.error('Error loading user:', err);
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        loadUser();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadUser);
     inpUser.focus();
-    const backButton = document.getElementById('backButton');
-if (backButton) {
-  backButton.addEventListener('click', () => {
-    window.location.href = '/main.html';
-  });
-}
   </script>
+  <script src="footer.js"></script>
 </body>
 </html>
