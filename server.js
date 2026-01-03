@@ -2604,7 +2604,7 @@ app.post("/api/get-manual-prompt", requireAuth, async (req, res) => {
     if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
       manualPromptTemplate = result.rows[0].manual_prompt_template;
     } else {
-      const defaultPath = path.join(__dirname, 'default_prompt2.txt');
+      const defaultPath = path.join(__dirname, 'Data', 'default_prompt2.txt');
       if (fs.existsSync(defaultPath)) {
         manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
       } else {
@@ -6134,13 +6134,12 @@ app.get("/api/admin/manual-prompt", requireAdmin, async (req, res) => {
     
     const result = await pool.query(query);
     
-    // Nếu không có trong DB, đọc từ file default
     let manualPromptTemplate = '';
     if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
       manualPromptTemplate = result.rows[0].manual_prompt_template;
     } else {
-      // Đọc từ file default_prompt2.txt
-      const defaultPath = path.join(__dirname, 'default_prompt2.txt');
+      // ✅ MỚI - Đường dẫn Data/
+      const defaultPath = path.join(__dirname, 'Data', 'default_prompt2.txt');
       if (fs.existsSync(defaultPath)) {
         manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
       } else {
@@ -6311,6 +6310,18 @@ Tạo lộ trình với 7 cột theo định dạng Excel:
 - day_number phải tăng đều từ 1 đến <TOTAL_DURATION>
 - day_study phải theo format dd/mm/yyyy (ví dụ: '01/01/2025) và có dấu ' ở đầu trong Excel
 - Tất cả các cột phải có giá trị, không để trống`;
+}
+function getDefaultPromptFromFile() {
+  try {
+    const defaultPath = path.join(__dirname, 'Data', 'default_prompt.txt'); // ✅ Thêm 'Data'
+    if (fs.existsSync(defaultPath)) {
+      return fs.readFileSync(defaultPath, 'utf8');
+    }
+    return buildDefaultPromptTemplate();
+  } catch (error) {
+    console.error('Error reading default prompt file:', error);
+    return buildDefaultPromptTemplate();
+  }
 }
 // ============ API ENDPOINT: Reset Prompt Template ============
 app.post("/api/admin/prompt-template/reset", requireAdmin, async (req, res) => {
