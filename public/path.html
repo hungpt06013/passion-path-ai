@@ -52,8 +52,40 @@
     .header p {
         font-size: 1.1rem;
         opacity: 0.9;
+        margin-bottom: 20px; /* ✅ THÊM margin để tạo khoảng cách */
     }
 
+    /* ✅ CONTAINER CHO CÁC NÚT */
+    .header-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    .create-btn,
+    .upload-btn,
+    .prompt-btn {
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        /* ✅ XÓA position: absolute */
+    }
+
+    .create-btn:hover,
+    .upload-btn:hover,
+    .prompt-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+/*
     .create-btn {
         position: absolute;
         right: 70px;
@@ -95,7 +127,61 @@
         border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
     }
+*/
+    @media (max-width: 768px) {
+        .header-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
 
+        .create-btn,
+        .upload-btn,
+        .prompt-btn {
+            width: 90%;
+        }
+    }
+
+    /* ✅ MODAL STYLE CHO PROMPT */
+    .prompt-modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 900px;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .prompt-display {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 20px;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .copy-btn {
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .copy-btn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+    }
     .content {
         padding: 40px;
     }
@@ -1201,14 +1287,21 @@
 
     <div class="container" style="margin-top:120px;">
         <div class="header">
-            <button class="create-btn" onclick="goToCreateRoadmap()">
-                ➕ Tạo Lộ Trình Mới
-            </button>
-           <button class="upload-btn" onclick="openUploadModal()">
-                📤 Upload Excel
-            </button>
             <h1>🛣️ Lộ Trình Học Của Tôi</h1>
             <p id="header-subtitle">Đang tải dữ liệu...</p>
+            
+            <!-- ✅ NÚT MỚI - DƯỚI SUBTITLE -->
+            <div class="header-buttons">
+                <button class="upload-btn" onclick="openUploadModal()">
+                    📤 Upload Excel
+                </button>
+                <button class="prompt-btn" onclick="openPromptModal()">
+                    📝 Prompt Mẫu
+                </button>
+                <button class="create-btn" onclick="goToCreateRoadmap()">
+                    ➕ Tạo Lộ Trình Mới
+                </button>
+            </div>
         </div>
         <div class="content" id="content-area">
             <div class="loading">
@@ -1238,7 +1331,35 @@
             </div>
         </div>
     </div>
-
+    <div class="modal-overlay" id="promptModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <div>
+                    <h2>📝 Prompt Mẫu</h2>
+                    <p>Template prompt để tạo lộ trình học</p>
+                </div>
+                <button class="close-modal" onclick="closePromptModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="loading" id="promptLoading">
+                    <div class="spinner"></div>
+                    <br><br>
+                    Đang tải prompt...
+                </div>
+                <div id="promptContent" style="display: none;">
+                    <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="color: #dc2626; font-weight: 600; margin: 0; line-height: 1.6;">
+                            ⚠️ Bạn hãy điền câu trả lời vào những vị trí &lt;...&gt; và tùy biến lại prompt mẫu theo nhu cầu của bạn, rồi bạn gửi prompt cho AI để có được 1 kết quả gồm thông tin đánh giá hiện trạng và bảng chi tiết lộ trình học gồm 8 cột để sử dụng tính năng "Upload Excel" tạo lộ trình học cá nhân hóa.
+                        </p>
+                    </div>
+                    <div class="prompt-display" id="promptText"></div>
+                    <button class="copy-btn" onclick="copyPromptToClipboard()">
+                        📋 Copy Prompt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
     const token = localStorage.getItem('token');
@@ -1527,7 +1648,7 @@ function displayRoadmapDetails(roadmap, details) {
                             <td>${d.practice_exercises || 'N/A'}</td>
                             <td>${materialsHTML}</td>
                             <td>${d.usage_instructions || 'N/A'}</td>
-                            <td style="text-align: center;"><strong>${formatHours(d.study_duration_hours)}</strong></td>
+                            <td style="text-align: center;"><strong>${formatHours(d.study_duration)}</strong></td>
                             <td>
                                 <select onchange="updateStatus(${roadmap.roadmap_id}, ${d.detail_id}, this.value)">
                                     <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa bắt đầu</option>
@@ -1809,6 +1930,91 @@ function openUploadModal() {
         const f = document.getElementById('uploadForm');
         if (f) f.reset();
     }
+async function openPromptModal() {
+    const modal = document.getElementById('promptModal');
+    const loading = document.getElementById('promptLoading');
+    const content = document.getElementById('promptContent');
+    const promptText = document.getElementById('promptText');
+    
+    modal.classList.add('active');
+    loading.style.display = 'block';
+    content.style.display = 'none';
+    
+    try {
+        // ✅ GỌI API LẤY MANUAL PROMPT
+        const response = await fetch('/api/admin/manual-prompt', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Không thể tải prompt');
+        }
+        
+        const result = await response.json();
+        
+        if (result.success && result.data.manual_prompt_template) {
+            promptText.textContent = result.data.manual_prompt_template;
+        } else {
+            throw new Error('Không tìm thấy prompt template');
+        }
+        
+        loading.style.display = 'none';
+        content.style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading prompt:', error);
+        promptText.textContent = 'Không thể tải prompt. Vui lòng thử lại sau.';
+        loading.style.display = 'none';
+        content.style.display = 'block';
+        showNotification('⚠️ ' + error.message, 'error');
+    }
+}
+
+function closePromptModal() {
+    document.getElementById('promptModal').classList.remove('active');
+}
+
+function copyPromptToClipboard() {
+    const promptText = document.getElementById('promptText').textContent;
+    
+    navigator.clipboard.writeText(promptText).then(() => {
+        showNotification('✅ Đã copy prompt vào clipboard!', 'success');
+    }).catch(err => {
+        console.error('Copy failed:', err);
+        
+        // ✅ FALLBACK: Dùng textarea tạm
+        const textarea = document.createElement('textarea');
+        textarea.value = promptText;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        
+        try {
+            document.execCommand('copy');
+            showNotification('✅ Đã copy prompt vào clipboard!', 'success');
+        } catch (e) {
+            showNotification('❌ Không thể copy. Vui lòng copy thủ công.', 'error');
+        }
+        
+        document.body.removeChild(textarea);
+    });
+}
+
+// ✅ ĐÓNG MODAL KHI CLICK BÊN NGOÀI
+document.addEventListener('DOMContentLoaded', function() {
+    const promptModal = document.getElementById('promptModal');
+    if (promptModal) {
+        promptModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePromptModal();
+            }
+        });
+    }
+});
 
     async function confirmDeleteRoadmap(roadmapId, roadmapName) {
         if (!confirm(`Bạn có chắc muốn xóa lộ trình "${roadmapName}"?\n\nHành động này không thể hoàn tác.`)) {
@@ -1959,35 +2165,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <div class="modal-body">
             <div class="info-box">
-                <strong>⚠️ Lưu ý:</strong> File Excel phải có <strong>đúng 8 cột</strong> theo thứ tự:
-                <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
-                    <li><code>day_number</code> - Số ngày</li>
-                    <li><code>day_study</code> - Ngày học</li>
-                    <li><code>daily_goal</code> - Mục tiêu ngày</li>
-                    <li><code>learning_content</code> - Nội dung học</li>
-                    <li><code>practice_exercises</code> - Bài tập</li>
-                    <li><code>learning_materials</code> - Tài liệu</li>
-                    <li><code>guide_learning</code> - Hướng dẫn học tập</li>
-                    <li><code>study_duration_hours</code> - Số giờ</li>
-                </ol>
-
+                Bạn có thể tải file template Excel bên dưới để upload lộ trình vào hệ thống. 
                 <br>
-                Ví dụ hình cho file excel mẫu:
-                <br><br>
-                <img src="https://i.postimg.cc/sfP8Rhch/image.png">
-                <p style="margin-top: 10px; color: #856404;">
-                    <strong>Lưu ý thêm:</strong>
-                    <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
-                        <li>Ở dòng đâu tiên của file excel phải là tên các cột theo thứ tự như trên</li>
-                        <li><code>day_number</code> và <code>study_duration_hours</code> là bắt buộc phải có giá trị. Các cột khác có thể để trống.</li>
-                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
-                        <li><code>study_duration_hours</code> có dấu thập phân là . và tối thiểu là 0.5 (ví dụ 0.5, 2, 3.5,...)</li>
-                        <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy (nếu số trong day hoặc month có 1 chữ số thì thêm số 0 ở đầu) (ví dụ 26/10/2027 hay 06/01/2027)</li>
-                        <li>Ngày đầu tiên của lộ trình bắt buộc phải có <code>day_study</code> ngày sau ngày hiện tại</li>
-                        <li>Cột <code>day_study</code> phải có dấu ' đằng trước</li>
-                        <li>File định dạng phải là .xlsx hoặc .xls</li>
-                    </ul>
-                </p>
+                <a href="/Data/roadmap_template.xlsx" 
+                download="roadmap_template.xlsx"
+                style="color: #007bff; text-decoration: underline; font-weight: 600;">
+                    <i class="fa-solid fa-download"></i> Nhấn vào đây để tải file Excel mẫu
+                </a>
+
             </div>
 
             <form id="uploadForm" enctype="multipart/form-data">
@@ -2032,6 +2217,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fa-solid fa-upload"></i> Upload Lộ Trình
                 </button>
             </form>
+            <br>
+                <div class="info-box">
+                File Excel cần có:
+                <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li>Phân tích hiện trạng (không bắt buộc)</li>
+                    <li>Bảng lộ trình chi tiết theo ngày:</li>
+                </ol>
+                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li><code>day_number</code> - Số thứ tự ngày</li>
+                    <li><code>day_study</code> - Ngày học</li>
+                    <li><code>daily_goal</code> - Mục tiêu ngày</li>
+                    <li><code>learning_content</code> - Nội dung học</li>
+                    <li><code>practice_exercises</code> - Bài tập</li>
+                    <li><code>learning_materials</code> - Tài liệu</li>
+                    <li><code>guide_learning</code> - Hướng dẫn học tập</li>
+                    <li><code>study_duration</code> - Thời gian học mỗi ngày</li>
+                </ul>
+                <br>
+
+
+                <p style="margin-top: 10px; color: #856404;">
+                    <strong>Lưu ý thêm:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
+                        <li>Tiêu đề của 8 cột phải theo thứ tự và không được đổi tên</li>
+                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
+                        <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy</li>
+                        <li><code>study_duration</code> phải có đơn vị là m HOẶC/VÀ h</li>
+                        <li>File định dạng phải là .xlsx hoặc .xls</li>
+                    </ul>
+                </p>
+            </div>
         </div>
     </div>
 </div>
