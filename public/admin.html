@@ -2117,45 +2117,89 @@ function renderAIHistory(records, total) {
     };
 
     // Prompt Template Management
-    async function loadPromptTemplate() {
+// THAY THẾ phần loadPromptTemplate (khoảng dòng 1500)
+async function loadPromptTemplate() {
+  try {
+    if (promptEditor) promptEditor.disabled = true;
+    if (promptEditor) promptEditor.value = 'Đang tải...';
+    if (promptPreview) promptPreview.textContent = 'Đang tải...';
+    if (jsonFormat) jsonFormat.textContent = 'Đang tải...';
+    
+    const res = await fetch('/api/admin/prompt', {
+     method: 'POST',
+     headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+     },
+    });
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      const promptContent = data.data.prompt_template || '';
+      const jsonFormatContent = data.data.json_format_response || '';
+      
+      if (promptEditor) promptEditor.value = promptContent;
+      if (promptPreview) promptPreview.textContent = promptContent;
+      
+      // ✅ Ưu tiên json_format_response từ DB, nếu không có thì extract từ prompt
+      if (jsonFormatContent) {
+        if (jsonFormat) jsonFormat.textContent = jsonFormatContent;
+      } else {
+        // Fallback: extract từ prompt
+        const extractedJson = extractJsonFromPrompt(promptContent);
+        if (extractedJson && jsonFormat) {
+          jsonFormat.textContent = extractedJson;
+        }
+      }
+    } else {
+      throw new Error('Không thể tải prompt template');
+    }
+  } catch (err) {
+    console.error(err);
+    const token = localStorage.getItem('token');
+    if (token !== ADMIN_TOKEN) {
+      showMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
+    } else {
+      showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
+    }
+    if (promptEditor) promptEditor.value = '';
+    if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
+  } finally {
+    if (promptEditor) promptEditor.disabled = false;
+  }
+}
+// Thay thế hàm extractJsonFromPrompt() (dòng ~1550)
+function extractJsonFromPrompt(promptText) {
+  try {
+    // ✅ ĐƠN GIẢN: Chỉ tìm ```json ... ```
+    const jsonMatch = promptText.match(/```json\s*([\s\S]*?)\s*```/);
+    
+    if (jsonMatch && jsonMatch[1]) {
+      const jsonStr = jsonMatch[1].trim();
+      
+      // Validate JSON format (optional - có thể bỏ nếu muốn)
       try {
-        if (promptEditor) promptEditor.disabled = true;
-        if (promptEditor) promptEditor.value = 'Đang tải...';
-        if (promptPreview) promptPreview.textContent = 'Đang tải...';
-        if (jsonFormat) jsonFormat.textContent = 'Đang tải...';
-        
-        const res = await fetch('/api/admin/prompt', {
-         method: 'POST',
-         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-         },
-        });
-        
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        
-        const data = await res.json();
-        
-        if (data.success && data.data) {
-          if (promptEditor) promptEditor.value = data.data.prompt_template || '';
-          if (promptPreview) promptPreview.textContent = data.data.prompt_template || '';
-          if (jsonFormat) jsonFormat.textContent = data.data.json_format_response || '';
-        } else {
-          throw new Error('Không thể tải prompt template');
-        }
-      } catch (err) {
-        console.error(err);
-        if (token !== ADMIN_TOKEN) {
-          showMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
-        }
-        else {showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');}
-        if (promptEditor) promptEditor.value = '';
-        if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
-      } finally {
-        if (promptEditor) promptEditor.disabled = false;
+        JSON.parse(jsonStr);
+        return jsonStr;
+      } catch (e) {
+        console.warn('Invalid JSON syntax:', e.message);
+        // ✅ VẪN TRẢ VỀ dù JSON lỗi (để lưu vào DB)
+        return jsonStr;
       }
     }
-    // ============ MANUAL PROMPT TEMPLATE FUNCTIONS ============
+    
+    // ❌ Không tìm thấy ```json
+    return null;
+    
+  } catch (e) {
+    console.error('Error extracting JSON:', e);
+    return null;
+  }
+}
+// ============ MANUAL PROMPT TEMPLATE FUNCTIONS ============
     async function loadManualPromptTemplate() {
       try {
         if (manualPromptEditor) manualPromptEditor.disabled = true;
@@ -2259,134 +2303,177 @@ function renderAIHistory(records, total) {
       });
     }
 
-    if (resetManualPromptBtn) {
-      resetManualPromptBtn.addEventListener('click', async function() {
-        if (!confirm('Bạn có chắc chắn muốn khôi phục prompt thủ công về mặc định? Hành động này không thể hoàn tác!')) return;
-        
-        resetManualPromptBtn.disabled = true;
-        resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
-        
-        try {
-          const token = localStorage.getItem('token');
-          const res = await fetch('/api/admin/manual-prompt/reset', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer ' + token
-            }
-          });
-          
-          const data = await res.json();
-          
-          if (data.success) {
-            showManualPromptMessage('✅ Đã khôi phục manual prompt mặc định!', 'success');
-            manualPromptEditor.value = data.data.manual_prompt_template;
-            manualPromptPreview.textContent = data.data.manual_prompt_template;
-          } else {
-            throw new Error(data.error || 'Lỗi khi khôi phục manual prompt');
-          }
-        } catch (err) {
-          console.error(err);
-          showManualPromptMessage('❌ ' + err.message, 'error');
-        } finally {
-          resetManualPromptBtn.disabled = false;
-          resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+if (resetManualPromptBtn) {
+  resetManualPromptBtn.addEventListener('click', async function() {
+    if (!confirm('Bạn có chắc chắn muốn khôi phục prompt thủ công về mặc định? Hành động này không thể hoàn tác!')) return;
+    
+    resetManualPromptBtn.disabled = true;
+    resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+    
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/manual-prompt/reset', {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Bearer ' + token
         }
       });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        showManualPromptMessage('✅ Đã khôi phục manual prompt mặc định!', 'success');
+        
+        // ✅ UPDATE CẢ EDITOR VÀ PREVIEW
+        const manualPromptContent = data.data.manual_prompt_template;
+        
+        if (manualPromptEditor) manualPromptEditor.value = manualPromptContent;
+        if (manualPromptPreview) manualPromptPreview.textContent = manualPromptContent;
+        
+      } else {
+        throw new Error(data.error || 'Lỗi khi khôi phục manual prompt');
+      }
+    } catch (err) {
+      console.error(err);
+      showManualPromptMessage('❌ ' + err.message, 'error');
+    } finally {
+      resetManualPromptBtn.disabled = false;
+      resetManualPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
     }
+  });
+}
 
     if (manualPromptEditor) {
       manualPromptEditor.addEventListener('input', function() {
         if (manualPromptPreview) manualPromptPreview.textContent = this.value;
       });
     }
-    if (savePromptBtn) {
-      savePromptBtn.addEventListener('click', async function() {
-        const content = promptEditor.value.trim();
-        
-        if (!content) {
-          showMessage('Prompt không được để trống', 'error');
-          return;
-        }
-        
-        if (!confirm('Bạn có chắc chắn muốn lưu prompt này?')) return;
-        
-        savePromptBtn.disabled = true;
-        savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-        
-        try {
-          const prompt = document.getElementById('promptEditor').value;
-
-          const res = await fetch('/api/admin/prompt/save', {
-                      method: 'POST',
-                      headers: {
-                          'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${localStorage.getItem('token')}`
-                      },
-                      body: JSON.stringify({
-                          promptContent: prompt,
-                          jsonFormat: jsonFormat.textContent || ''
-                      })
-                  })
-          
-          const data = await res.json();
-          
-          if (data.success) {
-            showMessage('✅ Prompt đã được lưu thành công!', 'success');
-            promptPreview.textContent = content;
-          } else {
-            throw new Error(data.error || 'Lỗi khi lưu prompt');
-          }
-        } catch (err) {
-          console.error(err);
-          showMessage('❌ ' + err.message, 'error');
-        } finally {
-          savePromptBtn.disabled = false;
-          savePromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt';
-        }
-      });
+// THAY THẾ phần savePromptBtn.addEventListener (khoảng dòng 1700)
+// Trong savePromptBtn.addEventListener (dòng ~1700)
+if (savePromptBtn) {
+  savePromptBtn.addEventListener('click', async function() {
+    const content = promptEditor.value.trim();
+    
+    if (!content) {
+      showMessage('Prompt không được để trống', 'error');
+      return;
     }
+    
+    // ✅ Chỉ check có ```json không
+    if (!content.includes('```json')) {
+      showMessage('❌ Prompt phải có phần ```json để định dạng output!', 'error');
+      return;
+    }
+    
+    // Extract JSON
+    const extractedJson = extractJsonFromPrompt(content);
+    
+    if (!extractedJson) {
+      showMessage('❌ Không thể extract JSON từ ```json block!', 'error');
+      return;
+    }
+    
+    if (!confirm('Bạn có chắc chắn muốn lưu prompt này?')) return;
+    
+    savePromptBtn.disabled = true;
+    savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+    
+    try {
+      const res = await fetch('/api/admin/prompt/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          promptContent: content,
+          jsonFormat: extractedJson
+        })
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        showMessage('✅ Prompt đã được lưu thành công!', 'success');
+        promptPreview.textContent = content;
+        jsonFormat.textContent = extractedJson;
+      } else {
+        throw new Error(data.error || 'Lỗi khi lưu prompt');
+      }
+    } catch (err) {
+      console.error(err);
+      showMessage('❌ ' + err.message, 'error');
+    } finally {
+      savePromptBtn.disabled = false;
+      savePromptBtn.innerHTML = '<i class="fa-solid fa-save"></i> Lưu Prompt';
+    }
+  });
+}
 
-    if (resetPromptBtn) {
-      resetPromptBtn.addEventListener('click', async function() {
-        if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
-        
-        resetPromptBtn.disabled = true;
-        resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
-        
-        try {
-          const token = localStorage.getItem('token');
-          const res = await fetch('/api/admin/prompt-template/reset', {
-            method: 'POST',
-            headers: { 
-              'Authorization': 'Bearer ' + token
-            }
-          });
-          
-          const data = await res.json();
-          
-          if (data.success) {
-            showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
-            promptEditor.value = data.data.prompt_template;
-            promptPreview.textContent = data.data.prompt_template;
-            jsonFormat.textContent = data.data.json_format_response;
-          } else {
-            throw new Error(data.error || 'Lỗi khi khôi phục prompt');
-          }
-        } catch (err) {
-          console.error(err);
-          showMessage('❌ ' + err.message, 'error');
-        } finally {
-          resetPromptBtn.disabled = false;
-          resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+if (resetPromptBtn) {
+  resetPromptBtn.addEventListener('click', async function() {
+    if (!confirm('Bạn có chắc chắn muốn khôi phục prompt về mặc định? Hành động này không thể hoàn tác!')) return;
+    
+    resetPromptBtn.disabled = true;
+    resetPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang khôi phục...';
+    
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/admin/prompt-template/reset', {
+        method: 'POST',
+        headers: { 
+          'Authorization': 'Bearer ' + token
         }
       });
+      
+      const data = await res.json();
+      
+if (data.success) {
+  showMessage('✅ Đã khôi phục prompt mặc định!', 'success');
+  
+  const promptContent = data.data.prompt_template;
+  const jsonFormatContent = data.data.json_format_response;
+  
+  // Update 3 chỗ
+  if (promptEditor) promptEditor.value = promptContent;
+  if (promptPreview) promptPreview.textContent = promptContent;
+  
+  // ✅ UPDATE JSON với logic fallback
+  if (jsonFormat) {
+    if (jsonFormatContent) {
+      jsonFormat.textContent = jsonFormatContent;
+    } else {
+      const extractedJson = extractJsonFromPrompt(promptContent);
+      if (extractedJson) {
+        jsonFormat.textContent = extractedJson;
+      }
     }
+  }
+}else {
+        throw new Error(data.error || 'Lỗi khi khôi phục prompt');
+      }
+    } catch (err) {
+      console.error(err);
+      showMessage('❌ ' + err.message, 'error');
+    } finally {
+      resetPromptBtn.disabled = false;
+      resetPromptBtn.innerHTML = '<i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định';
+    }
+  });
+}
 
-    if (promptEditor) {
-      promptEditor.addEventListener('input', function() {
-        if (promptPreview) promptPreview.textContent = this.value;
-      });
+// Thêm SAU phần event listener hiện tại của promptEditor (khoảng dòng 1800)
+if (promptEditor) {
+  promptEditor.addEventListener('input', function() {
+    if (promptPreview) promptPreview.textContent = this.value;
+    
+    // ✅ THÊM ĐOẠN NÀY - Auto extract và update JSON format
+    const extractedJson = extractJsonFromPrompt(this.value);
+    if (extractedJson && jsonFormat) {
+      jsonFormat.textContent = extractedJson;
     }
+  });
+}
     // Feedback Management
 function renderFeedbackList(feedbacks) {
   if (!feedbacks || feedbacks.length === 0) {
