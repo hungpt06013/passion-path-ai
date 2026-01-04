@@ -718,7 +718,7 @@ loadUser().catch((e)=>console.error(e));
           </p>
           
           <div style="display: flex; gap: 15px; margin-top: 10px; color: #6b7280; font-size: 13px;">
-            <span><i class="fa-solid fa-clock"></i> ${task.study_duration_hours}h</span>
+            <span><i class="fa-solid fa-clock"></i> ${task.study_duration}h</span>
             ${task.study_date ? `<span><i class="fa-solid fa-calendar"></i> ${new Date(task.study_date).toLocaleDateString('vi-VN')}</span>` : ''}
             <span><i class="fa-solid fa-tag"></i> ${task.category}</span>
           </div>
