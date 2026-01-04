@@ -1226,7 +1226,7 @@ loadUser().catch((e)=>console.error(e));
             practice_exercises: onerow.practice_exercises || '',
             learning_materials: onerow.learning_materials || '',
             study_guide: onerow.usage_instructions || '',
-            study_duration_hours: onerow.study_duration_hours || 2
+            study_duration: onerow.study_duration || 2
           };
           days.push(dayData);
         });
@@ -1304,7 +1304,7 @@ function displayRoadmapDetails(roadmap, details) {
         }
       </td>
       <td>${d.usage_instructions || '-'}</td>
-      <td style="text-align: center;"><strong>${d.study_duration_hours}h</strong></td>
+      <td style="text-align: center;"><strong>${d.study_duration}h</strong></td>
       <td>Chưa bắt đầu</td>
     </tr>
   `).join('');
@@ -1418,7 +1418,7 @@ document.getElementById('statsContainer').innerHTML = statsHTML;
                 <div class="day-info">
                   <h3>Ngày ${day.day_number}: ${escapeHtml(day.daily_goal)}</h3>
                   <div class="day-meta">
-                    <div class="meta-tag"><i class="fas fa-clock"></i><span>${day.study_duration_hours}h học tập</span></div>
+                    <div class="meta-tag"><i class="fas fa-clock"></i><span>${day.study_duration}h học tập</span></div>
                     ${day.study_date ? `<div class="meta-tag"><i class="fas fa-calendar"></i><span>${formatDate(day.study_date)}</span></div>` : ''}
                   </div>
                 </div>
