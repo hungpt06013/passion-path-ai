@@ -1345,11 +1345,11 @@ footer {
 
                     <!-- Q9: Thời gian lộ trình (ngày) -->
                     <div class="form-group">
-                        <label class="form-label">9. Thời gian (ngày) của lộ trình (15 - 180 ngày) *</label>
-                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="180" required
-                            placeholder="Nhập số ngày (15 - 180)">
+                        <label class="form-label">9. Thời gian (ngày) của lộ trình (15 - 90 ngày) *</label>
+                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="90" required
+                            placeholder="Nhập số ngày (15 - 90)">
                         <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
-                            ⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.
+                            ⚠️ AI chỉ hỗ trợ tối đa 90 ngày. Nếu bạn muốn hơn 90 ngày, vui lòng tạo thủ công.
                         </small>
                     </div>
                 </div>
@@ -1534,7 +1534,13 @@ footer {
                 <h2>Prompt AI</h2>
                 <button class="close-btn" onclick="closeModal()">&times;</button>
             </div>
+
             <div class="modal-body">
+                <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <p style="color: #dc2626; font-weight: 600; margin: 0; line-height: 1.6;">
+                        ⚠️ Bạn hãy tùy biến lại prompt mẫu theo nhu cầu của bạn, rồi bạn gửi prompt cho AI để có được 1 kết quả gồm thông tin đánh giá hiện trạng và bảng chi tiết lộ trình học gồm 8 cột để sử dụng tính năng "Upload Excel" tạo lộ trình học cá nhân hóa.
+                    </p>
+                </div>
                 <pre id="promptContent"></pre>
             </div>
             <div class="btn-group" style="padding: 20px; display: flex; gap: 10px;">
@@ -1832,7 +1838,7 @@ function validateAllQuestions() {
     
     // Q11: Thời gian lộ trình
     const q11 = document.getElementById('q11_program_days');
-    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 180) {
+    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 90) {
         errors.push('Câu thời gian lộ trình');
     }
     
@@ -1935,7 +1941,7 @@ function attachOtherEventsForQ2() {
         }
     });
 }
-        const MAX_AI_DAYS = 180;
+        const MAX_AI_DAYS = 90;
         let dayCount = 0;
         let isGenerating = false;
         let categoriesData = [];
@@ -2101,11 +2107,11 @@ function validateDays() {
         }
 
         const days = parseInt(daysInput.value);
-        if (isNaN(days) || days < 15 || days > 180) {
+        if (isNaN(days) || days < 15 || days > 90) {
             aiBtn.disabled = true;
             warning.style.display = 'block';
-            if (days > 180) warning.textContent = '⚠️ AI chỉ hỗ trợ tối đa 180 ngày. Nếu bạn muốn hơn 180 ngày, vui lòng tạo thủ công.';
-            else if (days < 15) warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 đến 180.';
+            if (days > 90) warning.textContent = '⚠️ AI chỉ hỗ trợ tối đa 90 ngày. Nếu bạn muốn hơn 90 ngày, vui lòng tạo thủ công.';
+            else if (days < 15) warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 đến 90.';
             else warning.textContent = '';
         } else {
             aiBtn.disabled = false;
@@ -2461,7 +2467,7 @@ result.data.forEach((aiDay, index) => {
         practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
         learning_materials: aiDay.learning_materials || aiDay.materials || '',
         study_guide: aiDay.study_guide || '',
-        study_duration_hours: (typeof aiDay.study_duration_hours !== 'undefined') ? aiDay.study_duration_hours : (aiDay.hours || 2),
+        study_duration: (typeof aiDay.study_duration !== 'undefined') ? aiDay.study_duration : (aiDay.hours || 2),
         completion_status: aiDay.completion_status || 'NOT_STARTED'
     };
     
@@ -2589,7 +2595,7 @@ function addDay(dayData = null) {
             <label class="form-label">Thời gian học (giờ)</label>
             <input type="number" class="form-input" name="days[${dayCount-1}][hours]" required
                    min="0.5" max="12" step="0.5"
-                   value="${escapeHtmlAttr(dayData?.study_duration_hours || 2)}">
+                   value="${escapeHtmlAttr(dayData?.study_duration || 2)}">
         </div>
         
         <div class="form-group">
@@ -2870,7 +2876,7 @@ if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
         practice_exercises: '',
         learning_materials: '',
         study_guide: '',
-        study_duration_hours: 2
+        study_duration: 2
       };
 
       inputs.forEach(input => {
@@ -2898,7 +2904,7 @@ if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
             dayData.study_guide = val || dayData.study_guide;
             break;
           case 'hours':
-            dayData.study_duration_hours = parseFloat(val) || dayData.study_duration_hours;
+            dayData.study_duration = parseFloat(val) || dayData.study_duration;
             break;
           case 'study_date':
             dayData.study_date = val || dayData.study_date;
@@ -2920,12 +2926,12 @@ if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
 
     // =========================================
     // TÍNH duration_hours
-    // - nếu có days: tổng study_duration_hours
+    // - nếu có days: tổng study_duration
     // - else: lấy số đầu tiên trong q9_daily_time × q11_program_days
     // =========================================
     let duration_hours = 0;
     if (days.length > 0) {
-      duration_hours = days.reduce((s, d) => s + (Number(d.study_duration_hours) || 0), 0);
+      duration_hours = days.reduce((s, d) => s + (Number(d.study_duration) || 0), 0);
     } else {
       const hoursPerDay = extractFirstNumber(q9_daily_time, 2);
       duration_hours = hoursPerDay * q11_program_days;
