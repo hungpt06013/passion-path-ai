@@ -16,7 +16,7 @@ Bạn là một chuyên gia giáo dục **`<CATEGORY>` -- `<SUB_CATEGORY>`** có
 ### 3. CAM KẾT THỜI GIAN
 - **Câu 7** - Thời gian học mỗi ngày: `<DAILY_TIME>`
 - **Câu 8** - Số buổi mỗi tuần: `<WEEKLY_FREQUENCY>`
-- **Câu 9** - Tổng thời gian của lộ trình: `<TOTAL_DURATION>`
+- **Câu 9** - Tổng số ngày của lộ trình: `<TOTAL_DURATION>`
 ### 4. PHONG CÁCH HỌC TẬP
 - **Câu 10** - Cách học yêu thích: `<LEARNING_STYLE>`
 - **Câu 11** - Kết hợp phương pháp học tập: `<LEARNING_METHOD>`
