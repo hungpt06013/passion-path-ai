@@ -35,7 +35,7 @@ CREATE TABLE "learning_roadmap_details" (
 	"learning_content" text NOT NULL,
 	"practice_exercises" text,
 	"learning_materials" varchar(1000),
-	"study_duration_hours" numeric(4, 2) NOT NULL,
+	"study_duration" numeric(4, 2) NOT NULL,
 	"completion_status" varchar(20) DEFAULT 'NOT_STARTED',
 	"study_date" date,
 	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
@@ -44,7 +44,7 @@ CREATE TABLE "learning_roadmap_details" (
 	"usage_instructions" text,
 	CONSTRAINT "learning_roadmap_details_roadmap_id_day_number_key" UNIQUE("roadmap_id","day_number"),
 	CONSTRAINT "learning_roadmap_details_completion_status_check" CHECK (CHECK (((completion_status)::text = ANY ((ARRAY['NOT_STARTED'::character varying, 'IN_PROGRESS'::character varying, 'COMPLETED'::character varying, 'SKIPPED'::character varying])::text[])))),
-	CONSTRAINT "learning_roadmap_details_study_duration_hours_check" CHECK (CHECK ((study_duration_hours > (0)::numeric)))
+	CONSTRAINT "learning_roadmap_details_study_duration_hours_check" CHECK (CHECK ((study_duration > (0)::numeric)))
 );
 CREATE TABLE "learning_roadmap_details_system" (
 	"detail_id" serial PRIMARY KEY,
@@ -56,7 +56,7 @@ CREATE TABLE "learning_roadmap_details_system" (
 	"practice_exercises" text,
 	"learning_materials" text,
 	"usage_instructions" text,
-	"study_duration_hours" numeric(4, 2),
+	"study_duration" numeric(4, 2),
 	"completion_status" varchar(20),
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
@@ -115,6 +115,14 @@ CREATE TABLE "learning_roadmaps_system" (
 	"roadmap_analyst" text,
 	CONSTRAINT "learning_roadmaps_system_learning_effectiveness_check" CHECK (CHECK (((learning_effectiveness >= 0) AND (learning_effectiveness <= 100)))),
 	CONSTRAINT "learning_roadmaps_system_overall_rating_check" CHECK (CHECK (((overall_rating >= 0) AND (overall_rating <= 100))))
+);
+CREATE TABLE "password_reset_codes" (
+	"id" serial PRIMARY KEY,
+	"email" text NOT NULL,
+	"code" varchar(6) NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"used" boolean DEFAULT false,
+	"created_at" timestamp DEFAULT CURRENT_TIMESTAMP
 );
 CREATE TABLE "sub_categories" (
 	"id" serial PRIMARY KEY,
@@ -183,10 +191,15 @@ CREATE INDEX "idx_roadmaps_status" ON "learning_roadmaps" ("status");
 CREATE INDEX "idx_roadmaps_user_id" ON "learning_roadmaps" ("user_id");
 CREATE UNIQUE INDEX "learning_roadmaps_pkey" ON "learning_roadmaps" ("roadmap_id");
 CREATE UNIQUE INDEX "learning_roadmaps_system_pkey" ON "learning_roadmaps_system" ("roadmap_id");
+CREATE INDEX "idx_reset_code" ON "password_reset_codes" ("code");
+CREATE INDEX "idx_reset_email" ON "password_reset_codes" ("email");
+CREATE UNIQUE INDEX "password_reset_codes_pkey" ON "password_reset_codes" ("id");
 CREATE UNIQUE INDEX "sub_categories_category_id_name_key" ON "sub_categories" ("category_id","name");
 CREATE UNIQUE INDEX "sub_categories_pkey" ON "sub_categories" ("id");
 CREATE INDEX "idx_feedback_created_at" ON "user_feedback" ("created_at");
 CREATE INDEX "idx_feedback_user_id" ON "user_feedback" ("user_id");
+CREATE INDEX "idx_user_feedback_created" ON "user_feedback" ("created_at");
+CREATE INDEX "idx_user_feedback_user" ON "user_feedback" ("user_id");
 CREATE UNIQUE INDEX "user_feedback_pkey" ON "user_feedback" ("feedback_id");
 CREATE UNIQUE INDEX "users_email_key" ON "users" ("email");
 CREATE UNIQUE INDEX "users_pkey" ON "users" ("id");
