@@ -43,13 +43,13 @@ Dựa trên thông tin trên, hãy thiết kế một lộ trình học **`<CATE
 | Cột | Mô tả |
 |-----|-------|
 | **day_number** | Số thứ tự ngày học (ví dụ: 1, 2, 3,...) |
-| **day_study** | Bắt đầu từ ngày hôm nay và tăng dần (theo định dạng dd/mm/yyyy, NẾU DAY HOẶC MONTH CHỈ CÓ 1 SỐ THAY VÌ 2 SỐ, GHI THÊM SỐ 0 ĐẰNG TRƯỚC NÓ) |
+| **day_study** | Bắt đầu từ ngày hôm nay và tăng dần (theo định dạng dd/mm/yyyy) |
 | **daily_goal** | Điều cần đạt được sau ngày học |
 | **learning_content** | Kiến thức và kỹ năng sẽ học |
 | **practice_exercises** | Bài tập rèn luyện và thực hành |
 | **learning_materials** | Cung cấp nguồn tài liệu dạng "đường link web" có thể học trực tuyến |
 | **guide_learning** | Hướng dẫn vị trí/nội dung cụ thể cần học ở link web học tập |
-| **study_duration_hours** | Theo thông tin thời gian học mỗi ngày của học viên (ĐƠN VỊ: m HOẶC/VÀ h)|
+| **study_duration** | Theo thông tin thời gian học mỗi ngày của học viên (ĐƠN VỊ: m HOẶC/VÀ h)|
 ---
 #### Yêu cầu về cột "Công cụ/Tài liệu học tập"
 Chỉ cung cấp link học liệu (bắt buộc) và tuân thủ các tiêu chí sau:
