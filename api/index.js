@@ -5340,428 +5340,6 @@ app.delete('/api/admin/feedback/:feedbackId', requireAdmin, async (req, res) => 
     client.release();
   }
 });
-// ========== START SERVER ==========
-
-const PORT = parseInt(process.env.PORT || "5000", 10);
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`ℹ️  Local: http://localhost:${PORT}/`);
-});
-
-// ========== VERSION 2 ==========
-/*const generateRoadmapSchema = Joi.object({
-    category: Joi.string().required(),
-    subCategory: Joi.string().required(),
-    roadmapName: Joi.string().required(),
-    mainPurpose: Joi.string().required(),
-    specificGoal: Joi.string().required(),
-    currentJob: Joi.string().allow(''),
-    studyTime: Joi.string().required(),
-    currentLevel: Joi.string().required(),
-    skillsToImprove: Joi.array().items(Joi.string()).min(1).required(),
-    dailyTime: Joi.string().required(),
-    weeklyFrequency: Joi.string().required(),
-    totalDuration: Joi.string().required(),
-    learningStyle: Joi.array().items(Joi.string()).min(1).required(),
-    learningMethod: Joi.array().items(Joi.string()).min(1).required(),
-    difficulties: Joi.string().required(),
-    motivation: Joi.string().required(),
-    materialType: Joi.array().items(Joi.string()).min(1).required(),
-    materialLanguage: Joi.string().required(),
-    assessmentType: Joi.string().required(),
-    resultDisplay: Joi.string().required(),
-    assessmentFrequency: Joi.string().required()
-});
-
-const saveRoadmapSchema = Joi.object({
-    formData: Joi.object().required(),
-    analysis: Joi.string().required(),
-    roadmap: Joi.array().items(
-        Joi.object({
-            day: Joi.number().required(),
-            goal: Joi.string().required(),
-            content: Joi.string().required(),
-            exercises: Joi.string().allow(''),
-            materials: Joi.string().required(),
-            instructions: Joi.string().allow(''),
-            duration: Joi.string().required()
-        })
-    ).min(1).required(),
-    aiPromptLog: Joi.alternatives().try(Joi.string(), Joi.number()).required()
-});
-
-// =====================================================
-// HELPER FUNCTIONS
-// =====================================================
-
-
-
-async function logAIPrompt(userId, formData, prompt, status) {
-    const query = `
-        INSERT INTO ai_prompt_logs (
-            user_id, category, sub_category, full_prompt, form_data, status
-        ) VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING log_id
-    `;
-    
-    const result = await pool.query(query, [
-        userId,
-        formData.category,
-        formData.subCategory,
-        prompt,
-        JSON.stringify(formData),
-        status
-    ]);
-    
-    return result.rows[0].log_id;
-}
-
-async function updateAILog(logId, updates) {
-    const fields = [];
-    const values = [];
-    let idx = 1;
-
-    Object.keys(updates).forEach(key => {
-        fields.push(`${key} = $${idx}`);
-        values.push(updates[key]);
-        idx++;
-    });
-
-    values.push(logId);
-
-    const query = `
-        UPDATE ai_prompt_logs
-        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
-        WHERE log_id = $${idx}
-    `;
-
-    await pool.query(query, values);
-}
-
-async function callAIService(prompt, aiPrompt_system, actualDays = 30, hoursPerDay = 1) {
-  try {
-    actualDays = Number(actualDays) || 30;
-    hoursPerDay = Number(hoursPerDay) || hoursPerDay || 1;
-    console.log('callAIService start days=', actualDays, '-h/day=', hoursPerDay, '-prompt=', prompt);
-
-    const roadmapStartDate = new Date();
-    roadmapStartDate.setHours(0,0,0,0);
-
-    // calculate safe tokens per day so we don't exceed model cap
-    const maxAvailable = Math.max( MIN_COMPLETION_TOKENS, (MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS) );
-    const safeTokensPerDay = Math.max(256, Math.floor(maxAvailable / Math.max(1, actualDays))); // conservative lower bound
-    const desiredTokens = Math.min(maxAvailable, actualDays * safeTokensPerDay);
-
-    let aiResponseText = null;
-    let attempts = 0;
-    const MAX_ATTEMPTS_LOCAL = 2;
-
-    const messages = [
-      { role: "system", content: "Bạn là một chuyên gia thiết kế lộ trình học, trả về JSON duy nhất như yêu cầu (không văn bản thêm): " || aiPrompt_system },
-      { role: "user", content: prompt }
-    ];
-
-    while (attempts < MAX_ATTEMPTS_LOCAL && !aiResponseText) {
-      attempts++;
-      try {
-        console.log(`AI attempt ${attempts}/${MAX_ATTEMPTS_LOCAL}, desiredTokens=${desiredTokens}`);
-        const completion = await callOpenAIWithFallback({
-          messages,
-          desiredCompletionTokens: desiredTokens
-        });
-        const text = completion?.choices?.[0]?.message?.content?.trim();
-        if (text) aiResponseText = text;
-      } catch (e) {
-        console.error(`AI attempt ${attempts} failed:`, e && e.message);
-        if (attempts === MAX_ATTEMPTS_LOCAL) throw e;
-      }
-    }
-
-    if (!aiResponseText) throw new Error("AI không trả về kết quả");
-
-    // helper parse JSON block
-    const extractJson = (s) => {
-      const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-      return m ? m[1] : s;
-    };
-
-    let jsonText = extractJson(aiResponseText);
-    let parsed;
-    try { parsed = JSON.parse(jsonText); }
-    catch (e) {
-      const cleaned = jsonText.replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/,\s*([}\]])/g,'$1');
-      parsed = JSON.parse(cleaned);
-    }
-
-    let days = Array.isArray(parsed.roadmap) ? parsed.roadmap : (Array.isArray(parsed) ? parsed : []);
-    // if AI returned fewer days than requested, try to ask it to continue (simple continuation loop)
-    let totalAttemptsContinue = 0;
-    while (days.length < actualDays && totalAttemptsContinue < 3) {
-      totalAttemptsContinue++;
-      const missingFrom = days.length + 1;
-      const contPrompt = `Bạn đã trả ${days.length} ngày. Vui lòng tiếp tục trả phần còn lại từ ngày ${missingFrom} đến ${actualDays} cùng định dạng JSON như trước, chỉ trả mảng "roadmap" cho các ngày còn thiếu.`;
-      console.log('Requesting continuation:', contPrompt);
-      const contCompletion = await callOpenAIWithFallback({
-        messages: [{ role: "system", content: "Tiếp tục JSON trước đó" }, { role: "user", content: contPrompt }],
-        desiredCompletionTokens: Math.min(desiredTokens, Math.max(512, safeTokensPerDay * (actualDays - days.length)))
-      });
-      const contText = contCompletion?.choices?.[0]?.message?.content?.trim();
-      if (!contText) break;
-      const contJsonText = extractJson(contText);
-      try {
-        const contParsed = JSON.parse(contJsonText);
-        const contDays = Array.isArray(contParsed.roadmap) ? contParsed.roadmap : (Array.isArray(contParsed) ? contParsed : []);
-        if (contDays.length === 0) break;
-        days = days.concat(contDays);
-      } catch (e) {
-        // ignore and break if cannot parse continuation
-        console.warn('Continuation parse failed:', e.message);
-        break;
-      }
-    }
-
-    // normalize & pad/truncate
-    const normalized = [];
-    for (let i = 0; i < actualDays; i++) {
-      const src = days[i] || {};
-      const day_number = Number(src.day_number ?? src.day ?? (i+1));
-      const daily_goal = String(src.daily_goal ?? src.goal ?? '').trim() || `Mục tiêu ngày ${i+1}`;
-      const learning_content = String(src.learning_content ?? src.content ?? '').trim() || '';
-      const practice_exercises = String(src.practice_exercises ?? src.exercises ?? '').trim() || '';
-      const learning_materials = String(src.learning_materials ?? src.materials ?? '').trim() || '';
-      const study_guide = String(src.study_guide ?? src.instructions ?? src.guide ?? '').trim() || '';
-      const study_duration = parseFloat(src.study_duration ?? src.duration ?? src.hours ?? hoursPerDay) || hoursPerDay;
-
-      normalized.push({
-        day_number,
-        daily_goal,
-        learning_content,
-        practice_exercises,
-        learning_materials,
-        study_guide,
-        study_duration,
-        completion_status: 'NOT_STARTED',
-        study_date: new Date(roadmapStartDate.getTime() + (i * 86400000)).toISOString().split('T')[0]
-      });
-    }
-
-    return { analysis: parsed.analysis || '', roadmap: normalized, tokensUsed: 0 };
-  } catch (err) {
-    console.error('callAIService error:', err && err.message ? err.message : err);
-    throw err;
-  }
-}
-// ...existing code...
-
-function parseAIResponse(aiResponse) {
-    return {
-        analysis: aiResponse.analysis,
-        roadmap: aiResponse.roadmap
-    };
-}
-
-// =====================================================
-// API ROUTES
-// =====================================================
-
-// POST /api/ai/generate-roadmap-with-custom-prompt
-app.post("/api/ai/generate-roadmap-with-custom-prompt", requireAuth, async (req, res) => {
-    const startTime = Date.now();
-    
-    try {
-        const { error, value } = generateRoadmapSchema.validate(req.body);
-        if (error) {
-            return res.status(400).json({
-                error: 'Invalid input data',
-                details: error.details[0].message
-            });
-        }
-
-        const promptTemplate = await getPromptTemplate();
-        
-        let aiPrompt = promptTemplate.prompt_template;
-        let aiPrompt_system = promptTemplate.json_format_response;
-        
-        const variableMapping = {
-            'CATEGORY': value.category,
-            'SUB_CATEGORY': value.subCategory,
-            'ROADMAP_NAME': value.roadmapName,
-            'MAIN_PURPOSE': value.mainPurpose,
-            'SPECIFIC_GOAL': value.specificGoal,
-            'CURRENT_JOB': value.currentJob || 'Không cung cấp',
-            'STUDY_TIME': value.studyTime,
-            'CURRENT_LEVEL': value.currentLevel,
-            'SKILLS_TO_IMPROVE': Array.isArray(value.skillsToImprove) ? value.skillsToImprove.join(', ') : value.skillsToImprove,
-            'DAILY_TIME': value.dailyTime,
-            'WEEKLY_FREQUENCY': value.weeklyFrequency,
-            'TOTAL_DURATION': value.totalDuration,
-            'LEARNING_STYLE': Array.isArray(value.learningStyle) ? value.learningStyle.join(', ') : value.learningStyle,
-            'LEARNING_METHOD': Array.isArray(value.learningMethod) ? value.learningMethod.join(', ') : value.learningMethod,
-            'DIFFICULTIES': value.difficulties,
-            'MOTIVATION': value.motivation,
-            'MATERIAL_TYPE': Array.isArray(value.materialType) ? value.materialType.join(', ') : value.materialType,
-            'MATERIAL_LANGUAGE': value.materialLanguage,
-            'ASSESSMENT_TYPE': value.assessmentType,
-            'RESULT_DISPLAY': value.resultDisplay,
-            'ASSESSMENT_FREQUENCY': value.assessmentFrequency
-        };
-
-        Object.keys(variableMapping).forEach(key => {
-            aiPrompt = aiPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
-        });
-
-        const logId = await logAIPrompt(req.user.id, value, aiPrompt, 'PENDING');
-
-        try {
-            const actualDays = value.totalDuration; //parseInt(finalData.program_days);
-            const hoursPerDay = value.dailyTime; //Math.round((totalHours / actualDays) * 100) / 100;
-
-            // gọi AI với số ngày và hoursPerDay
-            const aiResponse = await callAIService(aiPrompt, aiPrompt_system, actualDays, hoursPerDay);
-            // parsedResponse = aiResponse (already {analysis, roadmap})
-            const parsedResponse = {
-              analysis: aiResponse.analysis,
-              roadmap: aiResponse.roadmap
-            };
-
-            console.log('parsedResponse:',JSON.stringify(parsedResponse));
-            
-            await updateAILog(logId, {
-                status: 'SUCCESS',
-                ai_response: JSON.stringify(parsedResponse),
-                processing_time: Date.now() - startTime,
-                tokens_used: aiResponse.tokensUsed || 0,
-                ai_model: process.env.AI_MODEL || 'mock'
-            });
-
-            res.json({
-                success: true,
-                data: parsedResponse,
-                logId: logId
-            });
-
-        } catch (aiError) {
-            await updateAILog(logId, {
-                status: 'FAILED',
-                error_message: aiError.message,
-                processing_time: Date.now() - startTime
-            });
-            throw aiError;
-        }
-
-    } catch (error) {
-        console.error('Error generating roadmap:', error);
-        res.status(500).json({
-            error: 'AI generation failed',
-            //message: 'Không thể tạo lộ trình với AI'
-            message: error.message || 'Lỗi' || req.body
-        });
-    }
-});
-
-// POST /api/ai/save-roadmap
-app.post("/api/ai/save-roadmap", requireAuth, async (req, res) => {
-    const client = await pool.connect();
-
-    try {
-        const { error, value } = saveRoadmapSchema.validate(req.body);
-        if (error) {
-            return res.status(400).json({
-                error: 'Invalid input data',
-                details: error.details[0].message
-            });
-        }
-
-        await client.query('BEGIN');
-
-        const { formData, analysis, roadmap, aiPromptLog } = value;
-
-        const totalDays = roadmap.length;
-        const totalHours = roadmap.reduce((sum, day) => {
-            const hours = parseFloat(day.duration.replace(/[^\d.]/g, '')) || 0;
-            return sum + hours;
-        }, 0);
-
-        const userId = req.user.id;
-
-        const roadmapQuery = `
-            INSERT INTO learning_roadmaps (
-                roadmap_name, category, sub_category, start_level, user_id,
-                duration_days, duration_hours, roadmap_analyst, status, 
-                expected_outcome, progress_percentage, total_studied_hours
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', $9, 0.00, 0.00)
-            RETURNING roadmap_id
-        `;
-
-        const roadmapResult = await client.query(roadmapQuery, [
-            formData.roadmapName,
-            formData.category,
-            formData.subCategory || null,
-            formData.currentLevel,
-            userId,
-            totalDays,
-            totalHours,
-            analysis,
-            formData.specificGoal
-        ]);
-
-        const roadmapId = roadmapResult.rows[0].roadmap_id;
-
-        for (const day of roadmap) {
-            const detailQuery = `
-                INSERT INTO learning_roadmap_details (
-                    roadmap_id, day_number, daily_goal, learning_content,
-                    practice_exercises, learning_materials, usage_instructions,
-                    study_duration, completion_status, study_date
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            `;
-
-            const durationHours = parseFloat(day.duration.replace(/[^\d.]/g, '')) || 0;
-
-            await client.query(detailQuery, [
-                roadmapId,
-                day.day,
-                day.goal,
-                day.content,
-                day.exercises || null,
-                day.materials,
-                day.instructions || null,
-                durationHours,
-                'NOT_STARTED',
-                null
-            ]);
-        }
-
-        const logQuery = `
-            UPDATE ai_prompt_logs
-            SET roadmap_id = $1
-            WHERE log_id = $2
-        `;
-
-        await client.query(logQuery, [roadmapId, aiPromptLog]);
-
-        await client.query('COMMIT');
-
-        res.status(201).json({
-            success: true,
-            message: 'Lộ trình đã được lưu thành công',
-            data: {
-                roadmap_id: roadmapId
-            }
-        });
-
-    } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('Error saving roadmap:', error);
-        res.status(500).json({
-            error: 'Database transaction failed',
-            message: 'Không thể lưu lộ trình'
-        });
-    } finally {
-        client.release();
-    }
-});
-*/
 const updateDetailStatusSchema = Joi.object({
     detailId: Joi.number().required(),
     status: Joi.string().valid('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED').required(),
@@ -7040,3 +6618,427 @@ app.get('/api/categories/:categoryName', async (req, res) => {
     });
   }
 });
+// ========== START SERVER ==========
+
+const PORT = parseInt(process.env.PORT || "5000", 10);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`ℹ️  Local: http://localhost:${PORT}/`);
+});
+export default app;
+// ========== VERSION 2 ==========
+/*const generateRoadmapSchema = Joi.object({
+    category: Joi.string().required(),
+    subCategory: Joi.string().required(),
+    roadmapName: Joi.string().required(),
+    mainPurpose: Joi.string().required(),
+    specificGoal: Joi.string().required(),
+    currentJob: Joi.string().allow(''),
+    studyTime: Joi.string().required(),
+    currentLevel: Joi.string().required(),
+    skillsToImprove: Joi.array().items(Joi.string()).min(1).required(),
+    dailyTime: Joi.string().required(),
+    weeklyFrequency: Joi.string().required(),
+    totalDuration: Joi.string().required(),
+    learningStyle: Joi.array().items(Joi.string()).min(1).required(),
+    learningMethod: Joi.array().items(Joi.string()).min(1).required(),
+    difficulties: Joi.string().required(),
+    motivation: Joi.string().required(),
+    materialType: Joi.array().items(Joi.string()).min(1).required(),
+    materialLanguage: Joi.string().required(),
+    assessmentType: Joi.string().required(),
+    resultDisplay: Joi.string().required(),
+    assessmentFrequency: Joi.string().required()
+});
+
+const saveRoadmapSchema = Joi.object({
+    formData: Joi.object().required(),
+    analysis: Joi.string().required(),
+    roadmap: Joi.array().items(
+        Joi.object({
+            day: Joi.number().required(),
+            goal: Joi.string().required(),
+            content: Joi.string().required(),
+            exercises: Joi.string().allow(''),
+            materials: Joi.string().required(),
+            instructions: Joi.string().allow(''),
+            duration: Joi.string().required()
+        })
+    ).min(1).required(),
+    aiPromptLog: Joi.alternatives().try(Joi.string(), Joi.number()).required()
+});
+
+// =====================================================
+// HELPER FUNCTIONS
+// =====================================================
+
+
+
+async function logAIPrompt(userId, formData, prompt, status) {
+    const query = `
+        INSERT INTO ai_prompt_logs (
+            user_id, category, sub_category, full_prompt, form_data, status
+        ) VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING log_id
+    `;
+    
+    const result = await pool.query(query, [
+        userId,
+        formData.category,
+        formData.subCategory,
+        prompt,
+        JSON.stringify(formData),
+        status
+    ]);
+    
+    return result.rows[0].log_id;
+}
+
+async function updateAILog(logId, updates) {
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    Object.keys(updates).forEach(key => {
+        fields.push(`${key} = $${idx}`);
+        values.push(updates[key]);
+        idx++;
+    });
+
+    values.push(logId);
+
+    const query = `
+        UPDATE ai_prompt_logs
+        SET ${fields.join(', ')}, updated_at = CURRENT_TIMESTAMP
+        WHERE log_id = $${idx}
+    `;
+
+    await pool.query(query, values);
+}
+
+async function callAIService(prompt, aiPrompt_system, actualDays = 30, hoursPerDay = 1) {
+  try {
+    actualDays = Number(actualDays) || 30;
+    hoursPerDay = Number(hoursPerDay) || hoursPerDay || 1;
+    console.log('callAIService start days=', actualDays, '-h/day=', hoursPerDay, '-prompt=', prompt);
+
+    const roadmapStartDate = new Date();
+    roadmapStartDate.setHours(0,0,0,0);
+
+    // calculate safe tokens per day so we don't exceed model cap
+    const maxAvailable = Math.max( MIN_COMPLETION_TOKENS, (MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS) );
+    const safeTokensPerDay = Math.max(256, Math.floor(maxAvailable / Math.max(1, actualDays))); // conservative lower bound
+    const desiredTokens = Math.min(maxAvailable, actualDays * safeTokensPerDay);
+
+    let aiResponseText = null;
+    let attempts = 0;
+    const MAX_ATTEMPTS_LOCAL = 2;
+
+    const messages = [
+      { role: "system", content: "Bạn là một chuyên gia thiết kế lộ trình học, trả về JSON duy nhất như yêu cầu (không văn bản thêm): " || aiPrompt_system },
+      { role: "user", content: prompt }
+    ];
+
+    while (attempts < MAX_ATTEMPTS_LOCAL && !aiResponseText) {
+      attempts++;
+      try {
+        console.log(`AI attempt ${attempts}/${MAX_ATTEMPTS_LOCAL}, desiredTokens=${desiredTokens}`);
+        const completion = await callOpenAIWithFallback({
+          messages,
+          desiredCompletionTokens: desiredTokens
+        });
+        const text = completion?.choices?.[0]?.message?.content?.trim();
+        if (text) aiResponseText = text;
+      } catch (e) {
+        console.error(`AI attempt ${attempts} failed:`, e && e.message);
+        if (attempts === MAX_ATTEMPTS_LOCAL) throw e;
+      }
+    }
+
+    if (!aiResponseText) throw new Error("AI không trả về kết quả");
+
+    // helper parse JSON block
+    const extractJson = (s) => {
+      const m = s.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      return m ? m[1] : s;
+    };
+
+    let jsonText = extractJson(aiResponseText);
+    let parsed;
+    try { parsed = JSON.parse(jsonText); }
+    catch (e) {
+      const cleaned = jsonText.replace(/[\u2018\u2019]/g,"'").replace(/[\u201C\u201D]/g,'"').replace(/,\s*([}\]])/g,'$1');
+      parsed = JSON.parse(cleaned);
+    }
+
+    let days = Array.isArray(parsed.roadmap) ? parsed.roadmap : (Array.isArray(parsed) ? parsed : []);
+    // if AI returned fewer days than requested, try to ask it to continue (simple continuation loop)
+    let totalAttemptsContinue = 0;
+    while (days.length < actualDays && totalAttemptsContinue < 3) {
+      totalAttemptsContinue++;
+      const missingFrom = days.length + 1;
+      const contPrompt = `Bạn đã trả ${days.length} ngày. Vui lòng tiếp tục trả phần còn lại từ ngày ${missingFrom} đến ${actualDays} cùng định dạng JSON như trước, chỉ trả mảng "roadmap" cho các ngày còn thiếu.`;
+      console.log('Requesting continuation:', contPrompt);
+      const contCompletion = await callOpenAIWithFallback({
+        messages: [{ role: "system", content: "Tiếp tục JSON trước đó" }, { role: "user", content: contPrompt }],
+        desiredCompletionTokens: Math.min(desiredTokens, Math.max(512, safeTokensPerDay * (actualDays - days.length)))
+      });
+      const contText = contCompletion?.choices?.[0]?.message?.content?.trim();
+      if (!contText) break;
+      const contJsonText = extractJson(contText);
+      try {
+        const contParsed = JSON.parse(contJsonText);
+        const contDays = Array.isArray(contParsed.roadmap) ? contParsed.roadmap : (Array.isArray(contParsed) ? contParsed : []);
+        if (contDays.length === 0) break;
+        days = days.concat(contDays);
+      } catch (e) {
+        // ignore and break if cannot parse continuation
+        console.warn('Continuation parse failed:', e.message);
+        break;
+      }
+    }
+
+    // normalize & pad/truncate
+    const normalized = [];
+    for (let i = 0; i < actualDays; i++) {
+      const src = days[i] || {};
+      const day_number = Number(src.day_number ?? src.day ?? (i+1));
+      const daily_goal = String(src.daily_goal ?? src.goal ?? '').trim() || `Mục tiêu ngày ${i+1}`;
+      const learning_content = String(src.learning_content ?? src.content ?? '').trim() || '';
+      const practice_exercises = String(src.practice_exercises ?? src.exercises ?? '').trim() || '';
+      const learning_materials = String(src.learning_materials ?? src.materials ?? '').trim() || '';
+      const study_guide = String(src.study_guide ?? src.instructions ?? src.guide ?? '').trim() || '';
+      const study_duration = parseFloat(src.study_duration ?? src.duration ?? src.hours ?? hoursPerDay) || hoursPerDay;
+
+      normalized.push({
+        day_number,
+        daily_goal,
+        learning_content,
+        practice_exercises,
+        learning_materials,
+        study_guide,
+        study_duration,
+        completion_status: 'NOT_STARTED',
+        study_date: new Date(roadmapStartDate.getTime() + (i * 86400000)).toISOString().split('T')[0]
+      });
+    }
+
+    return { analysis: parsed.analysis || '', roadmap: normalized, tokensUsed: 0 };
+  } catch (err) {
+    console.error('callAIService error:', err && err.message ? err.message : err);
+    throw err;
+  }
+}
+// ...existing code...
+
+function parseAIResponse(aiResponse) {
+    return {
+        analysis: aiResponse.analysis,
+        roadmap: aiResponse.roadmap
+    };
+}
+
+// =====================================================
+// API ROUTES
+// =====================================================
+
+// POST /api/ai/generate-roadmap-with-custom-prompt
+app.post("/api/ai/generate-roadmap-with-custom-prompt", requireAuth, async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+        const { error, value } = generateRoadmapSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({
+                error: 'Invalid input data',
+                details: error.details[0].message
+            });
+        }
+
+        const promptTemplate = await getPromptTemplate();
+        
+        let aiPrompt = promptTemplate.prompt_template;
+        let aiPrompt_system = promptTemplate.json_format_response;
+        
+        const variableMapping = {
+            'CATEGORY': value.category,
+            'SUB_CATEGORY': value.subCategory,
+            'ROADMAP_NAME': value.roadmapName,
+            'MAIN_PURPOSE': value.mainPurpose,
+            'SPECIFIC_GOAL': value.specificGoal,
+            'CURRENT_JOB': value.currentJob || 'Không cung cấp',
+            'STUDY_TIME': value.studyTime,
+            'CURRENT_LEVEL': value.currentLevel,
+            'SKILLS_TO_IMPROVE': Array.isArray(value.skillsToImprove) ? value.skillsToImprove.join(', ') : value.skillsToImprove,
+            'DAILY_TIME': value.dailyTime,
+            'WEEKLY_FREQUENCY': value.weeklyFrequency,
+            'TOTAL_DURATION': value.totalDuration,
+            'LEARNING_STYLE': Array.isArray(value.learningStyle) ? value.learningStyle.join(', ') : value.learningStyle,
+            'LEARNING_METHOD': Array.isArray(value.learningMethod) ? value.learningMethod.join(', ') : value.learningMethod,
+            'DIFFICULTIES': value.difficulties,
+            'MOTIVATION': value.motivation,
+            'MATERIAL_TYPE': Array.isArray(value.materialType) ? value.materialType.join(', ') : value.materialType,
+            'MATERIAL_LANGUAGE': value.materialLanguage,
+            'ASSESSMENT_TYPE': value.assessmentType,
+            'RESULT_DISPLAY': value.resultDisplay,
+            'ASSESSMENT_FREQUENCY': value.assessmentFrequency
+        };
+
+        Object.keys(variableMapping).forEach(key => {
+            aiPrompt = aiPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
+        });
+
+        const logId = await logAIPrompt(req.user.id, value, aiPrompt, 'PENDING');
+
+        try {
+            const actualDays = value.totalDuration; //parseInt(finalData.program_days);
+            const hoursPerDay = value.dailyTime; //Math.round((totalHours / actualDays) * 100) / 100;
+
+            // gọi AI với số ngày và hoursPerDay
+            const aiResponse = await callAIService(aiPrompt, aiPrompt_system, actualDays, hoursPerDay);
+            // parsedResponse = aiResponse (already {analysis, roadmap})
+            const parsedResponse = {
+              analysis: aiResponse.analysis,
+              roadmap: aiResponse.roadmap
+            };
+
+            console.log('parsedResponse:',JSON.stringify(parsedResponse));
+            
+            await updateAILog(logId, {
+                status: 'SUCCESS',
+                ai_response: JSON.stringify(parsedResponse),
+                processing_time: Date.now() - startTime,
+                tokens_used: aiResponse.tokensUsed || 0,
+                ai_model: process.env.AI_MODEL || 'mock'
+            });
+
+            res.json({
+                success: true,
+                data: parsedResponse,
+                logId: logId
+            });
+
+        } catch (aiError) {
+            await updateAILog(logId, {
+                status: 'FAILED',
+                error_message: aiError.message,
+                processing_time: Date.now() - startTime
+            });
+            throw aiError;
+        }
+
+    } catch (error) {
+        console.error('Error generating roadmap:', error);
+        res.status(500).json({
+            error: 'AI generation failed',
+            //message: 'Không thể tạo lộ trình với AI'
+            message: error.message || 'Lỗi' || req.body
+        });
+    }
+});
+
+// POST /api/ai/save-roadmap
+app.post("/api/ai/save-roadmap", requireAuth, async (req, res) => {
+    const client = await pool.connect();
+
+    try {
+        const { error, value } = saveRoadmapSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({
+                error: 'Invalid input data',
+                details: error.details[0].message
+            });
+        }
+
+        await client.query('BEGIN');
+
+        const { formData, analysis, roadmap, aiPromptLog } = value;
+
+        const totalDays = roadmap.length;
+        const totalHours = roadmap.reduce((sum, day) => {
+            const hours = parseFloat(day.duration.replace(/[^\d.]/g, '')) || 0;
+            return sum + hours;
+        }, 0);
+
+        const userId = req.user.id;
+
+        const roadmapQuery = `
+            INSERT INTO learning_roadmaps (
+                roadmap_name, category, sub_category, start_level, user_id,
+                duration_days, duration_hours, roadmap_analyst, status, 
+                expected_outcome, progress_percentage, total_studied_hours
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', $9, 0.00, 0.00)
+            RETURNING roadmap_id
+        `;
+
+        const roadmapResult = await client.query(roadmapQuery, [
+            formData.roadmapName,
+            formData.category,
+            formData.subCategory || null,
+            formData.currentLevel,
+            userId,
+            totalDays,
+            totalHours,
+            analysis,
+            formData.specificGoal
+        ]);
+
+        const roadmapId = roadmapResult.rows[0].roadmap_id;
+
+        for (const day of roadmap) {
+            const detailQuery = `
+                INSERT INTO learning_roadmap_details (
+                    roadmap_id, day_number, daily_goal, learning_content,
+                    practice_exercises, learning_materials, usage_instructions,
+                    study_duration, completion_status, study_date
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `;
+
+            const durationHours = parseFloat(day.duration.replace(/[^\d.]/g, '')) || 0;
+
+            await client.query(detailQuery, [
+                roadmapId,
+                day.day,
+                day.goal,
+                day.content,
+                day.exercises || null,
+                day.materials,
+                day.instructions || null,
+                durationHours,
+                'NOT_STARTED',
+                null
+            ]);
+        }
+
+        const logQuery = `
+            UPDATE ai_prompt_logs
+            SET roadmap_id = $1
+            WHERE log_id = $2
+        `;
+
+        await client.query(logQuery, [roadmapId, aiPromptLog]);
+
+        await client.query('COMMIT');
+
+        res.status(201).json({
+            success: true,
+            message: 'Lộ trình đã được lưu thành công',
+            data: {
+                roadmap_id: roadmapId
+            }
+        });
+
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error saving roadmap:', error);
+        res.status(500).json({
+            error: 'Database transaction failed',
+            message: 'Không thể lưu lộ trình'
+        });
+    } finally {
+        client.release();
+    }
+});
+*/
+
+
