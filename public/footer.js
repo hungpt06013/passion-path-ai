@@ -1,198 +1,174 @@
-<footer style="position: relative; z-index: 1;">
-  <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 24px; margin-bottom: 20px; ">
-    <div style="display: flex; flex-direction: column; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 44px; height: 44px; background: #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div>
-          <div style="font-size: 18px; font-weight: 700; color: white;">Con đường đam mê</div>
-          <div style="font-size: 11px; color: #9ca3af;">AI-Powered Learning Path</div>
-        </div>
-      </div>
-      <p style="color: #9ca3af; line-height: 1.5; font-size: 13px; margin: 0;">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-    </div>
+const currentPage = window.location.pathname.split('/').pop();
+const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
+const tokeeen = localStorage.getItem('token');
 
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Tính Năng</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-        <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-        <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
-      </div>
-    </div>
+if (!tokeeen && !publicPages.includes(currentPage)) {
+    alert('Vui lòng đăng nhập!');
+    window.location.href = 'login.html';
+}
+// Feedback modal logic
+let feedbackRatings = {};
 
-    <div>
-      <h3 style="font-size: 15px; font-weight: 700; color: white; margin: 0 0 12px 0;">Hỗ Trợ</h3>
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" class="footer-link" target="_blank" rel="noopener noreferrer">Liên hệ</a>
-        <a href="https://zalo.me/g/drfrli672" class="footer-link" target="_blank" rel="noopener noreferrer">Trung tâm trợ giúp</a>
-        <a href="javascript:void(0)" onclick="openFeedbackModal()" class="footer-link">Thu thập ý kiến</a>
-      </div>
-    </div>
-  </div>
+window.openFeedbackModal = function() {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Vui lòng đăng nhập để gửi phản hồi!');
+        // If we're already on the login page, don't redirect again
+        if (currentPage !== 'login.html') {
+            window.location.href = 'login.html';
+        }
+        return;
+    }
 
-  <div style="max-width: 1200px; margin: 0 auto; padding-top: 16px; border-top: 1px solid #374151; text-align: center; color: #9ca3af; font-size: 13px;">
-    © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-  </div>
-</footer>
+    document.getElementById('feedbackModal').classList.add('active');
+    feedbackRatings = {}; // Reset ratings
+    
+    // Reset all stars
+    for (let i = 1; i <= 8; i++) {
+        const stars = document.querySelectorAll(`#rating_${i} .star`);
+        stars.forEach(star => star.classList.remove('active'));
+        document.getElementById(`rating_${i}-value`).textContent = '0';
+    }
+    
+    // Reset textareas
+    document.getElementById('question_1').value = '';
+    document.getElementById('question_2').value = '';
+    document.getElementById('question_3').value = '';
+}
 
-<!-- Modal Thu thập ý kiến -->
-<div class="modal-overlay" id="feedbackModal">
-    <div class="modal-content" style="max-width: 900px;">
-        <div class="modal-header">
-            <div>
-                <h2>📋 Thu Thập Ý Kiến</h2>
-                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
-            </div>
-            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="info-box" style="margin-bottom: 20px;">
-                <strong>📌 Mục đích thu thập:</strong>
-                <p style="margin: 10px 0 0 0; line-height: 1.6;">
-                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
-                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
-                </p>
-            </div>
+window.closeFeedbackModal = function() {
+    document.getElementById('feedbackModal').classList.remove('active');
+}
 
-            <form id="feedbackForm">
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
-                    <p class="small" style="margin-bottom: 20px;">
-                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
-                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
-                    </p>
+window.setFeedbackRating = function(ratingId, value) {
+    feedbackRatings[ratingId] = value;
+    
+    const stars = document.querySelectorAll(`#${ratingId} .star`);
+    stars.forEach((star, index) => {
+        if (index < value) {
+            star.classList.add('active');
+        } else {
+            star.classList.remove('active');
+        }
+    });
+    
+    document.getElementById(`${ratingId}-value`).textContent = value;
+}
 
-                    <!-- Rating 1 -->
-                    <div class="rating-group">
-                        <label>1. Mức độ phù hợp của nội dung học *</label>
-                        <div class="rating-stars" id="rating_1">
-                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
-                    </div>
+window.showNotification = function(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+    `;
+    
+    if (type === 'success') {
+        notification.style.background = '#059669';
+    } else {
+        notification.style.background = '#dc2626';
+    }
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(400px)';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
-                    <!-- Rating 2 -->
-                    <div class="rating-group">
-                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
-                        <div class="rating-stars" id="rating_2">
-                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
-                    </div>
+// Load footer HTML and attach events
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('footer.html')
+    .then(response => response.text())
+    .then(html => {
+      document.getElementById('footer').innerHTML = html;
 
-                    <!-- Rating 3 -->
-                    <div class="rating-group">
-                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
-                        <div class="rating-stars" id="rating_3">
-                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
-                    </div>
+      // Attach form submit event
+      const feedbackForm = document.getElementById('feedbackForm');
+      if (feedbackForm) {
+        feedbackForm.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          // Validate all 8 ratings are filled
+          for (let i = 1; i <= 8; i++) {
+              if (!feedbackRatings[`rating_${i}`]) {
+                  showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
+                  return;
+              }
+          }
+          
+          const submitBtn = this.querySelector('button[type="submit"]');
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
+          
+          try {
+              const payload = {
+                  rating_1: feedbackRatings.rating_1,
+                  rating_2: feedbackRatings.rating_2,
+                  rating_3: feedbackRatings.rating_3,
+                  rating_4: feedbackRatings.rating_4,
+                  rating_5: feedbackRatings.rating_5,
+                  rating_6: feedbackRatings.rating_6,
+                  rating_7: feedbackRatings.rating_7,
+                  rating_8: feedbackRatings.rating_8,
+                  question_1: document.getElementById('question_1').value.trim(),
+                  question_2: document.getElementById('question_2').value.trim(),
+                  question_3: document.getElementById('question_3').value.trim()
+              };
+              
+              const response = await fetch('/api/feedback/submit', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${localStorage.getItem('token')}`
+                  },
+                  body: JSON.stringify(payload)
+              });
+              
+              const result = await response.json();
+              
+              if (result.success) {
+                  showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+                  setTimeout(() => {
+                      closeFeedbackModal();
+                  }, 1500);
+              } else {
+                  throw new Error(result.error || 'Không thể gửi phản hồi');
+              }
+              
+          } catch (error) {
+              console.error('Error submitting feedback:', error);
+              showNotification('✗ ' + error.message, 'error');
+          } finally {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '💾 Gửi Phản Hồi';
+          }
+        });
+      }
 
-                    <!-- Rating 4 -->
-                    <div class="rating-group">
-                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
-                        <div class="rating-stars" id="rating_4">
-                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 5 -->
-                    <div class="rating-group">
-                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
-                        <div class="rating-stars" id="rating_5">
-                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 6 -->
-                    <div class="rating-group">
-                        <label>6. Mức độ duy trì động lực học *</label>
-                        <div class="rating-stars" id="rating_6">
-                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 7 -->
-                    <div class="rating-group">
-                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
-                        <div class="rating-stars" id="rating_7">
-                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 8 -->
-                    <div class="rating-group">
-                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
-                        <div class="rating-stars" id="rating_8">
-                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
-                    </div>
-                </div>
-
-                <!-- Câu hỏi mở -->
-                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
-
-                    <div class="textarea-group">
-                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
-                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
-                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
-                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
-                    💾 Gửi Phản Hồi
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
+      // Close modal when clicking outside
+      const feedbackModal = document.getElementById('feedbackModal');
+      if (feedbackModal) {
+        feedbackModal.addEventListener('click', function(e) {
+            if (e.target === this) closeFeedbackModal();
+        });
+      }
+    })
+    .catch(error => console.error('Error loading footer:', error));
+});
+injectSpeedInsights();
