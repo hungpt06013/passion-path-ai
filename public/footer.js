@@ -1,4 +1,4 @@
-import { injectSpeedInsights } from '@vercel/speed-insights';
+
 const currentPage = window.location.pathname.split('/').pop();
 const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
 const tokeeen = localStorage.getItem('token');
@@ -173,3 +173,4 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(error => console.error('Error loading footer:', error));
 });
 injectSpeedInsights();
+
