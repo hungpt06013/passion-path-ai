@@ -13,6 +13,7 @@ import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
 import nodemailer from 'nodemailer';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 dotenv.config();
 
 const app = express();
@@ -7231,3 +7232,4 @@ app.post("/api/ai/save-roadmap", requireAuth, async (req, res) => {
     }
 });
 */
+
