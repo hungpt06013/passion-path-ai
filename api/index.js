@@ -13,8 +13,9 @@ import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
 import nodemailer from 'nodemailer';
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { injectSpeedInsights } from '@vercel/speed-insights';
 
+injectSpeedInsights();
 dotenv.config();
 
 const app = express();
