@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lộ Trình Học Của Tôi</title>
+    <title>Lộ Trình Học Của Tôi - Con đường đam mê</title>
     <head>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     </head>
       <script>
@@ -85,49 +85,7 @@
         border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
     }
-/*
-    .create-btn {
-        position: absolute;
-        right: 70px;
-        padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
 
-    .create-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-2px);
-    }
-
-    .upload-btn {
-        position: absolute;
-        left: 100px;
-        padding: 12px 24px;
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    .upload-btn:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.5);
-        transform: translateY(-2px);
-    }
-*/
     @media (max-width: 768px) {
         .header-buttons {
             flex-direction: column;
@@ -270,7 +228,12 @@
     color: #ffffff;
     font-weight: 700;
 }
-
+/* Tìm phần status-badge CSS và thêm: */
+.status-skipped {
+    background: #6b7280;
+    color: #ffffff;
+    font-weight: 700;
+}
     .roadmap-meta {
         display: flex;
         gap: 15px;
@@ -1446,12 +1409,18 @@
         }
     }
 
+// Tìm hàm này (khoảng dòng 370-385):
 function getStatusBadge(roadmap) {
     const progress = parseFloat(roadmap.progress_percentage || 0);
     const status = roadmap.status; // ✅ Nhận status đã được tính toán từ backend
     
     if (progress >= 100 || status === 'COMPLETED') {
         return `<span class="status-badge status-completed">Hoàn thành</span>`;
+    }
+    
+    // ✅ THÊM CHECK CHO SKIPPED
+    if (status === 'SKIPPED') {
+        return `<span class="status-badge status-skipped">Bỏ qua</span>`;
     }
     
     if (progress > 0 || status === 'IN_PROGRESS') {
@@ -1546,50 +1515,73 @@ function renderRoadmaps(roadmaps) {
 
     contentArea.innerHTML = `<div class="roadmaps-grid">${roadsHTML}</div>`;
 }
-    async function openDetails(roadmapId) {
-        currentRoadmapId = roadmapId;
-        document.getElementById('detailsModal').classList.add('active');
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = `
-            <div class="loading">
-                <div class="spinner"></div>
-                <br><br>
-                Đang tải chi tiết...
-            </div>
-        `;
+async function openDetails(roadmapId) {
+    currentRoadmapId = roadmapId;
+    
+    // ✅ Thêm roadmap_id vào URL
+    const newUrl = `${window.location.pathname}?roadmap=${roadmapId}`;
+    window.history.pushState({ roadmapId }, '', newUrl);
+    
+    document.getElementById('detailsModal').classList.add('active');
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = `
+        <div class="loading">
+        <div class="spinner"></div>
+        <br><br>
+        Đang tải chi tiết...
+        </div>
+    `;
 
-        try {
-            const response = await fetch(`/api/roadmaps/${roadmapId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch roadmap details');
+    try {
+        const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
+        });
 
-            const result = await response.json();
-            const roadmap = result.data.roadmap;
-            const details = result.data.details;
-
-            document.getElementById('modal-title').textContent = roadmap.roadmap_name;
-
-            displayRoadmapDetails(roadmap, details);
-
-        } catch (error) {
-            console.error('Error fetching details:', error);
+        // ✅ XỬ LÝ 403 FORBIDDEN
+        if (response.status === 403) {
+            console.error('❌ Access denied for roadmap:', roadmapId);
             modalBody.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
-                    <div class="empty-title">Không thể tải chi tiết</div>
+                    <div class="empty-icon">🚫</div>
+                    <div class="empty-title">Không có quyền truy cập</div>
+                    <div class="empty-text">Bạn không có quyền xem lộ trình này</div>
                     <button class="empty-btn" onclick="closeModal()">Đóng</button>
                 </div>
             `;
+            showNotification('⚠️ Bạn không có quyền truy cập lộ trình này', 'error');
+            
+            // ✅ Xóa roadmap_id khỏi URL
+            window.history.replaceState({}, '', window.location.pathname);
+            return;
         }
-    }
 
+        if (!response.ok) {
+            throw new Error('Failed to fetch roadmap details');
+        }
+
+        const result = await response.json();
+        const roadmap = result.data.roadmap;
+        const details = result.data.details;
+
+        document.getElementById('modal-title').textContent = roadmap.roadmap_name;
+
+        displayRoadmapDetails(roadmap, details);
+
+    } catch (error) {
+        console.error('Error fetching details:', error);
+        modalBody.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚠️</div>
+                <div class="empty-title">Không thể tải chi tiết</div>
+                <div class="empty-text">${error.message || 'Đã xảy ra lỗi'}</div>
+                <button class="empty-btn" onclick="closeModal()">Đóng</button>
+            </div>
+        `;
+    }
+}
 function displayRoadmapDetails(roadmap, details) {
     const analysisHTML = `
         <div class="analysis-section">
@@ -1668,6 +1660,22 @@ function displayRoadmapDetails(roadmap, details) {
     const evaluationHTML = buildEvaluationForm(roadmap);
 
     document.getElementById('modal-body').innerHTML = analysisHTML + tableHTML + evaluationHTML;
+    
+    // ✅ KHỞI TẠO evaluationData VỚI CÁC GIÁ TRỊ HIỆN CÓ
+    evaluationData = {
+        overall_rating: roadmap.overall_rating || 0,
+        learning_effectiveness: roadmap.learning_effectiveness || 0,
+        difficulty_suitability: roadmap.difficulty_suitability || 0,
+        content_relevance: roadmap.content_relevance || 0,
+        engagement_level: roadmap.engagement_level || 0,
+        detailed_feedback: roadmap.detailed_feedback || '',
+        recommended_category: roadmap.recommended_category || '',
+        actual_learning_outcomes: roadmap.actual_learning_outcomes || '',
+        improvement_suggestions: roadmap.improvement_suggestions || '',
+        would_recommend: roadmap.would_recommend || false
+    };
+    
+    console.log('✅ Initialized evaluationData:', evaluationData);
 }
 function buildEvaluationForm(roadmap) {
     // ✅ Hàm helper để render stars với giá trị hiện tại
@@ -1848,8 +1856,14 @@ async function submitEvaluation() {
         submitBtn.innerHTML = '💾 Lưu Đánh Giá';
     }
 }
+    // Tìm hàm closeModal() và sửa lại:
+
     function closeModal() {
-        document.getElementById('detailsModal').classList.remove('active');
+    document.getElementById('detailsModal').classList.remove('active');
+    
+    // ✅ Xóa roadmap_id khỏi URL khi đóng modal
+    const newUrl = window.location.pathname;
+    window.history.pushState({}, '', newUrl);
     }
 
     function goToCreateRoadmap() {
@@ -2047,12 +2061,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         return true;
     }
+    // Thêm vào cuối phần <script> trong path.html, trước initApp()
 
+    async function checkAndOpenRoadmapFromURL() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roadmapId = urlParams.get('roadmap');
+    
+    if (roadmapId && !isNaN(roadmapId)) {
+        console.log('🔗 Opening roadmap from URL:', roadmapId);
+        
+        // ✅ Đợi fetchRoadmaps() load xong trước
+        await new Promise(resolve => {
+        const interval = setInterval(() => {
+            if (allRoadmaps.length > 0) {
+            clearInterval(interval);
+            resolve();
+            }
+        }, 100);
+        
+        // Timeout sau 5s
+        setTimeout(() => {
+            clearInterval(interval);
+            resolve();
+        }, 5000);
+        });
+        
+        // ✅ Kiểm tra roadmap có tồn tại không
+        const roadmapExists = allRoadmaps.some(r => r.roadmap_id === parseInt(roadmapId));
+        
+        if (roadmapExists) {
+        openDetails(parseInt(roadmapId));
+        } else {
+        console.warn('⚠️ Roadmap not found:', roadmapId);
+        showNotification('⚠️ Lộ trình không tồn tại hoặc đã bị xóa', 'error');
+        
+        // Xóa param khỏi URL
+        window.history.replaceState({}, '', window.location.pathname);
+        }
+    }
+    }
+    // Sửa lại hàm initApp() để gọi checkAndOpenRoadmapFromURL
     function initApp() {
-        // Bạn gốc có checkAuth -> nếu muốn giữ redirect uncomment:
-        // if (!checkAuth()) return;
         setupNavigation();
         fetchRoadmaps();
+        
+        // ✅ Thêm dòng này
+        checkAndOpenRoadmapFromURL();
     }
 
     if (document.readyState === 'loading') {
