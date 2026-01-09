@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script>
-    const token = localStorage.getItem('token');
-    if(!token) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
-  </script>
-    <title>Tạo Lộ Trình Học Mới</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <link rel="stylesheet" href="footer.css">
+        <script>
+            const token = localStorage.getItem('token');
+            if(!token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
+        </script>
+    <title>Tạo Lộ Trình Học Mới - Con đường đam mê</title>
 <style>
     * {
         margin: 0;
@@ -147,110 +148,15 @@ body {
     background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
     color: white;
 }
-/* ============ FOOTER STYLES ============ */
-footer {
-    background: #1a202c;
-    color: #e5e7eb;
-    padding: 28px 20px 16px;
-    margin-top: 40px;
+.container {
+    max-width: 1000px;
+    margin: 100px auto 0 auto; /* Thêm margin-top để tránh bị header che */
+    width: 1000px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-.footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 20px;
-}
-
-.footer-brand {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.footer-logo-icon {
-    width: 44px;
-    height: 44px;
-    background: #007bff;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 20px;
-}
-
-.footer-logo-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.footer-logo-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: white;
-}
-
-.footer-logo-sub {
-    font-size: 11px;
-    color: #9ca3af;
-}
-
-.footer-desc {
-    color: #9ca3af;
-    line-height: 1.5;
-    font-size: 13px;
-    margin: 0;
-}
-
-.footer-section h3 {
-    font-size: 15px;
-    font-weight: 700;
-    color: white;
-    margin: 0 0 12px 0;
-}
-
-.footer-links {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.footer-link {
-    color: #9ca3af;
-    text-decoration: none;
-    font-size: 13px;
-    transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-    color: #007bff;
-}
-
-.footer-bottom {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding-top: 16px;
-    border-top: 1px solid #374151;
-    text-align: center;
-    color: #9ca3af;
-    font-size: 13px;
-}
-
-@media (max-width: 768px) {
-    .footer-content {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-}
     .analysis-section {
             background: #f0fdf4;
             padding: 25px;
@@ -271,15 +177,7 @@ footer {
             white-space: pre-wrap;
         }
 
-.container {
-    max-width: 1000px;
-    margin: 100px auto 0 auto; /* Thêm margin-top để tránh bị header che */
-    width: 1000px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
+
 
 
     .form-container {
@@ -352,9 +250,17 @@ footer {
         gap: 20px;
     }
 
+/* ✅ STYLE MẶC ĐỊNH - FLEXIBLE CHO CÁC CÂU KHÁC */
 .checkbox-group {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* ✅ THAY ĐỔI: 2 cột bằng nhau thay vì auto-fit */
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+/* ✅ STYLE ĐẶC BIỆT CHO CÂU 10 VÀ 11 - 2 CỘT CỐ ĐỊNH */
+.checkbox-group-two-columns {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px;
 }
 
@@ -368,9 +274,9 @@ footer {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    width: 100%; /* ✅ BẮT BUỘC full width */
+    width: 100%;
     box-sizing: border-box;
-    min-width: 0; /* ✅ THÊM: Cho phép text wrap */
+    min-width: 0;
 }
 
 .checkbox-group label:hover {
@@ -696,50 +602,7 @@ footer {
     #q20_other_text {
         margin-top: 10px;
     }
-    /* =============== MODAL STYLES =============== */
-    .modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    }
 
-    .modal.show {
-    display: flex;
-    }
-
-/* Thêm vào phần modal-content */
-.modal-content {
-    background: white;
-    width: 95%;
-    max-width: 900px;
-    max-height: 90vh;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    animation: slideIn 0.3s ease-out;  /* ← THÊM DÒNG NÀY */
-}
-
-/* Thêm keyframe animation */
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 /* ============ NAVIGATION BUTTONS ============ */
 .nav-buttons {
     display: flex;
@@ -789,27 +652,6 @@ footer {
         border-color: rgba(255, 255, 255, 0.5);
     }
 
-    .modal-header {
-    background: linear-gradient(135deg,#007bff, #007bff);
-    color: white;
-    padding: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-    }
-
-    .modal-header h2 {
-    margin: 0;
-    font-size: 1.3rem;
-    font-weight: 700;
-    }
-
-    .modal-body {
-    padding: 20px;
-    overflow-y: auto;
-    flex: 1;
-    }
 
     .close-btn {
     background: none;
@@ -828,7 +670,24 @@ footer {
 
     .close-btn:hover {
     opacity: 0.8;
-    }
+    }/* =============== MODAL STYLES =============== */
+.modal {
+    display: none; /* ✅ Ẩn mặc định */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex; /* ✅ Chỉ hiện khi có class 'show' */
+}
 
     pre {
     background: #f3f4f6;
@@ -1345,11 +1204,11 @@ footer {
 
                     <!-- Q9: Thời gian lộ trình (ngày) -->
                     <div class="form-group">
-                        <label class="form-label">9. Thời gian (ngày) của lộ trình (15 - 90 ngày) *</label>
-                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="90" required
-                            placeholder="Nhập số ngày (15 - 90)">
+                        <label class="form-label" id="q11_label">9. Thời gian (ngày) của lộ trình (15 - 60 ngày) *</label>
+                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="60" required
+                            placeholder="Nhập số ngày (15 - 60)">
                         <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
-                            ⚠️ AI chỉ hỗ trợ tối đa 90 ngày. Nếu bạn muốn hơn 90 ngày, vui lòng tạo thủ công.
+                            ⚠️ Số ngày tối đa: 60. Nếu bạn muốn hơn 60 ngày, vui lòng tạo thủ công.
                         </small>
                     </div>
                 </div>
@@ -1359,36 +1218,34 @@ footer {
                     <h3 class="section-title">🎨 Phần 4: Phong Cách Học Tập</h3>
 
                     <!-- Q10: Phương pháp học -->
-<div class="form-group">
-    <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
-    <div class="checkbox-group">
-        <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
-        <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
-        <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
-        <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
-        <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
-    </div>
-    <!-- ✅ THÊM margin-top để tách biệt -->
-    <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
-        placeholder="Ghi rõ phương pháp..." style="margin-top: 10px;">
-</div>
+                    <div class="form-group">
+                        <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
+                        <div class="checkbox-group checkbox-group-two-columns">
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
+                            <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
+                            placeholder="Ghi rõ phương pháp..." style="margin-top: 10px;">
+                    </div>
 
-                    <!-- Q11: Kết hợp học -->
-<div class="form-group">
-    <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
-    <div class="checkbox-group">
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
-        <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
-    </div>
-    <!-- ✅ THÊM margin-top -->
-    <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
-        placeholder="Ghi rõ..." style="margin-top: 10px;">
-</div>
+                    <!-- Q11: Kết hợp học - 2 CỘT CỐ ĐỊNH -->
+                    <div class="form-group">
+                        <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
+                        <div class="checkbox-group checkbox-group-two-columns">
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
+                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
+                        </div>
+                        <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
+                            placeholder="Ghi rõ..." style="margin-top: 10px;">
+                    </div>
                 </div>
                  <!-- PHẦN 5: KHÓ KHĂN & ĐỘNG LỰC -->
                 <div class="form-section">
@@ -1492,17 +1349,13 @@ footer {
 
                 <!-- PHẦN TẠO VỚI AI -->
                 <div class="form-section ai-generate-section">
-                    <h3 class="section-title">🤖 Tạo Với AI</h3>
+                    <h3 class="section-title">🤖 Tạo Lộ Trình</h3>
                     <div class="ai-notice">
                         <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn nút này trước khi có thể tạo lộ trình.
                     </div>
                     <button type="button" id="generateAI" class="ai-btn">
                     <span id="generateBtnText">🤖 Tạo lộ trình với AI</span>
                     </button>
-                    <!--<div class="btn-group">
-                        <button type="button" id="viewPromptBtn" class="prompt-btn">👁️ Xem Prompt</button>
-                        <button type="button" id="customizePromptBtn" class="prompt-btn">✏️ Sửa Prompt</button>
-                    </div>-->
                 </div>
                 <div class="analysis-section">
                     <h3>📊 PHÂN TÍCH HIỆN TRẠNG</h3>
@@ -1542,232 +1395,20 @@ footer {
                     </p>
                 </div>
                 <pre id="promptContent"></pre>
-            </div>
-            <div class="btn-group" style="padding: 20px; display: flex; gap: 10px;">
-                <button onclick="copyPrompt()" class="prompt-btn">📋 Copy Prompt</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL SỬA PROMPT -->
-    <div id="customizeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sửa Prompt AI</h2>
-                <button class="close-btn" onclick="closeCustomizeModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <textarea id="customPromptContent"></textarea>
-            </div>
-            <div class="btn-group" style="padding: 20px; display: flex; gap: 10px;">
-                <button onclick="resetPrompt()" class="prompt-btn">🔄 Khôi Phục Mặc Định</button>
-                <button onclick="saveCustomPrompt()" class="prompt-btn">💾 Lưu Prompt</button>
-            </div>
-        </div>
-    </div>
-<footer>
-    <div class="footer-content">
-        <div class="footer-brand">
-            <div class="footer-logo">
-                <div class="footer-logo-icon">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div class="footer-logo-text">
-                    <div class="footer-logo-title">Con đường đam mê</div>
-                    <div class="footer-logo-sub">AI-Powered Learning Path</div>
+                
+                <!-- ✅ DI CHUYỂN NÚT VÀO ĐÂY -->
+                <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                    <button onclick="copyPrompt()" class="prompt-btn" style="width: auto; padding: 12px 24px;">
+                        📋 Copy Prompt
+                    </button>
                 </div>
             </div>
-            <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-        </div>
-
-        <div class="footer-section">
-            <h3>Tính Năng</h3>
-            <div class="footer-links">
-                <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
-            </div>
-        </div>
-
-        <div class="footer-section">
-            <h3>Hỗ Trợ</h3>
-            <div class="footer-links">
-                <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
-                <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                <a href="javascript:void(0)" onclick="openFeedbackModal()" class="footer-link">Thu thập ý kiến</a>
-            </div>
         </div>
     </div>
 
-    <div class="footer-bottom">
-        © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-    </div>
-</footer>
-<!-- Modal Thu thập ý kiến -->
-<div class="modal-overlay" id="feedbackModal">
-    <div class="modal-content" style="max-width: 900px;">
-        <div class="modal-header">
-            <div>
-                <h2>📋 Thu Thập Ý Kiến</h2>
-                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
-            </div>
-            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="info-box" style="margin-bottom: 20px;">
-                <strong>📌 Mục đích thu thập:</strong>
-                <p style="margin: 10px 0 0 0; line-height: 1.6;">
-                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
-                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
-                </p>
-            </div>
-
-            <form id="feedbackForm">
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
-                    <p class="small" style="margin-bottom: 20px;">
-                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
-                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
-                    </p>
-
-                    <!-- Rating 1 -->
-                    <div class="rating-group">
-                        <label>1. Mức độ phù hợp của nội dung học *</label>
-                        <div class="rating-stars" id="rating_1">
-                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 2 -->
-                    <div class="rating-group">
-                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
-                        <div class="rating-stars" id="rating_2">
-                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 3 -->
-                    <div class="rating-group">
-                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
-                        <div class="rating-stars" id="rating_3">
-                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 4 -->
-                    <div class="rating-group">
-                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
-                        <div class="rating-stars" id="rating_4">
-                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 5 -->
-                    <div class="rating-group">
-                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
-                        <div class="rating-stars" id="rating_5">
-                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 6 -->
-                    <div class="rating-group">
-                        <label>6. Mức độ duy trì động lực học *</label>
-                        <div class="rating-stars" id="rating_6">
-                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 7 -->
-                    <div class="rating-group">
-                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
-                        <div class="rating-stars" id="rating_7">
-                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 8 -->
-                    <div class="rating-group">
-                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
-                        <div class="rating-stars" id="rating_8">
-                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
-                    </div>
-                </div>
-
-                <!-- Câu hỏi mở -->
-                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
-
-                    <div class="textarea-group">
-                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
-                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
-                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
-                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
-                    💾 Gửi Phản Hồi
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
+<div id="footer"></div>
 </body>
     <script>
-
-        
-        //document.getElementById('viewPromptBtn').addEventListener('click', viewPrompt);
-        //document.getElementById('customizePromptBtn').addEventListener('click', customizePrompt);
 function validateAllQuestions() {
     const errors = [];
     
@@ -2086,39 +1727,80 @@ function setupCategoryOtherToggle() {
         }
     });
 }
-
-function validateDays() {
-        const daysInput = document.getElementById('q11_program_days');
-        const aiBtn = document.getElementById('generateAI');
-        const warning = document.getElementById('daysWarning');
-
-        // Check riêng lẻ
-        if (!daysInput) {
-            console.warn('daysInput not found');
-            return;
-        }
-        if (!aiBtn) {
-            console.warn('aiBtn not found');
-            return;
-        }
-        if (!warning) {
-            console.warn('warning not found');
-            return;
-        }
-
-        const days = parseInt(daysInput.value);
-        if (isNaN(days) || days < 15 || days > 90) {
-            aiBtn.disabled = true;
-            warning.style.display = 'block';
-            if (days > 90) warning.textContent = '⚠️ AI chỉ hỗ trợ tối đa 90 ngày. Nếu bạn muốn hơn 90 ngày, vui lòng tạo thủ công.';
-            else if (days < 15) warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 đến 90.';
-            else warning.textContent = '';
-        } else {
-            aiBtn.disabled = false;
-            warning.style.display = 'none';
-        }
+// ✅ THÊM HÀM LẤY MAX DAYS THEO ROLE
+async function getMaxDaysForCurrentUser() {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return 360; // Default cho user chưa đăng nhập
+    
+    const response = await fetch('/api/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!response.ok) return 360;
+    
+    const data = await response.json();
+    const role = data.user?.role || 'user';
+    
+    return role === 'admin' ? 60 : 360;
+  } catch {
+    return 360; // Fallback
+  }
+}
+// ✅ Hàm cập nhật label và max days theo role
+async function updateDaysUIByRole() {
+    const maxDays = await getMaxDaysForCurrentUser();
+    const label = document.getElementById('q11_label');
+    const input = document.getElementById('q11_program_days');
+    const warning = document.getElementById('daysWarning');
+    
+    if (label) {
+        label.textContent = `9. Thời gian (ngày) của lộ trình (15 - ${maxDays} ngày) *`;
     }
-function validateMinutes() {
+    
+    if (input) {
+        input.setAttribute('max', maxDays);
+        input.setAttribute('placeholder', `Nhập số ngày (15 - ${maxDays})`);
+    }
+    
+    if (warning) {
+        warning.textContent = `⚠️ Số ngày tối đa: ${maxDays}. Nếu bạn muốn hơn ${maxDays} ngày, vui lòng tạo thủ công.`;
+    }
+}
+// ✅ CẬP NHẬT HÀM validateDays()
+// ✅ Cập nhật hàm validateDays()
+async function validateDays() {
+  const daysInput = document.getElementById('q11_program_days');
+  const aiBtn = document.getElementById('generateAI');
+  const warning = document.getElementById('daysWarning');
+  
+  if (!daysInput || !aiBtn || !warning) return;
+  
+  const days = parseInt(daysInput.value);
+  const maxDays = await getMaxDaysForCurrentUser(); // ✅ Lấy động
+  
+  // ✅ THÊM: Nếu input trống, ẩn warning và return
+  if (!daysInput.value || daysInput.value.trim() === '') {
+    warning.style.display = 'none';
+    aiBtn.disabled = true; // Vẫn disable nút vì chưa nhập
+    return;
+  }
+  
+  if (isNaN(days) || days < 15 || days > maxDays) {
+    aiBtn.disabled = true;
+    warning.style.display = 'block';
+    
+    if (days > maxDays) {
+      warning.textContent = `⚠️ Vui lòng nhập số ngày từ ${maxDays} trở xuống.`;
+    } else if (days < 15) {
+      warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 trở lên.';
+    }
+  } else {
+    aiBtn.disabled = false;
+    warning.style.display = 'none';
+  }
+}
+    function validateMinutes() {
     const minutesInput = document.getElementById('q9_daily_time_input');
     const warning = document.getElementById('minutesWarning');
 
@@ -3080,10 +2762,8 @@ if (minutesInputEl) {
     });
 }
 // ============ MODAL FUNCTIONS ============
-    let customizedPrompt = null;
-
     function viewPrompt() {
-        const prompt = customizedPrompt || generatePrompt();
+        const prompt = generatePrompt();
         document.getElementById('promptContent').textContent = prompt;
         document.getElementById('promptModal').classList.add('show');
     }
@@ -3217,37 +2897,11 @@ async function showManualPromptForUser() {
     alert('Không thể hiển thị prompt: ' + (err && err.message));
   }
 }
-    function customizePrompt() {
-        const prompt = customizedPrompt || generatePrompt();
-        document.getElementById('customPromptContent').value = prompt;
-        document.getElementById('customizeModal').classList.add('show');
-    }
-
-    function closeCustomizeModal() {
-        document.getElementById('customizeModal').classList.remove('show');
-    }
-
-    function resetPrompt() {
-        if (confirm('Bạn có chắc muốn khôi phục prompt mặc định?')) {
-            customizedPrompt = null;
-            document.getElementById('customPromptContent').value = generatePrompt();
-            alert('✅ Đã khôi phục prompt mặc định!');
-        }
-    }
-
-    function saveCustomPrompt() {
-        customizedPrompt = document.getElementById('customPromptContent').value;
-        alert('✅ Đã lưu prompt tùy biến!');
-        closeCustomizeModal();
-    }
 
     // Close modals khi click outside
     window.addEventListener('click', function(e) {
         const promptModal = document.getElementById('promptModal');
-        const customizeModal = document.getElementById('customizeModal');
-        
         if (e.target === promptModal) closeModal();
-        if (e.target === customizeModal) closeCustomizeModal();
     });
 window.addEventListener('load', function() {
     const token = localStorage.getItem('token');
@@ -3258,8 +2912,8 @@ window.addEventListener('load', function() {
     }
     loadCategories();
     checkUserRoleAndUpdateUI();
+    updateDaysUIByRole();
     validateDays();
-    //validateMinutes();
 
     const daysInputEl = document.getElementById('q11_program_days');
     if (daysInputEl) {
@@ -3557,111 +3211,8 @@ if (q20_other_radio && q20_other_text) {
         }
     });
 }
-// Feedback modal logic
-let feedbackRatings = {};
 
-function openFeedbackModal() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        alert('Vui lòng đăng nhập để gửi phản hồi!');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    document.getElementById('feedbackModal').classList.add('active');
-    feedbackRatings = {};
-    
-    for (let i = 1; i <= 8; i++) {
-        const stars = document.querySelectorAll(`#rating_${i} .star`);
-        stars.forEach(star => star.classList.remove('active'));
-        document.getElementById(`rating_${i}-value`).textContent = '0';
-    }
-    
-    document.getElementById('question_1').value = '';
-    document.getElementById('question_2').value = '';
-    document.getElementById('question_3').value = '';
-}
-
-function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.remove('active');
-}
-
-function setFeedbackRating(ratingId, value) {
-    feedbackRatings[ratingId] = value;
-    
-    const stars = document.querySelectorAll(`#${ratingId} .star`);
-    stars.forEach((star, index) => {
-        if (index < value) {
-            star.classList.add('active');
-        } else {
-            star.classList.remove('active');
-        }
-    });
-    
-    document.getElementById(`${ratingId}-value`).textContent = value;
-}
-
-document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    for (let i = 1; i <= 8; i++) {
-        if (!feedbackRatings[`rating_${i}`]) {
-            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
-            return;
-        }
-    }
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
-    
-    try {
-        const payload = {
-            rating_1: feedbackRatings.rating_1,
-            rating_2: feedbackRatings.rating_2,
-            rating_3: feedbackRatings.rating_3,
-            rating_4: feedbackRatings.rating_4,
-            rating_5: feedbackRatings.rating_5,
-            rating_6: feedbackRatings.rating_6,
-            rating_7: feedbackRatings.rating_7,
-            rating_8: feedbackRatings.rating_8,
-            question_1: document.getElementById('question_1').value.trim(),
-            question_2: document.getElementById('question_2').value.trim(),
-            question_3: document.getElementById('question_3').value.trim()
-        };
-        
-        const response = await fetch('/api/feedback/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
-            setTimeout(() => {
-                closeFeedbackModal();
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Không thể gửi phản hồi');
-        }
-        
-    } catch (error) {
-        console.error('Error submitting feedback:', error);
-        showNotification('✗ ' + error.message, 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
-    }
-});
-
-document.getElementById('feedbackModal').addEventListener('click', function(e) {
-    if (e.target === this) closeFeedbackModal();
-});
     </script>
+    <script src="footer.js"></script>
 </body>
 </html>
