@@ -1,3 +1,4 @@
+import { injectSpeedInsights } from '@vercel/speed-insights';
 const currentPage = window.location.pathname.split('/').pop();
 const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
 const tokeeen = localStorage.getItem('token');
