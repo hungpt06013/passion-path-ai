@@ -648,14 +648,6 @@
         }
     }
 </style>
-    
-    <!-- Preload Font Awesome CSS -->
-    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
-    
-    <!-- Load Font Awesome async -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
-    
     <!-- Load Google Fonts async with display swap -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet"></noscript>
@@ -787,6 +779,15 @@
 
 
   <div id="footer"></div>
+  <script>
+// Lazy load Font Awesome sau khi trang đã render
+window.addEventListener('load', function() {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css';
+    document.head.appendChild(link);
+});
+</script>
 <script>
     const loginBtn = document.querySelector(".login-btn");
     const registerBtn = document.querySelector(".register-btn");
