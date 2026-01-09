@@ -3,12 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Tiến Độ - App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>Tiến Độ - Con đường đam mê</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <script>
-    const tokeen = localStorage.getItem('token');
-    if(!tokeen) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
+  <link rel="stylesheet" href="footer.css">
+  <script>
+  const tokeen = localStorage.getItem('token');
+  if(!tokeen) {alert('Vui lòng đăng nhập!');window.location.href = 'login.html';}
   </script>
   <style>
 html, body {
@@ -24,6 +25,8 @@ body {
   flex-direction: column;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
     main {
   flex: 1 0 auto;  /* Quan trọng nhất! */
@@ -131,21 +134,11 @@ body {
   align-items: center;
   justify-content: flex-start;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   padding: 4px 12px 4px 6px;
   min-width: 0;
   white-space: nowrap;
   flex-wrap: nowrap;
   gap: 22px;
-}
-
-.nav-buttons::-webkit-scrollbar { 
-  height: 6px; 
-}
-
-.nav-buttons::-webkit-scrollbar-thumb { 
-  background: rgba(0, 0, 0, 0.12); 
-  border-radius: 6px; 
 }
 
 .nav-btn {
@@ -174,14 +167,17 @@ body {
 
 .userInfo {
   color: white;
-  font-weight: 600;
+  font-weight:600;
   display: flex;
   align-items: center;
   gap: 10px;
   flex: 0 0 auto;
   min-width: 0;
 }
-
+.userInfo span strong {
+  font-weight: 900 !important;
+  font-family: 'Inter', sans-serif !important;
+}
 .login-btn {
   background: white;
   color: #333;
@@ -440,7 +436,6 @@ body {
       }
     }
   </style>
-  <link rel="stylesheet" href="footer.css">
 </head>
 <body>
 <div class="fixed-bar">
@@ -620,10 +615,10 @@ async function loadUser() {
     document.querySelector('.register-btn').style.display = 'none';
   }
 
-  userArea.innerHTML = `
-    <span>Xin chào <strong style="color:white;">${name}</strong></span>
-    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-  `;
+userArea.innerHTML = `
+  <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${name}</strong></span>
+  <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+`;
   const logoutEl = document.getElementById('logout');
   wireLogoutAndNav(logoutEl);
 
@@ -729,7 +724,7 @@ loadUser().catch((e)=>console.error(e));
     }
 
     function viewTaskDetail(roadmapId) {
-      window.location.href = `path.html&roadmap=${roadmapId}`;
+      window.location.href = `path.html?roadmap=${roadmapId}`;
     }
 
     async function loadProgress() {
