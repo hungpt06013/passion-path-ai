@@ -6,9 +6,10 @@
     <title>Quản Trị - Con đường đam mê</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="footer.css">
     
     <script>
-          (function adminAuthCheck(){
+      (function adminAuthCheck(){
       const token = localStorage.getItem('token');
       const storedRole = localStorage.getItem('role');
       if (!token) {
@@ -134,26 +135,6 @@ html, body {
     flex-wrap: nowrap;
 }
 
-
-    /* Ẩn scrollbar ngang nhỏ trên desktop nếu muốn (không bắt buộc) */
-    .nav-buttons::-webkit-scrollbar { height: 6px; }
-    .nav-buttons::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.12); border-radius: 6px; }
-::-webkit-scrollbar { 
-    width: 6px; 
-}
-
-::-webkit-scrollbar-thumb { 
-    background: rgba(0, 0, 0, 0.12); 
-    border-radius: 6px; 
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
     .nav-btn {
         background: none;
         color: #fff;
@@ -253,77 +234,9 @@ main {
   padding-left: 20px;
   padding-right: 20px;
 }
-
-    /* Footer (rút gọn chiều cao) */
-    footer {
-        background: #1a202c;
-        color: #e5e7eb;
-        padding: 28px 20px 16px;
-        margin-top: 40px;
-        flex-shrink: 0;
-    }
-
-    /* (các phần CSS khác giữ nguyên) */
-    .footer-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr;
-        gap: 24px;
-        margin-bottom: 20px;
-    }
-
-    .footer-brand {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .footer-logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .footer-logo-icon {
-        width: 44px;
-        height: 44px;
-        background: var(--primary);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 20px;
-    }
-
-    .footer-logo-text {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .footer-logo-title {
-        font-size: 18px;
-        font-weight: 700;
-        color: white;
-    }
-
-    .footer-logo-sub {
-        font-size: 11px;
-        color: #9ca3af;
-    }
-
-    .footer-desc {
-        color: #9ca3af;
-        line-height: 1.5;
-        font-size: 13px;
-    }
-
-    .footer-social {
-        display: flex;
-        gap: 12px;
-        margin-top: 8px;
-    }
+body.has-admin-nav main {
+  padding-top: 150px; /* 80px header + 60px admin nav + 10px spacing */
+}
 
     .social-icon {
         width: 36px;
@@ -341,40 +254,6 @@ main {
     .social-icon:hover {
         background: var(--primary);
         transform: translateY(-2px);
-    }
-
-    .footer-section h3 {
-        font-size: 15px;
-        font-weight: 700;
-        color: white;
-        margin: 0 0 12px 0;
-    }
-
-    .footer-links {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .footer-link {
-        color: #9ca3af;
-        text-decoration: none;
-        font-size: 13px;
-        transition: color 0.3s ease;
-    }
-
-    .footer-link:hover {
-        color: var(--primary);
-    }
-
-    .footer-bottom {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding-top: 16px;
-        border-top: 1px solid #374151;
-        text-align: center;
-        color: #9ca3af;
-        font-size: 13px;
     }
 
     /* Admin page specific styles (kept from admin file) */
@@ -599,196 +478,8 @@ main {
             margin-bottom: 20px;
             font-size: 0.9rem;
         }
-/* Modal styles */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
-    padding: 20px;
-    overflow-y: auto;
-}
 
-.modal-overlay.active {
-    display: flex;
-}
 
-.modal-content {
-    background: white;
-    width: 95%;
-    max-width: 900px;
-    max-height: 90vh;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #007bff, #007bff);
-    color: white;
-    padding: 25px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0 0 5px 0;
-    font-size: 24px;
-}
-
-.modal-header p {
-    margin: 0;
-    opacity: 0.9;
-    font-size: 14px;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px 10px;
-    transition: transform 0.2s;
-}
-
-.close-modal:hover {
-    transform: scale(1.1);
-}
-
-.modal-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px;
-}
-
-.info-box {
-    background: #fff3cd;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
-}
-
-.rating-group {
-    margin-bottom: 25px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid #e5e7eb;
-}
-
-.rating-group label {
-    display: block;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
-.rating-stars {
-    display: flex;
-    gap: 8px;
-    font-size: 32px;
-}
-
-.star {
-    cursor: pointer;
-    color: #d1d5db;
-    transition: all 0.2s ease;
-}
-
-.star:hover,
-.star.active {
-    color: #fbbf24;
-    transform: scale(1.2);
-}
-
-.rating-value {
-    margin-top: 10px;
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 600;
-}
-
-.textarea-group {
-    margin-bottom: 20px;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    border: 2px solid #e5e7eb;
-}
-
-.textarea-group label {
-    display: block;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-
-.textarea-group textarea {
-    width: 100%;
-    padding: 12px;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 14px;
-    resize: vertical;
-    min-height: 80px;
-    transition: all 0.3s ease;
-}
-
-.textarea-group textarea:focus {
-    outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.submit-evaluation-btn {
-    width: 100%;
-    padding: 16px 32px;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.submit-evaluation-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
-}
-
-.submit-evaluation-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
-    transform: none;
-}
 /* Details/Summary styling */
 details {
     border: 1px solid #e5e7eb;
@@ -833,6 +524,64 @@ details summary::after {
 details > div {
     margin-top: 10px;
 }
+/* Navigation phụ cho admin - dưới thanh bar */
+.admin-nav-container {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    z-index: 49;
+    padding: 12px 0;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.admin-nav-buttons {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* ✅ Thay đổi từ flex-start sang center */
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 20px;
+}
+
+.admin-nav-btn {
+    background: white;
+    color: #007bff;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid #e5e7eb;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.admin-nav-btn:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+}
+
+.admin-nav-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.admin-nav-btn .fa {
+    font-size: 14px;
+}
 @media (max-width: 768px) {
     .modal-content {
         width: 98%;
@@ -847,72 +596,80 @@ details > div {
         font-size: 28px;
     }
 }
-    @media (max-width:820px) {
-        .bar-inner {
-            flex-direction: column;
-            height: auto;
-            padding: 15px;
-            gap: 10px;
-        }
-
-        .fixed-bar {
-            height: auto;
-        }
-
-        .userInfo {
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        main {
-            margin-top: 200px;
-        }
-
-        .prompt-editor {
-            min-height: 240px;
-        }
-
-        /* Trên mobile cho phép nav xuống dòng để dễ thao tác */
-        .nav-buttons {
-            overflow-x: visible;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
+@media (max-width:820px) {
+    .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
     }
+
+    .fixed-bar {
+        height: auto;
+    }
+
+    .userInfo {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .admin-nav-container {
+        top: auto;
+        position: relative;
+    }
+
+    body.has-admin-nav main {
+        padding-top: 20px;
+        margin-top: 200px;
+    }
+
+    .prompt-editor {
+        min-height: 240px;
+    }
+
+    .nav-buttons {
+        overflow-x: visible;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
     </style>
 </head>
 <body>
     <!-- Header exactly from the first file -->
-    <div class="fixed-bar">
-        <div class="bar-inner">
-            <div class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div class="brand-text">
-                    <div class="brand-title">Con đường đam mê</div>
-                    <div class="brand-sub">AI-Powered Learning Path</div>
-                </div>
+<div class="fixed-bar">
+    <div class="bar-inner">
+        <div class="brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
             </div>
-            <div class="nav-buttons" id="mainNavButtons">
-            <!-- Buttons sẽ được thêm bằng JavaScript -->
-            </div>
-            <div id="userArea" class="userInfo">
-                <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-                <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+            <div class="brand-text">
+                <div class="brand-title">Con đường đam mê</div>
+                <div class="brand-sub">AI-Powered Learning Path</div>
             </div>
         </div>
+        <div class="nav-buttons" id="mainNavButtons">
+        <!-- Buttons chính sẽ được thêm bằng JavaScript -->
+        </div>
+        <div id="userArea" class="userInfo">
+            <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+            <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+        </div>
     </div>
+</div>
 
+<!-- Navigation buttons phụ CHỈ CHO ADMIN - DƯỚI thanh bar -->
+<div class="admin-nav-container" id="adminNavContainer" style="display:none;">
+    <div class="admin-nav-buttons" id="adminNavButtons">
+    <!-- Admin buttons sẽ được thêm bằng JavaScript -->
+    </div>
+</div>
     <main>
       <div class="card" id="adminCard">
-        <h1>🛠️ Bảng Quản Trị</h1>
-        <p class="small">Quản lý người dùng, nội dung, phân quyền, báo cáo hệ thống...</p>
+        <h2>🛠️ Quản lý người dùng</h2>
+        <p class="small">Hiển thị danh sách users, thời gian đăng ký, xóa users.</p>
 
         <section style="margin-top:14px;">
-          <h3>Quản lý người dùng</h3>
-          <p class="small">Hiển thị danh sách user, ban/unban, gán role...</p>
-
           <div style="margin-top:10px;">
             <button id="fetchUsersBtn" class="btn-refresh">
               <i class="fa-solid fa-list"></i> Lấy danh sách users
@@ -926,7 +683,7 @@ details > div {
 
       <section id="aiHistorySection" style="display:none;" class="card">
         <h2>🤖 Lịch Sử Hỏi AI</h2>
-        <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình</p>
+        <p class="small">Danh sách tất cả các lần người dùng sử dụng AI để tạo lộ trình.</p>
         
         <div style="margin: 15px 0;">
           <button id="fetchAIHistoryBtn" class="btn-refresh">
@@ -940,7 +697,7 @@ details > div {
 
       <section id="categoriesSection" style="display:none;" class="card">
         <h2>📁 Quản Lý Danh Mục</h2>
-        <p class="small">Quản lý danh mục và danh mục con cho lộ trình học</p>
+        <p class="small">Quản lý danh mục và danh mục con cho lộ trình học.</p>
         
         <div style="margin: 15px 0;">
           <button id="fetchCategoriesBtn" class="btn-refresh">
@@ -964,7 +721,7 @@ details > div {
               </div>
 
               <div class="info-text">
-                  Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng
+                  Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng.
               </div>
 
               <ul class="var-list">
@@ -994,7 +751,7 @@ details > div {
 
           <div class="section-divider"></div>
         <h2>📝 Quản Lý Prompt Template AI</h2>
-        <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI</p>
+        <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI.</p>
         
         <div id="promptMessage" role="status" aria-live="polite"></div>
         
@@ -1023,7 +780,7 @@ details > div {
         <!-- ===== PHẦN MỚI: PROMPT TẠO THỦ CÔNG ===== -->
         <div style="margin: 20px 0; border-top: 2px solid #e5e7eb; padding-top: 30px;">
           <h2>📝 Prompt Template (Tạo Thủ Công)</h2>
-          <p class="small">Prompt này sẽ được hiển thị cho user non-admin để họ tự hỏi AI bên ngoài</p>
+          <p class="small">Prompt này sẽ được hiển thị cho user non-admin để họ tự hỏi AI bên ngoài.</p>
           
           <div id="manualPromptMessage" role="status" aria-live="polite"></div>
           
@@ -1049,7 +806,7 @@ details > div {
       </section>
       <section id="feedbackSection" style="display:none;" class="card">
     <h2>💬 Phản Hồi Người Dùng</h2>
-    <p class="small">Xem và phân tích phản hồi từ người dùng về hệ thống</p>
+    <p class="small">Xem và phân tích phản hồi từ người dùng về hệ thống.</p>
     
     <div style="margin: 15px 0;">
         <button id="fetchFeedbackBtn" class="btn-refresh">
@@ -1070,205 +827,7 @@ details > div {
     <div id="feedbackMessage" role="status" aria-live="polite"></div>
 </section>
     </main>
-
-    <!-- Footer exactly from the first file -->
-    <footer>
-        <div class="footer-content">
-            <div class="footer-brand">
-                <div class="footer-logo">
-                    <div class="footer-logo-icon">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                    </div>
-                    <div class="footer-logo-text">
-                        <div class="footer-logo-title">Con đường đam mê</div>
-                        <div class="footer-logo-sub">AI-Powered Learning Path</div>
-                    </div>
-                </div>
-                <p class="footer-desc">Nền tảng học tập cá nhân hóa sử dụng trí tuệ nhân tạo để tạo lộ trình học phù hợp với sở thích và mục tiêu của từng người.</p>
-            </div>
-
-            <div class="footer-section">
-                <h3>Tính Năng</h3>
-                <div class="footer-links">
-                    <a href="create_roadmap_page.html" class="footer-link">Tạo lộ trình với AI</a>
-                    <a href="path.html" class="footer-link">Lưu trữ các lộ trình</a>
-                    <a href="progress.html" class="footer-link">Theo dõi tiến độ</a>
-                </div>
-            </div>
-
-            <div class="footer-section">
-                <h3>Hỗ Trợ</h3>
-                <div class="footer-links">
-                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to=passionpathaisystem@gmail.com" target="_blank" rel="noopener noreferrer" class="footer-link">Liên hệ</a>
-                    <a href="https://zalo.me/g/drfrli672" target="_blank" rel="noopener noreferrer" class="footer-link">Trung tâm trợ giúp</a>
-                    <a href="javascript:void(0)" onclick="openFeedbackModal()" style="color: #9ca3af; text-decoration: none; font-size: 13px; transition: color 0.3s ease;">Thu thập ý kiến</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            © 2025 Con đường đam mê. All rights reserved. Made with <i class="fa-solid fa-heart" style="color:#e74c3c;"></i> for learners worldwide.
-        </div>
-    </footer>
-<!-- Modal Thu thập ý kiến -->
-<div class="modal-overlay" id="feedbackModal">
-    <div class="modal-content" style="max-width: 900px;">
-        <div class="modal-header">
-            <div>
-                <h2>📋 Thu Thập Ý Kiến</h2>
-                <p>Đánh giá trải nghiệm của bạn với hệ thống</p>
-            </div>
-            <button class="close-modal" onclick="closeFeedbackModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="info-box" style="margin-bottom: 20px;">
-                <strong>📌 Mục đích thu thập:</strong>
-                <p style="margin: 10px 0 0 0; line-height: 1.6;">
-                    Kết quả khảo sát sẽ được tổng hợp nhằm hoàn thiện mô hình thiết kế lộ trình học cá nhân hóa, 
-                    đảm bảo tính hiệu quả và trải nghiệm tốt hơn cho người dùng.
-                </p>
-            </div>
-
-            <form id="feedbackForm">
-                <div style="background: #f0f9ff; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                    <h3 style="color: #0369a1; margin-bottom: 15px;">⭐ Đánh Giá (1-5)</h3>
-                    <p class="small" style="margin-bottom: 20px;">
-                        Sau khi trải nghiệm lộ trình học cá nhân hóa, vui lòng cho ý kiến đánh giá theo các tiêu chí sau 
-                        (chọn 1→5, trong đó 1 = chưa tốt, 5 = rất tốt)
-                    </p>
-
-                    <!-- Rating 1 -->
-                    <div class="rating-group">
-                        <label>1. Mức độ phù hợp của nội dung học *</label>
-                        <div class="rating-stars" id="rating_1">
-                            <span class="star" onclick="setFeedbackRating('rating_1', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_1', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_1-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 2 -->
-                    <div class="rating-group">
-                        <label>2. Mức độ hữu ích của học liệu (link, bài tập, hướng dẫn) *</label>
-                        <div class="rating-stars" id="rating_2">
-                            <span class="star" onclick="setFeedbackRating('rating_2', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_2', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_2-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 3 -->
-                    <div class="rating-group">
-                        <label>3. Tính dễ hiểu, dễ áp dụng *</label>
-                        <div class="rating-stars" id="rating_3">
-                            <span class="star" onclick="setFeedbackRating('rating_3', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_3', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_3-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 4 -->
-                    <div class="rating-group">
-                        <label>4. Tính thực tế và khả năng ứng dụng vào công việc / học tập *</label>
-                        <div class="rating-stars" id="rating_4">
-                            <span class="star" onclick="setFeedbackRating('rating_4', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_4', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_4-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 5 -->
-                    <div class="rating-group">
-                        <label>5. Tính cá nhân hóa (phù hợp phong cách học, mục tiêu cá nhân) *</label>
-                        <div class="rating-stars" id="rating_5">
-                            <span class="star" onclick="setFeedbackRating('rating_5', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_5', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_5-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 6 -->
-                    <div class="rating-group">
-                        <label>6. Mức độ duy trì động lực học *</label>
-                        <div class="rating-stars" id="rating_6">
-                            <span class="star" onclick="setFeedbackRating('rating_6', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_6', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_6-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 7 -->
-                    <div class="rating-group">
-                        <label>7. Trải nghiệm tổng thể với hệ thống *</label>
-                        <div class="rating-stars" id="rating_7">
-                            <span class="star" onclick="setFeedbackRating('rating_7', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_7', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_7-value">0</span>/5</div>
-                    </div>
-
-                    <!-- Rating 8 -->
-                    <div class="rating-group">
-                        <label>8. Sự tiện lợi của người dùng sau khi học xong lộ trình *</label>
-                        <div class="rating-stars" id="rating_8">
-                            <span class="star" onclick="setFeedbackRating('rating_8', 1)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 2)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 3)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 4)">★</span>
-                            <span class="star" onclick="setFeedbackRating('rating_8', 5)">★</span>
-                        </div>
-                        <div class="rating-value">Chọn: <span id="rating_8-value">0</span>/5</div>
-                    </div>
-                </div>
-
-                <!-- Câu hỏi mở -->
-                <div style="background: #fef3c7; padding: 20px; border-radius: 12px; margin-top: 20px;">
-                    <h3 style="color: #92400e; margin-bottom: 15px;">💬 Câu Hỏi Mở</h3>
-
-                    <div class="textarea-group">
-                        <label>1. Bạn thích nhất điểm nào trong lộ trình học này?</label>
-                        <textarea id="question_1" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>2. Bạn gặp khó khăn gì trong quá trình học?</label>
-                        <textarea id="question_2" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-
-                    <div class="textarea-group">
-                        <label>3. Bạn có đề xuất cải thiện nào để hệ thống cá nhân hóa tốt hơn?</label>
-                        <textarea id="question_3" rows="3" placeholder="Chia sẻ ý kiến của bạn..."></textarea>
-                    </div>
-                </div>
-
-                <button type="submit" class="submit-evaluation-btn" style="margin-top: 20px;">
-                    💾 Gửi Phản Hồi
-                </button>
-            </form>
-        </div>
-    </div>
-</div>
+<div id="footer"></div>
   <script>
     // Header JS exactly from the first file (loadUser + helpers)
     const loginBtn = document.querySelector(".login-btn");
@@ -1339,43 +898,21 @@ details > div {
     }
 
 // Tìm hàm loadUser() trong admin.html và sửa lại:
-
 async function loadUser() {
     const token = localStorage.getItem('token');
     const navButtons = document.getElementById('mainNavButtons');
     
-    // Luôn hiển thị navigation buttons ngay từ đầu
+    // Luôn hiển thị navigation buttons chính
     if (navButtons) {
         navButtons.innerHTML = `
             <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
             <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
             <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-            <button class="nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
-            <button class="nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
-            <button class="nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
-            <button class="nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
         `;
         
-        // Add event listeners cho nav buttons
-        const btnHome = document.getElementById('btnHome');
-        const btnPath = document.getElementById('btnPath');
-        const btnProgress = document.getElementById('btnProgress');
-        const btnAIHistory = document.getElementById('btnAIHistory');
-        const btnCategories = document.getElementById('btnCategories');
-        const btnPrompt = document.getElementById('btnPrompt');
-        const btnFeedback = document.getElementById('btnFeedback');
+        document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
         
-        if (btnFeedback) btnFeedback.addEventListener('click', () => {
-            document.getElementById('feedbackSection').style.display = 'block';
-            document.getElementById('promptSection').style.display = 'none';
-            document.getElementById('aiHistorySection').style.display = 'none';
-            document.getElementById('categoriesSection').style.display = 'none';
-            document.getElementById('adminCard').style.display = 'none';
-        });
-        
-        if (btnHome) btnHome.addEventListener('click', () => { window.location.href = 'main.html'; });
-        
-        if (btnPath) btnPath.addEventListener('click', () => { 
+        document.getElementById('btnPath').addEventListener('click', () => { 
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = 'login.html';
@@ -1384,7 +921,7 @@ async function loadUser() {
             }
         });
         
-        if (btnProgress) btnProgress.addEventListener('click', () => { 
+        document.getElementById('btnProgress').addEventListener('click', () => { 
             const token = localStorage.getItem('token');
             if (!token) {
                 window.location.href = 'login.html';
@@ -1392,39 +929,9 @@ async function loadUser() {
                 window.location.href = 'progress.html';
             }
         });
-
-        if (btnAIHistory) btnAIHistory.addEventListener('click', () => {
-            document.getElementById('aiHistorySection').style.display = 'block';
-            document.getElementById('categoriesSection').style.display = 'none';
-            document.getElementById('promptSection').style.display = 'none';
-            document.getElementById('adminCard').style.display = 'none';
-            document.getElementById('feedbackSection').style.display = 'none';
-        });
-
-        if (btnCategories) btnCategories.addEventListener('click', () => {
-            document.getElementById('categoriesSection').style.display = 'block';
-            document.getElementById('aiHistorySection').style.display = 'none';
-            document.getElementById('promptSection').style.display = 'none';
-            document.getElementById('adminCard').style.display = 'none';
-            document.getElementById('feedbackSection').style.display = 'none';
-        });
-
-        if (btnPrompt) btnPrompt.addEventListener('click', () => {
-            document.getElementById('promptSection').style.display = 'block';
-            document.getElementById('aiHistorySection').style.display = 'none';
-            document.getElementById('categoriesSection').style.display = 'none';
-            document.getElementById('adminCard').style.display = 'none';
-            document.getElementById('feedbackSection').style.display = 'none';
-            loadPromptTemplate().catch(()=>{});
-            loadManualPromptTemplate().catch(()=>{});
-        });
     }
     
-    // ✅ BỎ showAuthButtons() Ở ĐÂY - KHÔNG GỌI NỮA!
-    // showAuthButtons(); // ❌ XÓA DÒNG NÀY
-    
     if (!token) {
-        // Nếu không có token, hiển thị nút đăng nhập/đăng ký
         showAuthButtons();
         return;
     }
@@ -1454,7 +961,6 @@ async function loadUser() {
         }
     }
 
-    // ✅ ẨN NÚT LOGIN/REGISTER TRƯỚC KHI HIỂN THỊ USER INFO
     if (document.querySelector('.login-btn')) {
         document.querySelector('.login-btn').style.display = 'none';
     }
@@ -1462,7 +968,6 @@ async function loadUser() {
         document.querySelector('.register-btn').style.display = 'none';
     }
 
-    // ✅ HIỂN THỊ THÔNG TIN USER
     userArea.innerHTML = `
         <span>Xin chào <strong style="color:white;">${name}</strong></span>
         <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
@@ -1470,28 +975,113 @@ async function loadUser() {
     const logoutEl = document.getElementById('logout');
     wireLogoutAndNav(logoutEl);
 
-    // Thêm nút Admin nếu là admin
+    // Thêm nút Admin trên thanh bar chính
     if (serverRole === 'admin') {
         const adminBtn = document.createElement('button');
         adminBtn.className = 'nav-btn';
         adminBtn.id = 'btnAdmin';
         adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
         adminBtn.addEventListener('click', () => { 
+            // Hiển thị card quản lý user
             document.getElementById('adminCard').style.display = 'block';
             document.getElementById('aiHistorySection').style.display = 'none';
             document.getElementById('categoriesSection').style.display = 'none';
             document.getElementById('promptSection').style.display = 'none';
             document.getElementById('feedbackSection').style.display = 'none';
+            
+            // Update active state
+            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+            const btnUsers = document.getElementById('btnUsers');
+            if (btnUsers) btnUsers.classList.add('active');
         });
-        const navButtons = document.getElementById('mainNavButtons');
-        if (navButtons) navButtons.appendChild(adminBtn);
+        navButtons.appendChild(adminBtn);
+        
+        // ✅ HIỂN THỊ THANH NAV PHỤ CHO ADMIN
+        const adminNavContainer = document.getElementById('adminNavContainer');
+        const adminNavButtons = document.getElementById('adminNavButtons');
+        
+        if (adminNavContainer && adminNavButtons) {
+            adminNavContainer.style.display = 'block';
+            document.body.classList.add('has-admin-nav');
+            
+            adminNavButtons.innerHTML = `
+                <button class="admin-nav-btn active" id="btnUsers"><i class="fa-solid fa-users"></i> Quản Lý User</button>
+                <button class="admin-nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+                <button class="admin-nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
+                <button class="admin-nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
+                <button class="admin-nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
+            `;
+            
+            // Event listeners cho các nút admin
+            document.getElementById('btnUsers').addEventListener('click', () => {
+                document.getElementById('adminCard').style.display = 'block';
+                document.getElementById('aiHistorySection').style.display = 'none';
+                document.getElementById('categoriesSection').style.display = 'none';
+                document.getElementById('promptSection').style.display = 'none';
+                document.getElementById('feedbackSection').style.display = 'none';
+                
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnUsers').classList.add('active');
+            });
+            
+            document.getElementById('btnAIHistory').addEventListener('click', () => {
+                document.getElementById('aiHistorySection').style.display = 'block';
+                document.getElementById('categoriesSection').style.display = 'none';
+                document.getElementById('promptSection').style.display = 'none';
+                document.getElementById('adminCard').style.display = 'none';
+                document.getElementById('feedbackSection').style.display = 'none';
+                
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnAIHistory').classList.add('active');
+            });
+            
+            document.getElementById('btnCategories').addEventListener('click', () => {
+                document.getElementById('categoriesSection').style.display = 'block';
+                document.getElementById('aiHistorySection').style.display = 'none';
+                document.getElementById('promptSection').style.display = 'none';
+                document.getElementById('adminCard').style.display = 'none';
+                document.getElementById('feedbackSection').style.display = 'none';
+                
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnCategories').classList.add('active');
+            });
+            
+            document.getElementById('btnPrompt').addEventListener('click', () => {
+                document.getElementById('promptSection').style.display = 'block';
+                document.getElementById('aiHistorySection').style.display = 'none';
+                document.getElementById('categoriesSection').style.display = 'none';
+                document.getElementById('adminCard').style.display = 'none';
+                document.getElementById('feedbackSection').style.display = 'none';
+                loadPromptTemplate().catch(()=>{});
+                loadManualPromptTemplate().catch(()=>{});
+                
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnPrompt').classList.add('active');
+            });
+            
+            document.getElementById('btnFeedback').addEventListener('click', () => {
+                document.getElementById('feedbackSection').style.display = 'block';
+                document.getElementById('promptSection').style.display = 'none';
+                document.getElementById('aiHistorySection').style.display = 'none';
+                document.getElementById('categoriesSection').style.display = 'none';
+                document.getElementById('adminCard').style.display = 'none';
+                
+                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById('btnFeedback').classList.add('active');
+            });
+            document.getElementById('adminCard').style.display = 'block';
+            document.getElementById('aiHistorySection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('promptSection').style.display = 'none';
+            document.getElementById('feedbackSection').style.display = 'none';
+        }
     }
 
     // Active state
     const params = new URLSearchParams(window.location.search);
     const page = params.get('page') || 'home';
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin', aihistory: 'btnAIHistory', categories: 'btnCategories', prompt: 'btnPrompt' };
+    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
     const btnId = idMap[page];
     if (btnId) {
         const el = document.getElementById(btnId);
@@ -2624,13 +2214,17 @@ function renderFeedbackStats(stats) {
   statsContent.innerHTML = html;
   statsArea.style.display = 'block';
 }
-
 let fetchFeedbackClickCount = 0;
+// Xóa hoặc comment dòng này:
+// let fetchFeedbackClickCount = 0;
+
 if (fetchFeedbackBtn) {
   fetchFeedbackBtn.addEventListener('click', async function() {
-    fetchFeedbackClickCount++;
+    // Kiểm tra trạng thái thực tế thay vì dùng biến đếm
+    const isCurrentlyShowing = feedbackArea.innerHTML.trim() !== '';
     
-    if (fetchFeedbackClickCount % 2 === 1) {
+    if (!isCurrentlyShowing) {
+      // Mở danh sách feedback
       feedbackMessage.textContent = 'Đang tải...';
       fetchFeedbackBtn.disabled = true;
       
@@ -2648,6 +2242,9 @@ if (fetchFeedbackBtn) {
         const data = await res.json();
         renderFeedbackList(data.data);
         feedbackMessage.textContent = `Đã tải ${data.data.length} phản hồi`;
+        
+        // Ẩn stats khi mở feedback list
+        statsArea.style.display = 'none';
       } catch (err) {
         console.error(err);
         feedbackMessage.textContent = 'Lỗi khi tải phản hồi';
@@ -2657,18 +2254,24 @@ if (fetchFeedbackBtn) {
         setTimeout(() => { feedbackMessage.textContent = ''; }, 2500);
       }
     } else {
+      // Đóng danh sách feedback
       feedbackArea.innerHTML = '';
       feedbackMessage.textContent = 'Danh sách đã đóng.';
       setTimeout(() => { feedbackMessage.textContent = ''; }, 1400);
+      
+      // Ẩn stats khi đóng feedback list
+      statsArea.style.display = 'none';
     }
   });
 }
-
 if (viewStatsBtn) {
   viewStatsBtn.addEventListener('click', async function() {
     statsArea.style.display = statsArea.style.display === 'none' ? 'block' : 'none';
     
     if (statsArea.style.display === 'block') {
+      // ẨN danh sách feedback khi mở stats
+      feedbackArea.innerHTML = '';
+      
       viewStatsBtn.disabled = true;
       viewStatsBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang tải...';
       
@@ -2692,152 +2295,7 @@ if (viewStatsBtn) {
     }
   });
 }
-// Feedback modal logic
-let feedbackRatings = {};
-
-function openFeedbackModal() {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    if (!token) {
-        alert('Vui lòng đăng nhập để gửi phản hồi!');
-        window.location.href = 'login.html';
-        return;
-    }
-
-    document.getElementById('feedbackModal').classList.add('active');
-    feedbackRatings = {}; // Reset ratings
-    
-    // Reset all stars
-    for (let i = 1; i <= 8; i++) {
-        const stars = document.querySelectorAll(`#rating_${i} .star`);
-        stars.forEach(star => star.classList.remove('active'));
-        document.getElementById(`rating_${i}-value`).textContent = '0';
-    }
-    
-    // Reset textareas
-    document.getElementById('question_1').value = '';
-    document.getElementById('question_2').value = '';
-    document.getElementById('question_3').value = '';
-}
-
-function closeFeedbackModal() {
-    document.getElementById('feedbackModal').classList.remove('active');
-}
-
-function setFeedbackRating(ratingId, value) {
-    feedbackRatings[ratingId] = value;
-    
-    const stars = document.querySelectorAll(`#${ratingId} .star`);
-    stars.forEach((star, index) => {
-        if (index < value) {
-            star.classList.add('active');
-        } else {
-            star.classList.remove('active');
-        }
-    });
-    
-    document.getElementById(`${ratingId}-value`).textContent = value;
-}
-
-function showNotification(message, type) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        z-index: 10000;
-        transform: translateX(400px);
-        transition: transform 0.3s ease;
-    `;
-    
-    if (type === 'success') {
-        notification.style.background = '#059669';
-    } else {
-        notification.style.background = '#dc2626';
-    }
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    setTimeout(() => {
-        notification.style.transform = 'translateX(400px)';
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
-// Handle feedback form submission
-document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    // Validate all 8 ratings are filled
-    for (let i = 1; i <= 8; i++) {
-        if (!feedbackRatings[`rating_${i}`]) {
-            showNotification(`⚠ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
-            return;
-        }
-    }
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
-    
-    try {
-        const payload = {
-            rating_1: feedbackRatings.rating_1,
-            rating_2: feedbackRatings.rating_2,
-            rating_3: feedbackRatings.rating_3,
-            rating_4: feedbackRatings.rating_4,
-            rating_5: feedbackRatings.rating_5,
-            rating_6: feedbackRatings.rating_6,
-            rating_7: feedbackRatings.rating_7,
-            rating_8: feedbackRatings.rating_8,
-            question_1: document.getElementById('question_1').value.trim(),
-            question_2: document.getElementById('question_2').value.trim(),
-            question_3: document.getElementById('question_3').value.trim()
-        };
-        
-        const response = await fetch('/api/feedback/submit', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            },
-            body: JSON.stringify(payload)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
-            setTimeout(() => {
-                closeFeedbackModal();
-            }, 1500);
-        } else {
-            throw new Error(result.error || 'Không thể gửi phản hồi');
-        }
-        
-    } catch (error) {
-        console.error('Error submitting feedback:', error);
-        showNotification('✗ ' + error.message, 'error');
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '💾 Gửi Phản Hồi';
-    }
-});
-
-// Close modal when clicking outside
-document.getElementById('feedbackModal').addEventListener('click', function(e) {
-    if (e.target === this) closeFeedbackModal();
-});
   </script>
+  <script src="footer.js"></script>
 </body>
 </html>
