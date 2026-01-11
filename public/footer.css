@@ -243,3 +243,32 @@ footer {
         font-size: 28px;
     }
 }
+/* ✅ Clean Modern Scrollbar - Rộng & Tối màu hơn */
+html, body {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Chrome, Edge, Safari - Scrollbar rộng & tối */
+::-webkit-scrollbar {
+  width: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
+}
