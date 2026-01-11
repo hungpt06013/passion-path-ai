@@ -1560,7 +1560,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
             </div>
         </div>
     </div>
-    <div id="footer"></div>
+    <div id="footer" style="display: none;"></div>
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
     const token = localStorage.getItem('token');
@@ -3404,5 +3404,17 @@ if (document.readyState === 'loading') {
 }
 </script>
 <script src="footer.js"></script>
+<script>
+// ✅ HIỂN THỊ FOOTER SAU KHI MỌI THỨ ĐÃ LOAD XONG
+window.addEventListener('load', function() {
+    // Đợi thêm 500ms để đảm bảo content đã render xong
+    setTimeout(() => {
+        const footer = document.getElementById('footer');
+        if (footer) {
+            footer.style.display = 'block';
+        }
+    }, 500);
+});
+</script>
 </body>
 </html>
