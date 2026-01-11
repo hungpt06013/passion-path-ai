@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-        <link rel="stylesheet" href="footer.css">
-        <script>
-            const token = localStorage.getItem('token');
-            if(!token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
-        </script>
     <title>Tạo Lộ Trình Học Mới - Con đường đam mê</title>
+    <script>
+        const Token = localStorage.getItem('token');
+        if (!Token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 <style>
     * {
         margin: 0;
@@ -1036,6 +1036,21 @@ body {
         }
     }
 </style>
+    <!-- Preload Font Awesome CSS -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
+    
+    <!-- Load Font Awesome async -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"></noscript>
+    
+    <!-- Load Google Fonts async with display swap -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Load footer.css async (non-critical) -->
+    <link rel="preload" href="footer.css" as="style">
+    <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="footer.css"></noscript>
 </head>
 <body>
     <div class="fixed-bar">
@@ -2188,6 +2203,11 @@ showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể ch
     }
 }
 document.getElementById('generateAI').addEventListener('click', generateRoadmapWithAI);
+function getVietnamDate() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (7 * 60 * 60 * 1000));
+}
 function addDay(dayData = null) {
     dayCount++;
     const container = document.getElementById('daysContainer');
@@ -2197,8 +2217,8 @@ function addDay(dayData = null) {
     }
 
     // ✅ Tính study_date (ngày thực tế)
-    const today = new Date();
-    const studyDate = new Date(today);
+    const today = getVietnamDate();
+    const studyDate = getVietnamDate(today);
     studyDate.setDate(today.getDate() + (dayCount - 1));
     const formattedDate = studyDate.toLocaleDateString('vi-VN', { 
         day: '2-digit', 
