@@ -23,6 +23,8 @@
         background: #f5f5f5;
         min-height: 100vh;
         padding: 20px;
+        display: flex; /* ✅ THÊM */
+        flex-direction: column; /* ✅ THÊM */
     }
 
     .container {
@@ -1453,7 +1455,9 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;900&display=swap" rel="stylesheet"></noscript>
     
     <!-- Load footer.css async (non-critical) -->
-    <link rel="stylesheet" href="footer.css">
+    <link rel="preload" href="footer.css" as="style">
+    <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="footer.css"></noscript>
 </head>
 <body>
 
@@ -1483,7 +1487,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
 </div>
 <!-- ========== END NAV BAR ========== -->
 
-    <div class="container" style="margin-top:120px;">
+    <div class="container" style="margin-top:120px; flex: 1 0 auto;">
         <div class="header">
             <h1>🛣️ Lộ Trình Học Của Tôi</h1>
             <p id="header-subtitle">Đang tải dữ liệu...</p>
@@ -1558,7 +1562,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
             </div>
         </div>
     </div>
-    <div id="footer" style="display: none;"></div>
+    <div id="footer"></div>
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
     const token = localStorage.getItem('token');
@@ -3393,98 +3397,7 @@ async function loadUser() {
     }
   }
 }
-// ✅ HÀM LOAD FOOTER - GỌI TỪ BÊN NGOÀI
-window.loadFooterContent = function() {
-  const footerDiv = document.getElementById('footer');
-  if (!footerDiv) return;
-  
-  fetch('footer.html')
-    .then(response => response.text())
-    .then(html => {
-      footerDiv.innerHTML = html;
-      footerDiv.style.display = 'block'; // ✅ Hiển thị footer sau khi load xong
 
-      // Attach form submit event
-      const feedbackForm = document.getElementById('feedbackForm');
-      if (feedbackForm) {
-        feedbackForm.addEventListener('submit', async function(e) {
-          e.preventDefault();
-          
-          // Validate all 8 ratings are filled
-          for (let i = 1; i <= 8; i++) {
-              if (!feedbackRatings[`rating_${i}`]) {
-                  showNotification(`⚠️ Vui lòng đánh giá tất cả 8 tiêu chí!`, 'error');
-                  return;
-              }
-          }
-          
-          const submitBtn = this.querySelector('button[type="submit"]');
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = '<div class="spinner"></div> Đang gửi...';
-          
-          try {
-              const payload = {
-                  rating_1: feedbackRatings.rating_1,
-                  rating_2: feedbackRatings.rating_2,
-                  rating_3: feedbackRatings.rating_3,
-                  rating_4: feedbackRatings.rating_4,
-                  rating_5: feedbackRatings.rating_5,
-                  rating_6: feedbackRatings.rating_6,
-                  rating_7: feedbackRatings.rating_7,
-                  rating_8: feedbackRatings.rating_8,
-                  question_1: document.getElementById('question_1').value.trim(),
-                  question_2: document.getElementById('question_2').value.trim(),
-                  question_3: document.getElementById('question_3').value.trim()
-              };
-              
-              const response = await fetch('/api/feedback/submit', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`
-                  },
-                  body: JSON.stringify(payload)
-              });
-              
-              const result = await response.json();
-              
-              if (result.success) {
-                  showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
-                  setTimeout(() => {
-                      closeFeedbackModal();
-                  }, 1500);
-              } else {
-                  throw new Error(result.error || 'Không thể gửi phản hồi');
-              }
-              
-          } catch (error) {
-              console.error('Error submitting feedback:', error);
-              showNotification('✗ ' + error.message, 'error');
-          } finally {
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = '💾 Gửi Phản Hồi';
-          }
-        });
-      }
-
-      // Close modal when clicking outside
-      const feedbackModal = document.getElementById('feedbackModal');
-      if (feedbackModal) {
-        feedbackModal.addEventListener('click', function(e) {
-            if (e.target === this) closeFeedbackModal();
-        });
-      }
-    })
-    .catch(error => console.error('Error loading footer:', error));
-}
-
-// ✅ CHỈ TỰ ĐỘNG LOAD CHO CÁC TRANG KHÁC (KHÔNG PHẢI path.html)
-document.addEventListener('DOMContentLoaded', () => {
-  const currentPage = window.location.pathname.split('/').pop();
-  if (currentPage !== 'path.html') {
-    loadFooterContent();
-  }
-});
 /* gọi loadUser khi DOM sẵn sàng */
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadUser);
@@ -3493,16 +3406,5 @@ if (document.readyState === 'loading') {
 }
 </script>
 <script src="footer.js"></script>
-<script>
-window.addEventListener('load', function() {
-    // Đợi 800ms để đảm bảo roadmaps đã hiển thị
-    setTimeout(() => {
-        if (typeof window.loadFooterContent === 'function') {
-            window.loadFooterContent();
-        }
-    }, 2000);
-});
-</script>
 </body>
 </html>
-
