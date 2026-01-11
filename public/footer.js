@@ -1,9 +1,21 @@
+function getVietnamDate() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+}
 
-const currentPage = window.location.pathname.split('/').pop();
+function toVietnamDateString(date = null) {
+  const vnDate = date ? new Date(date) : getVietnamDate();
+  const utc = vnDate.getTime() + (vnDate.getTimezoneOffset() * 60000);
+  const vnTime = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+  return vnTime.toISOString().split('T')[0]; // YYYY-MM-DD
+}
+
+const currentPageHTML = window.location.pathname.split('/').pop();
 const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
 const tokeeen = localStorage.getItem('token');
 
-if (!tokeeen && !publicPages.includes(currentPage)) {
+if (!tokeeen && !publicPages.includes(currentPageHTML)) {
     alert('Vui lòng đăng nhập!');
     window.location.href = 'login.html';
 }
@@ -16,7 +28,7 @@ window.openFeedbackModal = function() {
     if (!token) {
         alert('Vui lòng đăng nhập để gửi phản hồi!');
         // If we're already on the login page, don't redirect again
-        if (currentPage !== 'login.html') {
+        if (currentPageHTML !== 'login.html') {
             window.location.href = 'login.html';
         }
         return;
