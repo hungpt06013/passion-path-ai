@@ -1,27 +1,14 @@
-function getVietnamDate() {
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-}
-
-function toVietnamDateString(date = null) {
-  const vnDate = date ? new Date(date) : getVietnamDate();
-  const utc = vnDate.getTime() + (vnDate.getTimezoneOffset() * 60000);
-  const vnTime = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-  return vnTime.toISOString().split('T')[0]; // YYYY-MM-DD
-}
-
 const currentPageHTML = window.location.pathname.split('/').pop();
 const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
-const tokeeen = localStorage.getItem('token');
+const tokens = localStorage.getItem('token');
 
-if (!tokeeen && !publicPages.includes(currentPageHTML)) {
+if (!tokens && !publicPages.includes(currentPageHTML)) {
     alert('Vui lòng đăng nhập!');
     window.location.href = 'login.html';
 }
 // Feedback modal logic
 let feedbackRatings = {};
-
+let feedbackDataChanged = false;
 window.openFeedbackModal = function() {
     // Check if user is logged in
     const token = localStorage.getItem('token');
@@ -34,6 +21,7 @@ window.openFeedbackModal = function() {
         return;
     }
 
+    feedbackDataChanged = false; // Reset trạng thái khi mở modal
     document.getElementById('feedbackModal').classList.add('active');
     feedbackRatings = {}; // Reset ratings
     
@@ -48,14 +36,49 @@ window.openFeedbackModal = function() {
     document.getElementById('question_1').value = '';
     document.getElementById('question_2').value = '';
     document.getElementById('question_3').value = '';
+    
+    // GẮN EVENT LISTENER CHO TEXTAREA (THÊM ĐOẠN NÀY)
+    const textareas = ['question_1', 'question_2', 'question_3'];
+    textareas.forEach(id => {
+        const textarea = document.getElementById(id);
+        if (textarea) {
+            // Xóa event listener cũ (nếu có) để tránh duplicate
+            textarea.removeEventListener('input', textareaInputHandler);
+            // Gắn event listener mới
+            textarea.addEventListener('input', textareaInputHandler);
+        }
+    });
 }
 
+// Tạo hàm handler riêng để có thể removeEventListener
+function textareaInputHandler() {
+    if (this.value.trim() !== '') {
+        feedbackDataChanged = true;
+    }
+}
 window.closeFeedbackModal = function() {
+    // Kiểm tra xem có dữ liệu đã thay đổi không
+    if (feedbackDataChanged) {
+        const confirmed = confirm('Bạn có chắc muốn rời không? Dữ liệu bạn nhập sẽ không được lưu.');
+        if (!confirmed) {
+            return; // Không đóng modal nếu người dùng chọn "Cancel"
+        }
+    }
+    
     document.getElementById('feedbackModal').classList.remove('active');
+    feedbackDataChanged = false; // Reset trạng thái
+}
+// Project Info modal logic
+window.openProjectInfoModal = function() {
+    document.getElementById('projectInfoModal').classList.add('active');
 }
 
+window.closeProjectInfoModal = function() {
+    document.getElementById('projectInfoModal').classList.remove('active');
+}
 window.setFeedbackRating = function(ratingId, value) {
     feedbackRatings[ratingId] = value;
+    feedbackDataChanged = true; // Đánh dấu dữ liệu đã thay đổi
     
     const stars = document.querySelectorAll(`#${ratingId} .star`);
     stars.forEach((star, index) => {
@@ -155,12 +178,13 @@ document.addEventListener('DOMContentLoaded', () => {
               
               const result = await response.json();
               
-              if (result.success) {
-                  showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
-                  setTimeout(() => {
-                      closeFeedbackModal();
-                  }, 1500);
-              } else {
+            if (result.success) {
+                showNotification('✅ Cảm ơn bạn đã gửi phản hồi!', 'success');
+                feedbackDataChanged = false; // Reset vì dữ liệu đã được lưu
+                setTimeout(() => {
+                    document.getElementById('feedbackModal').classList.remove('active');
+                }, 1500);
+            } else {
                   throw new Error(result.error || 'Không thể gửi phản hồi');
               }
               
@@ -172,15 +196,35 @@ document.addEventListener('DOMContentLoaded', () => {
               submitBtn.innerHTML = '💾 Gửi Phản Hồi';
           }
         });
+
       }
 
-      // Close modal when clicking outside
+    // Close modal when clicking outside
       const feedbackModal = document.getElementById('feedbackModal');
       if (feedbackModal) {
         feedbackModal.addEventListener('click', function(e) {
             if (e.target === this) closeFeedbackModal();
         });
       }
+
+      // Close project info modal when clicking outside
+      const projectInfoModal = document.getElementById('projectInfoModal');
+      if (projectInfoModal) {
+        projectInfoModal.addEventListener('click', function(e) {
+            if (e.target === this) closeProjectInfoModal();
+        });
+      }
     })
+    
     .catch(error => console.error('Error loading footer:', error));
+});
+// Cảnh báo khi reload/đóng trang nếu có dữ liệu chưa lưu
+window.addEventListener('beforeunload', function(e) {
+    // Kiểm tra nếu modal đang mở VÀ có dữ liệu đã thay đổi
+    const modal = document.getElementById('feedbackModal');
+    if (modal && modal.classList.contains('active') && feedbackDataChanged) {
+        e.preventDefault();
+        e.returnValue = ''; // Chrome yêu cầu returnValue phải được set
+        return ''; // Một số browser cũ cần return value
+    }
 });
