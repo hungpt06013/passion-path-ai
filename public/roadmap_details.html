@@ -451,6 +451,38 @@ tbody tr:hover {
     color: #6b7280;
     font-weight: 500;
 }
+.error-message {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border-left: 4px solid #dc2626;
+  font-weight: 600;
+  animation: slideIn 0.3s ease-out;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border-left: 4px solid #10b981;
+  font-weight: 600;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
   </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
@@ -717,8 +749,40 @@ loadUser().catch((e)=>console.error(e));
     let daysData = [];
     const days = [];
 
-    async function createRoadmap(){
+    async function createRoadmap() {
       try {
+        // Step 1: Check if user can create this roadmap
+        const checkResponse = await fetch('/api/check-roadmap-exists', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            roadmap_name: roadmapData.roadmap_name,
+            category: roadmapData.category
+          })
+        });
+
+        const checkResult = await checkResponse.json();
+
+        // Step 2: Handle check result
+        if (!checkResult.success) {
+          if (checkResult.isCreator) {
+            showMessage('⚠️ ' + checkResult.message, 'error');
+            return;
+          }
+          
+          if (checkResult.exists) {
+            showMessage('⚠️ ' + checkResult.message + ' Vui lòng xem trong danh sách lộ trình của bạn.', 'error');
+            return;
+          }
+          
+          showMessage('❌ ' + (checkResult.error || 'Không thể kiểm tra lộ trình'), 'error');
+          return;
+        }
+
+        // Step 3: User can create - proceed with creation
         const roadmapDataSystem = {
           roadmap_name: roadmapData.roadmap_name,
           category: roadmapData.category,
@@ -731,6 +795,7 @@ loadUser().catch((e)=>console.error(e));
           roadmap_analyst: roadmapData.roadmap_analyst
         };
 
+        const days = [];
         details.forEach((onerow, idx) => {
           const dayData = {
             day_number: idx + 1,
@@ -750,7 +815,10 @@ loadUser().catch((e)=>console.error(e));
 
         const response = await fetch('/api/roadmap_from_system', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
           body: JSON.stringify({ roadmapDataSystem: roadmapDataSystem })
         });
 
@@ -758,16 +826,23 @@ loadUser().catch((e)=>console.error(e));
           const errData = await response.json().catch(() => ({}));
           throw new Error(errData.error || (`HTTP ${response.status}`));
         }
-        showMessage('✅ Lộ trình đã được tạo thành công!' , 'success');
+
+        showMessage('✅ Lộ trình đã được tạo thành công!', 'success');
+        
         setTimeout(() => {
-          if (window.opener) { window.opener.location.href = 'path.html'; window.close(); }
-          else { window.location.href = 'path.html'; }
+          if (window.opener) {
+            window.opener.location.href = 'path.html';
+            window.close();
+          } else {
+            window.location.href = 'path.html';
+          }
         }, 1200);
+
       } catch (error) {
-        console.error('createRoadmap:', error);
+        console.error('createRoadmap error:', error);
+        showMessage('❌ Lỗi: ' + error.message, 'error');
       }
     }
-
     function showMessage(message, type = 'info') {
       const msgDiv = document.createElement('div');
       msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
