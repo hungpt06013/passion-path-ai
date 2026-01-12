@@ -203,13 +203,13 @@
     .stat-badge i { color: #007bff; font-size: 18px; }
     .stat-badge span { font-weight: 600; color: #1f2937; }
 
-    .filters { max-width: 1200px; margin: 0 auto 32px; padding: 0 24px; display: flex; gap: 16px; align-items: center; }
+    .filters { max-width: 1200px; margin: 0 auto 32px; margin-left: calc(50% - 600px + 20px); padding: 0 24px; display: flex; gap: 16px; align-items: center; }
     .filter-group { display: flex; gap: 8px; align-items: center; }
     .filter-label { font-size: 14px; font-weight: 600; color: #4b5563; }
     .filter-select { padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: border-color 0.2s; }
     .filter-select:focus { outline: none; border-color: #007bff; }
 
-    .roadmaps { max-width: 1200px; margin: 0 auto 80px; padding: 0 24px; }
+    .roadmaps { max-width: 1200px; margin: 0 auto 80px; padding: 0 24px 0 0; margin-left: calc(50% - 600px + 38px); }
     .roadmaps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
     .roadmap-card { background: white; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
     .roadmap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: #007bff; }
@@ -312,26 +312,28 @@
       </div>
     </div>
 
-    <!-- Filters -->
     <div class="filters">
-      <div class="filter-group">
-        <span class="filter-label">Cấp độ:</span>
-        <select class="filter-select" id="filterLevel">
-          <option value="">Tất cả</option>
-          <option value="Beginner">Cơ bản</option>
-          <option value="Intermediate">Trung cấp</option>
-          <option value="Advanced">Nâng cao</option>
-        </select>
-      </div>
+        <div class="filter-group">
+            <span class="filter-label">Cấp độ:</span>
+            <select class="filter-select" id="filterLevel">
+              <option value="">Tất cả</option>
+              <option value="Mới bắt đầu">Mới bắt đầu</option>
+              <option value="Cơ bản">Cơ bản</option>
+              <option value="Trung bình">Trung bình</option>
+              <option value="Khá tốt">Khá tốt</option>
+              <option value="Nâng cao">Nâng cao</option>
+            </select>
+        </div>
 
-      <div class="filter-group">
-        <span class="filter-label">Sắp xếp:</span>
-        <select class="filter-select" id="filterSort">
-          <option value="newest">Mới nhất</option>
-          <option value="popular">Phổ biến nhất</option>
-          <option value="rating">Đánh giá cao</option>
-        </select>
-      </div>
+        <div class="filter-group">
+            <span class="filter-label">Sắp xếp:</span>
+            <select class="filter-select" id="filterSort">
+              <option value="newest">Mới nhất</option>
+              <option value="popular">Phổ biến nhất</option>
+              <option value="rating_overall">Tổng thể ≥4⭐ (nhiều → ít)</option>
+              <option value="rating_effectiveness">Hiệu quả ≥4⭐ (nhiều → ít)</option>
+            </select>
+        </div>
     </div>
 
     <!-- Roadmaps Grid -->
@@ -623,9 +625,15 @@ function renderRoadmaps() {
   }
   document.getElementById('emptyState').style.display = 'none';
   grid.innerHTML = filteredRoadmaps.map(roadmap => {
-    const levelClass = roadmap.start_level === 'Intermediate' ? 'intermediate' : roadmap.start_level === 'Advanced' ? 'advanced' : '';
-    const levelText = roadmap.start_level === 'Beginner' ? 'Cơ bản' : roadmap.start_level === 'Intermediate' ? 'Trung cấp' : roadmap.start_level === 'Advanced' ? 'Nâng cao' : roadmap.start_level;
+    // Map level class
+    let levelClass = '';
+    if (roadmap.start_level === 'Trung bình' || roadmap.start_level === 'Khá tốt') {
+      levelClass = 'intermediate';
+    } else if (roadmap.start_level === 'Nâng cao') {
+      levelClass = 'advanced';
+    }
     
+    const levelText = roadmap.start_level; // Hiển thị nguyên văn
     // ✅ THAY ĐỔI RATING SECTION
     let ratingHtml = '';
     if (roadmap.high_overall_rating_count > 0 || roadmap.high_effectiveness_count > 0) {
@@ -713,13 +721,24 @@ function renderRoadmaps() {
 
     document.getElementById('filterSort').addEventListener('change', (e) => {
       const sort = e.target.value;
+      
       if (sort === 'popular') {
+        // Phổ biến nhất (total_user_learning cao → thấp)
         filteredRoadmaps.sort((a, b) => (b.total_user_learning || 0) - (a.total_user_learning || 0));
-      } else if (sort === 'rating') {
-        filteredRoadmaps.sort((a, b) => (b.overall_rating || 0) - (a.overall_rating || 0));
-      } else {
+      } 
+      else if (sort === 'rating_overall') {
+        // Số lượt đánh giá Tổng thể ≥4⭐ (nhiều → ít)
+        filteredRoadmaps.sort((a, b) => (b.high_overall_rating_count || 0) - (a.high_overall_rating_count || 0));
+      } 
+      else if (sort === 'rating_effectiveness') {
+        // Số lượt đánh giá Hiệu quả ≥4⭐ (nhiều → ít)
+        filteredRoadmaps.sort((a, b) => (b.high_effectiveness_count || 0) - (a.high_effectiveness_count || 0));
+      } 
+      else {
+        // Mới nhất
         filteredRoadmaps.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       }
+      
       renderRoadmaps();
     });
 
