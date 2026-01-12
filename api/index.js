@@ -1997,6 +1997,93 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
     client.release();
   }
 });
+// =====================================================
+// KIỂM TRA XEM NGƯỜI DÙNG ĐÃ CÓ LỘ TRÌNH NÀY CHƯA
+// =====================================================
+app.post("/api/check-roadmap-exists", requireAuth, async (req, res) => {
+  try {
+    const { roadmap_name, category } = req.body;
+    const userId = req.user.id;
+    
+    if (!roadmap_name || !category) {
+      return res.status(400).json({
+        success: false,
+        error: 'Thiếu thông tin roadmap_name hoặc category'
+      });
+    }
+    
+    // Bước 1: Kiểm tra xem người dùng có phải là người tạo ra lộ trình này trong hệ thống hay không.
+    const creatorCheckQuery = `
+      SELECT lrs.roadmap_id
+      FROM learning_roadmaps_system lrs
+      WHERE lrs.roadmap_name = $1 
+        AND lrs.category = $2
+        AND EXISTS (
+          SELECT 1 
+          FROM learning_roadmaps lr
+          WHERE lr.roadmap_name = lrs.roadmap_name
+            AND lr.category = lrs.category
+            AND lr.user_id = $3
+            AND (lr.overall_rating >= 4 OR lr.learning_effectiveness >= 4)
+          LIMIT 1
+        )
+      LIMIT 1
+    `;
+    
+    const creatorResult = await pool.query(creatorCheckQuery, [
+      roadmap_name, 
+      category, 
+      userId
+    ]);
+    
+    if (creatorResult.rows.length > 0) {
+      return res.json({
+        success: false,
+        isCreator: true,
+        message: 'Bạn là người tạo ra lộ trình này, không thể học lại!'
+      });
+    }
+    
+    // Bước 2: Kiểm tra xem người dùng đã có lộ trình này chưa (bao gồm cả những lộ trình đã bị xóa)
+    const existingQuery = `
+      SELECT roadmap_id, roadmap_name
+      FROM learning_roadmaps
+      WHERE roadmap_name = $1 
+        AND category = $2
+        AND user_id = $3
+      LIMIT 1
+    `;
+    
+    const existingResult = await pool.query(existingQuery, [
+      roadmap_name,
+      category,
+      userId
+    ]);
+    
+    if (existingResult.rows.length > 0) {
+      return res.json({
+        success: false,
+        exists: true,
+        roadmapId: existingResult.rows[0].roadmap_id,
+        message: 'Bạn đã có lộ trình này rồi!'
+      });
+    }
+    
+    // Bước 3: Người dùng có thể tạo lộ trình này.
+    return res.json({
+      success: true,
+      canCreate: true,
+      message: 'Có thể tạo lộ trình'
+    });
+    
+  } catch (error) {
+    console.error('Error checking roadmap exists:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể kiểm tra lộ trình'
+    });
+  }
+});
 // ✅ HÀM PARSE TẤT CẢ FORMAT → DECIMAL (hours)
 function parseDurationToHours(value) {
   if (!value) return 0;
@@ -2247,11 +2334,13 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
-    // ✅ LẤY THÔNG TIN ROADMAP
-    const { roadmap_name, category, sub_category, start_level, expected_outcome } = req.body;
-    
-    if (!roadmap_name || !category || !start_level || !expected_outcome) {
-      return res.status(400).json({ success: false, error: "Thiếu thông tin lộ trình" });
+    const { roadmap_name, category, sub_category, start_level } = req.body;
+
+    if (!roadmap_name || !category || !sub_category || !start_level) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Thiếu thông tin lộ trình (tên, danh mục, danh mục chi tiết, trình độ)" 
+      });
     }
 
     const duration_days = normalizedData.length;
@@ -2268,10 +2357,10 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     // ✅ TẠO ROADMAP
     const roadmapResult = await pool.query(
       `INSERT INTO learning_roadmaps 
-       (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) 
+       (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) 
        RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmapAnalyst || null]
+      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmapAnalyst || null]
     );
     
     const roadmapId = roadmapResult.rows[0].roadmap_id;
