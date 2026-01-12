@@ -133,13 +133,35 @@
         border-radius: 8px;
         font-weight: 600;
         cursor: pointer;
-        margin-top: 15px;
+        margin: 15px auto 0; /* ✅ THÊM auto để căn giữa */
         transition: all 0.3s ease;
+        display: block; /* ✅ THÊM block để margin auto hoạt động */
     }
 
     .copy-btn:hover {
         background: #0056b3;
         transform: translateY(-2px);
+    }
+    
+    /* ✅ SỬA: CỘT TÀI LIỆU - CHỈ LINK MỚI CLICK ĐƯỢC */
+    td:nth-child(6) { /* Cột tài liệu (materials) */
+        padding: 15px;
+        border-bottom: 1px solid #e5e7eb !important;
+        vertical-align: top !important;
+        width: fit-content !important; /* ✅ THÊM: Thu gọn theo nội dung */
+    }
+    
+    td:nth-child(6) a {
+        color: #007bff;
+        display: inline-block !important; /* ✅ ĐỔI: từ block sang inline-block */
+        margin: 2px 0 !important;
+        font-size: 0.85rem !important;
+        text-decoration: none !important;
+        pointer-events: auto !important; /* ✅ Chỉ link mới click được */
+    }
+    
+    td:nth-child(6) a:hover {
+        text-decoration: underline !important;
     }
     .content {
         padding: 40px;
@@ -1562,6 +1584,103 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
             </div>
         </div>
     </div>
+
+<!-- Modal Upload Excel -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2>📤 Upload Lộ Trình từ Excel</h2>
+                <p>File Excel phải có đúng 8 cột theo thứ tự</p>
+            </div>
+            <button class="close-modal" onclick="closeUploadModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="info-box">
+                Bạn có thể tải file template Excel bên dưới để upload lộ trình vào hệ thống. 
+                <br>
+                <a href="/Data/roadmap_template.xlsx" 
+                download="roadmap_template.xlsx"
+                style="color: #007bff; text-decoration: underline; font-weight: 600;">
+                    <i class="fa-solid fa-download"></i> Nhấn vào đây để tải file Excel mẫu
+                </a>
+
+            </div>
+
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Tên lộ trình *</label>
+                    <input type="text" name="roadmap_name" required placeholder="Ví dụ: Học Python cơ bản">
+                </div>
+                
+                <div class="form-group">
+                    <label>Danh mục *</label>
+                    <select name="category" id="upload_category" required>
+                        <option value="">-- Đang tải danh mục... --</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Danh mục chi tiết *</label>
+                    <input type="text" name="sub_category" placeholder="Ví dụ: Python Programming" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Trình độ *</label>
+                    <select name="start_level" required>
+                        <option value="">-- Chọn trình độ --</option>
+                        <option value="Mới bắt đầu">Mới bắt đầu</option>
+                        <option value="Cơ bản">Cơ bản</option>
+                        <option value="Trung bình">Trung bình</option>
+                        <option value="Khá tốt">Khá tốt</option>
+                        <option value="Nâng cao">Nâng cao</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>File Excel * (.xlsx hoặc .xls)</label>
+                    <input type="file" name="file" accept=".xlsx,.xls" required>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fa-solid fa-upload"></i> Upload Lộ Trình
+                </button>
+            </form>
+            <br>
+                <div class="info-box">
+                File Excel cần có:
+                <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li>Phân tích hiện trạng (không bắt buộc)</li>
+                    <li>Bảng lộ trình chi tiết theo ngày:</li>
+                </ol>
+                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                    <li><code>day_number</code> - Số thứ tự ngày</li>
+                    <li><code>day_study</code> - Ngày học</li>
+                    <li><code>daily_goal</code> - Mục tiêu ngày</li>
+                    <li><code>learning_content</code> - Nội dung học</li>
+                    <li><code>practice_exercises</code> - Bài tập</li>
+                    <li><code>learning_materials</code> - Tài liệu</li>
+                    <li><code>guide_learning</code> - Hướng dẫn học tập</li>
+                    <li><code>study_duration</code> - Thời gian học mỗi ngày</li>
+                </ul>
+                <br>
+
+
+                <p style="margin-top: 10px; color: #856404;">
+                    <strong>Lưu ý thêm:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
+                        <li>Tiêu đề của 8 cột phải theo thứ tự và không được đổi tên</li>
+                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
+                        <li>Nếu có nhiều URL tài liệu, thì mỗi URL phải để trên <strong>một dòng riêng</strong></li>
+                        <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy</li>
+                        <li><code>study_duration</code> phải có đơn vị là m HOẶC/VÀ h</li>
+                        <li>File định dạng phải là .xlsx hoặc .xls</li>
+                    </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
     <div id="footer"></div>
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
@@ -2233,7 +2352,7 @@ function displayRoadmapDetails(roadmap, details) {
                         <th style="min-width: 130px;">Mục tiêu</th>
                         <th style="min-width: 150px;">Nội dung</th>
                         <th style="min-width: 120px;">Bài tập</th>
-                        <th style="min-width: 100px;">Tài liệu</th>
+                        <th style="width: 100px;">Tài liệu</th>
                         <th style="min-width: 110px;">Hướng dẫn</th>
                         <th style="width: 80px;">Thời lượng</th>
                         <th style="min-width: 150px;">Trạng thái</th>
@@ -3120,21 +3239,32 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // ✅ VALIDATE FORM TRƯỚC KHI GỬI
             const roadmap_name = formData.get('roadmap_name');
-            const category = formData.get('category');
+            const categoryId = formData.get('category');
             const start_level = formData.get('start_level');
-            const expected_outcome = formData.get('expected_outcome');
+
+            // ✅ Lấy TÊN danh mục từ option được chọn
+            const categorySelect = document.getElementById('upload_category');
+            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+            const categoryName = selectedOption.getAttribute('data-category-name') || categoryId;
+
+            console.log('📤 Category info:', {
+                id: categoryId,
+                name: categoryName
+            });
+            formData.append('category_id', categoryId);
+            formData.set('category', categoryName);
             const file = formData.get('file');
             
             console.log('📤 Form validation:', {
                 roadmap_name: roadmap_name ? `"${roadmap_name}"` : '❌ EMPTY',
-                category: category ? `"${category}"` : '❌ EMPTY',
+                category_id: categoryId ? `"${categoryId}"` : '❌ EMPTY',
+                category_name: categoryName ? `"${categoryName}"` : '❌ EMPTY',
                 start_level: start_level ? `"${start_level}"` : '❌ EMPTY',
-                expected_outcome: expected_outcome ? `"${expected_outcome}"` : '❌ EMPTY',
                 file: file ? `✅ ${file.name}` : '❌ NO FILE'
             });
             
             // ✅ CHECK VALIDATION
-            if (!roadmap_name || !category || !start_level || !expected_outcome || !file) {
+            if (!roadmap_name || !category || !start_level || !file) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 
@@ -3142,7 +3272,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!roadmap_name) missing.push('Tên lộ trình');
                 if (!category) missing.push('Danh mục');
                 if (!start_level) missing.push('Trình độ');
-                if (!expected_outcome) missing.push('Kết quả mong đợi');
                 if (!file) missing.push('File Excel');
                 
                 showNotification(`❌ Thiếu thông tin: ${missing.join(', ')}`, 'error');
@@ -3193,110 +3322,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-</script>
+// ============ LOAD CATEGORIES CHO UPLOAD MODAL ============
+async function loadCategoriesForUpload() {
+    const categorySelect = document.getElementById('upload_category');
+    if (!categorySelect) return;
+    
+    categorySelect.innerHTML = '<option value="">-- Đang tải... --</option>';
+    
+    try {
+        const response = await fetch('/api/categories', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load categories');
+        
+        const data = await response.json();
+        
+        if (!data.success || !Array.isArray(data.data)) {
+            throw new Error('Invalid response format');
+        }
+        
+        // ✅ Build options
+        let html = '<option value="">-- Chọn danh mục --</option>';
+        
+        data.data.forEach(cat => {
+            html += `<option value="${cat.id}" data-category-name="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`;
+        });
+        
+        categorySelect.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading categories for upload:', error);
+        categorySelect.innerHTML = '<option value="">❌ Lỗi tải danh mục</option>';
+        showNotification('⚠️ Không thể tải danh mục', 'error');
+    }
+}
 
-<!-- Modal Upload Excel -->
-<div class="modal-overlay" id="uploadModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div>
-                <h2>📤 Upload Lộ Trình từ Excel</h2>
-                <p>File Excel phải có đúng 8 cột theo thứ tự</p>
-            </div>
-            <button class="close-modal" onclick="closeUploadModal()">✕</button>
-        </div>
-        <div class="modal-body">
-            <div class="info-box">
-                Bạn có thể tải file template Excel bên dưới để upload lộ trình vào hệ thống. 
-                <br>
-                <a href="/Data/roadmap_template.xlsx" 
-                download="roadmap_template.xlsx"
-                style="color: #007bff; text-decoration: underline; font-weight: 600;">
-                    <i class="fa-solid fa-download"></i> Nhấn vào đây để tải file Excel mẫu
-                </a>
+// ✅ Helper function escape HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
 
-            </div>
-
-            <form id="uploadForm" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Tên lộ trình *</label>
-                    <input type="text" name="roadmap_name" required placeholder="Ví dụ: Học Python cơ bản">
-                </div>
-                
-                <div class="form-group">
-                    <label>Danh mục *</label>
-                    <input type="text" name="category" required placeholder="Ví dụ: Lập trình">
-                </div>
-                
-                <div class="form-group">
-                    <label>Danh mục chi tiết</label>
-                    <input type="text" name="sub_category" placeholder="Ví dụ: Python Programming">
-                </div>
-                
-                <div class="form-group">
-                    <label>Trình độ *</label>
-                    <select name="start_level" required>
-                        <option value="">-- Chọn trình độ --</option>
-                        <option value="Mới bắt đầu">Mới bắt đầu</option>
-                        <option value="Cơ bản">Cơ bản</option>
-                        <option value="Trung bình">Trung bình</option>
-                        <option value="Khá tốt">Khá tốt</option>
-                        <option value="Nâng cao">Nâng cao</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Kết quả mong đợi *</label>
-                    <textarea name="expected_outcome" required placeholder="Mô tả những gì bạn muốn đạt được sau khi hoàn thành lộ trình này..." rows="3"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>File Excel * (.xlsx hoặc .xls)</label>
-                    <input type="file" name="file" accept=".xlsx,.xls" required>
-                </div>
-                
-                <button type="submit" class="submit-btn">
-                    <i class="fa-solid fa-upload"></i> Upload Lộ Trình
-                </button>
-            </form>
-            <br>
-                <div class="info-box">
-                File Excel cần có:
-                <ol style="margin: 10px 0 0 20px; line-height: 1.8;">
-                    <li>Phân tích hiện trạng (không bắt buộc)</li>
-                    <li>Bảng lộ trình chi tiết theo ngày:</li>
-                </ol>
-                <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
-                    <li><code>day_number</code> - Số thứ tự ngày</li>
-                    <li><code>day_study</code> - Ngày học</li>
-                    <li><code>daily_goal</code> - Mục tiêu ngày</li>
-                    <li><code>learning_content</code> - Nội dung học</li>
-                    <li><code>practice_exercises</code> - Bài tập</li>
-                    <li><code>learning_materials</code> - Tài liệu</li>
-                    <li><code>guide_learning</code> - Hướng dẫn học tập</li>
-                    <li><code>study_duration</code> - Thời gian học mỗi ngày</li>
-                </ul>
-                <br>
-
-
-                <p style="margin-top: 10px; color: #856404;">
-                    <strong>Lưu ý thêm:</strong>
-                    <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
-                        <li>Tiêu đề của 8 cột phải theo thứ tự và không được đổi tên</li>
-                        <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
-                        <li>Nếu có nhiều URL tài liệu, thì mỗi URL phải để trên <strong>một dòng riêng</strong></li>
-                        <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy</li>
-                        <li><code>study_duration</code> phải có đơn vị là m HOẶC/VÀ h</li>
-                        <li>File định dạng phải là .xlsx hoặc .xls</li>
-                    </ul>
-                </p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ========== END FOOTER ========== -->
-<script>
+// ✅ Gọi khi mở upload modal
+const originalOpenUploadModal = openUploadModal;
+openUploadModal = function() {
+    originalOpenUploadModal();
+    loadCategoriesForUpload();
+};
 /* ---------- bắt chước behavior từ main.html (dán vào path.html) ---------- */
 const ADMIN_TOKEN = 'admin-token';
 
