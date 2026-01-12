@@ -353,7 +353,21 @@ body {
     }
 
     .prompt-btn {
-        width: 50%;
+        background: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 15px auto 0; /* ✅ THÊM auto để căn giữa */
+        transition: all 0.3s ease;
+        display: block; /* ✅ THÊM block để margin auto hoạt động */
+    }
+
+    .prompt-btn:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
     }
 
     .days-container {
@@ -1253,9 +1267,6 @@ body {
                             <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
                             <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
                             <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Dual Coding (Mã hóa kép)"> Dual Coding (Mã hóa kép)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Pomodoro Technique (Kỹ thuật Pomodoro)"> Pomodoro Technique (Kỹ thuật Pomodoro)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Metacognitive Reflection (Tự nhận thức về học tập)"> Metacognitive Reflection (Tự nhận thức về học tập)</label>
                             <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
                         </div>
                         <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
