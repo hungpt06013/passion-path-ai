@@ -27,127 +27,6 @@ body {
     padding: 0;  /* XÓA padding: 20px; */
     margin: 0;
 }
-/* ============ HEADER & FOOTER STYLES ============ */
-:root {
-    --header-height: 80px;
-}
-
-.fixed-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    background: #007bff;
-    box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
-    z-index: 50;
-}
-
-.bar-inner {
-    max-width: 1200px;
-    height: 100%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    gap: 16px;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.brand-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 22px;
-}
-
-.brand-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.brand-title {
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.brand-sub {
-    color: rgba(255,255,255,0.9);
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.nav-buttons {
-    display: flex;
-    gap: 22px;
-}
-
-.nav-btn {
-    background: none;
-    color: #fff;
-    padding: 0;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-}
-
-.nav-btn.active {
-    color: #e6f2ff;
-    text-decoration: underline;
-}
-
-.userInfo {
-    color: white;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.login-btn, .register-btn, .logout-btn {
-    padding: 10px 20px; /* Tăng padding ngang để vừa icon + chữ */
-    border-radius: 9999px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    display: inline-flex; /* Để icon và chữ center */
-    align-items: center;
-    gap: 8px; /* Gap giữa icon và chữ */
-    transition: all 0.3s ease; /* Thêm hover smooth */
-}
-
-.login-btn:hover, .register-btn:hover, .logout-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.login-btn {
-    background: white;
-    color: #333;
-}
-
-.register-btn {
-    background: #28a745;
-    color: white;
-}
-
-.logout-btn {
-    background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
-    color: white;
-}
 .container {
     max-width: 1000px;
     margin: 100px auto 0 auto; /* Thêm margin-top để tránh bị header che */
@@ -617,34 +496,6 @@ body {
         margin-top: 10px;
     }
 
-/* ============ NAVIGATION BUTTONS ============ */
-.nav-buttons {
-    display: flex;
-    gap: 22px;
-    align-items: center;
-}
-
-.nav-btn {
-    background: none;
-    color: #fff;
-    padding: 0;
-    font-size: 15px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-}
-
-
-.nav-btn.active {
-    color: #e6f2ff;
-    text-decoration: underline;
-}
-
-.nav-btn .fa,
-.nav-btn .fa-solid {
-    margin-right: 4px;
-    opacity: 0.95;
-}
     .back-btn {
         position: absolute;
         left: 30px;
@@ -1049,6 +900,112 @@ body {
             padding: 10px 15px;
         }
     }
+/* ============ CUSTOM DROPDOWN CHO CATEGORY ============ */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.custom-select-trigger:hover {
+    border-color: #007bff;
+}
+
+.custom-select-trigger.active {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.custom-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 300px;
+    overflow: hidden; /* ✅ SỬA: Đổi từ visible sang hidden */
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.custom-select-dropdown.active {
+    display: block;
+}
+
+.custom-select-search {
+    padding: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    background: #f0f9ff;
+    z-index: 1;
+}
+
+.custom-select-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.custom-select-search input:focus {
+    border-color: #007bff;
+}
+
+.custom-select-options {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.custom-select-option {
+    padding: 12px; /* ✅ SỬA: Đổi từ 10px 12px thành 12px để đồng nhất */
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 14px;
+    min-height: 30px; /* ✅ THÊM: Đảm bảo chiều cao tối thiểu */
+    display: flex; /* ✅ THÊM: Căn giữa nội dung */
+    align-items: center; /* ✅ THÊM: Căn giữa theo chiều dọc */
+    box-sizing: border-box; /* ✅ THÊM: Tính padding vào chiều cao */
+}
+
+.custom-select-option:hover {
+    background: #f0f9ff;
+}
+
+.custom-select-option.selected {
+    background: #dbeafe;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.custom-select-option.disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+    background: #f9fafb;
+}
+
+.custom-select-wrapper input[type="hidden"] {
+    display: none;
+}
 </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
@@ -1065,28 +1022,24 @@ body {
     <link rel="preload" href="footer.css" as="style">
     <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="footer.css"></noscript>
+
+    <!-- Load header.css -->
+    <link rel="preload" href="header.css" as="style">
+    <link rel="stylesheet" href="header.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-    <div class="fixed-bar">
-  <div class="bar-inner">
-    <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-graduation-cap"></i>
-      </div>
-      <div class="brand-text">
-        <div class="brand-title">Con đường đam mê</div>
-        <div class="brand-sub">AI-Powered Learning Path</div>
-      </div>
-    </div>
-    <div class="nav-buttons" id="mainNavButtons">
-      <!-- Buttons sẽ được thêm bằng JavaScript -->
-    </div>
-    <div id="userArea" class="userInfo">
-      <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-      <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-    </div>
-  </div>
-</div>
+<div id="header"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('header').innerHTML = html;
+      const script = document.createElement('script');
+      script.src = 'header.js';
+      document.body.appendChild(script);
+    });
+</script>
 <div class="container">
 <div class="form-container">
     <div style="background: #007bff; padding: 40px; margin: -40px -40px 30px -40px; border-radius: 20px 20px 0 0; position: relative;">
@@ -1108,22 +1061,21 @@ body {
                             placeholder="VD: Học Python từ cơ bản đến nâng cao">
                     </div>
 
-                    <!-- Q2: Danh mục (Radio, chỉ 1 chọn) - LẤY TỪ API -->
-                    <div class="form-group">
+                    <!-- Q2: Danh mục - CUSTOM DROPDOWN -->
+                    <div class="form-group" id="q2_category_container">
                         <label class="form-label">Danh mục *</label>
-                        <div class="checkbox-group" id="q2_categoryGroup">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <span>Đang tải danh mục...</span>
-                            </div>
+                        <!-- Placeholder sẽ được thay bằng custom dropdown khi load -->
+                        <div style="padding: 12px; background: #f9fafb; border-radius: 8px; color: #6b7280;">
+                            Đang tải danh mục...
                         </div>
                     </div>
 
-                    <!-- Q3: Danh mục chi tiết (ghi rõ) -->
+                    <!-- Q3: Danh mục chi tiết (động) -->
                     <div class="form-group">
-                        <label class="form-label">Danh mục chi tiết (ghi rõ) *</label>
-                        <input type="text" name="q3_category_detail" class="form-input" required
-                            placeholder="Mô tả chi tiết danh mục...">
+                        <label class="form-label">Danh mục chi tiết *</label>
+                        <div id="q3_subCategoryContainer">
+                            Vui lòng chọn danh mục trước
+                        </div>
                     </div>
                 </div>
                 <div class="form-section">
@@ -1435,6 +1387,12 @@ body {
 <div id="footer"></div>
 </body>
     <script>
+// ✅ THÊM HÀM NÀY NGAY SAU KHAI BÁO BIẾN GLOBAL (sau dòng let categoriesData = [];)
+function removeDiacritics(str) {
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase();
+}
 function validateAllQuestions() {
     const errors = [];
     
@@ -1450,9 +1408,28 @@ function validateAllQuestions() {
         errors.push('Câu danh mục');
     }
     
-    // Q3: Danh mục chi tiết
-    const q3 = document.querySelector('input[name="q3_category_detail"]');
-    if (!q3 || !q3.value.trim()) {
+    // Q3: Danh mục chi tiết (radio hoặc text)
+    const q3_radio = document.querySelector('input[name="q3_category_detail"]:checked');
+    const q3_text = document.querySelector('input[name="q3_category_detail"][type="text"]');
+    const q3_other = document.getElementById('q3_other_text');
+
+    let q3_valid = false;
+
+    if (q3_radio) {
+        // ✅ Chọn radio
+        if (q3_radio.value === 'Khác') {
+            // ✅ Chọn "Khác" → phải điền input
+            q3_valid = q3_other && q3_other.value.trim() !== '';
+        } else {
+            // ✅ Chọn sub-category có sẵn
+            q3_valid = true;
+        }
+    } else if (q3_text) {
+        // ✅ Input text trực tiếp (khi không có sub-categories)
+        q3_valid = q3_text.value.trim() !== '';
+    }
+
+    if (!q3_valid) {
         errors.push('Câu danh mục chi tiết');
     }
     
@@ -1620,77 +1597,462 @@ function attachOtherEventsForQ2() {
             return headers;
         }
 async function loadCategories() {
-    const categoryGroup = document.getElementById('q2_categoryGroup');
-    categoryGroup.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <span>Đang tải danh mục...</span>
+    const container = document.getElementById('q2_category_container');
+    if (!container) return;
+    
+    // Tạo custom dropdown
+    container.innerHTML = `
+        <label class="form-label">Danh mục *</label>
+        <div class="custom-select-wrapper">
+            <div class="custom-select-trigger" id="category-trigger">
+                <span id="category-selected">-- Chọn danh mục --</span>
+                <span>▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="category-dropdown">
+                <div class="custom-select-search">
+                    <input type="text" placeholder="🔍 Tìm kiếm danh mục..." id="category-search-input">
+                </div>
+                <div class="custom-select-options" id="category-options">
+                    <div class="custom-select-option disabled">Đang tải...</div>
+                </div>
+            </div>
+            <input type="hidden" name="q2_category" id="q2_category_hidden" required>
+            <input type="hidden" id="q2_category_name">
         </div>
     `;
-
+    
     try {
         const response = await fetch('/api/categories', getAuthHeaders());
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
-        }
+        if (!response.ok) throw new Error('Failed to load');
+        
         const data = await response.json();
+        if (!data?.success || !Array.isArray(data.data)) throw new Error('Invalid data');
         
-        if (!data?.success || !Array.isArray(data.data)) {
-            throw new Error('Dữ liệu không hợp lệ từ server');
-        }
-
-        let html = '';
-        if (data.data.length === 0) {
-            html += '<div class="error-message">⚠️ Không có danh mục nào. Vui lòng liên hệ admin.</div>';
-        } else {
-            data.data.forEach(cat => {
-                // ✅ LƯU CẢ ID VÀ NAME
-                html += `
-                    <label>
-                        <input type="radio" 
-                               name="q2_category" 
-                               value="${cat.id}" 
-                               data-category-name="${escapeHtml(cat.name)}"
-                               required> 
-                        ${escapeHtml(cat.name)}
-                    </label>
-                `;
-            });
-        }
-
-        // Thêm "Khác"
-        html += `
-            <label>
-                <input type="radio" 
-                       name="q2_category" 
-                       value="Khác" 
-                       id="q2_other_radio" 
-                       required> 
-                Khác
-            </label>
-        `;
+        const categories = data.data;
         
-        categoryGroup.innerHTML = html;
+        // Render options
+        renderCategoryOptionsForCreate(categories, categories);
         
-        // Thêm input "Khác"
-        const otherInput = document.createElement('input');
-        otherInput.type = 'text';
-        otherInput.id = 'q2_other_text';
-        otherInput.className = 'form-input other-input';
-        otherInput.name = 'q2_category_other';
-        otherInput.placeholder = 'Ghi rõ danh mục...';
-        otherInput.style.display = 'none';
+        // Setup events
+        setupCustomSelectForCreate(
+            'category-trigger',
+            'category-dropdown',
+            'category-search-input',
+            'category-options',
+            'category-selected',
+            'q2_category_hidden',
+            'q2_category_name',
+            categories,
+            renderCategoryOptionsForCreate,
+            (categoryId) => {
+                if (categoryId === 'Khác') {
+                    const subContainer = document.getElementById('q3_subCategoryContainer');
+                    if (subContainer) {
+                        subContainer.innerHTML = '<input type="text" name="q3_category_detail" class="form-input" required placeholder="Nhập danh mục chi tiết...">';
+                    }
+                } else {
+                    loadSubCategoriesForCreate(categoryId);
+                }
+            }
+        );
         
-        categoryGroup.appendChild(otherInput);
-
-        // Attach events
-        attachOtherEventsForQ2();
-
     } catch (err) {
-        console.error('Lỗi tải danh mục:', err.message || err);
-        categoryGroup.innerHTML = `<div class="error-message">❌ Không thể tải danh mục: ${err.message}</div>`;
+        console.error('Error loading categories:', err);
+        document.getElementById('category-options').innerHTML = 
+            '<div class="custom-select-option disabled">❌ Lỗi tải danh mục</div>';
     }
 }
+
+function renderCategoryOptionsForCreate(allCategories, filteredCategories) {
+    const optionsContainer = document.getElementById('category-options');
+    
+    // ✅ FIX: Bỏ dấu khi so sánh
+    const searchInput = document.getElementById('category-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const showKhac = !searchTerm || removeDiacritics('khác').includes(removeDiacritics(searchTerm));
+    
+    if (filteredCategories.length === 0 && !showKhac) {
+        optionsContainer.innerHTML = '<div class="custom-select-option disabled">❌ Không tìm thấy</div>';
+        return;
+    }
+    
+    let html = '';
+    filteredCategories.forEach(cat => {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="${cat.id}" 
+                 data-name="${escapeHtml(cat.name)}">
+                ${escapeHtml(cat.name)}
+            </div>
+        `;
+    });
+    
+    // ✅ CHỈ THÊM NẾU MATCH
+    if (showKhac) {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="Khác" 
+                 data-name="Khác">
+                Khác
+            </div>
+        `;
+    }
+    
+    optionsContainer.innerHTML = html;
+}
+function setupCustomSelectForCreate(triggerId, dropdownId, searchInputId, optionsId, selectedId, hiddenInputId, hiddenNameId, allData, renderFunction, onSelectCallback) {
+    const trigger = document.getElementById(triggerId);
+    const dropdown = document.getElementById(dropdownId);
+    const searchInput = document.getElementById(searchInputId);
+    const optionsContainer = document.getElementById(optionsId);
+    const selectedSpan = document.getElementById(selectedId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    const hiddenName = document.getElementById(hiddenNameId);
+    
+    if (!trigger || !dropdown) return;
+    
+    // Toggle dropdown
+    trigger.addEventListener('click', () => {
+        dropdown.classList.toggle('active');
+        trigger.classList.toggle('active');
+        
+        if (dropdown.classList.contains('active')) {
+            searchInput.focus();
+        }
+    });
+    
+    // Close khi click ngoài
+    document.addEventListener('click', (e) => {
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+            trigger.classList.remove('active');
+        }
+    });
+    
+    // Tìm kiếm
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            renderFunction(allData, allData);
+            return;
+        }
+        
+        // ✅ FIX: Bỏ dấu khi tìm kiếm
+        const normalizedSearch = removeDiacritics(searchTerm);
+        
+        const filtered = allData.filter(item => 
+            removeDiacritics(item.name.toLowerCase()).includes(normalizedSearch)
+        );
+        
+        renderFunction(allData, filtered);
+    });
+    
+    // Chọn option
+    optionsContainer.addEventListener('click', (e) => {
+        const option = e.target.closest('.custom-select-option');
+        
+        if (!option || option.classList.contains('disabled')) return;
+        
+        const value = option.dataset.value;
+        const name = option.dataset.name;
+        
+        // Update UI
+        selectedSpan.textContent = name;
+        hiddenInput.value = value;
+        if (hiddenName) hiddenName.value = name;
+        
+        // Highlight selected
+        optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        option.classList.add('selected');
+        
+        // Close dropdown
+        dropdown.classList.remove('active');
+        trigger.classList.remove('active');
+        
+        // Reset search
+        searchInput.value = '';
+        renderFunction(allData, allData);
+        
+        // Callback
+        if (onSelectCallback) {
+            onSelectCallback(value);
+        }
+    });
+}
+
+// ============ HÀM LOAD SUB-CATEGORIES ============
+// THÊM SAU hàm loadCategories()
+
+async function loadSubCategories(categoryId) {
+  const container = document.getElementById('q3_subCategoryContainer');
+  
+  if (!categoryId || categoryId === 'Khác' || categoryId === 'Other') {
+    // ✅ Nếu chọn "Khác" ở Q2 → chỉ hiện input text
+    container.innerHTML = `
+      <input type="text" 
+             name="q3_category_detail" 
+             class="form-input" 
+             required
+             placeholder="Nhập danh mục chi tiết...">
+    `;
+    return;
+  }
+  
+  // ✅ Hiện loading
+  container.innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <span>Đang tải danh mục con...</span>
+    </div>
+  `;
+  
+  try {
+    const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+      headers: getAuthHeaders()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (!data?.success) {
+      throw new Error('Dữ liệu không hợp lệ');
+    }
+    
+    const subCategories = data.data || [];
+    
+    if (subCategories.length === 0) {
+      // ✅ Không có danh mục con → chỉ hiện input text
+      container.innerHTML = `
+        <input type="text" 
+               name="q3_category_detail" 
+               class="form-input" 
+               required
+               placeholder="Nhập danh mục chi tiết...">
+      `;
+      return;
+    }
+    
+    // ✅ Có danh mục con → hiện radio buttons
+    let html = '<div class="checkbox-group">';
+    
+    subCategories.forEach(sub => {
+      html += `
+        <label>
+          <input type="radio" 
+                 name="q3_category_detail" 
+                 value="${escapeHtml(sub.name)}" 
+                 required>
+          ${escapeHtml(sub.name)}
+        </label>
+      `;
+    });
+    
+    // ✅ Thêm lựa chọn "Khác"
+    html += `
+      <label>
+        <input type="radio" 
+               name="q3_category_detail" 
+               value="Khác" 
+               id="q3_other_radio" 
+               required>
+        Khác
+      </label>
+    `;
+    
+    html += '</div>';
+    
+    // ✅ Thêm input "Khác" (ẩn mặc định)
+    html += `
+      <input type="text" 
+             id="q3_other_text" 
+             class="form-input other-input" 
+             name="q3_category_detail_other"
+             placeholder="Ghi rõ danh mục chi tiết..."
+             style="display:none; margin-top:10px;">
+    `;
+    
+    container.innerHTML = html;
+    
+    // ✅ Setup toggle cho "Khác"
+    setupQ3OtherToggle();
+    
+  } catch (err) {
+    console.error('Error loading sub-categories:', err);
+    container.innerHTML = `
+      <div class="error-message">
+        ⚠️ Không thể tải danh mục con. Vui lòng thử lại.
+      </div>
+      <input type="text" 
+             name="q3_category_detail" 
+             class="form-input" 
+             required
+             placeholder="Nhập danh mục chi tiết...">
+    `;
+  }
+}
+
+// ============ SETUP TOGGLE CHO "KHÁC" Ở Q3 ============
+function setupQ3OtherToggle() {
+  const otherRadio = document.getElementById('q3_other_radio');
+  const otherInput = document.getElementById('q3_other_text');
+  
+  if (!otherRadio || !otherInput) return;
+  
+  // ✅ Khi chọn "Khác" → hiện input
+  otherRadio.addEventListener('change', () => {
+    if (otherRadio.checked) {
+      otherInput.style.display = 'block';
+      setTimeout(() => otherInput.focus(), 60);
+    }
+  });
+  
+  // ✅ Khi chọn option khác → ẩn input
+  document.querySelectorAll('input[name="q3_category_detail"]').forEach(radio => {
+    if (radio !== otherRadio) {
+      radio.addEventListener('change', () => {
+        otherInput.style.display = 'none';
+        otherInput.value = '';
+      });
+    }
+  });
+}
+
+// ============ ATTACH EVENT CHO Q2 ============
+// THÊM SAU hàm setupQ3OtherToggle()
+function attachQ2ChangeEvent() {
+  document.querySelectorAll('input[name="q2_category"]').forEach(radio => {
+    radio.addEventListener('change', async () => {
+      if (radio.checked) {
+        const categoryId = radio.value;
+        await loadSubCategories(categoryId);
+      }
+    });
+  });
+}
+async function loadSubCategoriesForCreate(categoryId) {
+    const container = document.getElementById('q3_subCategoryContainer');
+    if (!container) return;
+    
+    if (!categoryId || categoryId === 'Khác') {
+        container.innerHTML = '<input type="text" name="q3_category_detail" class="form-input" required placeholder="Nhập danh mục chi tiết...">';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="custom-select-wrapper">
+            <div class="custom-select-trigger" id="sub-category-trigger">
+                <span id="sub-category-selected">-- Chọn danh mục chi tiết --</span>
+                <span>▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="sub-category-dropdown">
+                <div class="custom-select-search">
+                    <input type="text" placeholder="🔍 Tìm kiếm..." id="sub-category-search-input">
+                </div>
+                <div class="custom-select-options" id="sub-category-options">
+                    <div class="custom-select-option disabled">Đang tải...</div>
+                </div>
+            </div>
+            <input type="hidden" name="q3_category_detail" id="q3_category_detail_hidden" required>
+        </div>
+        <input type="text" 
+               id="q3_other_text" 
+               class="form-input other-input" 
+               name="q3_category_detail_other"
+               placeholder="Ghi rõ danh mục chi tiết..."
+               style="display:none; margin-top:10px;">
+    `;
+    
+    try {
+        const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+            headers: getAuthHeaders()
+        });
+        
+        if (!response.ok) throw new Error('Failed');
+        
+        const data = await response.json();
+        if (!data?.success) throw new Error('Invalid');
+        
+        const subCategories = data.data || [];
+        
+        renderSubCategoryOptionsForCreate(subCategories, subCategories);
+        
+        setupCustomSelectForCreate(
+            'sub-category-trigger',
+            'sub-category-dropdown',
+            'sub-category-search-input',
+            'sub-category-options',
+            'sub-category-selected',
+            'q3_category_detail_hidden',
+            null,
+            subCategories,
+            renderSubCategoryOptionsForCreate,
+            (value) => {
+                const otherInput = document.getElementById('q3_other_text');
+                if (value === 'Khác') {
+                    otherInput.style.display = 'block';
+                    otherInput.required = true;
+                    setTimeout(() => otherInput.focus(), 100);
+                } else {
+                    otherInput.style.display = 'none';
+                    otherInput.required = false;
+                    otherInput.value = '';
+                }
+            }
+        );
+        
+    } catch (err) {
+        console.error('Error:', err);
+        container.innerHTML = `
+            <div class="error-message">⚠️ Không thể tải danh mục con</div>
+            <input type="text" name="q3_category_detail" class="form-input" required placeholder="Nhập danh mục chi tiết...">
+        `;
+    }
+}
+
+function renderSubCategoryOptionsForCreate(allSubCategories, filteredSubCategories) {
+    const optionsContainer = document.getElementById('sub-category-options');
+    
+    // ✅ FIX: Bỏ dấu khi so sánh
+    const searchInput = document.getElementById('sub-category-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const showKhac = !searchTerm || removeDiacritics('khác').includes(removeDiacritics(searchTerm));
+    
+    if (filteredSubCategories.length === 0 && !showKhac) {
+        optionsContainer.innerHTML = '<div class="custom-select-option disabled">❌ Không tìm thấy</div>';
+        return;
+    }
+    
+    let html = '';
+    filteredSubCategories.forEach(sub => {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="${escapeHtml(sub.name)}" 
+                 data-name="${escapeHtml(sub.name)}">
+                ${escapeHtml(sub.name)}
+            </div>
+        `;
+    });
+    
+    // ✅ CHỈ THÊM NẾU MATCH
+    if (showKhac) {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="Khác" 
+                 data-name="Khác">
+                Khác
+            </div>
+        `;
+    }
+    
+    optionsContainer.innerHTML = html;
+}
+
 function renderCategories(categories) {
     const container = document.getElementById('q2_categoryGroup'); // ✅ FIXED: Đúng ID
     
@@ -1959,9 +2321,12 @@ async function generateRoadmapWithAI() {
       }
     }
 
-    // Q3
-    const q3_category_detail = getField(formData, 'q3_category_detail');
-
+    // Q3 - Xử lý danh mục chi tiết
+    let q3_category_detail = getField(formData, 'q3_category_detail');
+    if (q3_category_detail === 'Khác' || q3_category_detail === 'Other') {
+        const q3_other = document.getElementById('q3_other_text');
+        q3_category_detail = q3_other ? q3_other.value.trim() : '';
+    }
     // Q4 main purpose + other
     let q4_main_purpose = getField(formData, 'q4_main_purpose');
     let q4_main_purpose_other = '';
@@ -2467,25 +2832,25 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     // Q1
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
-    // Q2 (category) - xử lý "Khác"
+    // Q2 (category) - SELECT
     let q2_category_id = getField(formData, 'q2_category');
     let q2_category = '';
 
-    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
-    const other = document.getElementById('q2_other_text');
-    q2_category = other ? (other.value || '').trim() : '';
+    if (q2_category_id === 'Khác') {
+        const otherInput = document.getElementById('q2_other_text');
+        q2_category = otherInput ? otherInput.value.trim() : '';
     } else {
-    // ✅ TÌM TÊN CATEGORY TỪ ID
-    const selectedRadio = document.querySelector(`input[name="q2_category"]:checked`);
-    if (selectedRadio) {
-        const label = selectedRadio.closest('label');
-        q2_category = label ? label.textContent.trim() : q2_category_id;
-    }
+        const select = document.getElementById('q2_category_select');
+        const selectedOption = select?.options[select.selectedIndex];
+        q2_category = selectedOption?.getAttribute('data-category-name') || q2_category_id;
     }
 
-    // Q3
-    const q3_category_detail = getField(formData, 'q3_category_detail');
-
+    // Q3 - Xử lý "Khác"
+    let q3_category_detail = getField(formData, 'q3_category_detail');
+    if (q3_category_detail === 'Khác') {
+        const q3_other = document.getElementById('q3_other_text');
+        q3_category_detail = q3_other ? q3_other.value.trim() : '';
+    }
     // Q4 main purpose (radio/select) + other
     let q4_main_purpose = getField(formData, 'q4_main_purpose');
     let q4_main_purpose_other = '';
@@ -2991,143 +3356,6 @@ window.addEventListener('load', function() {
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#39;');
         }
-        // ============ HEADER USER LOGIC ============
-const loginBtn = document.querySelector(".login-btn");
-const registerBtn = document.querySelector(".register-btn");
-const userArea = document.getElementById("userArea");
-const ADMIN_TOKEN = 'admin-token';
-
-function showAuthButtons() {
-  if (loginBtn) loginBtn.style.display = "inline-flex";
-  if (registerBtn) registerBtn.style.display = "inline-flex";
-  const children = Array.from(userArea.children);
-  children.forEach(c => {
-    if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-      try { userArea.removeChild(c); } catch (e) {}
-    }
-  });
-}
-
-if (loginBtn) {
-  loginBtn.addEventListener("click", () => { window.location.href = "login.html"; });
-}
-
-if (registerBtn) {
-  registerBtn.addEventListener("click", () => { window.location.href = "register.html"; });
-}
-
-async function loadUser() {
-  const token = localStorage.getItem('token');
-  const navButtons = document.getElementById('mainNavButtons');
-  
-  // Tạo navigation buttons
-  if (navButtons) {
-    navButtons.innerHTML = `
-      <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-      <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-      <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-    `;
-    
-    document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
-    document.getElementById('btnPath').addEventListener('click', () => { window.location.href = 'path.html'; });
-    document.getElementById('btnProgress').addEventListener('click', () => { 
-      if (!localStorage.getItem('token')) window.location.href = 'login.html';
-      else window.location.href = 'progress.html';
-    });
-  }
-  
-  showAuthButtons();
-  if (!token) return;
-
-  let name = 'Người dùng';
-  let serverRole = 'user';
-
-  if (token === ADMIN_TOKEN) {
-    name = 'Admin';
-    serverRole = 'admin';
-    localStorage.setItem('role', 'admin');
-  } else {
-    try {
-      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-      if (!res.ok) { showAuthButtons(); return; }
-      const data = await res.json();
-      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-      name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-      localStorage.setItem('role', serverRole);
-    } catch (err) {
-      console.error(err);
-      showAuthButtons();
-      return;
-    }
-  }
-
-  if (document.querySelector('.login-btn')) document.querySelector('.login-btn').style.display = 'none';
-  if (document.querySelector('.register-btn')) document.querySelector('.register-btn').style.display = 'none';
-
-  userArea.innerHTML = `
-    <span>Xin chào <strong style="color:white;">${name}</strong></span>
-    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-  `;
-  
-  document.getElementById('logout').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    window.location.href = 'main.html';
-  });
-
-  if (serverRole === 'admin') {
-    const adminBtn = document.createElement('button');
-    adminBtn.className = 'nav-btn';
-    adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-    adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
-    navButtons.appendChild(adminBtn);
-  }
-}
-// ============ PHÂN QUYỀN NÚT TẠO LỘ TRÌNH ============
-async function checkUserRoleAndUpdateUI() {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  const generateBtn = document.getElementById('generateAI');
-  const generateBtnText = document.getElementById('generateBtnText');
-  const analysisSection = document.querySelector('.analysis-section');
-  const daysSection = document.querySelectorAll('.form-section')[document.querySelectorAll('.form-section').length - 1];
-  const submitSection = document.querySelector('.submit-section');
-  
-  if (!token || role !== 'admin') {
-    // User thường: Đổi nút thành "Tạo lộ trình"
-    if (generateBtnText) {
-      generateBtnText.textContent = '📝 Tạo lộ trình';
-    }
-    
-    // Ẩn analysis section, days section, submit section
-    if (analysisSection) analysisSection.style.display = 'none';
-    if (daysSection) daysSection.style.display = 'none';
-    if (submitSection) submitSection.style.display = 'none';
-    
-    // ✅ FIX: Validate form trước khi hiện prompt
-    if (generateBtn) {
-      generateBtn.removeEventListener('click', generateRoadmapWithAI);
-      generateBtn.addEventListener('click', function() {
-        // ✅ VALIDATE FORM TRƯỚC
-        const validationErrors = validateAllQuestions();
-        if (validationErrors && validationErrors.length > 0) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return; // Dừng nếu có lỗi
-        }
-        
-        // ✅ Nếu pass validation, hiện prompt
-        showManualPromptForUser();
-      });
-    }
-  } else {
-    // Admin: giữ nguyên
-    if (generateBtnText) {
-      generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
-    }
-  }
-}
-
-loadUser().catch(e => console.error(e));
     // Q4 - Main Purpose
 const q4_other_radio = document.getElementById('q4_other_radio');
 const q4_other_text = document.getElementById('q4_other_text');
