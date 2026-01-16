@@ -22,133 +22,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; background: #f5f7fa; color: #1f2937; }
 
-    /* Header - replaced with fixed-bar styles */
-    .fixed-bar { position: fixed; top: 0; left: 0; width: 100%; height: 80px; background: #007bff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 1000; }
-    .bar-inner {
-        max-width: 1200px;
-        height: 100%;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        box-sizing: border-box;
-    }
-
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .brand-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 22px;
-        flex-shrink: 0;
-    }
-
-    .brand-text {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .brand-title {
-        color: white;
-        font-size: 20px;
-        font-weight: 700;
-    }
-
-    .brand-sub {
-        color: rgba(255,255,255,0.9);
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .nav-buttons {
-        display: flex;
-        gap: 22px;
-        align-items: center;
-    }
-
-    .nav-btn {
-        background: none;
-        color: #fff;
-        padding: 0;
-        font-size: 15px;
-        font-weight: 600;
-        border-radius: 9999px;
-    }
-
-    .nav-btn .fa {
-        margin-right: 8px;
-        opacity: 0.95;
-    }
-
-
-    button {
-        font-family: 'Inter', sans-serif;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        border-radius: 9999px;
-        padding: 10px 20px;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .userInfo {
-        color: white;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .login-btn {
-        background: white;
-        color: #333;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .login-btn:hover {
-        background: #f0f0f0;
-    }
-
-    .register-btn {
-        background: #28a745;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .register-btn:hover {
-        background: #218838;
-    }
-
-    .logout-btn {
-        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .toApp-btn {
-        background: #000;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .admin-btn {
-        background: #6f42c1;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
 html, body {
       height: 100%;
       margin: 0;
@@ -499,28 +372,23 @@ tbody tr:hover {
     <link rel="preload" href="footer.css" as="style">
     <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="footer.css"></noscript>
+
+    <link rel="preload" href="header.css" as="style">
+    <link rel="stylesheet" href="header.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-<div class="fixed-bar">
-  <div class="bar-inner">
-    <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-graduation-cap"></i>
-      </div>
-      <div class="brand-text">
-        <div class="brand-title">Con đường đam mê</div>
-        <div class="brand-sub">AI-Powered Learning Path</div>
-      </div>
-    </div>
-    <div class="nav-buttons" id="mainNavButtons">
-      <!-- Buttons sẽ được thêm bằng JavaScript -->
-    </div>
-    <div id="userArea" class="userInfo">
-      <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-      <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-    </div>
-  </div>
-</div>
+<div id="header"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('header').innerHTML = html;
+      const script = document.createElement('script');
+      script.src = 'header.js';
+      document.body.appendChild(script);
+    });
+</script>
 
   <div class="page-offset">
     <div class="breadcrumb">
@@ -602,140 +470,8 @@ tbody tr:hover {
   </div>
 <div id="footer"></div>
   <script>
-        const loginBtn = document.querySelector(".login-btn");
-const registerBtn = document.querySelector(".register-btn");
-const userArea = document.getElementById("userArea");
 const ADMIN_TOKEN = 'admin-token';
 
-function showAuthButtons() {
-  if (loginBtn) loginBtn.style.display = "inline-flex";
-  if (registerBtn) registerBtn.style.display = "inline-flex";
-  const children = Array.from(userArea.children);
-  children.forEach(c => {
-    if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-      try {
-        userArea.removeChild(c);
-      } catch (e) {}
-    }
-  });
-}
-
-if (loginBtn) {
-  loginBtn.addEventListener("click", () => {
-    window.location.href = "login.html";
-  });
-}
-
-if (registerBtn) {
-  registerBtn.addEventListener("click", () => {
-    window.location.href = "register.html";
-  });
-}
-
-function wireLogoutAndNav(logoutEl) {
-  if (!logoutEl) return;
-  logoutEl.addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    
-    // ✅ REDIRECT VỀ MAIN.HTML NGAY LẬP TỨC
-    window.location.href = 'main.html';
-  });
-}
-
-async function loadUser() {
-  const token = localStorage.getItem('token');
-  const navButtons = document.getElementById('mainNavButtons');
-  
-  // Luôn hiển thị navigation buttons ngay từ đầu
-  if (navButtons) {
-    navButtons.innerHTML = `
-      <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-      <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-      <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-    `;
-    
-    // Add event listeners cho nav buttons
-    document.getElementById('btnHome').addEventListener('click', () => { 
-      window.location.href = 'main.html'; 
-    });
-    
-    document.getElementById('btnPath').addEventListener('click', () => { 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = 'login.html';
-      } else {
-        window.location.href = 'path.html';
-      }
-    });
-    
-    document.getElementById('btnProgress').addEventListener('click', () => { 
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = 'login.html';
-      } else {
-        window.location.href = 'progress.html';
-      }
-    });
-  }
-  
-  showAuthButtons();
-  if (!token) return;
-
-  let name = 'Người dùng';
-  let serverRole = 'user';
-
-  if (token === ADMIN_TOKEN) {
-    name = 'Admin';
-    serverRole = 'admin';
-    localStorage.setItem('role', 'admin');
-  } else {
-    try {
-      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-      if (!res.ok) { 
-        showAuthButtons(); 
-        return; 
-      }
-      const data = await res.json();
-      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-      name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-      localStorage.setItem('role', serverRole);
-    } catch (err) {
-      console.error(err);
-      showAuthButtons();
-      return;
-    }
-  }
-
-  if (document.querySelector('.login-btn')) {
-    document.querySelector('.login-btn').style.display = 'none';
-  }
-  if (document.querySelector('.register-btn')) {
-    document.querySelector('.register-btn').style.display = 'none';
-  }
-
-  userArea.innerHTML = `
-    <span>Xin chào <strong style="color:white;">${name}</strong></span>
-    <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-  `;
-  const logoutEl = document.getElementById('logout');
-  wireLogoutAndNav(logoutEl);
-
-
-  // Active state
-  const params = new URLSearchParams(window.location.search);
-  const page = params.get('page') || 'progress';
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
-  const btnId = idMap[page];
-  if (btnId) {
-    const el = document.getElementById(btnId);
-    if (el) el.classList.add('active');
-  }
-}
-
-// Initialize
-loadUser().catch((e)=>console.error(e));
     const API_BASE_URL = 'http://localhost:3000/api';
     const urlParams = new URLSearchParams(window.location.search);
     const roadmapId = urlParams.get('id');
