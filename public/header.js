@@ -151,13 +151,15 @@ async function loadUser(currentPage = '') {
         });
     }
     
-    // ✅ THÊM DÒNG NÀY - RETURN SỚM NẾU KHÔNG CÓ TOKEN
+    // ✅ QUAN TRỌNG: RETURN NGAY KHI KHÔNG CÓ TOKEN
     if (!token) {
+        console.log('❌ No token found - showing auth buttons'); // Debug log
         showAuthButtons();
-        return;
+        return; // ← DỪNG TẠI ĐÂY
     }
     
-    // ✅ CHỈ GỌI API KHI CÓ TOKEN
+    // ✅ CODE DƯỚI ĐÂY CHỈ CHẠY KHI CÓ TOKEN
+    console.log('✅ Token found - loading user info'); // Debug log
     let name = 'Người dùng';
     let serverRole = 'user';
     
@@ -169,11 +171,14 @@ async function loadUser(currentPage = '') {
     } else {
         // Lấy thông tin user từ API
         try {
+            console.log('📡 Calling /api/me...'); // Debug log
             const res = await fetch('/api/me', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             
             if (!res.ok) {
+                console.log('❌ API call failed - clearing token'); // Debug log
+                localStorage.removeItem('token');
                 showAuthButtons();
                 return;
             }
@@ -183,17 +188,17 @@ async function loadUser(currentPage = '') {
             name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
             localStorage.setItem('role', serverRole);
         } catch (err) {
-            console.error('Error loading user:', err);
+            console.error('❌ Error loading user:', err);
+            localStorage.removeItem('token');
             showAuthButtons();
             return;
         }
     }
     
-    // Ẩn nút login/register
+    // Phần còn lại giữ nguyên...
     if (loginBtn) loginBtn.style.display = 'none';
     if (registerBtn) registerBtn.style.display = 'none';
     
-    // Hiển thị thông tin user
     if (userArea) {
         userArea.innerHTML = `
             <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${name}</strong></span>
@@ -204,7 +209,6 @@ async function loadUser(currentPage = '') {
         wireLogoutAndNav(logoutEl);
     }
     
-    // Thêm nút Admin nếu là admin
     if (serverRole === 'admin' && navButtons) {
         if (!document.getElementById('btnAdmin')) {
             const adminBtn = document.createElement('button');
@@ -217,14 +221,11 @@ async function loadUser(currentPage = '') {
             navButtons.appendChild(adminBtn);
         }
         
-        // ✅ THÊM ĐOẠN NÀY - Set active cho nút Admin khi đang ở trang admin
         const currentPath = window.location.pathname;
         if (currentPath.includes('admin.html')) {
             const adminBtn = document.getElementById('btnAdmin');
             if (adminBtn) {
-                // Bỏ active của các nút khác
                 document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-                // Set active cho nút Admin
                 adminBtn.classList.add('active');
             }
         }
