@@ -1,9 +1,9 @@
-const CurrentPage = window.location.pathname.split('/').pop();
-const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_category.html', ''];
+const CurrentPage = window.location.pathname.split('/').pop() || 'main.html';
+const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_category.html'];
 const Tokens = localStorage.getItem('token');
 
 const CurrentPath = window.location.pathname;
-const IsHomePage = CurrentPath === '/main.html' || CurrentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
+const IsHomePage = CurrentPath === '/' || CurrentPath === '/main.html' || CurrentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
 
 if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !IsHomePage) {
     alert('Vui lòng đăng nhập!');
