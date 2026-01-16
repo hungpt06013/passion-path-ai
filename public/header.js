@@ -178,8 +178,21 @@ async function loadUser(currentPage = '') {
             
             if (!res.ok) {
                 console.log('❌ API call failed - clearing token'); // Debug log
+                // ✅ XÓA TOKEN KHÔNG HỢP LỆ
                 localStorage.removeItem('token');
+                localStorage.removeItem('role');
                 showAuthButtons();
+                
+                // ✅ REDIRECT VỀ TRANG CHỦ NẾU ĐANG Ở TRANG PRIVATE
+                const currentPath = window.location.pathname;
+                const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html'];
+                const isPrivatePage = privatePaths.some(path => currentPath.includes(path));
+                
+                if (isPrivatePage) {
+                    console.log('🔄 Redirecting to login...');
+                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                    window.location.href = 'login.html';
+                }
                 return;
             }
             
