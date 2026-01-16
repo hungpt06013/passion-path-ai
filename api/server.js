@@ -3755,7 +3755,179 @@ app.post("/api/password-reset/reset", async (req, res) => {
     });
   }
 });
+// ========== EMAIL VERIFICATION FOR REGISTRATION ==========
 
+// 1️⃣ REQUEST VERIFICATION CODE
+app.post("/api/register/request-verification", async (req, res) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email || !email.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email không được để trống'
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Kiểm tra email đã tồn tại chưa
+    const existingUser = await pool.query(
+      'SELECT id FROM users WHERE LOWER(email) = $1',
+      [normalizedEmail]
+    );
+    
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({
+        success: false,
+        error: 'Email đã được sử dụng'
+      });
+    }
+    
+    // Tạo mã xác thực
+    const code = generateResetCode();
+    const vnNow = getVietnamDate();
+    const expiresAt = new Date(vnNow.getTime() + 10 * 60 * 1000); // 10 phút
+    
+    // Lưu mã vào database
+    await pool.query(
+      `INSERT INTO password_reset_codes (email, code, expires_at) 
+       VALUES ($1, $2, $3)`,
+      [normalizedEmail, code, expiresAt]
+    );
+    
+    // Gửi email
+    const mailOptions = {
+      from: `"Con đường đam mê" <${process.env.EMAIL_FROM}>`,
+      to: normalizedEmail,
+      subject: 'Mã xác thực đăng ký tài khoản',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #007bff; margin: 0;">Con đường đam mê</h1>
+            <p style="color: #6c757d; font-size: 14px;">AI-Powered Learning Path</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #333; margin-top: 0;">Xác thực email đăng ký</h2>
+            <p style="color: #555; line-height: 1.6;">
+              Cảm ơn bạn đã đăng ký tài khoản! Sử dụng mã xác thực dưới đây để hoàn tất đăng ký:
+            </p>
+            
+            <div style="background: white; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+              <div style="font-size: 32px; font-weight: bold; color: #007bff; letter-spacing: 8px;">
+                ${code}
+              </div>
+            </div>
+            
+            <p style="color: #dc3545; font-size: 14px; margin-bottom: 0;">
+              ⚠️ Mã này sẽ hết hạn sau <strong>10 phút</strong>
+            </p>
+          </div>
+          
+          <div style="border-top: 1px solid #e0e0e0; padding-top: 20px; color: #6c757d; font-size: 12px;">
+            <p>Nếu bạn không yêu cầu đăng ký, vui lòng bỏ qua email này.</p>
+            <p style="margin-bottom: 0;">Đây là email tự động, vui lòng không trả lời.</p>
+          </div>
+        </div>
+      `
+    };
+    
+    try {
+      await transporter.sendMail(mailOptions);
+      
+      res.json({
+        success: true,
+        message: 'Mã xác thực đã được gửi đến email của bạn',
+        expiresIn: 600 // 10 phút
+      });
+    } catch (emailError) {
+      console.error('❌ Send email error:', emailError);
+      return res.status(500).json({
+        success: false,
+        error: 'Không thể gửi email. Vui lòng thử lại sau.'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error requesting verification code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể xử lý yêu cầu'
+    });
+  }
+});
+
+// 2️⃣ VERIFY CODE FOR REGISTRATION
+app.post("/api/register/verify-code", async (req, res) => {
+  try {
+    const { email, code } = req.body;
+    
+    if (!email || !code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email và mã xác thực không được để trống'
+      });
+    }
+    
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    const result = await pool.query(
+      `SELECT id, expires_at, used 
+       FROM password_reset_codes 
+       WHERE email = $1 AND code = $2 
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [normalizedEmail, code.trim()]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực không đúng'
+      });
+    }
+    
+    const resetCode = result.rows[0];
+    
+    if (resetCode.used) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã được sử dụng'
+      });
+    }
+    
+    const vnNow = getVietnamDate();
+    const expiresAtRaw = new Date(resetCode.expires_at);
+    const utc = expiresAtRaw.getTime() + (expiresAtRaw.getTimezoneOffset() * 60000);
+    const expiresAtVN = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+    
+    if (vnNow > expiresAtVN) {
+      return res.status(400).json({
+        success: false,
+        error: 'Mã xác thực đã hết hạn'
+      });
+    }
+    
+    // Đánh dấu mã đã sử dụng
+    await pool.query(
+      'UPDATE password_reset_codes SET used = TRUE WHERE id = $1',
+      [resetCode.id]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Mã xác thực hợp lệ'
+    });
+    
+  } catch (error) {
+    console.error('Error verifying code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Không thể xác thực mã'
+    });
+  }
+});
 // ========== CLEANUP OLD CODES (Chạy mỗi giờ) ==========
 setInterval(async () => {
   try {
@@ -3796,7 +3968,51 @@ app.get("/api/categories", async (req, res) => {
     res.status(500).json({ success: false, error: "Không thể lấy danh mục" });
   }
 });
-
+// ============ SUB-CATEGORIES API ENDPOINT ============
+// Thêm SAU endpoint GET /api/categories
+app.get("/api/categories/:categoryId/sub-categories", async (req, res) => {
+  try {
+    const categoryId = parseInt(req.params.categoryId);
+    
+    if (isNaN(categoryId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Category ID không hợp lệ" 
+      });
+    }
+    
+    const query = `
+      SELECT 
+        id,
+        name,
+        description,
+        created_at
+      FROM sub_categories
+      WHERE category_id = $1
+      ORDER BY name ASC
+    `;
+    
+    const result = await pool.query(query, [categoryId]);
+    
+    // ✅ Format timestamps
+    const formattedSubCategories = result.rows.map(sub => ({
+      ...sub,
+      created_at: formatTimestampForAPI(sub.created_at)
+    }));
+    
+    res.json({ 
+      success: true, 
+      data: formattedSubCategories 
+    });
+    
+  } catch (err) {
+    console.error("Error fetching sub-categories:", err?.message || err);
+    res.status(500).json({ 
+      success: false, 
+      error: "Không thể lấy danh mục con" 
+    });
+  }
+});
 app.post("/api/admin/categories", requireAdmin, async (req, res) => {
   try {
     const { name, description } = req.body;
@@ -3901,7 +4117,40 @@ app.delete("/api/admin/sub-categories/:id", requireAdmin, async (req, res) => {
     res.status(500).json({ success: false, error: "Không thể xóa" });
   }
 });
-
+app.put("/api/admin/sub-categories/:id", requireAdmin, async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    const subId = parseInt(req.params.id);
+    
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: "Tên danh mục con không được để trống" });
+    }
+    
+    const result = await pool.query(
+      `UPDATE sub_categories 
+       SET name = $1, description = $2 
+       WHERE id = $3 
+       RETURNING *`,
+      [name.trim(), description?.trim() || null, subId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Danh mục con không tồn tại" });
+    }
+    
+    res.json({ 
+      success: true, 
+      data: result.rows[0], 
+      message: "Cập nhật thành công" 
+    });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ success: false, error: "Tên danh mục con đã tồn tại" });
+    }
+    console.error(err);
+    res.status(500).json({ success: false, error: "Không thể cập nhật" });
+  }
+});
 // ========== AI HISTORY ENDPOINTS ==========
 app.get("/api/admin/ai-history", requireAdmin, async (req, res) => {
   try {
