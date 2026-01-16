@@ -3,7 +3,7 @@ const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_categ
 const Tokens = localStorage.getItem('token');
 
 const CurrentPath = window.location.pathname;
-const IsHomePage = CurrentPath === '/' || CurrentPath === '/main.html' || CurrentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
+const IsHomePage = CurrentPath === '/main.html' || CurrentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
 
 if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !IsHomePage) {
     alert('Vui lòng đăng nhập!');
