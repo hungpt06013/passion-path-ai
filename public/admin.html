@@ -27,7 +27,6 @@
         --primary-dark: #1e6fe6;
         --muted: #6b7280;
         --bg: #f5f8fb;
-        --header-height: 80px;
     }
 
 html, body {
@@ -48,180 +47,6 @@ html, body {
   min-height: 100vh;
   overflow-x: hidden;
 }
-
-    .fixed-bar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 80px;
-        background: var(--primary);
-        box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
-        z-index: 50;
-    }
-
-    /* Layout container - keeps content centered but lets nav expand */
-    .bar-inner {
-        max-width: 1200px;
-        height: 100%;
-        margin: 0 auto;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        box-sizing: border-box;
-        gap: 16px;
-    }
-
-    /* Brand (left) */
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 0 0 auto; /* không co dãn, giữ vị trí bên trái */
-        min-width: 0;
-    }
-
-    .brand-icon {
-        width: 48px;
-        height: 48px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 22px;
-        flex-shrink: 0;
-    }
-
-    .brand-text {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        line-height: 1;
-        min-width: 0;
-    }
-
-    /* Cho phép brand-title và brand-sub hiển thị 2 dòng (như yêu cầu) */
-    .brand-title {
-        color: white;
-        font-size: 20px;
-        font-weight: 700;
-        white-space: normal;
-        word-break: break-word;
-        line-height: 1.05;
-    }
-
-    .brand-sub {
-        color: rgba(255,255,255,0.9);
-        font-size: 12px;
-        font-weight: 600;
-        white-space: normal;
-        line-height: 1;
-    }
-
-    /* Nav buttons (giữa) - chiếm không gian còn lại, giữ tất cả trên 1 hàng */
-/* Thay thế .nav-buttons hiện tại bằng đoạn này */
-.nav-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start; /* <-- đặt các nút sát về phía bên trái (sau logo) */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 12px 4px 6px;    /* padding-left nhỏ để tách logo và nút */
-    min-width: 0;
-    white-space: nowrap;          /* giữ tất cả trên 1 hàng */
-    flex-wrap: nowrap;
-}
-
-    .nav-btn {
-        background: none;
-        color: #fff;
-        padding: 6px 12px;
-        font-size: 15px;
-        font-weight: 600;
-        border-radius: 9999px;
-        white-space: nowrap;      /* verhindert wrap của chữ trong nút */
-        flex-shrink: 0;           /* không thu nhỏ nút */
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .nav-btn .fa {
-        margin-right: 4px;
-        opacity: 0.95;
-    }
-
-    .nav-btn.active {
-        color: #e6f2ff;
-        text-decoration: underline;
-    }
-
-    /* User area (phải) */
-    .userInfo {
-        color: white;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex: 0 0 auto; /* giữ nguyên kích thước, không co dãn */
-        min-width: 0;
-    }
-
-    /* Buttons chung */
-    button {
-        font-family: 'Inter', sans-serif;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        border-radius: 9999px;
-        padding: 10px 18px;
-        font-size: 15px;
-        font-weight: 600;
-        background: transparent;
-    }
-
-    .login-btn {
-        background: white;
-        color: #333;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .login-btn:hover {
-        background: #f0f0f0;
-    }
-
-    .register-btn {
-        background: #28a745;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .register-btn:hover {
-        background: #218838;
-    }
-
-    .logout-btn {
-        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .toApp-btn {
-        background: #000;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .admin-btn {
-        background: #6f42c1;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
 
 main {
   flex: 1 0 auto;
@@ -649,29 +474,24 @@ details > div {
     <link rel="preload" href="footer.css" as="style">
     <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="footer.css"></noscript>
+    <!-- Load header.css -->
+    <link rel="preload" href="header.css" as="style">
+    <link rel="stylesheet" href="header.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-    <!-- Header exactly from the first file -->
-<div class="fixed-bar">
-    <div class="bar-inner">
-        <div class="brand">
-            <div class="brand-icon">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <div class="brand-text">
-                <div class="brand-title">Con đường đam mê</div>
-                <div class="brand-sub">AI-Powered Learning Path</div>
-            </div>
-        </div>
-        <div class="nav-buttons" id="mainNavButtons">
-        <!-- Buttons chính sẽ được thêm bằng JavaScript -->
-        </div>
-        <div id="userArea" class="userInfo">
-            <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-            <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-        </div>
-    </div>
-</div>
+<div id="header"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('header').innerHTML = html;
+      setupAdminNavigation();
+      const script = document.createElement('script');
+      script.src = 'header.js';
+      document.body.appendChild(script);
+    });
+</script>
 
 <!-- Navigation buttons phụ CHỈ CHO ADMIN - DƯỚI thanh bar -->
 <div class="admin-nav-container" id="adminNavContainer" style="display:none;">
@@ -844,327 +664,6 @@ details > div {
     </main>
 <div id="footer"></div>
   <script>
-    // Header JS exactly from the first file (loadUser + helpers)
-    const loginBtn = document.querySelector(".login-btn");
-    const registerBtn = document.querySelector(".register-btn");
-    const userArea = document.getElementById("userArea");
-    const ADMIN_TOKEN = 'admin-token';
-    if(!ADMIN_TOKEN) window.location.href = 'login.html';
-    // Color schemes for categories (kept from first file though admin page may not use it)
-    const categoryColors = [
-        { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
-        { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
-        { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
-        { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
-        { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
-        { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' }
-    ];
-
-    function showAuthButtons() {
-        if (loginBtn) loginBtn.style.display = "inline-flex";
-        if (registerBtn) registerBtn.style.display = "inline-flex";
-        const children = Array.from(userArea.children);
-        children.forEach(c => {
-            if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-                try {
-                    userArea.removeChild(c);
-                } catch (e) {}
-            }
-        });
-    }
-
-    if (loginBtn) {
-      loginBtn.addEventListener("click", () => {
-          window.location.href = "login.html";
-      });
-    }
-
-    if (registerBtn) {
-      registerBtn.addEventListener("click", () => {
-          window.location.href = "register.html";
-      });
-    }
-
-    function wireLogoutAndNav(logoutEl) {
-        if (logoutEl) {
-            logoutEl.addEventListener('click', () => {
-                localStorage.removeItem('token');
-                localStorage.removeItem('role');
-                window.location.href = 'main.html';
-                if (!document.querySelector('.login-btn')) {
-                    const b = document.createElement('button');
-                    b.className = 'login-btn';
-                    b.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Đăng nhập';
-                    b.addEventListener('click', () => window.location.href = 'login.html');
-                    userArea.appendChild(b);
-                }
-
-                if (!document.querySelector('.register-btn')) {
-                    const b2 = document.createElement('button');
-                    b2.className = 'register-btn';
-                    b2.innerHTML = '<i class="fa-solid fa-user-plus"></i> Đăng ký';
-                    b2.addEventListener('click', () => window.location.href = 'register.html');
-                    userArea.appendChild(b2);
-                }
-
-                showAuthButtons();
-            });
-        }
-    }
-
-// Tìm hàm loadUser() trong admin.html và sửa lại:
-async function loadUser() {
-    const token = localStorage.getItem('token');
-    const navButtons = document.getElementById('mainNavButtons');
-    
-    // Luôn hiển thị navigation buttons chính
-    if (navButtons) {
-        navButtons.innerHTML = `
-            <button class="nav-btn active" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-            <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-            <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-        `;
-        
-        document.getElementById('btnHome').addEventListener('click', () => { window.location.href = 'main.html'; });
-        
-        document.getElementById('btnPath').addEventListener('click', () => { 
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-            } else {
-                window.location.href = 'path.html';
-            }
-        });
-        
-        document.getElementById('btnProgress').addEventListener('click', () => { 
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-            } else {
-                window.location.href = 'progress.html';
-            }
-        });
-    }
-    
-    if (!token) {
-        showAuthButtons();
-        return;
-    }
-
-    let name = 'Người dùng';
-    let serverRole = 'user';
-
-    if (token === ADMIN_TOKEN) {
-        name = 'Admin';
-        serverRole = 'admin';
-        localStorage.setItem('role', 'admin');
-    } else {
-        try {
-            const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-            if (!res.ok) { 
-                showAuthButtons(); 
-                return; 
-            }
-            const data = await res.json();
-            serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-            name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-            localStorage.setItem('role', serverRole);
-        } catch (err) {
-            console.error(err);
-            showAuthButtons();
-            return;
-        }
-    }
-
-    if (document.querySelector('.login-btn')) {
-        document.querySelector('.login-btn').style.display = 'none';
-    }
-    if (document.querySelector('.register-btn')) {
-        document.querySelector('.register-btn').style.display = 'none';
-    }
-
-    userArea.innerHTML = `
-        <span>Xin chào <strong style="color:white;">${name}</strong></span>
-        <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-    `;
-    const logoutEl = document.getElementById('logout');
-    wireLogoutAndNav(logoutEl);
-
-    // Thêm nút Admin trên thanh bar chính
-    if (serverRole === 'admin') {
-        const adminBtn = document.createElement('button');
-        adminBtn.className = 'nav-btn';
-        adminBtn.id = 'btnAdmin';
-        adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-        adminBtn.addEventListener('click', () => { 
-            // Hiển thị card quản lý user
-            document.getElementById('adminCard').style.display = 'block';
-            document.getElementById('aiHistorySection').style.display = 'none';
-            document.getElementById('categoriesSection').style.display = 'none';
-            document.getElementById('promptSection').style.display = 'none';
-            document.getElementById('feedbackSection').style.display = 'none';
-            
-            // Update active state
-            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-            const btnUsers = document.getElementById('btnUsers');
-            if (btnUsers) btnUsers.classList.add('active');
-        });
-        navButtons.appendChild(adminBtn);
-        
-        // ✅ HIỂN THỊ THANH NAV PHỤ CHO ADMIN
-        const adminNavContainer = document.getElementById('adminNavContainer');
-        const adminNavButtons = document.getElementById('adminNavButtons');
-        
-        if (adminNavContainer && adminNavButtons) {
-            adminNavContainer.style.display = 'block';
-            document.body.classList.add('has-admin-nav');
-            
-            adminNavButtons.innerHTML = `
-                <button class="admin-nav-btn active" id="btnUsers"><i class="fa-solid fa-users"></i> Quản Lý User</button>
-                <button class="admin-nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
-                <button class="admin-nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
-                <button class="admin-nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
-                <button class="admin-nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
-            `;
-            
-            // Event listeners cho các nút admin
-            document.getElementById('btnUsers').addEventListener('click', () => {
-                document.getElementById('adminCard').style.display = 'block';
-                document.getElementById('aiHistorySection').style.display = 'none';
-                document.getElementById('categoriesSection').style.display = 'none';
-                document.getElementById('promptSection').style.display = 'none';
-                document.getElementById('feedbackSection').style.display = 'none';
-                
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btnUsers').classList.add('active');
-            });
-            
-            document.getElementById('btnAIHistory').addEventListener('click', () => {
-                document.getElementById('aiHistorySection').style.display = 'block';
-                document.getElementById('categoriesSection').style.display = 'none';
-                document.getElementById('promptSection').style.display = 'none';
-                document.getElementById('adminCard').style.display = 'none';
-                document.getElementById('feedbackSection').style.display = 'none';
-                
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btnAIHistory').classList.add('active');
-            });
-            
-            document.getElementById('btnCategories').addEventListener('click', () => {
-                document.getElementById('categoriesSection').style.display = 'block';
-                document.getElementById('aiHistorySection').style.display = 'none';
-                document.getElementById('promptSection').style.display = 'none';
-                document.getElementById('adminCard').style.display = 'none';
-                document.getElementById('feedbackSection').style.display = 'none';
-                
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btnCategories').classList.add('active');
-            });
-            
-            document.getElementById('btnPrompt').addEventListener('click', () => {
-                document.getElementById('promptSection').style.display = 'block';
-                document.getElementById('aiHistorySection').style.display = 'none';
-                document.getElementById('categoriesSection').style.display = 'none';
-                document.getElementById('adminCard').style.display = 'none';
-                document.getElementById('feedbackSection').style.display = 'none';
-                loadPromptTemplate().catch(()=>{});
-                loadManualPromptTemplate().catch(()=>{});
-                
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btnPrompt').classList.add('active');
-            });
-            
-            document.getElementById('btnFeedback').addEventListener('click', () => {
-                document.getElementById('feedbackSection').style.display = 'block';
-                document.getElementById('promptSection').style.display = 'none';
-                document.getElementById('aiHistorySection').style.display = 'none';
-                document.getElementById('categoriesSection').style.display = 'none';
-                document.getElementById('adminCard').style.display = 'none';
-                
-                document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-                document.getElementById('btnFeedback').classList.add('active');
-            });
-            document.getElementById('adminCard').style.display = 'block';
-            document.getElementById('aiHistorySection').style.display = 'none';
-            document.getElementById('categoriesSection').style.display = 'none';
-            document.getElementById('promptSection').style.display = 'none';
-            document.getElementById('feedbackSection').style.display = 'none';
-        }
-    }
-
-    // Active state
-    const params = new URLSearchParams(window.location.search);
-    const page = params.get('page') || 'home';
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    const idMap = { home: 'btnHome', path: 'btnPath', progress: 'btnProgress', admin: 'btnAdmin' };
-    const btnId = idMap[page];
-    if (btnId) {
-        const el = document.getElementById(btnId);
-        if (el) el.classList.add('active');
-    }
-}
-    // Load top categories (from first file) - kept but optional for admin
-    async function loadTopCategories() {
-        try {
-            const res = await fetch('/api/categories/top', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            if (!res.ok) throw new Error('Failed to load categories');
-            
-            const categories = await res.json();
-            const grid = document.getElementById('categoriesArea');
-            if (!grid) return;
-            
-            grid.innerHTML = '';
-            categories.forEach((cat, index) => {
-                const colorScheme = categoryColors[index % categoryColors.length];
-                const card = document.createElement('div');
-                card.className = 'history-card';
-                card.onclick = () => {
-                    window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
-                };
-                
-                card.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                      <div>
-                        <div style="font-weight:700;font-size:16px;">${escapeHtml(cat.name)}</div>
-                        <div style="color:${'var(--muted)'};font-size:13px;">${escapeHtml(cat.description || '')}</div>
-                      </div>
-                      <div style="text-align:right;color:var(--primary);font-weight:700;">${cat.roadmap_count || (cat.roadmap_count===0?0:'-')}</div>
-                    </div>
-                `;
-                
-                grid.appendChild(card);
-            });
-        } catch (err) {
-            console.error('Error loading categories:', err);
-        }
-    }
-
-    // Initialize header + categories
-    loadUser().catch((e)=>console.error(e));
-    //loadTopCategories().catch(()=>{});
-
-    // ============ Admin page JS (user management, ai history, categories, prompt) ============
-    // The admin logic is preserved from the admin file you provided.
-
-    // Basic admin auth check (also keeps behavior consistent)
-    (function adminAuthCheck(){
-      const token = localStorage.getItem('token');
-      const storedRole = localStorage.getItem('role');
-      if (!token) {
-        alert('Vui lòng đăng nhập để tiếp tục!');
-        window.location.replace('login.html');
-      } else if (storedRole !== 'admin') {
-        alert('Bạn không phải quản trị!');
-        window.location.replace('path.html');
-      }
-    })();
-
     // ============ DOM ELEMENTS ============
     const fetchUsersBtn = document.getElementById('fetchUsersBtn');
     const usersArea = document.getElementById('usersArea');
@@ -1522,7 +1021,15 @@ function renderAIHistory(records, total) {
                 <strong style="font-size: 16px;">${escapeHtml(cat.name)}</strong><br>
                 <span style="color: #6b7280; font-size: 13px;">${escapeHtml(cat.description || '')}</span>
               </div>
-              <div>
+              <div style="display: flex; gap: 8px;">
+                ${subCats.length > 0 ? `
+                  <button class="btn-refresh toggle-sub-btn" data-cat-id="${cat.id}" style="background: #6c757d;">
+                    <i class="fa-solid fa-eye"></i> Xem con
+                  </button>
+                ` : ''}
+                <button class="btn-refresh" onclick="editCategory(${cat.id}, '${escapeHtml(cat.name)}', '${escapeHtml(cat.description || '')}')" style="background: #25519c; border-color: #25519c;">
+                  <i class="fa-solid fa-edit"></i> Sửa
+                </button>
                 <button class="btn-refresh" onclick="addSubCategory(${cat.id}, '${escapeHtml(cat.name)}')" style="margin-right: 5px;">
                   <i class="fa-solid fa-plus"></i> Thêm con
                 </button>
@@ -1531,16 +1038,27 @@ function renderAIHistory(records, total) {
                 </button>
               </div>
             </div>
+            
             ${subCats.length > 0 ? `
-              <div style="margin-top: 10px; padding-left: 20px;">
+              <div class="sub-categories-container" id="sub-cat-${cat.id}" style="display: none; margin-top: 10px; padding-left: 20px;">
                 <strong>Danh mục con:</strong>
                 <ul style="margin: 5px 0 0 20px;">
                   ${subCats.map(sub => `
-                    <li style="margin: 5px 0;">
-                      ${escapeHtml(sub.name)}
-                      <button class="btn-delete" onclick="deleteSubCategory(${sub.id})" style="margin-left: 10px; padding: 2px 8px; font-size: 11px;">
-                        Xóa
-                      </button>
+                    <li style="margin: 8px 0;">
+                      <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div style="flex: 1;">
+                          <strong>${escapeHtml(sub.name)}</strong>
+                          ${sub.description ? `<br><span style="color: #6b7280; font-size: 12px;">${escapeHtml(sub.description)}</span>` : ''}
+                        </div>
+                        <div style="display: flex; gap: 5px; margin-left: 10px;">
+                          <button class="btn-refresh" onclick="editSubCategory(${sub.id}, ${cat.id}, '${escapeHtml(sub.name)}', '${escapeHtml(sub.description || '')}')" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-edit"></i> Sửa
+                          </button>
+                          <button class="btn-delete" onclick="deleteSubCategory(${sub.id})" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fa-solid fa-trash"></i> Xóa
+                          </button>
+                        </div>
+                      </div>
                     </li>
                   `).join('')}
                 </ul>
@@ -1551,8 +1069,28 @@ function renderAIHistory(records, total) {
       }).join('');
       
       categoriesArea.innerHTML = html;
+      
+      // ✅ Thêm event listener cho nút toggle
+      document.querySelectorAll('.toggle-sub-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const catId = this.getAttribute('data-cat-id');
+          const subContainer = document.getElementById(`sub-cat-${catId}`);
+          const icon = this.querySelector('i');
+          
+          if (subContainer.style.display === 'none') {
+            subContainer.style.display = 'block';
+            icon.className = 'fa-solid fa-eye-slash';
+            this.innerHTML = '<i class="fa-solid fa-eye-slash"></i> Rút gọn';
+            this.style.background = '#28a745';
+          } else {
+            subContainer.style.display = 'none';
+            icon.className = 'fa-solid fa-eye';
+            this.innerHTML = '<i class="fa-solid fa-eye"></i> Xem con';
+            this.style.background = '#6c757d';
+          }
+        });
+      });
     }
-
     async function loadCategories() {
       categoriesMessage.textContent = 'Đang tải...';
       fetchCategoriesBtn.disabled = true;
@@ -1703,7 +1241,41 @@ function renderAIHistory(records, total) {
         alert('Lỗi khi xóa danh mục');
       }
     };
-
+    window.editCategory = async function(id, currentName, currentDesc) {
+      const newName = prompt(`Sửa tên danh mục:`, currentName);
+      if (!newName || !newName.trim()) return;
+      
+      const newDesc = prompt(`Sửa mô tả:`, currentDesc);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/categories/${id}`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            name: newName.trim(), 
+            description: newDesc?.trim() || null 
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi sửa danh mục');
+      }
+    };
     window.deleteSubCategory = async function(id) {
       if (!confirm('Xóa danh mục con này?')) return;
       
@@ -1729,7 +1301,41 @@ function renderAIHistory(records, total) {
         alert('Lỗi khi xóa');
       }
     };
-
+    window.editSubCategory = async function(subId, categoryId, currentName, currentDesc) {
+      const newName = prompt(`Sửa tên danh mục con:`, currentName);
+      if (!newName || !newName.trim()) return;
+      
+      const newDesc = prompt(`Sửa mô tả:`, currentDesc);
+      
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/sub-categories/${subId}`, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            name: newName.trim(), 
+            description: newDesc?.trim() || null 
+          })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          alert('✅ ' + data.message);
+          if (fetchCatClickCount % 2 === 1) {
+            loadCategories();
+          }
+        } else {
+          alert('❌ ' + data.error);
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi khi sửa danh mục con');
+      }
+    };
     // Prompt Template Management
 // THAY THẾ phần loadPromptTemplate (khoảng dòng 1500)
 async function loadPromptTemplate() {
@@ -2319,6 +1925,69 @@ if (viewStatsBtn) {
     }
   });
 }
+    function setupAdminNavigation() {
+        const role = localStorage.getItem('role');
+        if (role === 'admin') {
+            const adminNavContainer = document.getElementById('adminNavContainer');
+            const adminNavButtons = document.getElementById('adminNavButtons');
+            
+            if (adminNavContainer && adminNavButtons) {
+                adminNavContainer.style.display = 'block';
+                document.body.classList.add('has-admin-nav');
+                
+                adminNavButtons.innerHTML = `
+                    <button class="admin-nav-btn active" id="btnUsers"><i class="fa-solid fa-users"></i> Quản Lý User</button>
+                    <button class="admin-nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+                    <button class="admin-nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
+                    <button class="admin-nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
+                    <button class="admin-nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
+                `;
+                
+                // Event listeners
+                document.getElementById('btnUsers').addEventListener('click', () => {
+                    showAdminSection('adminCard');
+                    setActiveAdminBtn('btnUsers');
+                });
+                
+                document.getElementById('btnAIHistory').addEventListener('click', () => {
+                    showAdminSection('aiHistorySection');
+                    setActiveAdminBtn('btnAIHistory');
+                });
+                
+                document.getElementById('btnCategories').addEventListener('click', () => {
+                    showAdminSection('categoriesSection');
+                    setActiveAdminBtn('btnCategories');
+                });
+                
+                document.getElementById('btnPrompt').addEventListener('click', () => {
+                    showAdminSection('promptSection');
+                    loadPromptTemplate().catch(()=>{});
+                    loadManualPromptTemplate().catch(()=>{});
+                    setActiveAdminBtn('btnPrompt');
+                });
+                
+                document.getElementById('btnFeedback').addEventListener('click', () => {
+                    showAdminSection('feedbackSection');
+                    setActiveAdminBtn('btnFeedback');
+                });
+            }
+        }
+    }
+    
+    function showAdminSection(sectionId) {
+        document.getElementById('adminCard').style.display = 'none';
+        document.getElementById('aiHistorySection').style.display = 'none';
+        document.getElementById('categoriesSection').style.display = 'none';
+        document.getElementById('promptSection').style.display = 'none';
+        document.getElementById('feedbackSection').style.display = 'none';
+        
+        document.getElementById(sectionId).style.display = 'block';
+    }
+    
+    function setActiveAdminBtn(btnId) {
+        document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(btnId).classList.add('active');
+    }
   </script>
   <script src="footer.js"></script>
 </body>
