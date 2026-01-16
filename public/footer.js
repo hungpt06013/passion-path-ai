@@ -5,7 +5,7 @@ const tokens = localStorage.getItem('token');
 const currentPath = window.location.pathname;
 const isHomePage = currentPath === '/' || currentPath === '/main.html' || currentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
 
-if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !isHomePage) {
+if (!tokens && !PublicPagesHTML.includes(CurrentPage) && !isHomePage) {
     alert('Vui lòng đăng nhập!');
     window.location.href = 'login.html';
 }
