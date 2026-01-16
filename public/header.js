@@ -232,10 +232,12 @@ async function loadUser(currentPage = '') {
     }
 }
 
-// Load header khi DOM ready
+// Load user khi DOM ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        // Tự động detect trang hiện tại
+        // CHỈ CHẠY TRÊN CLIENT
+        if (typeof window === 'undefined') return;
+        
         const currentPath = window.location.pathname;
         let currentPage = '';
         
@@ -250,16 +252,19 @@ if (document.readyState === 'loading') {
         loadUser(currentPage);
     });
 } else {
-    const currentPath = window.location.pathname;
-    let currentPage = '';
-    
-    if (currentPath.includes('main.html') || currentPath === '/') {
-        currentPage = 'main';
-    } else if (currentPath.includes('path.html')) {
-        currentPage = 'path';
-    } else if (currentPath.includes('progress.html')) {
-        currentPage = 'progress';
+    // CHỈ CHẠY TRÊN CLIENT
+    if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        let currentPage = '';
+        
+        if (currentPath.includes('main.html') || currentPath === '/') {
+            currentPage = 'main';
+        } else if (currentPath.includes('path.html')) {
+            currentPage = 'path';
+        } else if (currentPath.includes('progress.html')) {
+            currentPage = 'progress';
+        }
+        
+        loadUser(currentPage);
     }
-    
-    loadUser(currentPage);
 }
