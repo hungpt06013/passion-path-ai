@@ -46,7 +46,7 @@ function showAuthButtons() {
 }
 
 // Hàm thiết lập navigation buttons
-function setupNavigation(currentPage = '') {
+function setupNavigation(CurrentPage = '') {
     const navButtons = document.getElementById('mainNavButtons');
     
     if (!navButtons) return;
@@ -94,7 +94,7 @@ function setupNavigation(currentPage = '') {
     }
     
     // Set active state
-    if (currentPage) {
+    if (CurrentPage) {
         const idMap = {
             'main': 'btnHome',
             'home': 'btnHome',
@@ -102,7 +102,7 @@ function setupNavigation(currentPage = '') {
             'progress': 'btnProgress'
         };
         
-        const activeId = idMap[currentPage];
+        const activeId = idMap[CurrentPage];
         if (activeId) {
             const activeBtn = document.getElementById(activeId);
             if (activeBtn) activeBtn.classList.add('active');
@@ -127,13 +127,13 @@ function wireLogoutAndNav(logoutEl) {
 }
 
 // Hàm load thông tin user
-async function loadUser(currentPage = '') {
+async function loadUser(CurrentPage = '') {
     const token = localStorage.getItem('token');
     const userArea = document.getElementById('userArea');
     const navButtons = document.getElementById('mainNavButtons');
     
     // Setup navigation
-    setupNavigation(currentPage);
+    setupNavigation(CurrentPage);
     
     // Setup login/register buttons
     const loginBtn = userArea?.querySelector('.login-btn');
@@ -234,29 +234,29 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         // Tự động detect trang hiện tại
         const currentPath = window.location.pathname;
-        let currentPage = '';
+        let CurrentPage = '';
         
         if (currentPath.includes('main.html') || currentPath === '/') {
-            currentPage = 'main';
+            CurrentPage = 'main';
         } else if (currentPath.includes('path.html')) {
-            currentPage = 'path';
+            CurrentPage = 'path';
         } else if (currentPath.includes('progress.html')) {
-            currentPage = 'progress';
+            CurrentPage = 'progress';
         }
         
-        loadUser(currentPage);
+        loadUser(CurrentPage);
     });
 } else {
     const currentPath = window.location.pathname;
-    let currentPage = '';
+    let CurrentPage = '';
     
     if (currentPath.includes('main.html') || currentPath === '/') {
-        currentPage = 'main';
+        CurrentPage = 'main';
     } else if (currentPath.includes('path.html')) {
-        currentPage = 'path';
+        CurrentPage = 'path';
     } else if (currentPath.includes('progress.html')) {
-        currentPage = 'progress';
+        CurrentPage = 'progress';
     }
     
-    loadUser(currentPage);
+    loadUser(CurrentPage);
 }
