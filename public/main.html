@@ -648,12 +648,142 @@
 <script>
     // Color schemes for categories
     const categoryColors = {
+        // Lập trình & Công nghệ
+        'Lập trình Web': { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
+        'Lập trình Mobile': { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-mobile-screen-button' },
+        'Khoa học Dữ liệu': { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-database' },
+        'Trí tuệ Nhân tạo': { bg: 'linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)', icon: 'fa-brain' },
+        'An ninh Mạng': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', icon: 'fa-shield-halved' },
+        'DevOps': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-gears' },
+        'Cloud Computing': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-cloud' },
+        'Blockchain': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-link' },
+        'Game Development': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-gamepad' },
+        'Internet of Things': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-microchip' },
         'Lập trình': { bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', icon: 'fa-code' },
-        'Marketing': { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-globe' },
-        'Thiết kế': { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
-        'Ngoại ngữ': { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-calculator' },
-        'Kinh doanh': { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-chart-line' },
-        'Kỹ năng mềm': { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-music' },
+        
+        // Thiết kế
+        'Thiết kế UI/UX': { bg: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', icon: 'fa-palette' },
+        'Thiết kế Đồ họa': { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-pen-nib' },
+        
+        // Marketing & Kinh doanh
+        'Marketing Số': { bg: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', icon: 'fa-bullhorn' },
+        'Kinh doanh Trực tuyến': { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-cart-shopping' },
+        'Quản trị Dự án': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-diagram-project' },
+        'Kinh doanh': { bg: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', icon: 'fa-briefcase' },
+        'Bán hàng': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-handshake' },
+        'Dịch vụ Khách hàng': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', icon: 'fa-headset' },
+        
+        // Tài chính
+        'Tài chính Cá nhân': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-piggy-bank' },
+        'Kế toán': { bg: 'linear-gradient(135deg, #059669 0%, #047857 100%)', icon: 'fa-calculator' },
+        'Nhân sự': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-users' },
+        'Bất động sản': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-building' },
+        'Chứng khoán': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-chart-line' },
+        'Cryptocurrency': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-bitcoin-sign' },
+        'Bảo hiểm': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-umbrella' },
+        'Ngân hàng': { bg: 'linear-gradient(135deg, #059669 0%, #047857 100%)', icon: 'fa-landmark' },
+        'Thuế': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-file-invoice-dollar' },
+        'Kiểm toán': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-clipboard-check' },
+        'Phân tích Tài chính': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-chart-pie' },
+        
+        // Ngoại ngữ & Kỹ năng mềm
+        'Ngoại ngữ': { bg: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)', icon: 'fa-language' },
+        'Kỹ năng Mềm': { bg: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)', icon: 'fa-comments' },
+        'Trí tuệ Cảm xúc': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-heart' },
+        'Phát triển Bản thân': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-seedling' },
+        
+        // Nghệ thuật & Sáng tạo
+        'Nhiếp ảnh': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-camera' },
+        'Quay phim': { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', icon: 'fa-video' },
+        'Âm nhạc': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-music' },
+        'Viết lách': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-pen-fancy' },
+        'Nghệ thuật': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-paintbrush' },
+        'Múa': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-person-dancing' },
+        'Kịch nghệ': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-masks-theater' },
+        
+        // Sức khỏe & Thể thao
+        'Nấu ăn': { bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', icon: 'fa-utensils' },
+        'Sức khỏe': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-heart-pulse' },
+        'Thể dục': { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', icon: 'fa-dumbbell' },
+        'Yoga': { bg: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)', icon: 'fa-spa' },
+        'Y học': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', icon: 'fa-user-doctor' },
+        'Dược học': { bg: 'linear-gradient(135deg, #059669 0%, #047857 100%)', icon: 'fa-pills' },
+        'Nha khoa': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-tooth' },
+        'Vật lý trị liệu': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-hand-holding-medical' },
+        'Massage': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-hand-dots' },
+        
+        // Khoa học
+        'Tâm lý học': { bg: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)', icon: 'fa-brain' },
+        'Triết học': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-book-open' },
+        'Lịch sử': { bg: 'linear-gradient(135deg, #92400e 0%, #78350f 100%)', icon: 'fa-clock-rotate-left' },
+        'Địa lý': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-earth-americas' },
+        'Sinh học': { bg: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', icon: 'fa-dna' },
+        'Hóa học': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-flask' },
+        'Vật lý': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-atom' },
+        'Toán học': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-square-root-variable' },
+        'Thiên văn học': { bg: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)', icon: 'fa-telescope' },
+        'Thống kê': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-chart-simple' },
+        'Kinh tế học': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-coins' },
+        'Nghiên cứu Khoa học': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-microscope' },
+        
+        // Kỹ thuật
+        'Công nghệ Ô tô': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-car' },
+        'Điện tử': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-microchip' },
+        'Cơ khí': { bg: 'linear-gradient(135deg, #475569 0%, #334155 100%)', icon: 'fa-gears' },
+        'Xây dựng': { bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', icon: 'fa-helmet-safety' },
+        'Nội thất': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-couch' },
+        'Arduino': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-microchip' },
+        'Raspberry Pi': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', icon: 'fa-raspberry-pi' },
+        'Robotics': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-robot' },
+        
+        // Lifestyle & Thủ công
+        'Làm vườn': { bg: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', icon: 'fa-leaf' },
+        'Thủ công': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-scissors' },
+        'May vá': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-scissors' },
+        'Làm đẹp': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-wand-magic-sparkles' },
+        'Trang điểm': { bg: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)', icon: 'fa-palette' },
+        'Chăm sóc Tóc': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-scissors' },
+        'Du lịch': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-plane' },
+        'Thiền': { bg: 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)', icon: 'fa-om' },
+        
+        // Giáo dục & Gia đình
+        'Nuôi dạy Con': { bg: 'linear-gradient(135deg, #f472b6 0%, #ec4899 100%)', icon: 'fa-baby' },
+        'Giáo dục Mầm non': { bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', icon: 'fa-child' },
+        'Giáo dục Tiểu học': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', icon: 'fa-school' },
+        'Luyện thi': { bg: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', icon: 'fa-graduation-cap' },
+        
+        // Business & Quản trị
+        'Khởi nghiệp': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-rocket' },
+        'Quản trị Kinh doanh': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-building' },
+        'Logistics': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-truck' },
+        'Xuất nhập khẩu': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-ship' },
+        'Hải quan': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-passport' },
+        'Luật pháp': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-scale-balanced' },
+        
+        // Software & Tools
+        'Excel': { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', icon: 'fa-table' },
+        'PowerPoint': { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', icon: 'fa-presentation-screen' },
+        'Word': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', icon: 'fa-file-word' },
+        'Photoshop': { bg: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)', icon: 'fa-image' },
+        'Illustrator': { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', icon: 'fa-pen-nib' },
+        'AutoCAD': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', icon: 'fa-drafting-compass' },
+        'SketchUp': { bg: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', icon: 'fa-cube' },
+        'Revit': { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', icon: 'fa-building' },
+        '3ds Max': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-cube' },
+        'Blender': { bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', icon: 'fa-blender' },
+        'After Effects': { bg: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', icon: 'fa-film' },
+        'Premiere Pro': { bg: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', icon: 'fa-video' },
+        'Final Cut Pro': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-scissors' },
+        'Logic Pro': { bg: 'linear-gradient(135deg, #64748b 0%, #475569 100%)', icon: 'fa-music' },
+        'Ableton Live': { bg: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', icon: 'fa-sliders' },
+        'Unity': { bg: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', icon: 'fa-gamepad' },
+        'Unreal Engine': { bg: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', icon: 'fa-vr-cardboard' },
+        
+        // Games & Entertainment
+        'Cờ vua': { bg: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)', icon: 'fa-chess' },
+        'Cờ tướng': { bg: 'linear-gradient(135deg, #dc2626 0%, #991b1b 100%)', icon: 'fa-chess-knight' },
+        
+        // Default
         'default': { bg: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', icon: 'fa-lightbulb' }
     };
     // Load top categories
