@@ -17,7 +17,6 @@
       --success: #28a745;
       --radius: 10px;
       --shadow: 0 6px 18px rgba(20,20,40,0.06);
-      --header-height: 80px;
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     }
 
@@ -210,110 +209,6 @@
       background: rgba(10,20,40,0.04);
       border-color: rgba(10,20,40,0.18);
     }
-
-    /* Fixed Bar Styles */
-    .fixed-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 80px;
-      background: var(--primary);
-      box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
-      z-index: 50;
-    }
-
-    .bar-inner {
-      max-width: 1200px;
-      height: 100%;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      box-sizing: border-box;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-icon {
-      width: 48px;
-      height: 48px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 22px;
-      flex-shrink: 0;
-    }
-
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-title {
-      color: white;
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .brand-sub {
-      color: rgba(255,255,255,0.9);
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .nav-buttons {
-      display: flex;
-      align-items: center;
-    }
-
-    .nav-btn {
-      background: none;
-      color: #fff;
-      padding: 10px 11px;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 9999px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: none;
-    }
-
-    .login-btn, .register-btn {
-      font-family: 'Inter', sans-serif;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: none;
-      border-radius: 9999px;
-      padding: 10px 20px;
-      font-size: 15px;
-      font-weight: 600;
-    }
-
-    .login-btn {
-      background: white;
-      color: #333;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .register-btn {
-      background: #28a745;
-      color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
     /* FORGOT PASSWORD MODAL */
     .modal {
       display: none;
@@ -433,31 +328,23 @@
     <link rel="preload" href="footer.css" as="style">
     <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="footer.css"></noscript>
+    <!-- Load header.css -->
+    <link rel="preload" href="header.css" as="style">
+    <link rel="stylesheet" href="header.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-  <!-- Fixed Bar -->
-  <div class="fixed-bar">
-    <div class="bar-inner">
-      <div class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-graduation-cap"></i>
-        </div>
-        <div class="brand-text">
-          <div class="brand-title">Con đường đam mê</div>
-          <div class="brand-sub">AI-Powered Learning Path</div>
-        </div>
-      </div>
-      <div class="nav-buttons" id="mainNavButtons">
-        <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-      </div>
-      <div id="userArea" class="userInfo">
-        <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-        <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-      </div>
-    </div>
-  </div>
+<div id="header"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('header').innerHTML = html;
+      const script = document.createElement('script');
+      script.src = 'header.js';
+      document.body.appendChild(script);
+    });
+</script>
 
   <!-- Main Content -->
   <main class="page">
@@ -469,20 +356,14 @@
           </button>
         </div>
         <h1 id="login-heading">Đăng nhập</h1>
-        <p class="lead">Đăng nhập bằng tên đăng nhập hoặc email. Nhập ít nhất 1 trong 2 (cả hai cũng được) và mật khẩu.</p>
+        <p class="lead">Đăng nhập bằng tên đăng nhập hoặc email và mật khẩu.</p>
       </header>
 
       <form id="loginForm" novalidate>
         <div class="form-row">
-          <label for="loginUsernameInput">Tên đăng nhập</label>
-          <input id="loginUsernameInput" name="username" type="text" autocomplete="username" placeholder="Tên đăng nhập (tùy chọn)">
-          <div id="usernameError" class="error-text" role="alert" aria-live="polite" hidden></div>
-        </div>
-
-        <div class="form-row">
-          <label for="loginEmailInput">Email</label>
-          <input id="loginEmailInput" name="email" type="email" autocomplete="email" placeholder="Email (tùy chọn)">
-          <div id="emailError" class="error-text" role="alert" aria-live="polite" hidden></div>
+          <label for="loginIdentifierInput">Tên đăng nhập / Email</label>
+          <input id="loginIdentifierInput" name="identifier" type="text" autocomplete="username" placeholder="Tên đăng nhập hoặc email">
+          <div id="identifierError" class="error-text" role="alert" aria-live="polite" hidden></div>
         </div>
 
         <div class="form-row">
@@ -501,7 +382,9 @@
         <div id="loginGeneralMessage" class="info-text" role="status" aria-live="polite" style="min-height:1.2em;"></div>
 
         <div class="footer">
-          <a id="forgotPasswordLink" class="link" style="display:block;margin-bottom:8px;">Quên mật khẩu?</a>
+          <div style="margin-bottom:8px;text-align:center;">
+            <a id="forgotPasswordLink" class="link">Quên mật khẩu?</a>
+          </div>
           <span>Bạn chưa có tài khoản? <a id="registerLink" class="link" href="/register.html">Đăng ký</a></span>
         </div>
       </form>
@@ -579,11 +462,9 @@
     
     // Login Form Elements
     const loginForm = document.getElementById('loginForm');
-    const inpUser = document.getElementById('loginUsernameInput');
-    const inpEmail = document.getElementById('loginEmailInput');
+    const inpIdentifier = document.getElementById('loginIdentifierInput');
     const inpPass = document.getElementById('loginPasswordInput');
-    const errUser = document.getElementById('usernameError');
-    const errEmail = document.getElementById('emailError');
+    const errIdentifier = document.getElementById('identifierError');
     const errPass = document.getElementById('passwordError');
     const submitBtn = document.getElementById('loginSubmitButton');
     const toggleBtn = document.getElementById('toggleLoginPasswordButton');
@@ -617,8 +498,7 @@
 
     // ========== LOGIN FUNCTIONS ==========
     function clearErrors(){
-      errUser.hidden = true; errUser.textContent = '';
-      errEmail.hidden = true; errEmail.textContent = '';
+      errIdentifier.hidden = true; errIdentifier.textContent = '';
       errPass.hidden = true; errPass.textContent = '';
       genMsg.textContent = ''; genMsg.className = 'info-text';
     }
@@ -627,31 +507,26 @@
       genMsg.textContent = text || '';
       genMsg.className = isError ? 'error-text' : 'info-text';
     }
-
     function validateForm(){
       clearErrors();
       let ok = true;
-      const username = (inpUser.value||'').trim();
-      const emailRaw = (inpEmail.value||'').trim();
+      const identifier = (inpIdentifier.value||'').trim();
       const password = inpPass.value || '';
 
-      if (!username && !emailRaw){
-        errUser.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; errUser.hidden = false;
-        errEmail.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; errEmail.hidden = false;
-        ok = false;
-      } else if (emailRaw && !emailRegex.test(emailRaw) && !username){
-        errEmail.textContent = 'Định dạng email không hợp lệ.'; errEmail.hidden = false;
+      if (!identifier){
+        errIdentifier.textContent = 'Vui lòng nhập tên đăng nhập hoặc email.'; 
+        errIdentifier.hidden = false;
         ok = false;
       }
 
       if (!password){
-        errPass.textContent = 'Vui lòng nhập mật khẩu.'; errPass.hidden = false;
+        errPass.textContent = 'Vui lòng nhập mật khẩu.'; 
+        errPass.hidden = false;
         ok = false;
       }
 
       return ok;
     }
-
     function disableSubmit(){ submitBtn.disabled = true; submitBtn.textContent = 'Đang đăng nhập...'; }
     function enableSubmit(){ submitBtn.disabled = false; submitBtn.textContent = 'Đăng nhập'; }
 
@@ -664,15 +539,17 @@
       disableSubmit();
       setGeneralMessage('', false);
 
+      const identifier = (inpIdentifier.value||'').trim();
       const payload = {
         password: inpPass.value || ''
       };
       
-      const username = (inpUser.value||'').trim();
-      const email = (inpEmail.value||'').trim();
-      
-      if (username) payload.username = username;
-      if (email) payload.email = email;
+      // Kiểm tra xem identifier có phải email không
+      if (emailRegex.test(identifier)) {
+        payload.email = identifier;
+      } else {
+        payload.username = identifier;
+      }
 
       try {
         const res = await fetch(`${API_BASE}/api/login`, {
@@ -680,6 +557,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        // ... rest of code (giữ nguyên phần còn lại)
 
         const body = await res.json().catch(() => null);
 
@@ -738,10 +616,25 @@
       resetToStep1();
     }
 
+    let isCompletingReset = false;
+
+    // Sửa lại hàm closeModal()
     function closeModal(){
+      // Chỉ hiện cảnh báo khi:
+      // 1. Chưa hoàn thành reset password (isCompletingReset = false)
+      // 2. Đang ở step 2 hoặc 3
+      if (!isCompletingReset && (step2.style.display === 'block' || step3.style.display === 'block')) {
+        const confirmClose = confirm('Bạn chưa hoàn tất đặt lại mật khẩu. Nếu đóng cửa sổ này, bạn sẽ phải bắt đầu lại từ đầu. Bạn có chắc muốn đóng?');
+        
+        if (!confirmClose) {
+          return; // Không đóng modal nếu user chọn Cancel
+        }
+      }
+      
       modal.classList.remove('active');
       resetToStep1();
       clearTimer();
+      isCompletingReset = false; // Reset flag
     }
 
     function resetToStep1(){
@@ -814,8 +707,26 @@
       timerDiv.textContent = '';
     }
 
-    // Code Input Auto-Focus
+    // Code Input Auto-Focus + Paste Support
     codeInputs.forEach((input, index) => {
+      // Handle paste event
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pastedData = e.clipboardData.getData('text').trim();
+        const digits = pastedData.replace(/\D/g, '').slice(0, 6);
+        
+        if (digits.length > 0) {
+          digits.split('').forEach((digit, i) => {
+            if (codeInputs[i]) {
+              codeInputs[i].value = digit;
+            }
+          });
+          
+          const lastFilledIndex = Math.min(digits.length - 1, 5);
+          codeInputs[lastFilledIndex].focus();
+        }
+      });
+
       input.addEventListener('input', (e) => {
         if (e.target.value.length === 1 && index < codeInputs.length - 1) {
           codeInputs[index + 1].focus();
@@ -835,7 +746,6 @@
         }
       });
     });
-
     function getCodeFromInputs(){
       return Array.from(codeInputs).map(input => input.value).join('');
     }
@@ -971,6 +881,7 @@
         const data = await res.json();
         
         if (res.ok) {
+          isCompletingReset = true;
           setModalMessage('✅ Đặt lại mật khẩu thành công!', false);
           setTimeout(() => {
             closeModal();
@@ -1016,85 +927,15 @@
     document.getElementById('backButton').addEventListener('click', () => {
       window.location.href = '/main.html';
     });
-
-    // ========== NAVIGATION ==========
-    document.getElementById('btnHome').addEventListener('click', () => {
-      window.location.href = 'main.html';
-    });
-    
-    document.getElementById('btnPath').addEventListener('click', () => {
-      window.location.href = 'path.html';
-    });
-    
-    document.getElementById('btnProgress').addEventListener('click', () => {
-      window.location.href = 'progress.html';
-    });
-
-    // ========== LOAD USER INFO ==========
-    async function loadUser() {
-      const token = localStorage.getItem('token');
-      const userArea = document.getElementById('userArea');
-      
-      if (!token) {
-        userArea.innerHTML = `
-          <button class="login-btn" onclick="window.location.href='login.html'">
-            <i class="fa-solid fa-right-to-bracket"></i> Đăng nhập
-          </button>
-          <button class="register-btn" onclick="window.location.href='register.html'">
-            <i class="fa-solid fa-user-plus"></i> Đăng ký
-          </button>
-        `;
-        return;
+    // Xử lý khi reload page trong lúc forgot password
+    window.addEventListener('beforeunload', (e) => {
+      if (modal.classList.contains('active') && (step2.style.display === 'block' || step3.style.display === 'block')) {
+        e.preventDefault();
+        e.returnValue = 'Bạn chưa hoàn tất đặt lại mật khẩu. Nếu tải lại trang, bạn sẽ phải bắt đầu lại từ đầu.';
+        return e.returnValue;
       }
-      
-      try {
-        const res = await fetch(`${API_BASE}/api/me`, {
-          headers: { 'Authorization': 'Bearer ' + token }
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          const userName = data.user?.name || 'Người dùng';
-          const userRole = data.user?.role || 'user';
-          
-          userArea.innerHTML = `
-            <span>Xin chào <strong style="color:white;">${userName}</strong></span>
-            <button id="logoutBtn" class="logout-btn">
-              <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-            </button>
-          `;
-          
-          document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            window.location.href = 'main.html';
-          });
-          
-          if (userRole === 'admin') {
-            const navButtons = document.getElementById('mainNavButtons');
-            const adminBtn = document.createElement('button');
-            adminBtn.className = 'nav-btn';
-            adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-            adminBtn.addEventListener('click', () => {
-              window.location.href = 'admin.html?page=admin';
-            });
-            navButtons.appendChild(adminBtn);
-          }
-        } else {
-          localStorage.removeItem('token');
-          localStorage.removeItem('role');
-          loadUser();
-        }
-      } catch (err) {
-        console.error('Error loading user:', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        loadUser();
-      }
-    }
-
-    document.addEventListener('DOMContentLoaded', loadUser);
-    inpUser.focus();
+    });
+    inpIdentifier.focus();
   </script>
   <script src="footer.js"></script>
 </body>
