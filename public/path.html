@@ -3095,6 +3095,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Upload modal close on overlay click
 document.addEventListener('DOMContentLoaded', function() {
+    // ✅ CODE MỚI - SỬA TẠI DÒNG ~3050
     const uploadForm = document.getElementById('uploadForm');
     if (uploadForm) {
         uploadForm.addEventListener('submit', async (e) => {
@@ -3107,17 +3108,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const formData = new FormData(e.target);
             
-            // ✅ VALIDATE FORM TRƯỚC KHI GỬI
+            // ✅ FIX: Lấy đúng category_id từ hidden input
             const roadmap_name = formData.get('roadmap_name');
-            const categoryId = formData.get('category');
+            const categoryId = formData.get('category'); // Đây là ID (số)
+            const categoryName = document.getElementById('upload_category_name')?.value || categoryId;
             const start_level = formData.get('start_level');
 
-            // ✅ Lấy TÊN danh mục từ option được chọn
-            const categorySelect = document.getElementById('upload_category');
-            const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-            const categoryName = selectedOption.getAttribute('data-category-name') || categoryId;
-
-            // ✅ Xử lý sub_category
+            // ✅ FIX: Xử lý sub_category
             let subCategory = formData.get('sub_category');
             const subCategoryOther = formData.get('sub_category_other');
 
@@ -3146,27 +3143,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 sub_category: subCategory
             });
 
+            // ✅ FIX: Append đúng cả category_id và category_name
             formData.append('category_id', categoryId);
             formData.set('category', categoryName);
             formData.set('sub_category', subCategory);
+            
             const file = formData.get('file');
             
             console.log('📤 Form validation:', {
                 roadmap_name: roadmap_name ? `"${roadmap_name}"` : '❌ EMPTY',
                 category_id: categoryId ? `"${categoryId}"` : '❌ EMPTY',
                 category_name: categoryName ? `"${categoryName}"` : '❌ EMPTY',
+                sub_category: subCategory ? `"${subCategory}"` : '❌ EMPTY',
                 start_level: start_level ? `"${start_level}"` : '❌ EMPTY',
                 file: file ? `✅ ${file.name}` : '❌ NO FILE'
             });
             
             // ✅ CHECK VALIDATION
-            if (!roadmap_name || !category || !start_level || !file) {
+            if (!roadmap_name || !categoryId || !start_level || !file) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 
                 const missing = [];
                 if (!roadmap_name) missing.push('Tên lộ trình');
-                if (!category) missing.push('Danh mục');
+                if (!categoryId) missing.push('Danh mục');
                 if (!start_level) missing.push('Trình độ');
                 if (!file) missing.push('File Excel');
                 
@@ -3204,16 +3204,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
-            }
-        });
-    }
-    
-    // Đóng modal khi click bên ngoài
-    const uploadModal = document.getElementById('uploadModal');
-    if (uploadModal) {
-        uploadModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeUploadModal();
             }
         });
     }
