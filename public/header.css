@@ -1,0 +1,244 @@
+:root {
+    --primary: #007bff;
+    --header-height: 80px;
+}
+
+.fixed-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height);
+    background: var(--primary);
+    box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
+    z-index: 50;
+}
+
+.bar-inner {
+    max-width: 1200px;
+    height: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    gap: 16px;
+    position: relative;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-left: -80px; /* ✅ SỬA: đổi từ margin-right sang margin-left và đổi dấu */
+}
+.brand-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    line-height: 1;
+    min-width: 0;
+}
+
+.brand-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.05;
+}
+
+.brand-sub {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: normal;
+    line-height: 1;
+}
+
+.nav-buttons::-webkit-scrollbar {
+    height: 6px;
+}
+
+.nav-buttons::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 6px;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 12px 4px 6px;
+    min-width: 0;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    gap: 22px !important;
+    flex: 1;
+    transition: padding-left 0.3s ease;
+}
+
+/* Class để thêm padding khi có scrollbar */
+.nav-buttons.has-scroll {
+    padding-left: 160px;
+}
+.nav-btn {
+    background: none;
+    color: #fff;
+    padding: 0;  /* ← THAY ĐỔI TỪ 6px 12px THÀNH 0 */
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 9999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.01);
+}
+.nav-btn .fa {
+    margin-right: 4px;
+    opacity: 0.95;
+}
+
+.nav-btn.active {
+    color: #e6f2ff;
+    text-decoration: underline;
+}
+
+.userInfo {
+    color: white;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
+    min-width: 0;
+    margin-right: -80px; /* ✅ SỬA: đổi từ margin-left sang margin-right và đổi dấu */
+}
+
+.userInfo span strong {
+    font-weight: 900 !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+.login-btn,
+.register-btn {
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.login-btn {
+    background: white;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.login-btn:hover {
+    background: #f0f0f0;
+}
+
+.register-btn {
+    background: #28a745;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+}
+
+.register-btn:hover {
+    background: #218838;
+}
+
+.logout-btn {
+    background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: linear-gradient(135deg, #3a0bbd 0%, #056bb3 100%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bar-inner {
+        flex-direction: column;
+        height: auto;
+        padding: 15px;
+        gap: 10px;
+    }
+
+    .fixed-bar {
+        height: auto;
+    }
+
+    .nav-buttons {
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .userInfo {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .brand-title {
+        font-size: 16px;
+    }
+
+    .brand-sub {
+        font-size: 11px;
+    }
+
+    .nav-btn {
+        font-size: 13px;
+        padding: 8px 12px;
+    }
+}
