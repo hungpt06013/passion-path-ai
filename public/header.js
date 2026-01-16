@@ -46,7 +46,7 @@ function showAuthButtons() {
 }
 
 // Hàm thiết lập navigation buttons
-function setupNavigation(CurrentPage = '') {
+function setupNavigation(currentPage = '') {
     const navButtons = document.getElementById('mainNavButtons');
     
     if (!navButtons) return;
@@ -94,7 +94,7 @@ function setupNavigation(CurrentPage = '') {
     }
     
     // Set active state
-    if (CurrentPage) {
+    if (currentPage) {
         const idMap = {
             'main': 'btnHome',
             'home': 'btnHome',
@@ -102,7 +102,7 @@ function setupNavigation(CurrentPage = '') {
             'progress': 'btnProgress'
         };
         
-        const activeId = idMap[CurrentPage];
+        const activeId = idMap[currentPage];
         if (activeId) {
             const activeBtn = document.getElementById(activeId);
             if (activeBtn) activeBtn.classList.add('active');
@@ -127,13 +127,13 @@ function wireLogoutAndNav(logoutEl) {
 }
 
 // Hàm load thông tin user
-async function loadUser(CurrentPage = '') {
+async function loadUser(currentPage = '') {
     const token = localStorage.getItem('token');
     const userArea = document.getElementById('userArea');
     const navButtons = document.getElementById('mainNavButtons');
     
     // Setup navigation
-    setupNavigation(CurrentPage);
+    setupNavigation(currentPage);
     
     // Setup login/register buttons
     const loginBtn = userArea?.querySelector('.login-btn');
@@ -151,10 +151,13 @@ async function loadUser(CurrentPage = '') {
         });
     }
     
-    // Nếu không có token
-    showAuthButtons();
-    if (!token) return;
+    // ✅ THÊM DÒNG NÀY - RETURN SỚM NẾU KHÔNG CÓ TOKEN
+    if (!token) {
+        showAuthButtons();
+        return;
+    }
     
+    // ✅ CHỈ GỌI API KHI CÓ TOKEN
     let name = 'Người dùng';
     let serverRole = 'user';
     
@@ -234,29 +237,29 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         // Tự động detect trang hiện tại
         const currentPath = window.location.pathname;
-        let CurrentPage = '';
+        let currentPage = '';
         
         if (currentPath.includes('main.html') || currentPath === '/') {
-            CurrentPage = 'main';
+            currentPage = 'main';
         } else if (currentPath.includes('path.html')) {
-            CurrentPage = 'path';
+            currentPage = 'path';
         } else if (currentPath.includes('progress.html')) {
-            CurrentPage = 'progress';
+            currentPage = 'progress';
         }
         
-        loadUser(CurrentPage);
+        loadUser(currentPage);
     });
 } else {
     const currentPath = window.location.pathname;
-    let CurrentPage = '';
+    let currentPage = '';
     
     if (currentPath.includes('main.html') || currentPath === '/') {
-        CurrentPage = 'main';
+        currentPage = 'main';
     } else if (currentPath.includes('path.html')) {
-        CurrentPage = 'path';
+        currentPage = 'path';
     } else if (currentPath.includes('progress.html')) {
-        CurrentPage = 'progress';
+        currentPage = 'progress';
     }
     
-    loadUser(CurrentPage);
+    loadUser(currentPage);
 }
