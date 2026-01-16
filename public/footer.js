@@ -3,9 +3,9 @@ const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.
 const tokens = localStorage.getItem('token');
 
 const currentPath = window.location.pathname;
-const isHomePage = currentPath === '/' || currentPath === '/main.html' || currentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
+const isHomePage = currentPath === '/' || currentPath === '/main.html' || currentPath === '' || currentPageHTML === '' || currentPageHTML === 'main.html';
 
-if (!tokens && !PublicPagesHTML.includes(CurrentPage) && !isHomePage) {
+if (!tokens && !publicPages.includes(currentPageHTML) && !isHomePage) {
     alert('Vui lòng đăng nhập!');
     window.location.href = 'login.html';
 }
