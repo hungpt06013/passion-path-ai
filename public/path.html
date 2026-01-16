@@ -192,13 +192,13 @@
 
     .delete-roadmap-btn {
         position: absolute;
-        top: 309px;
+        top: 307px;
         right: 15px;
         background: #007bff;
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 14px 13px;
+        padding: 13px 13px;
         font-size: 0.85rem;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -829,215 +829,6 @@
             padding: 10px 6px;
         }
     }
-
-.fixed-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 80px;
-    background: var(--primary);
-    box-shadow: 0 6px 20px rgba(14, 30, 37, 0.12);
-    z-index: 50;
-}
-
-/* Layout container - keeps content centered but lets nav expand */
-.bar-inner {
-    max-width: 1200px;
-    height: 100%;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-sizing: border-box;
-    gap: 16px;
-}
-
-/* Brand (left) */
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 0 0 auto;
-    min-width: 0;
-}
-
-.brand-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 22px;
-    flex-shrink: 0;
-}
-
-.brand-text {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    line-height: 1;
-    min-width: 0;
-}
-
-.brand-title {
-    color: white;
-    font-size: 20px;
-    font-weight: 700;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.05;
-}
-
-.brand-sub {
-    color: rgba(255,255,255,0.9);
-    font-size: 12px;
-    font-weight: 600;
-    white-space: normal;
-    line-height: 1;
-}
-
-/* Nav buttons (center) - take remaining space */
-.nav-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 12px 4px 6px;
-    min-width: 0;
-    white-space: nowrap;
-    flex-wrap: nowrap;
-    gap: 22px;
-}
-
-.nav-buttons::-webkit-scrollbar { 
-    height: 6px; 
-}
-
-.nav-buttons::-webkit-scrollbar-thumb { 
-    background: rgba(0, 0, 0, 0.12); 
-    border-radius: 6px; 
-}
-
-.nav-btn {
-    background: none;
-    color: #fff;
-    padding: 6px 12px;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 9999px;
-    white-space: nowrap;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.nav-btn .fa {
-    margin-right: 4px;
-    opacity: 0.95;
-}
-
-.nav-btn.active {
-    color: #e6f2ff;
-    text-decoration: underline;
-}
-
-/* User area (right) */
-.userInfo {
-    color: white;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 0 0 auto;
-    min-width: 0;
-}
-    .toMain {
-        background: #000;
-        color: #fff;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
-
-    .toMain:hover {
-        background: #222;
-    }
-    @media (max-width: 768px) {
-        .bar-inner {
-            flex-direction: column;
-            height: auto;
-            padding: 15px;
-            gap: 10px;
-        }
-
-        .fixed-bar {
-            height: auto;
-        }
-
-        .nav-buttons {
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .brand-title {
-            font-size: 16px;
-        }
-
-        .brand-sub {
-            font-size: 11px;
-        }
-
-        .nav-btn {
-            font-size: 13px;
-            padding: 8px 12px;
-        }
-    }
-
-    body {
-        font-family: 'Inter', sans-serif;
-        margin-top: 80px;
-    }
-
-    button {
-        font-family: 'Inter', sans-serif;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border: none;
-        border-radius: 9999px;
-        padding: 10px 18px;
-        font-size: 15px;
-        font-weight: 600;
-    }
-
-    .nav-btn {
-        background: none;
-        color: #fff;
-        padding: 0;
-        font-size: 15px;
-        font-weight: 600;
-        border-radius: 9999px;
-    }
-
-    .nav-btn .fa {
-        margin-right: 8px;
-        opacity: 0.95;
-    }
-
-    .nav-btn.active {
-        color: #e6f2ff;
-        text-decoration: underline;
-    }
-
     .toMain {
         background: #000;
         color: #fff;
@@ -1070,55 +861,19 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
+/* Hover effect cho radio buttons */
+.radio-option:hover {
+    background: #eff6ff !important;
+    border-color: #007bff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
 
-    .userInfo {
-        color: white;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .login-btn {
-        background: white;
-        color: #333;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .login-btn:hover {
-        background: #f0f0f0;
-    }
-
-    .register-btn {
-        background: #28a745;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .register-btn:hover {
-        background: #218838;
-    }
-
-    .logout-btn {
-        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-    /*.logout-btn:hover {
-        background: linear-gradient(135deg, #4b0ee5 0%, #0682d4 100%);
-        opacity: 0.9;
-    }*/
-    .toApp-btn {
-        background: #000;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
-
-    .admin-btn {
-        background: #6f42c1;
-        color: white;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.12);
-    }
+.radio-option:has(input:checked) {
+    background: #dbeafe !important;
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
 .roadmap-section-header {
     display: flex;
     justify-content: space-between;
@@ -1464,6 +1219,114 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     background: #059669 !important;
     transform: scale(1.05);
 }
+
+/* Custom Dropdown cho Category */
+.custom-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.custom-select-trigger:hover {
+    border-color: #007bff;
+}
+
+.custom-select-trigger.active {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.custom-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #007bff;
+    border-radius: 8px;
+    margin-top: 4px;
+    max-height: 300px;
+    overflow: hidden; /* ✅ SỬA: Đổi từ visible sang hidden */
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.custom-select-dropdown.active {
+    display: block;
+}
+
+.custom-select-search {
+    padding: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    background: #f0f9ff;
+    z-index: 1;
+}
+
+.custom-select-search input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.custom-select-search input:focus {
+    border-color: #007bff;
+}
+
+.custom-select-options {
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.custom-select-option {
+    padding: 12px; /* ✅ SỬA: Đổi từ 10px 12px thành 12px để đồng nhất */
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 14px;
+    min-height: 30px; /* ✅ THÊM: Đảm bảo chiều cao tối thiểu */
+    display: flex; /* ✅ THÊM: Căn giữa nội dung */
+    align-items: center; /* ✅ THÊM: Căn giữa theo chiều dọc */
+    box-sizing: border-box; /* ✅ THÊM: Tính padding vào chiều cao */
+}
+
+.custom-select-option:hover {
+    background: #f0f9ff;
+}
+
+.custom-select-option.selected {
+    background: #dbeafe;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.custom-select-option.disabled {
+    color: #9ca3af;
+    cursor: not-allowed;
+    background: #f9fafb;
+}
+
+/* Hidden input để submit form */
+.custom-select-wrapper input[type="hidden"] {
+    display: none;
+}
 </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
@@ -1480,33 +1343,23 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     <link rel="preload" href="footer.css" as="style">
     <link rel="stylesheet" href="footer.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="footer.css"></noscript>
+
+    <link rel="preload" href="header.css" as="style">
+    <link rel="stylesheet" href="header.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-
-<!-- ========== NAV BAR: REPLACED WITH main.html exact HTML ========== -->
-<div class="fixed-bar">
-    <div class="bar-inner">
-        <div class="brand">
-            <div class="brand-icon">
-                <i class="fa-solid fa-graduation-cap"></i>
-            </div>
-            <div class="brand-text">
-                <div class="brand-title">Con đường đam mê</div>
-                <div class="brand-sub">AI-Powered Learning Path</div>
-            </div>
-        </div>
-        <div class="nav-buttons" id="mainNavButtons">
-            <!-- Buttons sẽ được thêm bằng JavaScript / hoặc giữ dạng tĩnh nếu bạn muốn -->
-            <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-            <button class="nav-btn active" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-            <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
-        </div>
-        <div id="userArea" class="userInfo">
-        <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
-        <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
-        </div>
-    </div>
-</div>
+<div id="header"></div>
+<script>
+  fetch('header.html')
+    .then(res => res.text())
+    .then(html => {
+      document.getElementById('header').innerHTML = html;
+      const script = document.createElement('script');
+      script.src = 'header.js';
+      document.body.appendChild(script);
+    });
+</script>
 <!-- ========== END NAV BAR ========== -->
 
     <div class="container" style="margin-top:120px; flex: 1 0 auto;">
@@ -1615,14 +1468,18 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
                 
                 <div class="form-group">
                     <label>Danh mục *</label>
-                    <select name="category" id="upload_category" required>
+                    <input type="text" id="upload_category_search" class="form-input" placeholder="🔍 Tìm kiếm danh mục..." style="margin-bottom: 10px;">
+                    <select name="category" id="upload_category" required style="padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; cursor: pointer; width: 100%; transition: all 0.3s ease;">
                         <option value="">-- Đang tải danh mục... --</option>
                     </select>
                 </div>
                 
                 <div class="form-group">
                     <label>Danh mục chi tiết *</label>
-                    <input type="text" name="sub_category" placeholder="Ví dụ: Python Programming" required>
+                    <input type="text" id="upload_sub_category_search" class="form-input" placeholder="🔍 Tìm kiếm danh mục chi tiết..." style="margin-bottom: 10px; display: none;">
+                    <div id="upload_sub_category_container">
+                        <input type="text" name="sub_category" placeholder="Vui lòng chọn danh mục trước..." required disabled style="background: #f3f4f6; cursor: not-allowed; color: #9ca3af;">
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -1696,6 +1553,12 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
 let isEditMode = false;
 let originalDetails = [];
 let currentEditingRoadmapId = null;
+// ✅ THÊM HÀM NÀY NGAY SAU KHAI BÁO BIẾN GLOBAL
+function removeDiacritics(str) {
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase();
+}
 function toggleEditMode() {
     if (isEditMode) {
         // ✅ NẾU ĐANG EDIT, GỌI HÀM SAVE (GIỐNG NÚT "LƯU THAY ĐỔI")
@@ -2595,8 +2458,8 @@ function renderRoadmaps(roadmaps) {
         </div>
         
         <div class="roadmap-meta">
-          <div class="meta-item">📁 ${roadmap.category}</div>
-          ${roadmap.sub_category ? `<div class="meta-item">📂 ${roadmap.sub_category}</div>` : ''}
+        <div class="meta-item">📁 ${roadmap.category_name || roadmap.category}</div>
+        ${roadmap.sub_category ? `<div class="meta-item">📂 ${roadmap.sub_category}</div>` : ''}
         </div>
         
         <div class="progress-section">
@@ -2630,7 +2493,7 @@ function renderRoadmaps(roadmaps) {
         </button>
         
         <button class="delete-roadmap-btn" onclick="confirmDeleteRoadmap(${roadmap.roadmap_id}, '${roadmap.roadmap_name.replace(/'/g, "\\'")}')">
-          🗑️ Xóa
+          🗑️ <strong>Xóa</strong>
         </button>
       </div>
     `;
@@ -2977,6 +2840,13 @@ function openUploadModal() {
     if (modal) {
         isClosingModal = false;
         if (form) form.reset();
+        
+        // ✅ RESET container về trạng thái disabled
+        const container = document.getElementById('upload_sub_category_container');
+        if (container) {
+            container.innerHTML = '<input type="text" name="sub_category" placeholder="Vui lòng chọn danh mục trước..." required disabled style="background: #f3f4f6; cursor: not-allowed; color: #9ca3af;">';
+        }
+        
         modal.classList.add('active');
         console.log('✅ Modal opened');
     } else {
@@ -3247,12 +3117,38 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedOption = categorySelect.options[categorySelect.selectedIndex];
             const categoryName = selectedOption.getAttribute('data-category-name') || categoryId;
 
+            // ✅ Xử lý sub_category
+            let subCategory = formData.get('sub_category');
+            const subCategoryOther = formData.get('sub_category_other');
+
+            if (subCategory === 'Khác') {
+                if (subCategoryOther && subCategoryOther.trim()) {
+                    subCategory = subCategoryOther.trim();
+                } else {
+                    showNotification('❌ Vui lòng nhập danh mục chi tiết (Khác)', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    return;
+                }
+            }
+
+            // ✅ Validate sub_category không được rỗng
+            if (!subCategory || subCategory.trim() === '') {
+                showNotification('❌ Vui lòng chọn danh mục chi tiết', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                return;
+            }
+
             console.log('📤 Category info:', {
                 id: categoryId,
-                name: categoryName
+                name: categoryName,
+                sub_category: subCategory
             });
+
             formData.append('category_id', categoryId);
             formData.set('category', categoryName);
+            formData.set('sub_category', subCategory);
             const file = formData.get('file');
             
             console.log('📤 Form validation:', {
@@ -3322,12 +3218,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+function setupCustomSelect(triggerId, dropdownId, searchInputId, optionsId, selectedId, hiddenInputId, hiddenNameId, allData, renderFunction, onSelectCallback) {
+    const trigger = document.getElementById(triggerId);
+    const dropdown = document.getElementById(dropdownId);
+    const searchInput = document.getElementById(searchInputId);
+    const optionsContainer = document.getElementById(optionsId);
+    const selectedSpan = document.getElementById(selectedId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    const hiddenName = document.getElementById(hiddenNameId);
+    
+    if (!trigger || !dropdown) return;
+    
+    // Toggle dropdown
+    trigger.addEventListener('click', () => {
+        dropdown.classList.toggle('active');
+        trigger.classList.toggle('active');
+        
+        if (dropdown.classList.contains('active')) {
+            searchInput.focus();
+        }
+    });
+    
+    // Close khi click ngoài
+    document.addEventListener('click', (e) => {
+        if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+            trigger.classList.remove('active');
+        }
+    });
+    
+    // Tìm kiếm
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            renderFunction(allData, allData);
+            return;
+        }
+        
+        // ✅ FIX: Bỏ dấu khi tìm kiếm
+        const normalizedSearch = removeDiacritics(searchTerm);
+        
+        const filtered = allData.filter(item => 
+            removeDiacritics(item.name.toLowerCase()).includes(normalizedSearch)
+        );
+        
+        renderFunction(allData, filtered);
+    });
+    
+    // Chọn option
+    optionsContainer.addEventListener('click', (e) => {
+        const option = e.target.closest('.custom-select-option');
+        
+        if (!option || option.classList.contains('disabled')) return;
+        
+        const value = option.dataset.value;
+        const name = option.dataset.name;
+        
+        // Update UI
+        selectedSpan.textContent = name;
+        hiddenInput.value = value;
+        if (hiddenName) hiddenName.value = name;
+        
+        // Highlight selected
+        optionsContainer.querySelectorAll('.custom-select-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        option.classList.add('selected');
+        
+        // Close dropdown
+        dropdown.classList.remove('active');
+        trigger.classList.remove('active');
+        
+        // Reset search
+        searchInput.value = '';
+        renderFunction(allData, allData);
+        
+        // Callback
+        if (onSelectCallback) {
+            onSelectCallback(value);
+        }
+    });
+}
 // ============ LOAD CATEGORIES CHO UPLOAD MODAL ============
 async function loadCategoriesForUpload() {
-    const categorySelect = document.getElementById('upload_category');
-    if (!categorySelect) return;
+    const wrapper = document.getElementById('upload_category').parentElement;
     
-    categorySelect.innerHTML = '<option value="">-- Đang tải... --</option>';
+    // Tạo custom dropdown
+    wrapper.innerHTML = `
+        <label>Danh mục *</label>
+        <div class="custom-select-wrapper">
+            <div class="custom-select-trigger" id="category-trigger">
+                <span id="category-selected">-- Chọn danh mục --</span>
+                <span>▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="category-dropdown">
+                <div class="custom-select-search">
+                    <input type="text" placeholder="🔍 Tìm kiếm danh mục..." id="category-search-input">
+                </div>
+                <div class="custom-select-options" id="category-options">
+                    <div class="custom-select-option disabled">Đang tải...</div>
+                </div>
+            </div>
+            <input type="hidden" name="category" id="upload_category" required>
+            <input type="hidden" id="upload_category_name">
+        </div>
+    `;
     
     try {
         const response = await fetch('/api/categories', {
@@ -3342,22 +3338,309 @@ async function loadCategoriesForUpload() {
             throw new Error('Invalid response format');
         }
         
-        // ✅ Build options
-        let html = '<option value="">-- Chọn danh mục --</option>';
+        const categories = data.data;
         
-        data.data.forEach(cat => {
-            html += `<option value="${cat.id}" data-category-name="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`;
-        });
+        // Render options
+        renderCategoryOptions(categories, categories);
         
-        categorySelect.innerHTML = html;
+        // Setup events
+        setupCustomSelect(
+            'category-trigger',
+            'category-dropdown',
+            'category-search-input',
+            'category-options',
+            'category-selected',
+            'upload_category',
+            'upload_category_name',
+            categories,
+            renderCategoryOptions,
+            (categoryId) => {
+                // Callback khi chọn category
+                loadSubCategoriesForUpload(categoryId);
+            }
+        );
         
     } catch (error) {
-        console.error('Error loading categories for upload:', error);
-        categorySelect.innerHTML = '<option value="">❌ Lỗi tải danh mục</option>';
+        console.error('Error loading categories:', error);
+        document.getElementById('category-options').innerHTML = 
+            '<div class="custom-select-option disabled">❌ Lỗi tải danh mục</div>';
         showNotification('⚠️ Không thể tải danh mục', 'error');
     }
 }
 
+function renderCategoryOptions(allCategories, filteredCategories) {
+    const optionsContainer = document.getElementById('category-options');
+    
+    const searchInput = document.getElementById('category-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    // ✅ FIX: Bỏ dấu khi so sánh
+    const showKhac = !searchTerm || removeDiacritics('khác').includes(removeDiacritics(searchTerm));
+    
+    if (filteredCategories.length === 0 && !showKhac) {
+        optionsContainer.innerHTML = '<div class="custom-select-option disabled">❌ Không tìm thấy</div>';
+        return;
+    }
+    
+    let html = '';
+    filteredCategories.forEach(cat => {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="${cat.id}" 
+                 data-name="${escapeHtml(cat.name)}">
+                ${escapeHtml(cat.name)}
+            </div>
+        `;
+    });
+    
+    if (showKhac) {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="Khác" 
+                 data-name="Khác">
+                Khác
+            </div>
+        `;
+    }
+    
+    optionsContainer.innerHTML = html;
+}
+
+// ✅ HÀM TÌM KIẾM DANH MỤC TRONG SELECT
+function setupCategorySearch() {
+    const categorySelect = document.getElementById('upload_category');
+    const searchInput = document.getElementById('upload_category_search');
+    
+    if (!categorySelect || !searchInput) return;
+    
+    let allCategories = [];
+    
+    // Lưu danh sách ban đầu
+    fetch('/api/categories', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            allCategories = data.data;
+        }
+    });
+    
+    // Lắng nghe sự kiện tìm kiếm
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // Hiển thị tất cả
+            let html = '<option value="">-- Chọn danh mục --</option>';
+            allCategories.forEach(cat => {
+                html += `<option value="${cat.id}" data-category-name="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`;
+            });
+            categorySelect.innerHTML = html;
+            return;
+        }
+        
+        // Lọc danh mục
+        const filtered = allCategories.filter(cat => 
+            cat.name.toLowerCase().includes(searchTerm)
+        );
+        
+        let html = '<option value="">-- Chọn danh mục --</option>';
+        
+        if (filtered.length === 0) {
+            html += '<option disabled>❌ Không tìm thấy</option>';
+        } else {
+            filtered.forEach(cat => {
+                html += `<option value="${cat.id}" data-category-name="${escapeHtml(cat.name)}">${escapeHtml(cat.name)}</option>`;
+            });
+        }
+        
+        categorySelect.innerHTML = html;
+    });
+}
+
+async function loadSubCategoriesForUpload(categoryId) {
+    const container = document.getElementById('upload_sub_category_container');
+    if (!container) return;
+    
+    if (!categoryId || categoryId === '' || categoryId === 'Khác') {
+        container.innerHTML = '<input type="text" name="sub_category" placeholder="Vui lòng chọn danh mục trước..." required disabled style="background: #f3f4f6; cursor: not-allowed; color: #9ca3af;">';
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="custom-select-wrapper">
+            <div class="custom-select-trigger" id="sub-category-trigger">
+                <span id="sub-category-selected">-- Chọn danh mục chi tiết --</span>
+                <span>▼</span>
+            </div>
+            <div class="custom-select-dropdown" id="sub-category-dropdown">
+                <div class="custom-select-search">
+                    <input type="text" placeholder="🔍 Tìm kiếm danh mục chi tiết..." id="sub-category-search-input">
+                </div>
+                <div class="custom-select-options" id="sub-category-options">
+                    <div class="custom-select-option disabled">Đang tải...</div>
+                </div>
+            </div>
+            <input type="hidden" name="sub_category" id="upload_sub_category" required>
+        </div>
+        <input type="text" 
+               id="upload_sub_other_text" 
+               name="sub_category_other"
+               placeholder="Ghi rõ danh mục chi tiết..."
+               style="display:none; margin-top:10px; width: 100%; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+    `;
+    
+    try {
+        const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load sub-categories');
+        
+        const data = await response.json();
+        
+        if (!data.success) throw new Error('Invalid response');
+        
+        const subCategories = data.data || [];
+        
+        renderSubCategoryOptions(subCategories, subCategories);
+        
+        setupCustomSelect(
+            'sub-category-trigger',
+            'sub-category-dropdown',
+            'sub-category-search-input',
+            'sub-category-options',
+            'sub-category-selected',
+            'upload_sub_category',
+            null,
+            subCategories,
+            renderSubCategoryOptions,
+            (value) => {
+                // Toggle "Khác" input
+                const otherInput = document.getElementById('upload_sub_other_text');
+                if (value === 'Khác') {
+                    otherInput.style.display = 'block';
+                    otherInput.required = true;
+                    setTimeout(() => otherInput.focus(), 100);
+                } else {
+                    otherInput.style.display = 'none';
+                    otherInput.required = false;
+                    otherInput.value = '';
+                }
+            }
+        );
+        
+    } catch (error) {
+        console.error('Error loading sub-categories:', error);
+        container.innerHTML = `
+            <div style="color: #dc2626; padding: 10px; background: #fee2e2; border-radius: 8px; margin-bottom: 10px; font-size: 14px;">
+                ⚠️ Không thể tải danh mục con
+            </div>
+            <input type="text" name="sub_category" placeholder="Nhập danh mục chi tiết..." required style="width: 100%; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+        `;
+    }
+}
+
+function renderSubCategoryOptions(allSubCategories, filteredSubCategories) {
+    const optionsContainer = document.getElementById('sub-category-options');
+    
+    const searchInput = document.getElementById('sub-category-search-input');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    // ✅ FIX: Bỏ dấu khi so sánh
+    const showKhac = !searchTerm || removeDiacritics('khác').includes(removeDiacritics(searchTerm));
+    
+    if (filteredSubCategories.length === 0 && !showKhac) {
+        optionsContainer.innerHTML = '<div class="custom-select-option disabled">❌ Không tìm thấy</div>';
+        return;
+    }
+    
+    let html = '';
+    filteredSubCategories.forEach(sub => {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="${escapeHtml(sub.name)}" 
+                 data-name="${escapeHtml(sub.name)}">
+                ${escapeHtml(sub.name)}
+            </div>
+        `;
+    });
+    
+    if (showKhac) {
+        html += `
+            <div class="custom-select-option" 
+                 data-value="Khác" 
+                 data-name="Khác">
+                Khác
+            </div>
+        `;
+    }
+    
+    optionsContainer.innerHTML = html;
+}
+
+// ✅ HÀM TÌM KIẾM DANH MỤC CHI TIẾT
+function setupSubCategorySearch(subCategories) {
+    const subSelect = document.getElementById('upload_sub_category_select');
+    const searchInput = document.getElementById('upload_sub_category_search');
+    
+    if (!subSelect || !searchInput) return;
+    
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+            // Hiển thị tất cả
+            let html = '<option value="">-- Chọn danh mục chi tiết --</option>';
+            subCategories.forEach(sub => {
+                html += `<option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</option>`;
+            });
+            html += '<option value="Khác">Khác</option>';
+            subSelect.innerHTML = html;
+            return;
+        }
+        
+        // Lọc danh mục
+        const filtered = subCategories.filter(sub => 
+            sub.name.toLowerCase().includes(searchTerm)
+        );
+        
+        let html = '<option value="">-- Chọn danh mục chi tiết --</option>';
+        
+        if (filtered.length === 0) {
+            html += '<option disabled>❌ Không tìm thấy</option>';
+        } else {
+            filtered.forEach(sub => {
+                html += `<option value="${escapeHtml(sub.name)}">${escapeHtml(sub.name)}</option>`;
+            });
+        }
+        
+        html += '<option value="Khác">Khác</option>';
+        subSelect.innerHTML = html;
+    });
+}
+// ============ SETUP TOGGLE CHO "KHÁC" Ở SUB-CATEGORY UPLOAD ============
+function setupUploadSubOtherToggleForSelect() {
+    const select = document.getElementById('upload_sub_category_select');
+    const otherInput = document.getElementById('upload_sub_other_text');
+    
+    if (!select || !otherInput) return;
+    
+    select.addEventListener('change', function() {
+        if (this.value === 'Khác') {
+            // ✅ Hiển thị input "Khác"
+            otherInput.style.display = 'block';
+            otherInput.required = true;
+            setTimeout(() => otherInput.focus(), 100);
+        } else {
+            // ✅ Ẩn input "Khác"
+            otherInput.style.display = 'none';
+            otherInput.required = false;
+            otherInput.value = '';
+        }
+    });
+}
 // ✅ Helper function escape HTML
 function escapeHtml(str) {
     if (!str) return '';
@@ -3372,113 +3655,7 @@ openUploadModal = function() {
     originalOpenUploadModal();
     loadCategoriesForUpload();
 };
-/* ---------- bắt chước behavior từ main.html (dán vào path.html) ---------- */
-const ADMIN_TOKEN = 'admin-token';
 
-function showAuthButtons(userArea, loginBtn, registerBtn) {
-  if (loginBtn) loginBtn.style.display = "inline-flex";
-  if (registerBtn) registerBtn.style.display = "inline-flex";
-
-  if (userArea) {
-    const children = Array.from(userArea.children);
-    children.forEach(c => {
-      if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-        try { userArea.removeChild(c); } catch (e) {}
-      }
-    });
-  }
-}
-
-function wireLogoutAndNav(logoutEl) {
-  if (!logoutEl) return;
-  logoutEl.addEventListener('click', () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    
-    // ✅ REDIRECT VỀ MAIN.HTML NGAY LẬP TỨC
-    window.location.href = 'main.html';
-  });
-}
-
-async function loadUser() {
-  const token = localStorage.getItem('token');
-
-  // hỗ trợ cả 2 id navButtons (mainNavButtons trong main.html) và navButtons (trong path.html gốc)
-  const navButtons = document.getElementById('mainNavButtons') || document.getElementById('navButtons');
-  const userArea = document.getElementById('userArea') || document.querySelector('.userInfo');
-
-  // Ensure nav exists (so nav buttons visible)
-  if (navButtons) {
-    // nếu bạn muốn giữ cấu trúc nav giống main, uncomment/adjust theo needs:
-    // navButtons.innerHTML = `...` (không bắt buộc)
-  }
-
-  const loginBtn = userArea ? userArea.querySelector('.login-btn') : document.querySelector('.login-btn');
-  const registerBtn = userArea ? userArea.querySelector('.register-btn') : document.querySelector('.register-btn');
-
-  // luôn show 2 nút trước, nếu login không tồn tại sẽ tạo
-  showAuthButtons(userArea, loginBtn, registerBtn);
-
-  if (!token) return;
-
-  let name = 'Người dùng';
-  let serverRole = 'user';
-
-  if (token === ADMIN_TOKEN) {
-    name = 'Admin';
-    serverRole = 'admin';
-    localStorage.setItem('role', 'admin');
-  } else {
-    try {
-      const res = await fetch('/api/me', { headers: { 'Authorization': 'Bearer ' + token }});
-      if (!res.ok) {
-        // token hỏng => show nút auth và exit
-        showAuthButtons(userArea, loginBtn, registerBtn);
-        return;
-      }
-      const data = await res.json();
-      serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-      name = (data && data.user && data.user.name) ? data.user.name : name;
-      localStorage.setItem('role', serverRole);
-    } catch (err) {
-      console.error('loadUser error', err);
-      showAuthButtons(userArea, loginBtn, registerBtn);
-      return;
-    }
-  }
-
-  // ẩn 2 nút login/register nếu có
-  if (loginBtn) loginBtn.style.display = 'none';
-  if (registerBtn) registerBtn.style.display = 'none';
-
-  if (userArea) {
-    userArea.innerHTML = `
-      <span>Xin chào <strong style="color:white;">${name}</strong></span>
-      <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-    `;
-    const logoutEl = document.getElementById('logout');
-    wireLogoutAndNav(logoutEl);
-  }
-
-  // nếu là admin thì thêm nút admin vào nav
-  if (serverRole === 'admin' && navButtons) {
-    if (!document.getElementById('btnAdmin')) {
-      const adminBtn = document.createElement('button');
-      adminBtn.className = 'nav-btn';
-      adminBtn.id = 'btnAdmin';
-      adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản trị';
-      adminBtn.addEventListener('click', () => { window.location.href = 'admin.html?page=admin'; });
-      navButtons.appendChild(adminBtn);
-    }
-  }
-}
-
-/* gọi loadUser khi DOM sẵn sàng */
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadUser);
-} else {
-  loadUser();
-}
 </script>
 <script src="footer.js"></script>
 </body>
