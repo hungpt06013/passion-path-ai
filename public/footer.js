@@ -1,13 +1,5 @@
-const tokens = localStorage.getItem('token');
 const currentPageHTML = window.location.pathname.split('/').pop() || 'main.html';
 const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
-
-const currentPath = window.location.pathname;
-const isHomePage = currentPath === '/' || currentPath === '' || currentPath === '/main.html' || currentPageHTML === 'main.html';
-if (!tokens && !publicPages.includes(currentPageHTML) && !isHomePage) {
-    alert('Vui lòng đăng nhập!');
-    window.location.href = 'login.html';
-}
 // Feedback modal logic
 let feedbackRatings = {};
 let feedbackDataChanged = false;
