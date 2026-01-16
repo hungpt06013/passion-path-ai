@@ -2,10 +2,10 @@ const CurrentPage = window.location.pathname.split('/').pop();
 const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_category.html', ''];
 const Tokens = localStorage.getItem('token');
 
-const currentPath = window.location.pathname;
-const isHomePage = currentPath === '/' || currentPath === '/main.html' || currentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
+const CurrentPath = window.location.pathname;
+const IsHomePage = CurrentPath === '/' || CurrentPath === '/main.html' || CurrentPath === '' || CurrentPage === '' || CurrentPage === 'main.html';
 
-if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !isHomePage) {
+if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !IsHomePage) {
     alert('Vui lòng đăng nhập!');
     window.location.href = 'login.html';
 }
