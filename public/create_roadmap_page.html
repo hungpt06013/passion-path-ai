@@ -1450,6 +1450,8 @@ function removeDiacritics(str) {
 }
 // ✅ Lưu reference để có thể remove listener
 let beforeUnloadHandler = null;
+// ✅ Biến global để track xem có phải đang chuyển trang không
+let isNavigating = false;
 
 function trackFormChanges() {
     hasFormChanges = true;
@@ -1457,7 +1459,8 @@ function trackFormChanges() {
     // ✅ CHỈ setup listener MỘT LẦN
     if (!beforeUnloadHandler) {
         beforeUnloadHandler = function(e) {
-            if (hasFormChanges) {
+            // ✅ CHỈ cảnh báo khi KHÔNG phải chuyển trang (reload/đóng tab)
+            if (hasFormChanges && !isNavigating) {
                 e.preventDefault();
                 e.returnValue = '';
             }
@@ -1468,6 +1471,7 @@ function trackFormChanges() {
 
 function resetFormTracking() {
     hasFormChanges = false;
+    isNavigating = true; // ✅ Đánh dấu đang chuyển trang
     
     // ✅ XÓA listener khi reset
     if (beforeUnloadHandler) {
@@ -2254,23 +2258,31 @@ async function validateDays() {
   if (!daysInput || !aiBtn || !warning) return;
   
   const days = parseInt(daysInput.value);
-  const maxDays = await getMaxDaysForCurrentUser(); // ✅ Lấy động
+  const role = localStorage.getItem('role');
   
-  // ✅ THÊM: Nếu input trống, ẩn warning và return
+  // ✅ LOGIC MỚI: Admin max 60, User max 360
+  const maxDays = (role === 'admin') ? 60 : 360;
+  
+  // Nếu input trống
   if (!daysInput.value || daysInput.value.trim() === '') {
     warning.style.display = 'none';
-    aiBtn.disabled = true; // Vẫn disable nút vì chưa nhập
+    aiBtn.disabled = true;
     return;
   }
   
+  // Validate theo role
   if (isNaN(days) || days < 15 || days > maxDays) {
     aiBtn.disabled = true;
     warning.style.display = 'block';
     
     if (days > maxDays) {
-      warning.textContent = `⚠️ Vui lòng nhập số ngày từ ${maxDays} trở xuống.`;
+      if (role === 'admin') {
+        warning.textContent = `⚠️ Admin chỉ được tạo tối đa ${maxDays} ngày với AI. Vui lòng giảm số ngày.`;
+      } else {
+        warning.textContent = `⚠️ Số ngày tối đa: ${maxDays}. Nếu bạn muốn hơn ${maxDays} ngày, vui lòng tạo thủ công.`;
+      }
     } else if (days < 15) {
-      warning.textContent = '⚠️ Vui lòng nhập số ngày từ 15 trở lên.';
+      warning.textContent = '⚠️ Số ngày tối thiểu là 15.';
     }
   } else {
     aiBtn.disabled = false;
@@ -2515,9 +2527,16 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
     console.log('✅ Validation passed!');
 
     // days limit
-    const MAX = (typeof MAX_AI_DAYS !== 'undefined') ? MAX_AI_DAYS : 60;
+    // ✅ FIXED: Kiểm tra max days theo role
+    const role = localStorage.getItem('role');
+    const MAX = (role === 'admin') ? 60 : 360;
+
     if (q11_program_days > MAX) {
-        showNotification(`AI chỉ có thể tạo lộ trình tối đa ${MAX} ngày. Vui lòng giảm số ngày hoặc tạo thủ công.`, 'error');
+        const message = (role === 'admin') 
+            ? `Admin chỉ có thể tạo lộ trình tối đa ${MAX} ngày với AI. Vui lòng giảm số ngày.`
+            : `Số ngày tối đa là ${MAX}. Vui lòng giảm số ngày hoặc tạo thủ công.`;
+        
+        showNotification(message, 'error');
         generateBtn.disabled = false;
         submitBtn.disabled = false;
         generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
@@ -3429,28 +3448,6 @@ window.addEventListener('load', function() {
     setupFormChangeTracking();
 });
 
-// ✅ THÊM HÀM MỚI SAU HÀM window.addEventListener('load', ...)
-function setupFormChangeTracking() {
-    const form = document.getElementById('roadmapForm');
-    if (!form) return;
-    
-    // Track tất cả input, textarea, select
-    const formElements = form.querySelectorAll('input, textarea, select');
-    
-    formElements.forEach(element => {
-        // Bỏ qua hidden inputs
-        if (element.type === 'hidden') return;
-        
-        // Lắng nghe sự kiện thay đổi
-        if (element.type === 'checkbox' || element.type === 'radio') {
-            element.addEventListener('change', trackFormChanges);
-        } else {
-            element.addEventListener('input', trackFormChanges);
-        }
-    });
-    
-    console.log('✅ Form change tracking enabled');
-}
 function setupFormChangeTracking() {
     const form = document.getElementById('roadmapForm');
     if (!form) return;
@@ -3472,20 +3469,14 @@ function setupFormChangeTracking() {
     
     console.log('✅ Form change tracking enabled');
     
-    // ✅ THÊM ĐOẠN NÀY: Tắt cảnh báo khi click LINK/BUTTON
+    // ✅ TẮT CẢNH BÁO khi click link/button
     document.addEventListener('click', function(e) {
-        // Tìm thẻ <a> hoặc <button> gần nhất
         const link = e.target.closest('a');
-        const button = e.target.closest('button');
+        const button = e.target.closest('button[type="submit"], button[onclick*="location"], button[onclick*="href"]');
         
-        // Nếu click vào link (trừ link javascript:void(0))
-        if (link && link.href && !link.href.includes('javascript:')) {
-            resetFormTracking();
-        }
-        
-        // Nếu click vào button có onclick chuyển trang
-        if (button && button.onclick) {
-            resetFormTracking();
+        // Nếu click vào link hoặc button chuyển trang
+        if ((link && link.href && !link.href.includes('javascript:')) || button) {
+            isNavigating = true; // ✅ Đánh dấu đang navigate
         }
     });
 }
