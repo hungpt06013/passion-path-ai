@@ -726,50 +726,57 @@ details > div {
     }
 
     // Users
-    function renderUsersTable(users) {
-      if (!Array.isArray(users) || users.length === 0) {
-        usersArea.innerHTML = '<div class="muted">Không có user nào.</div>';
-        return;
-      }
+function renderUsersTable(users) {
+  if (!Array.isArray(users) || users.length === 0) {
+    usersArea.innerHTML = '<div class="muted">Không có user nào.</div>';
+    return;
+  }
 
-      const rows = users.map(user => {
-        const id = user.id || user._id || user.email;
-        const name = user.name || user.username || '-';
-        const email = user.email || '-';
-        const createdAt = user.created_at || user.createdAt || user.registeredAt || user.registered_at || '';
+  console.log('🔍 Rendering users:', users); // ✅ DEBUG
 
-        return `
-          <tr data-id="${escapeHtml(String(id))}">
-            <td>${escapeHtml(name)}</td>
-            <td>${escapeHtml(email)}</td>
-            <td>${escapeHtml(fmtDate(createdAt))}</td>
-            <td class="actions-cell">
-              <button class="btn-delete" data-id="${escapeHtml(String(id))}"><i class="fa-solid fa-trash"></i> Xóa</button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+  const rows = users.map(user => {
+    const id = user.id || user._id || user.email;
+    const name = user.name || '-';
+    const username = user.username || '-';
+    const email = user.email || '-';
+    const createdAt = user.created_at || user.createdAt || user.registeredAt || user.registered_at || '';
 
-      usersArea.innerHTML = `
-        <table class="users-table" aria-describedby="usersMessage">
-          <thead>
-            <tr>
-              <th>Tên</th>
-              <th>Email</th>
-              <th>Thời gian đăng ký</th>
-              <th>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
-      `;
+    console.log(`👤 User: ${name}, Username: ${username}, Email: ${email}`); // ✅ DEBUG
 
-      document.querySelectorAll('.btn-delete').forEach(btn => {
-        btn.addEventListener('click', onDeleteUserClick);
-      });
-    }
+    return `
+      <tr data-id="${escapeHtml(String(id))}">
+        <td>${escapeHtml(name)}</td>
+        <td><strong>${escapeHtml(username)}</strong></td>
+        <td>${escapeHtml(email)}</td>
+        <td>${escapeHtml(fmtDate(createdAt))}</td>
+        <td class="actions-cell">
+          <button class="btn-delete" data-id="${escapeHtml(String(id))}"><i class="fa-solid fa-trash"></i> Xóa</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  usersArea.innerHTML = `
+    <table class="users-table" aria-describedby="usersMessage">
+      <thead>
+        <tr>
+          <th>Tên</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Thời gian đăng ký</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  `;
+
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', onDeleteUserClick);
+  });
+}
 
     async function onDeleteUserClick(evt) {
       const id = evt.currentTarget.getAttribute('data-id');
@@ -866,9 +873,9 @@ details > div {
 
     function sampleUsers() {
       return [
-        { id: '1', name: 'Nguyễn Văn A', email: 'a@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() },
-        { id: '2', name: 'Trần Thị B', email: 'b@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString() },
-        { id: '3', name: 'Lê Văn C', email: 'c@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString() }
+        { id: '1', name: 'Nguyễn Văn A', username: 'nguyenvana', email: 'a@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString() },
+        { id: '2', name: 'Trần Thị B', username: 'tranthib', email: 'b@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 45).toISOString() },
+        { id: '3', name: 'Lê Văn C', username: 'levanc', email: 'c@example.com', created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 10).toISOString() }
       ];
     }
 
