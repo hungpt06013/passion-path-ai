@@ -91,7 +91,7 @@
     padding: 4px 12px 4px 6px;
     min-width: 0;
     white-space: nowrap;
-    flex-wrap: nowrap;
+    flex-wrap: nowrap; /* ✅ THÊM: Đảm bảo không wrap */
     gap: 22px !important;
     flex: 1;
     transition: padding-left 0.3s ease;
@@ -218,8 +218,10 @@
 
     .nav-buttons {
         gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-wrap: nowrap !important; /* ✅ SỬA: Thêm !important */
+        justify-content: flex-start; /* ✅ SỬA: Từ center sang flex-start */
+        overflow-x: auto;
+        padding: 4px 0; /* ✅ SỬA: Reset padding */
     }
 
     .userInfo {
