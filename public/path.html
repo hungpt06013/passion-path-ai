@@ -29,14 +29,13 @@
     }
 
     .container {
-        width: 100%; /* ✅ SỬA: Từ min-width sang width */
-        max-width: 1200px; /* ✅ THÊM: Giới hạn tối đa */
-        margin: 0 auto;
+        width: 100%;
+        max-width: 1200px;
+        margin: 100px auto 0; /* ✅ SỬA: Thêm margin-top 100px */
         background: white;
         border-radius: 20px;
         box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
-
     .header {
         background: linear-gradient(135deg, #007bff 0%, #007bff 100%);
         color: white;
@@ -62,23 +61,23 @@
     .header-buttons {
         display: flex;
         justify-content: center;
-        gap: 15px;
+        gap: 12px; /* ✅ SỬA: Giảm từ 15px xuống 12px */
         margin-top: 20px;
+        flex-wrap: wrap; /* ✅ THÊM: Cho phép xuống dòng */
     }
     .create-btn,
     .upload-btn,
     .prompt-btn {
-        padding: 12px 24px;
+        padding: 10px 20px; /* ✅ SỬA: Giảm từ 12px 24px */
         background: rgba(255, 255, 255, 0.2);
         color: white;
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 12px;
-        font-size: 1rem;
+        font-size: 0.95rem; /* ✅ SỬA: Giảm từ 1rem */
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         backdrop-filter: blur(10px);
-        /* ✅ XÓA position: absolute */
     }
 
     .create-btn:hover,
@@ -87,19 +86,6 @@
         background: rgba(255, 255, 255, 0.3);
         border-color: rgba(255, 255, 255, 0.5);
         transform: translateY(-2px);
-    }
-
-    @media (max-width: 768px) {
-        .header-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .create-btn,
-        .upload-btn,
-        .prompt-btn {
-            width: 90%;
-        }
     }
 
     /* ✅ MODAL STYLE CHO PROMPT */
@@ -178,7 +164,7 @@
     .roadmap-card {
         background: white;
         border-radius: 16px;
-        padding: 25px;
+        padding: 25px; /* ✅ SỬA: Bỏ padding-bottom 60px */
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         border: 2px solid #e5e7eb;
         transition: all 0.3s ease;
@@ -192,24 +178,25 @@
         border-color: #007bff;
     }
 
+        
     .delete-roadmap-btn {
-        position: absolute;
-        top: 307px;
-        right: 15px;
-        background: #007bff;
+        position: static; /* ✅ SỬA: Từ absolute sang static */
+        background: #21bcff;
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 13px 13px;
+        padding: 10px 16px;
         font-size: 0.85rem;
         cursor: pointer;
         transition: all 0.3s ease;
-        z-index: 5;
+        margin-top: 10px; /* ✅ THÊM: Khoảng cách với nút trên */
+        width: 100%; /* ✅ THÊM: Full width */
+        display: block;
     }
 
     .delete-roadmap-btn:hover {
-        background: #0056b3;
-        transform: scale(1.05);
+        background: #1ca6e1; /* ✅ SỬA: Màu đỏ đậm khi hover */
+        transform: translateY(-2px);
     }
 
     .roadmap-header {
@@ -237,13 +224,13 @@
     }
 
 .status-not-started {
-    background: #dc2626;
+    background: #ff6b35;
     color: #ffffff;
     font-weight: 700;
 }
 
 .status-active {
-    background: #f59e0b;
+    background: #0b3af5;
     color: #ffffff;
     font-weight: 700;
 }
@@ -327,7 +314,7 @@
     }
 
     .view-details-btn {
-        width: 85%;
+        width: 100%; /* ✅ SỬA: Từ 85% lên 100% */
         padding: 12px;
         background: linear-gradient(135deg, #007bff, #007bff);
         color: white;
@@ -803,34 +790,6 @@
         border-left: 4px solid #ffc107;
     }
 
-    @media (max-width: 768px) {
-        .roadmaps-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-        }
-
-        .create-btn {
-            position: static;
-            margin-top: 20px;
-            width: 100%;
-        }
-
-        .modal-content {
-            width: 98%;
-            max-height: 98vh;
-        }
-
-        table {
-            font-size: 0.8rem;
-        }
-
-        th, td {
-            padding: 10px 6px;
-        }
-    }
     .toMain {
         background: #000;
         color: #fff;
@@ -1329,14 +1288,50 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
 .custom-select-wrapper input[type="hidden"] {
     display: none;
 }
+.roadmap-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.roadmap-actions .view-details-btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+.roadmap-actions .delete-roadmap-btn {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+    padding: 12px 20px;
+}
+
+/* Desktop: 2 nút ngang */
+@media (min-width: 769px) {
+    .roadmap-actions {
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+/* Mobile: 2 nút dọc */
 @media (max-width: 768px) {
+    .roadmap-actions {
+        flex-direction: column;
+    }
+    
+    .roadmap-actions .view-details-btn,
+    .roadmap-actions .delete-roadmap-btn {
+        width: 100%;
+    }
     body {
         padding: 10px;
     }
     
     .container {
         border-radius: 12px;
-        margin-top: 80px !important; /* ✅ Giảm margin-top */
+        margin-top: 90px !important; /* ✅ SỬA: Tăng lên 90px */
     }
     
     .header {
@@ -1345,37 +1340,53 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     }
     
     .header h1 {
-        font-size: 1.5rem;
+        font-size: 1.4rem; /* ✅ SỬA: Giảm size */
     }
     
     .header p {
-        font-size: 0.9rem;
+        font-size: 0.85rem; /* ✅ SỬA: Giảm size */
     }
     
     .header-buttons {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px; /* ✅ SỬA: Giảm gap */
+        margin-top: 15px;
     }
     
     .create-btn,
     .upload-btn,
     .prompt-btn {
         width: 100%;
-        padding: 10px 16px;
+        padding: 12px 16px; /* ✅ SỬA: Tăng padding dọc */
         font-size: 0.9rem;
     }
     
     .roadmaps-grid {
-        grid-template-columns: 1fr; /* ✅ 1 cột trên mobile */
+        grid-template-columns: 1fr;
         gap: 20px;
+        padding: 0 5px; /* ✅ THÊM: Padding ngang */
     }
     
     .roadmap-card {
-        padding: 20px;
+        padding: 20px 20px 55px; /* ✅ SỬA: Điều chỉnh padding */
     }
     
     .roadmap-title {
         font-size: 1.1rem;
+    }
+    
+    .view-details-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 0.9rem;
+        margin-top: 12px;
+    }
+    
+    .delete-roadmap-btn {
+        bottom: 12px; /* ✅ SỬA: Điều chỉnh vị trí */
+        right: 12px;
+        padding: 8px 14px; /* ✅ SỬA: Giảm padding */
+        font-size: 0.8rem;
     }
     
     .modal-content {
@@ -1384,14 +1395,14 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     }
     
     #modal-content-details {
-        min-width: auto; /* ✅ Bỏ min-width cố định */
+        min-width: auto;
         width: 100%;
     }
     
     table {
         font-size: 0.75rem;
         display: block;
-        overflow-x: auto; /* ✅ Cho phép scroll ngang */
+        overflow-x: auto;
     }
     
     th, td {
@@ -2523,10 +2534,10 @@ function renderRoadmaps(roadmaps) {
          </div>`;
     
     return `
-      <div class="roadmap-card">
+    <div class="roadmap-card">
         <div class="roadmap-header">
-          <div class="roadmap-title">${roadmap.roadmap_name}</div>
-          ${getStatusBadge(roadmap)}
+        <div class="roadmap-title">${roadmap.roadmap_name}</div>
+        ${getStatusBadge(roadmap)}
         </div>
         
         <div class="roadmap-meta">
@@ -2535,39 +2546,42 @@ function renderRoadmaps(roadmaps) {
         </div>
         
         <div class="progress-section">
-          <div class="progress-label">
+        <div class="progress-label">
             <span>Tiến độ học tập</span>
             <span>${Math.round(roadmap.progress_percentage)}%</span>
-          </div>
-          <div class="progress-bar">
+        </div>
+        <div class="progress-bar">
             <div class="progress-fill" style="width: ${roadmap.progress_percentage}%"></div>
-          </div>
+        </div>
         </div>
         
         <div class="roadmap-stats">
-          <div class="stat-item">
+        <div class="stat-item">
             <div class="stat-value">${roadmap.duration_days}</div>
             <div class="stat-label">Ngày</div>
-          </div>
-          <div class="stat-item">
+        </div>
+        <div class="stat-item">
             <div class="stat-value">${formatHours(roadmap.duration_hours)}</div>
             <div class="stat-label">Tổng thời gian</div>
-          </div>
-          ${ratingHTML}
-          <div class="stat-item">
+        </div>
+        ${ratingHTML}
+        <div class="stat-item">
             <div class="stat-value">${Math.round(roadmap.progress_percentage)}%</div>
             <div class="stat-label">Tiến độ</div>
-          </div>
+        </div>
         </div>
         
+        <!-- ✅ SỬA: Wrap 2 nút trong div mới -->
+        <div class="roadmap-actions">
         <button class="view-details-btn" onclick="openDetails(${roadmap.roadmap_id})">
-          👁️ Xem Chi Tiết
+            👁️ Xem Chi Tiết
         </button>
         
         <button class="delete-roadmap-btn" onclick="confirmDeleteRoadmap(${roadmap.roadmap_id}, '${roadmap.roadmap_name.replace(/'/g, "\\'")}')">
-          🗑️ <strong>Xóa</strong>
+            <strong>🗑️ Xóa</strong>
         </button>
-      </div>
+        </div>
+    </div>
     `;
   }).join('');
   
