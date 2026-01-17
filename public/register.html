@@ -349,33 +349,167 @@
   background: rgba(10,20,40,0.04);
   border-color: rgba(10,20,40,0.18);
 }
-/* Responsive */
-@media (max-width:820px) {
-    .bar-inner {
-        flex-direction: column;
-        height: auto;
-        padding: 15px;
-        gap: 10px;
-    }
+@media (max-width: 900px) {
+  body {
+    padding-top: 200px; /* ✅ Đẩy xuống 200px */
+  }
 
-    .fixed-bar {
-        height: auto;
-    }
+  .page-wrapper {
+    padding: 20px 15px;
+    margin-top: 0; /* ✅ Reset margin vì body đã có padding */
+  }
 
-    .userInfo {
-        flex-wrap: wrap;
-        justify-content: center;
-    }
+  .card {
+    padding: 22px 18px;
+    border-radius: 12px;
+  }
 
-    .footer-content {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
+  h1 {
+    font-size: 22px;
+  }
+
+  p.lead {
+    font-size: 14px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px; /* ✅ Prevent zoom on iOS */
+    padding: 12px 14px;
+  }
+
+  .actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+
+  button[type="submit"],
+  .btn-primary {
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
+  .back-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+  }
+
+  .password-toggle {
+    padding: 8px 10px;
+    font-size: 18px;
+  }
+
+  #passwordCriteria {
+    font-size: 12px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+  }
+
+  .code-inputs {
+    gap: 6px;
+  }
+
+  .code-input {
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .form-footer {
+    font-size: 14px;
+  }
 }
 
-/* Điều chỉnh page-wrapper */
-.page-wrapper {
-    margin-top: 100px; /* Thêm margin-top để không bị bar che */
+@media (max-width: 480px) {
+  body {
+    padding-top: 180px;
+  }
+
+  .page-wrapper {
+    padding: 15px 10px;
+  }
+
+  .card {
+    padding: 18px 14px;
+    border-radius: 10px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  p.lead {
+    font-size: 13px;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+
+  button[type="submit"],
+  .btn-primary {
+    font-size: 14px;
+    padding: 12px 16px;
+  }
+
+  .back-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .password-toggle {
+    padding: 6px 8px;
+    font-size: 16px;
+  }
+
+  label {
+    font-size: 12px;
+  }
+
+  .small-note {
+    font-size: 11px;
+  }
+
+  #passwordCriteria {
+    font-size: 11px;
+  }
+
+  .modal-content {
+    width: 98%;
+    padding: 16px;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .code-inputs {
+    gap: 4px;
+  }
+
+  .code-input {
+    height: 45px;
+    font-size: 16px;
+  }
+
+  .form-footer {
+    font-size: 13px;
+  }
 }
 </style>
     <!-- Preload Font Awesome CSS -->
