@@ -1620,6 +1620,8 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
 let isEditMode = false;
 let originalDetails = [];
 let currentEditingRoadmapId = null;
+let hasEvaluationChanges = false; // Track xem có thay đổi đánh giá không
+let originalEvaluationData = {}; // Lưu dữ liệu đánh giá ban đầu
 // ✅ THÊM HÀM NÀY NGAY SAU KHAI BÁO BIẾN GLOBAL
 function removeDiacritics(str) {
     return str.normalize('NFD')
@@ -2358,6 +2360,14 @@ function displayRoadmapDetails(roadmap, details) {
         improvement_suggestions: roadmap.improvement_suggestions || '',
         would_recommend: roadmap.would_recommend || false
     };
+    // ✅ THÊM: Setup beforeunload warning
+    window.onbeforeunload = function(e) {
+        if (hasEvaluationChanges) {
+            e.preventDefault();
+            e.returnValue = 'Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời khỏi trang?';
+            return 'Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời khỏi trang?';
+        }
+    };
 }
     // ✅ HÀM FORMAT GIỜ: Chuyển số thập phân thành "X giờ Y phút"
     function formatHours(hours) {
@@ -2641,6 +2651,18 @@ async function openDetails(roadmapId) {
 
 function buildEvaluationForm(roadmap) {
     // ✅ Hàm helper để render stars với giá trị hiện tại
+    hasEvaluationChanges = false;
+    originalEvaluationData = {
+        overall_rating: roadmap.overall_rating || 0,
+        learning_effectiveness: roadmap.learning_effectiveness || 0,
+        difficulty_suitability: roadmap.difficulty_suitability || 0,
+        content_relevance: roadmap.content_relevance || 0,
+        engagement_level: roadmap.engagement_level || 0,
+        detailed_feedback: roadmap.detailed_feedback || '',
+        actual_learning_outcomes: roadmap.actual_learning_outcomes || '',
+        improvement_suggestions: roadmap.improvement_suggestions || '',
+        would_recommend: roadmap.would_recommend || false
+    };
     const renderRatingGroup = (fieldName, label, currentValue) => {
         const value = currentValue || 0;
         const starsHtml = [1,2,3,4,5].map(i => 
@@ -2670,22 +2692,31 @@ function buildEvaluationForm(roadmap) {
 
             <div class="textarea-group">
                 <label>Nhận xét chi tiết về lộ trình</label>
-                <textarea id="detailed_feedback" placeholder="Chia sẻ nhận xét của bạn..." onchange="evaluationData['detailed_feedback'] = this.value">${roadmap.detailed_feedback || ''}</textarea>
+                <textarea id="detailed_feedback" 
+                          placeholder="Chia sẻ nhận xét của bạn..." 
+                          oninput="trackEvaluationChange('detailed_feedback', this.value)">${roadmap.detailed_feedback || ''}</textarea>
             </div>
 
             <div class="textarea-group">
                 <label>Kết quả học được thực tế sau hoàn thành</label>
-                <textarea id="actual_learning_outcomes" placeholder="Mô tả kỹ năng bạn đã học được..." onchange="evaluationData['actual_learning_outcomes'] = this.value">${roadmap.actual_learning_outcomes || ''}</textarea>
+                <textarea id="actual_learning_outcomes" 
+                          placeholder="Mô tả kỹ năng bạn đã học được..." 
+                          oninput="trackEvaluationChange('actual_learning_outcomes', this.value)">${roadmap.actual_learning_outcomes || ''}</textarea>
             </div>
 
             <div class="textarea-group">
                 <label>Đề xuất cải thiện lộ trình</label>
-                <textarea id="improvement_suggestions" placeholder="Gợi ý cải thiện..." onchange="evaluationData['improvement_suggestions'] = this.value">${roadmap.improvement_suggestions || ''}</textarea>
+                <textarea id="improvement_suggestions" 
+                          placeholder="Gợi ý cải thiện..." 
+                          oninput="trackEvaluationChange('improvement_suggestions', this.value)">${roadmap.improvement_suggestions || ''}</textarea>
             </div>
 
             <div class="checkbox-group">
                 <label>
-                    <input type="checkbox" id="would_recommend" ${roadmap.would_recommend ? 'checked' : ''} onchange="evaluationData['would_recommend'] = this.checked">
+                    <input type="checkbox" 
+                           id="would_recommend" 
+                           ${roadmap.would_recommend ? 'checked' : ''} 
+                           onchange="trackEvaluationChange('would_recommend', this.checked)">
                     <span>Tôi sẽ giới thiệu lộ trình này cho người khác</span>
                 </label>
             </div>
@@ -2696,9 +2727,28 @@ function buildEvaluationForm(roadmap) {
         </div>
     `;
 }
-    // SET RATING
+// ✅ HÀM THEO DÕI THAY ĐỔI ĐÁNH GIÁ
+function trackEvaluationChange(fieldName, value) {
+    evaluationData[fieldName] = value;
+    
+    // Kiểm tra xem có thay đổi so với ban đầu không
+    if (originalEvaluationData[fieldName] !== value) {
+        hasEvaluationChanges = true;
+    } else {
+        // Kiểm tra tất cả các field xem còn thay đổi nào không
+        hasEvaluationChanges = Object.keys(originalEvaluationData).some(
+            key => evaluationData[key] !== originalEvaluationData[key]
+        );
+    }
+}
+// SET RATING
 function setRating(fieldName, value) {
     evaluationData[fieldName] = value;
+    
+    // ✅ TRACK THAY ĐỔI
+    if (originalEvaluationData[fieldName] !== value) {
+        hasEvaluationChanges = true;
+    }
     
     const starContainer = document.getElementById(fieldName);
     if (starContainer) {
@@ -2712,7 +2762,6 @@ function setRating(fieldName, value) {
         });
     }
     
-    // ✅ CẬP NHẬT TEXT HIỂN THỊ
     const valueSpan = document.getElementById(`${fieldName}-value`);
     if (valueSpan) {
         valueSpan.textContent = value;
@@ -2798,7 +2847,10 @@ async function submitEvaluation() {
         }
 
         showNotification('✓ Đánh giá đã được lưu thành công!', 'success');
-        
+        // ✅ RESET TRACKING SAU KHI LỮU THÀNH CÔNG
+        hasEvaluationChanges = false;
+        originalEvaluationData = {};
+        window.onbeforeunload = null;
         setTimeout(() => {
             closeModal();
             fetchRoadmaps();
@@ -2817,10 +2869,9 @@ function closeModal() {
     if (isEditMode) {
         const confirmClose = confirm('Bạn đang chỉnh sửa. Hủy tất cả thay đổi?');
         if (!confirmClose) {
-            return; // Không đóng nếu user không confirm
+            return;
         }
         
-        // Reset edit mode
         isEditMode = false;
         const btn = document.querySelector('.edit-mode-btn');
         if (btn) {
@@ -2830,13 +2881,23 @@ function closeModal() {
         hideEditButtons();
     }
     
+    // ✅ KIỂM TRA NẾU CÓ THAY ĐỔI ĐÁNH GIÁ
+    if (hasEvaluationChanges) {
+        const confirmClose = confirm('Bạn có chắc muốn rời đi?\n\nDữ liệu bạn nhập sẽ không được lưu.');
+        if (!confirmClose) {
+            return;
+        }
+    }
+    
+    // Reset evaluation tracking
+    hasEvaluationChanges = false;
+    originalEvaluationData = {};
+    
     document.getElementById('detailsModal').classList.remove('active');
     
-    // ✅ Xóa roadmap_id khỏi URL khi đóng modal
     const newUrl = window.location.pathname;
     window.history.pushState({}, '', newUrl);
     
-    // ✅ XÓA WARNING KHI ĐÓNG MODAL
     window.onbeforeunload = null;
 }
     function goToCreateRoadmap() {
@@ -2845,7 +2906,18 @@ function closeModal() {
 
     // Close modal when clicking outside
     document.getElementById('detailsModal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
+        if (e.target === this) {
+            // ✅ KIỂM TRA THAY ĐỔI TRƯỚC KHI ĐÓNG
+            if (hasEvaluationChanges) {
+                const confirmClose = confirm('Bạn có chắc muốn rời đi?\n\nDữ liệu bạn nhập sẽ không được lưu.');
+                if (!confirmClose) {
+                    return;
+                }
+                hasEvaluationChanges = false;
+                originalEvaluationData = {};
+            }
+            closeModal();
+        }
     });
 
     // Navigation setup (giữ nguyên behavior path.html)
