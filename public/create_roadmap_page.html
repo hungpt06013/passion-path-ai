@@ -1402,33 +1402,27 @@ function validateAllQuestions() {
         errors.push('Câu tên lộ trình');
     }
     
-    // Q2: Danh mục
-    const q2 = document.querySelector('input[name="q2_category"]:checked');
-    if (!q2 || ((q2.value === 'Khác' || q2.value === 'Other') && !document.getElementById('q2_other_text')?.value.trim())) {
+    // ✅ Q2: Danh mục - SỬA LẠI
+    const q2_hidden = document.getElementById('q2_category_hidden');
+    if (!q2_hidden || !q2_hidden.value || q2_hidden.value.trim() === '') {
         errors.push('Câu danh mục');
     }
     
-    // Q3: Danh mục chi tiết (radio hoặc text)
-    const q3_radio = document.querySelector('input[name="q3_category_detail"]:checked');
+    // ✅ Q3: Danh mục chi tiết - SỬA LẠI
+    const q3_hidden = document.getElementById('q3_category_detail_hidden');
     const q3_text = document.querySelector('input[name="q3_category_detail"][type="text"]');
-    const q3_other = document.getElementById('q3_other_text');
-
+    
     let q3_valid = false;
-
-    if (q3_radio) {
-        // ✅ Chọn radio
-        if (q3_radio.value === 'Khác') {
-            // ✅ Chọn "Khác" → phải điền input
-            q3_valid = q3_other && q3_other.value.trim() !== '';
-        } else {
-            // ✅ Chọn sub-category có sẵn
-            q3_valid = true;
-        }
-    } else if (q3_text) {
-        // ✅ Input text trực tiếp (khi không có sub-categories)
-        q3_valid = q3_text.value.trim() !== '';
+    
+    // Kiểm tra hidden input (từ dropdown)
+    if (q3_hidden && q3_hidden.value && q3_hidden.value.trim() !== '') {
+        q3_valid = true;
     }
-
+    // Kiểm tra text input (khi không có sub-categories)
+    else if (q3_text && q3_text.value && q3_text.value.trim() !== '') {
+        q3_valid = true;
+    }
+    
     if (!q3_valid) {
         errors.push('Câu danh mục chi tiết');
     }
@@ -1555,36 +1549,8 @@ function validateAllQuestions() {
 
     return [];
 }
-function attachOtherEventsForQ2() {
-    const q2_other_radio = document.getElementById('q2_other_radio');
-    const q2_other_text = document.getElementById('q2_other_text');
-    
-    if (!q2_other_radio || !q2_other_text) {
-        console.warn('Q2 elements not found');
-        return;
-    }
 
-    // Ban đầu ẩn input
-    q2_other_text.style.display = 'none';
-    
-    // Khi chọn "Khác" - hiển thị input
-    q2_other_radio.addEventListener('change', () => {
-        if (q2_other_radio.checked) {
-            q2_other_text.style.display = 'block';
-            setTimeout(() => q2_other_text.focus(), 60);
-        }
-    });
-    
-    // Khi chọn radio khác - ẩn input và clear
-    document.querySelectorAll('input[name="q2_category"]').forEach(radio => {
-        if (radio !== q2_other_radio) {
-            radio.addEventListener('change', () => {
-                q2_other_text.style.display = 'none';
-                q2_other_text.value = '';
-            });
-        }
-    });
-}
+
         const MAX_AI_DAYS = 90;
         let dayCount = 0;
         let isGenerating = false;
@@ -2155,7 +2121,48 @@ async function updateDaysUIByRole() {
         warning.textContent = `⚠️ Số ngày tối đa: ${maxDays}. Nếu bạn muốn hơn ${maxDays} ngày, vui lòng tạo thủ công.`;
     }
 }
-// ✅ CẬP NHẬT HÀM validateDays()
+async function checkUserRoleAndUpdateUI() {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  const generateBtn = document.getElementById('generateAI');
+  const generateBtnText = document.getElementById('generateBtnText');
+  const analysisSection = document.querySelector('.analysis-section');
+  const daysSection = document.querySelectorAll('.form-section')[document.querySelectorAll('.form-section').length - 1];
+  const submitSection = document.querySelector('.submit-section');
+  
+  if (!token || role !== 'admin') {
+    // User thường: Đổi nút thành "Tạo lộ trình"
+    if (generateBtnText) {
+      generateBtnText.textContent = '📝 Tạo lộ trình';
+    }
+    
+    // Ẩn analysis section, days section, submit section
+    if (analysisSection) analysisSection.style.display = 'none';
+    if (daysSection) daysSection.style.display = 'none';
+    if (submitSection) submitSection.style.display = 'none';
+    
+    // ✅ FIX: Validate form trước khi hiện prompt
+    if (generateBtn) {
+      generateBtn.removeEventListener('click', generateRoadmapWithAI);
+      generateBtn.addEventListener('click', function() {
+        // ✅ VALIDATE FORM TRƯỚC
+        const validationErrors = validateAllQuestions();
+        if (validationErrors && validationErrors.length > 0) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return; // Dừng nếu có lỗi
+        }
+        
+        // ✅ Nếu pass validation, hiện prompt
+        showManualPromptForUser();
+      });
+    }
+  } else {
+    // Admin: giữ nguyên
+    if (generateBtnText) {
+      generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
+    }
+  }
+}
 // ✅ Cập nhật hàm validateDays()
 async function validateDays() {
   const daysInput = document.getElementById('q11_program_days');
@@ -2306,20 +2313,19 @@ async function generateRoadmapWithAI() {
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
     // Q2
-    let q2_category_id = getField(formData, 'q2_category');
-    let q2_category = '';
-    
-    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
-      const otherInput = document.getElementById('q2_other_text');
-      q2_category = otherInput ? (otherInput.value || '').trim() : '';
-    } else {
-      const selectedRadio = document.querySelector('input[name="q2_category"]:checked');
-      if (selectedRadio) {
-        q2_category = selectedRadio.getAttribute('data-category-name') || q2_category_id;
-      } else {
-        q2_category = q2_category_id;
-      }
-    }
+// Q2 - Lấy TÊN danh mục
+const q2_category_hidden = document.getElementById('q2_category_hidden');
+const q2_category_name_input = document.getElementById('q2_category_name');
+let q2_category = '';
+
+if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
+  const otherInput = document.getElementById('q2_other_text');
+  q2_category = otherInput ? (otherInput.value || '').trim() : '';
+} else if (q2_category_name_input && q2_category_name_input.value) {
+  q2_category = q2_category_name_input.value.trim();
+} else {
+  q2_category = 'Chưa xác định';
+}
 
     // Q3 - Xử lý danh mục chi tiết
     let q3_category_detail = getField(formData, 'q3_category_detail');
@@ -2833,17 +2839,20 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
     // Q2 (category) - SELECT
-    let q2_category_id = getField(formData, 'q2_category');
-    let q2_category = '';
+// Trong hàm submit form
+// Q2 - Lấy TÊN danh mục (không phải ID)
+const q2_category_hidden = document.getElementById('q2_category_hidden');
+const q2_category_name_input = document.getElementById('q2_category_name');
+let q2_category = '';
 
-    if (q2_category_id === 'Khác') {
-        const otherInput = document.getElementById('q2_other_text');
-        q2_category = otherInput ? otherInput.value.trim() : '';
-    } else {
-        const select = document.getElementById('q2_category_select');
-        const selectedOption = select?.options[select.selectedIndex];
-        q2_category = selectedOption?.getAttribute('data-category-name') || q2_category_id;
-    }
+if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
+  const otherInput = document.getElementById('q2_other_text');
+  q2_category = otherInput ? (otherInput.value || '').trim() : '';
+} else if (q2_category_name_input && q2_category_name_input.value) {
+  q2_category = q2_category_name_input.value.trim();
+} else {
+  q2_category = 'Chưa xác định';
+}
 
     // Q3 - Xử lý "Khác"
     let q3_category_detail = getField(formData, 'q3_category_detail');
@@ -3214,20 +3223,21 @@ async function showManualPromptForUser() {
       if (otherValue && otherValue.trim()) filtered.push(otherValue.trim());
       return filtered.length > 0 ? filtered.join(', ') : 'Chưa xác định';
     };
-    let q2_category_id = getField(formData, 'q2_category');
-    let q2_category = '';
-    
-    if (q2_category_id === 'Khác' || q2_category_id === 'Khac' || q2_category_id === 'Other') {
-      const otherInput = document.getElementById('q2_other_text');
-      q2_category = otherInput ? (otherInput.value || '').trim() : '';
-    } else {
-      const selectedRadio = document.querySelector('input[name="q2_category"]:checked');
-      if (selectedRadio) {
-        q2_category = selectedRadio.getAttribute('data-category-name') || q2_category_id;
-      } else {
-        q2_category = q2_category_id;
-      }
-    }
+// Q2 - Lấy TÊN danh mục thay vì ID
+const q2_category_hidden = document.getElementById('q2_category_hidden');
+const q2_category_name_input = document.getElementById('q2_category_name');
+let q2_category = '';
+
+if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
+  // Nếu chọn "Khác" → lấy từ input text
+  const otherInput = document.getElementById('q2_other_text');
+  q2_category = otherInput ? (otherInput.value || '').trim() : '';
+} else if (q2_category_name_input && q2_category_name_input.value) {
+  // Lấy TÊN từ hidden input (không phải ID)
+  q2_category = q2_category_name_input.value.trim();
+} else {
+  q2_category = 'Chưa xác định';
+}
     // ✅ Thu thập toàn bộ form data
     const finalData = {
       roadmap_name: getField(formData, 'q1_roadmap_name'),
@@ -3332,9 +3342,6 @@ window.addEventListener('load', function() {
             if (el) el.style.display = 'none';
         });
     }, 100);
-    setTimeout(() => {
-        attachOtherEventsForQ2();
-    }, 500);
 });
 
         function escapeHtmlAttr(s) {
