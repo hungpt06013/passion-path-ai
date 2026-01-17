@@ -4836,8 +4836,30 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
 
         const updatedRoadmap = result.rows[0];
 
-        // ✅ LOGIC MỚI: CHECK XEM CÓ ĐỦ ĐIỀU KIỆN HIỆN Ở HỆ THỐNG KHÔNG
-        // ✅ 1️⃣ Kiểm tra xem roadmap đã tồn tại trong system chưa
+        // ✅ BƯỚC 1: Lấy category name ĐÚNG từ bảng categories
+        const getCategoryNameQuery = `
+            SELECT c.name as category_name
+            FROM categories c
+            WHERE c.name = SPLIT_PART($1, ' - ', 1)
+               OR c.name || ' - ' || c.description = $1
+            LIMIT 1
+        `;
+        
+        const categoryResult = await client.query(getCategoryNameQuery, [roadmap.category]);
+        
+        let categoryName = roadmap.category;
+        
+        if (categoryResult.rows.length > 0) {
+            categoryName = categoryResult.rows[0].category_name;
+            console.log(`✅ Found category name: "${categoryName}" for roadmap "${updatedRoadmap.roadmap_name}"`);
+        } else {
+            // Fallback: Tách lấy phần trước dấu " - "
+            const parts = roadmap.category.split(' - ');
+            categoryName = parts[0].trim();
+            console.log(`⚠️ Using fallback category: "${categoryName}"`);
+        }
+
+        // ✅ BƯỚC 2: CHECK XEM CÓ ĐỦ ĐIỀU KIỆN HIỆN Ở HỆ THỐNG KHÔNG
         const checkSystemQuery = `
             SELECT roadmap_id 
             FROM learning_roadmaps_system 
@@ -4846,20 +4868,21 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
         `;
         const existingSystem = await client.query(checkSystemQuery, [
             roadmap.roadmap_name,
-            roadmap.category
+            categoryName  // ✅ SỬ DỤNG category name ĐÚNG
         ]);
 
         const systemExists = existingSystem.rows.length > 0;
         const systemRoadmapId = systemExists ? existingSystem.rows[0].roadmap_id : null;
 
-        // ✅ 2️⃣ LOGIC MỚI: overall_rating >= 4 OR learning_effectiveness >= 4
+        // ✅ BƯỚC 3: LOGIC MỚI - overall_rating >= 4 OR learning_effectiveness >= 4
         const meetsQualityCriteria = (overall_rating >= 4 || learning_effectiveness >= 4);
 
         console.log(`📊 Evaluation check for roadmap #${roadmapId}:`, {
             overall_rating,
             learning_effectiveness,
             meetsQualityCriteria,
-            systemExists
+            systemExists,
+            categoryName
         });
 
         if (meetsQualityCriteria) {
@@ -4867,7 +4890,7 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
             console.log(`✅ Rating >= 4, processing roadmap #${roadmapId}...`);
 
             if (!systemExists) {
-                // 3️⃣ INSERT vào learning_roadmaps_system
+                // ✅ BƯỚC 4: INSERT vào learning_roadmaps_system với category name ĐÚNG
                 const insertSystemQuery = `
                     INSERT INTO learning_roadmaps_system (
                         roadmap_name, category, sub_category, start_level,
@@ -4879,7 +4902,7 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
 
                 const systemResult = await client.query(insertSystemQuery, [
                     updatedRoadmap.roadmap_name,
-                    updatedRoadmap.category,
+                    categoryName,  // ✅ ĐÚNG - Chỉ lưu tên ngắn
                     updatedRoadmap.sub_category,
                     updatedRoadmap.start_level,
                     updatedRoadmap.duration_days,
@@ -4890,9 +4913,16 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
                 ]);
 
                 const newSystemRoadmapId = systemResult.rows[0].roadmap_id;
-                console.log(`✅ Created system roadmap #${newSystemRoadmapId}`);
+                console.log(`✅ Created system roadmap #${newSystemRoadmapId} with category: "${categoryName}"`);
+                
+                console.log(`✅ INSERTED into learning_roadmaps_system:`, {
+                    roadmap_name: updatedRoadmap.roadmap_name,
+                    category: categoryName,
+                    overall_rating: overall_rating,
+                    learning_effectiveness: learning_effectiveness
+                });
 
-                // 4️⃣ Copy chi tiết
+                // ✅ BƯỚC 5: Copy chi tiết
                 const copyDetailsQuery = `
                     INSERT INTO learning_roadmap_details_system (
                         roadmap_id, day_number, daily_goal, learning_content,
@@ -5402,17 +5432,19 @@ app.post("/api/admin/prompt", requireAdmin, async (req, res) => {
  */
 app.get('/api/categories/top', async (req, res) => {
     try {
+        // ✅ BƯỚC 1: Đếm roadmap trong learning_roadmaps_system
         const query = `
             SELECT 
                 c.id,
                 c.name,
                 c.description,
-                COUNT(DISTINCT lr.roadmap_id) as roadmap_count
+                COUNT(DISTINCT lrs.roadmap_id) as roadmap_count
             FROM categories c
-            LEFT JOIN learning_roadmaps_system lr ON lr.category = c.name
-                AND (lr.overall_rating >= 4 OR lr.learning_effectiveness >= 4)
+            LEFT JOIN learning_roadmaps_system lrs 
+                ON LOWER(TRIM(lrs.category)) = LOWER(TRIM(c.name))
+            WHERE lrs.roadmap_id IS NOT NULL
             GROUP BY c.id, c.name, c.description
-            HAVING COUNT(DISTINCT lr.roadmap_id) > 0
+            HAVING COUNT(DISTINCT lrs.roadmap_id) > 0
             ORDER BY roadmap_count DESC
             LIMIT 6
         `;
@@ -5420,6 +5452,12 @@ app.get('/api/categories/top', async (req, res) => {
         const result = await pool.query(query);
         
         console.log('📊 Top Categories Query Result:', result.rows);
+        
+        // ✅ BƯỚC 2: Nếu không có category nào, trả về array rỗng
+        if (result.rows.length === 0) {
+            console.log('⚠️ No categories with roadmaps found');
+            return res.json([]);
+        }
         
         res.json(result.rows);
         
