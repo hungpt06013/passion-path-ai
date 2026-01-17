@@ -404,19 +404,6 @@ async function initDB() {
         UNIQUE(category_id, name)
       );
     `);
-
-    // Insert dữ liệu mẫu nếu như bảng trống
-await pool.query(`
-  INSERT INTO categories (name, description) VALUES
-  ('Lập trình', 'Các ngôn ngữ và framework lập trình'),
-  ('Marketing', 'Digital Marketing và truyền thông'),
-  ('Thiết kế', 'UI/UX và đồ họa'),
-  ('Ngoại ngữ', 'Học ngoại ngữ và giao tiếp'),
-  ('Kinh doanh', 'Kỹ năng kinh doanh và quản lý'),
-  ('Kỹ năng mềm', 'Kỹ năng giao tiếp và làm việc nhóm')
-  ON CONFLICT (name) DO NOTHING;
-`);
-
 // ✅ RESET SEQUENCE VỀ GIÁ TRỊ MAX HIỆN TẠI
 await pool.query(`
   SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 1));
