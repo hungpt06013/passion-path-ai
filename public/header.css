@@ -15,66 +15,85 @@
 }
 
 .bar-inner {
-    max-width: 1200px;
+    max-width: 1400px;
     height: 100%;
     margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 clamp(10px, 2vw, 20px);
     box-sizing: border-box;
-    gap: 16px;
+    gap: clamp(8px, 1.5vw, 16px);
     position: relative;
 }
 
+/* ========== BRAND ========== */
 .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: clamp(8px, 1vw, 12px);
     flex: 0 0 auto;
     min-width: 0;
-    margin-left: -80px; /* ✅ SỬA: đổi từ margin-right sang margin-left và đổi dấu */
+    max-width: clamp(200px, 25vw, 320px);
 }
+
 .brand-icon {
-    width: 48px;
-    height: 48px;
+    width: clamp(36px, 4vw, 48px);
+    height: clamp(36px, 4vw, 48px);
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 22px;
+    font-size: clamp(16px, 2vw, 22px);
     flex-shrink: 0;
 }
 
 .brand-text {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 2px;
     line-height: 1;
     min-width: 0;
 }
 
 .brand-title {
     color: white;
-    font-size: 20px;
+    font-size: clamp(14px, 1.8vw, 20px);
     font-weight: 700;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.05;
+    white-space: normal; /* ✅ CHO XUỐNG HÀNG */
+    word-wrap: break-word;
+    line-height: 1.2;
 }
 
 .brand-sub {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 12px;
+    font-size: clamp(9px, 1vw, 12px);
     font-weight: 600;
-    white-space: normal;
-    line-height: 1;
+    white-space: normal; /* ✅ CHO XUỐNG HÀNG */
+    word-wrap: break-word;
+    line-height: 1.2;
+}
+
+/* ========== NAVIGATION BUTTONS ========== */
+.nav-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 8px;
+    min-width: 0;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    gap: clamp(10px, 1.8vw, 22px) !important;
+    flex: 1 1 auto;
+    transition: padding-left 0.3s ease;
 }
 
 .nav-buttons::-webkit-scrollbar {
-    height: 6px;
+    height: 4px;
 }
 
 .nav-buttons::-webkit-scrollbar-thumb {
@@ -82,47 +101,30 @@
     border-radius: 6px;
 }
 
-.nav-buttons {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 4px 12px 4px 6px;
-    min-width: 0;
-    white-space: nowrap;
-    flex-wrap: nowrap; /* ✅ THÊM: Đảm bảo không wrap */
-    gap: 22px !important;
-    flex: 1;
-    transition: padding-left 0.3s ease;
-}
-
-/* Class để thêm padding khi có scrollbar */
-.nav-buttons.has-scroll {
-    padding-left: 160px;
-}
 .nav-btn {
     background: none;
     color: #fff;
-    padding: 0;  /* ← THAY ĐỔI TỪ 6px 12px THÀNH 0 */
-    font-size: 15px;
+    padding: clamp(6px, 0.7vw, 10px) clamp(12px, 1.5vw, 18px);
+    font-size: clamp(13px, 1.4vw, 15px);
     font-weight: 600;
     border-radius: 9999px;
     white-space: nowrap;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: clamp(5px, 0.7vw, 8px);
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .nav-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.01);
 }
+
 .nav-btn .fa {
-    margin-right: 4px;
+    font-size: clamp(12px, 1.3vw, 14px);
     opacity: 0.95;
 }
 
@@ -131,15 +133,22 @@
     text-decoration: underline;
 }
 
+/* ========== USER INFO ========== */
 .userInfo {
     color: white;
     font-weight: 600;
+    font-size: clamp(12px, 1.3vw, 15px);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: clamp(6px, 0.8vw, 10px);
     flex: 0 0 auto;
     min-width: 0;
-    margin-right: -80px; /* ✅ SỬA: đổi từ margin-left sang margin-right và đổi dấu */
+}
+
+.userInfo span {
+    white-space: normal; /* ✅ CHO XUỐNG HÀNG */
+    word-wrap: break-word;
+    line-height: 1.3;
 }
 
 .userInfo span strong {
@@ -153,13 +162,14 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: clamp(5px, 0.7vw, 8px);
     border: none;
     border-radius: 9999px;
-    padding: 10px 20px;
-    font-size: 15px;
+    padding: clamp(8px, 0.9vw, 10px) clamp(14px, 1.7vw, 20px);
+    font-size: clamp(13px, 1.4vw, 15px);
     font-weight: 600;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .login-btn {
@@ -190,57 +200,163 @@
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: clamp(5px, 0.7vw, 8px);
     border: none;
     border-radius: 9999px;
-    padding: 10px 20px;
-    font-size: 15px;
+    padding: clamp(8px, 0.9vw, 10px) clamp(14px, 1.7vw, 20px);
+    font-size: clamp(13px, 1.4vw, 15px);
     font-weight: 600;
     transition: all 0.2s ease;
+    white-space: nowrap;
 }
 
 .logout-btn:hover {
     background: linear-gradient(135deg, #3a0bbd 0%, #056bb3 100%);
 }
-
-/* Responsive */
-@media (max-width: 768px) {
+/* ========== RESPONSIVE - TABLET 1025px-1200px ========== */
+@media (max-width: 1200px) and (min-width: 1025px) {
     .bar-inner {
-        flex-direction: column;
+        gap: 14px;
+        padding: 0 18px;
+    }
+}
+
+/* ========== RESPONSIVE - TABLET 821px-1024px ========== */
+@media (max-width: 1024px) and (min-width: 901px) {
+    .bar-inner {
+        gap: 12px;
+        padding: 0 15px;
+    }
+    
+    .brand {
+        max-width: 220px;
+    }
+    
+    .nav-buttons {
+        gap: 10px !important;
+    }
+    
+    .nav-btn {
+        padding: 7px 12px;
+        font-size: 13px;
+    }
+    
+    .login-btn,
+    .register-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}
+
+/* ========== RESPONSIVE - MOBILE < 821px (XUỐNG HÀNG SỚM HƠN) ========== */
+@media (max-width: 900px) {
+    .bar-inner {
+        flex-direction: column; /* ✅ XUỐNG HÀNG */
         height: auto;
-        padding: 15px;
-        gap: 10px;
+        padding: 12px;
+        gap: 12px;
     }
 
     .fixed-bar {
         height: auto;
     }
-
-    .nav-buttons {
-        gap: 10px;
-        flex-wrap: nowrap !important; /* ✅ SỬA: Thêm !important */
-        justify-content: flex-start; /* ✅ SỬA: Từ center sang flex-start */
-        overflow-x: auto;
-        padding: 4px 0; /* ✅ SỬA: Reset padding */
-    }
-
-    .userInfo {
-        flex-wrap: wrap;
+    
+    /* ✅ BRAND - FULL WIDTH, CĂN GIỮA */
+    .brand {
+        max-width: 100%;
+        width: 100%;
         justify-content: center;
     }
-}
-
-@media (max-width: 480px) {
+    
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
     .brand-title {
         font-size: 16px;
     }
-
+    
     .brand-sub {
         font-size: 11px;
     }
 
+    /* ✅ NAV BUTTONS - FULL WIDTH, CĂN GIỮA */
+    .nav-buttons {
+        width: 100%;
+        justify-content: center;
+        overflow-x: auto;
+        padding: 6px 0;
+        gap: 12px !important;
+        flex-wrap: nowrap;
+    }
+    
+    .nav-buttons::before,
+    .nav-buttons::after {
+        content: '';
+        flex: 0 0 1px;
+    }
+    
+    .nav-btn {
+        font-size: 14px;
+        padding: 8px 14px;
+    }
+    
+    .nav-btn .fa {
+        display: inline-block;
+    }
+
+    /* ✅ USER INFO - FULL WIDTH, CĂN GIỮA */
+    .userInfo {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        text-align: center;
+        gap: 8px;
+    }
+    
+    .userInfo span {
+        max-width: 100%;
+    }
+    
+    .login-btn,
+    .register-btn,
+    .logout-btn {
+        padding: 9px 16px;
+        font-size: 14px;
+    }
+    
+    .login-btn .fa,
+    .register-btn .fa,
+    .logout-btn .fa {
+        display: inline-flex;
+    }
+}
+
+/* ========== RESPONSIVE - SMALL MOBILE < 480px ========== */
+@media (max-width: 480px) {
+    .brand-title {
+        font-size: 15px;
+    }
+
+    .brand-sub {
+        font-size: 10px;
+    }
+
     .nav-btn {
         font-size: 13px;
-        padding: 8px 12px;
+        padding: 7px 12px;
+    }
+    
+    .nav-buttons {
+        gap: 10px !important;
+    }
+    
+    .login-btn,
+    .register-btn,
+    .logout-btn {
+        font-size: 13px;
+        padding: 8px 14px;
     }
 }
