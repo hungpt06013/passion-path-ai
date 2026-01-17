@@ -3369,28 +3369,44 @@ function setupCustomSelect(triggerId, dropdownId, searchInputId, optionsId, sele
 }
 // ============ LOAD CATEGORIES CHO UPLOAD MODAL ============
 async function loadCategoriesForUpload() {
-    const wrapper = document.getElementById('upload_category').parentElement;
+    const select = document.getElementById('upload_category');
     
-    // Tạo custom dropdown
-    wrapper.innerHTML = `
-        <label>Danh mục *</label>
-        <div class="custom-select-wrapper">
-            <div class="custom-select-trigger" id="category-trigger">
-                <span id="category-selected">-- Chọn danh mục --</span>
-                <span>▼</span>
-            </div>
-            <div class="custom-select-dropdown" id="category-dropdown">
-                <div class="custom-select-search">
-                    <input type="text" placeholder="🔍 Tìm kiếm danh mục..." id="category-search-input">
-                </div>
-                <div class="custom-select-options" id="category-options">
-                    <div class="custom-select-option disabled">Đang tải...</div>
-                </div>
-            </div>
-            <input type="hidden" name="category" id="upload_category" required>
-            <input type="hidden" id="upload_category_name">
+    if (!select) {
+        console.error('⛔ Cannot find category select');
+        return;
+    }
+    
+    // ✅ CHỈ THAY THẾ SELECT, KHÔNG ĐỘNG VÀO LABEL
+    const wrapper = select.parentElement;
+    const label = wrapper.querySelector('label'); // Lưu label cũ
+    
+    wrapper.innerHTML = ''; // Xóa hết
+    
+    if (label) {
+        wrapper.appendChild(label); // Thêm lại label cũ
+    }
+    
+    // Thêm custom dropdown
+    const customSelectDiv = document.createElement('div');
+    customSelectDiv.className = 'custom-select-wrapper';
+    customSelectDiv.innerHTML = `
+        <div class="custom-select-trigger" id="category-trigger">
+            <span id="category-selected">-- Chọn danh mục --</span>
+            <span>▼</span>
         </div>
+        <div class="custom-select-dropdown" id="category-dropdown">
+            <div class="custom-select-search">
+                <input type="text" placeholder="🔍 Tìm kiếm danh mục..." id="category-search-input">
+            </div>
+            <div class="custom-select-options" id="category-options">
+                <div class="custom-select-option disabled">Đang tải...</div>
+            </div>
+        </div>
+        <input type="hidden" name="category" id="upload_category" required>
+        <input type="hidden" id="upload_category_name">
     `;
+    
+    wrapper.appendChild(customSelectDiv);
     
     try {
         const response = await fetch('/api/categories', {
@@ -3422,19 +3438,19 @@ async function loadCategoriesForUpload() {
             categories,
             renderCategoryOptions,
             (categoryId) => {
-                // Callback khi chọn category
                 loadSubCategoriesForUpload(categoryId);
             }
         );
         
     } catch (error) {
         console.error('Error loading categories:', error);
-        document.getElementById('category-options').innerHTML = 
-            '<div class="custom-select-option disabled">❌ Lỗi tải danh mục</div>';
+        const optionsEl = document.getElementById('category-options');
+        if (optionsEl) {
+            optionsEl.innerHTML = '<div class="custom-select-option disabled">❌ Lỗi tải danh mục</div>';
+        }
         showNotification('⚠️ Không thể tải danh mục', 'error');
     }
 }
-
 function renderCategoryOptions(allCategories, filteredCategories) {
     const optionsContainer = document.getElementById('category-options');
     
