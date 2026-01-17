@@ -3946,7 +3946,7 @@ setInterval(async () => {
 app.get("/api/categories", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.name || '-' || c.description name, c.description, c.created_at,
+      SELECT c.id, c.name || ' - ' || c.description name, c.description, c.created_at,
         (SELECT json_agg(
           json_build_object('id', s.id, 'name', s.name, 'description', s.description)
           ORDER BY s.id
@@ -3984,7 +3984,7 @@ app.get("/api/categories/:categoryId/sub-categories", async (req, res) => {
     const query = `
       SELECT 
         id,
-        name || '-' || description name,
+        name || ' - ' || description name,
         description,
         created_at
       FROM sub_categories
