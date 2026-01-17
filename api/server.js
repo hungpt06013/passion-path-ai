@@ -3946,14 +3946,14 @@ setInterval(async () => {
 app.get("/api/categories", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.name, c.description, c.created_at,
+      SELECT c.id, c.name || '-' || c.description name, c.description, c.created_at,
         (SELECT json_agg(
           json_build_object('id', s.id, 'name', s.name, 'description', s.description)
-          ORDER BY s.name
+          ORDER BY s.id
         ) 
          FROM sub_categories s WHERE s.category_id = c.id) as sub_categories
       FROM categories c
-      ORDER BY c.name
+      ORDER BY c.id
     `);
     
     // ✅ Format created_at
@@ -3984,12 +3984,12 @@ app.get("/api/categories/:categoryId/sub-categories", async (req, res) => {
     const query = `
       SELECT 
         id,
-        name,
+        name || '-' || description name,
         description,
         created_at
       FROM sub_categories
       WHERE category_id = $1
-      ORDER BY name ASC
+      ORDER BY id ASC
     `;
     
     const result = await pool.query(query, [categoryId]);
