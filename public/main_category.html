@@ -32,17 +32,17 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
-    main {
-      flex: 1 0 auto;  /* Quan trọng nhất! */
-      box-sizing: border-box;
-      max-width: 1200px;
-      width: 100%;
-      margin-left: auto;
-      margin-right: auto;
-      padding-top: calc(var(--header-height) + 20px);
-      padding-left: 20px;
-      padding-right: 20px;
-    }
+main {
+  flex: 1 0 auto;
+  box-sizing: border-box;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: calc(var(--header-height, 80px) + 20px);
+  padding-left: 20px;
+  padding-right: 20px;
+}
     /* Adjust page content to account for fixed header */
     .page-offset { padding-top: 100px; /* header height + spacing */ }
 
@@ -64,14 +64,24 @@
     .stat-badge { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
     .stat-badge i { color: #007bff; font-size: 18px; }
     .stat-badge span { font-weight: 600; color: #1f2937; }
-
-    .filters { max-width: 1200px; margin: 0 auto 32px; margin-left: calc(50% - 600px + 20px); padding: 0 24px; display: flex; gap: 16px; align-items: center; }
+.filters {
+  max-width: 1200px;
+  margin: 0 auto 32px;
+  padding: 0 24px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
     .filter-group { display: flex; gap: 8px; align-items: center; }
     .filter-label { font-size: 14px; font-weight: 600; color: #4b5563; }
     .filter-select { padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: border-color 0.2s; }
     .filter-select:focus { outline: none; border-color: #007bff; }
 
-    .roadmaps { max-width: 1200px; margin: 0 auto 80px; padding: 0 24px 0 0; margin-left: calc(50% - 600px + 38px); }
+.roadmaps {
+  max-width: 1200px;
+  margin: 0 auto 80px;
+  padding: 0 24px;
+}
     .roadmaps-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
     .roadmap-card { background: white; border-radius: 16px; padding: 24px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
     .roadmap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.12); border-color: #007bff; }
@@ -103,14 +113,223 @@
     .empty-state h3 { font-size: 24px; font-weight: 700; margin-bottom: 12px; color: #1f2937; }
     .empty-state p { color: #6b7280; font-size: 16px; }
 
-    @media (max-width: 768px) {
-      .page-header h1 { font-size: 28px; }
-      .category-stats { flex-direction: column; align-items: flex-start; gap: 12px; }
-      .roadmaps-grid { grid-template-columns: 1fr; }
-      .footer-content { grid-template-columns: 1fr; gap: 32px; }
-      .nav-menu { display: none; }
-      .nav-buttons { gap: 12px; padding-right: 12px; }
-    }
+@media (max-width: 900px) {
+  body {
+    padding-top: 100px; /* ✅ Đẩy xuống như create_roadmap */
+  }
+
+  main {
+    padding-top: 20px; /* ✅ Giảm padding-top vì body đã có padding */
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .breadcrumb {
+    padding: 0 15px;
+    font-size: 13px;
+    margin: 16px auto 0;
+  }
+
+  .page-header {
+    padding: 0 15px;
+    margin: 24px auto;
+  }
+
+  .page-header h1 {
+    font-size: 28px;
+  }
+
+  .page-header p {
+    font-size: 16px;
+  }
+
+  .category-stats {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .stat-badge {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 0 15px;
+    margin: 0 auto 24px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .roadmaps {
+    padding: 0 15px;
+    margin: 0 auto 40px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+  }
+
+  .roadmaps-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .roadmap-card {
+    padding: 20px;
+  }
+
+  .roadmap-card h3 {
+    font-size: 18px;
+  }
+
+  .roadmap-meta {
+    gap: 12px;
+  }
+
+  .meta-item {
+    font-size: 12px;
+  }
+
+  .roadmap-rating {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .rating-item {
+    font-size: 12px;
+  }
+
+  .roadmap-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  .learner-count {
+    justify-content: center;
+  }
+
+  .view-btn {
+    width: 100%;
+    padding: 12px 20px;
+  }
+
+  .empty-state {
+    padding: 60px 15px;
+  }
+
+  .empty-icon {
+    font-size: 48px;
+  }
+
+  .empty-state h3 {
+    font-size: 20px;
+  }
+
+  .empty-state p {
+    font-size: 14px;
+  }
+
+  .loading {
+    padding: 40px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding-top: 90px; /* ✅ Giảm nhẹ trên màn hình rất nhỏ */
+  }
+
+  .breadcrumb {
+    font-size: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .page-header p {
+    font-size: 14px;
+  }
+
+  .stat-badge {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .stat-badge i {
+    font-size: 16px;
+  }
+
+  .roadmap-card {
+    padding: 16px;
+  }
+
+  .roadmap-card h3 {
+    font-size: 16px;
+  }
+
+  .roadmap-level {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .meta-item {
+    font-size: 11px;
+  }
+
+  .meta-item i {
+    font-size: 12px;
+  }
+
+  .view-btn {
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+
+  .learner-avatar {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+  .learner-count span {
+    font-size: 12px;
+  }
+
+  .empty-state {
+    padding: 40px 10px;
+  }
+
+  .empty-icon {
+    font-size: 40px;
+  }
+
+  .empty-state h3 {
+    font-size: 18px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+  }
+}
   </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
