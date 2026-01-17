@@ -1448,6 +1448,33 @@ function removeDiacritics(str) {
               .replace(/[\u0300-\u036f]/g, '')
               .toLowerCase();
 }
+// ✅ Lưu reference để có thể remove listener
+let beforeUnloadHandler = null;
+
+function trackFormChanges() {
+    hasFormChanges = true;
+    
+    // ✅ CHỈ setup listener MỘT LẦN
+    if (!beforeUnloadHandler) {
+        beforeUnloadHandler = function(e) {
+            if (hasFormChanges) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+    }
+}
+
+function resetFormTracking() {
+    hasFormChanges = false;
+    
+    // ✅ XÓA listener khi reset
+    if (beforeUnloadHandler) {
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        beforeUnloadHandler = null;
+    }
+}
 function validateAllQuestions() {
     const errors = [];
     
@@ -1610,7 +1637,7 @@ function validateAllQuestions() {
         let dayCount = 0;
         let isGenerating = false;
         let categoriesData = [];
-
+        let hasFormChanges = false;
         function getAuthHeaders() {
             const token = localStorage.getItem('token');
             const headers = { 'Content-Type': 'application/json' };
@@ -3173,7 +3200,7 @@ if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
 
     const result = await response.json().catch(() => ({}));
     showNotification('✅ Lộ trình đã được tạo thành công!', 'success');
-
+    resetFormTracking();
     // redirect/close: giữ hành vi cũ
     setTimeout(() => {
       if (window.opener) {
@@ -3389,7 +3416,7 @@ window.addEventListener('load', function() {
         hoursInputEl.addEventListener('change', updateTotalHours);
     }
 
-    // ✅ THÊM SAU CÙNG - đảm bảo ẩn tất cả "Khác"
+    // ✅ THÊM SAU CÙNG - Ẩn tất cả "Khác"
     setTimeout(() => {
         ['q2_other_text', 'q4_other_text', 'q12_other_text', 'q13_other_text', 
          'q14_other_text', 'q15_other_text', 'q16_other_text', 'q20_other_text'].forEach(id => {
@@ -3397,8 +3424,71 @@ window.addEventListener('load', function() {
             if (el) el.style.display = 'none';
         });
     }, 100);
+    
+    // ✅ THÊM: SETUP TRACKING CHO TẤT CẢ INPUT/SELECT/TEXTAREA
+    setupFormChangeTracking();
 });
 
+// ✅ THÊM HÀM MỚI SAU HÀM window.addEventListener('load', ...)
+function setupFormChangeTracking() {
+    const form = document.getElementById('roadmapForm');
+    if (!form) return;
+    
+    // Track tất cả input, textarea, select
+    const formElements = form.querySelectorAll('input, textarea, select');
+    
+    formElements.forEach(element => {
+        // Bỏ qua hidden inputs
+        if (element.type === 'hidden') return;
+        
+        // Lắng nghe sự kiện thay đổi
+        if (element.type === 'checkbox' || element.type === 'radio') {
+            element.addEventListener('change', trackFormChanges);
+        } else {
+            element.addEventListener('input', trackFormChanges);
+        }
+    });
+    
+    console.log('✅ Form change tracking enabled');
+}
+function setupFormChangeTracking() {
+    const form = document.getElementById('roadmapForm');
+    if (!form) return;
+    
+    // Track tất cả input, textarea, select
+    const formElements = form.querySelectorAll('input, textarea, select');
+    
+    formElements.forEach(element => {
+        // Bỏ qua hidden inputs
+        if (element.type === 'hidden') return;
+        
+        // Lắng nghe sự kiện thay đổi
+        if (element.type === 'checkbox' || element.type === 'radio') {
+            element.addEventListener('change', trackFormChanges);
+        } else {
+            element.addEventListener('input', trackFormChanges);
+        }
+    });
+    
+    console.log('✅ Form change tracking enabled');
+    
+    // ✅ THÊM ĐOẠN NÀY: Tắt cảnh báo khi click LINK/BUTTON
+    document.addEventListener('click', function(e) {
+        // Tìm thẻ <a> hoặc <button> gần nhất
+        const link = e.target.closest('a');
+        const button = e.target.closest('button');
+        
+        // Nếu click vào link (trừ link javascript:void(0))
+        if (link && link.href && !link.href.includes('javascript:')) {
+            resetFormTracking();
+        }
+        
+        // Nếu click vào button có onclick chuyển trang
+        if (button && button.onclick) {
+            resetFormTracking();
+        }
+    });
+}
         function escapeHtmlAttr(s) {
             if (s === null || s === undefined) return '';
             return String(s)
