@@ -223,10 +223,11 @@ body {
 
       .nav-buttons {
         gap: 10px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap; /* ✅ SỬA: Từ wrap thành nowrap */
         justify-content: center;
+        overflow-x: auto; /* ✅ THÊM: Cho scroll ngang trên mobile */
       }
-
+      
       .content {
         margin-top: 200px;
         padding: 15px;
