@@ -1021,12 +1021,22 @@ function renderAIHistory(records, total) {
       
       const html = categories.map(cat => {
         const subCats = cat.sub_categories || [];
+        
+        // ✅ PARSE: Tách "Tên - Description" thành 2 phần
+        let displayName = cat.name;
+        let displayDesc = '';
+        
+        if (cat.name.includes(' - ')) {
+          const parts = cat.name.split(' - ');
+          displayName = parts[0]; // "Lập trình Web"
+          displayDesc = parts.slice(1).join(' - '); // "Các kỹ năng..."
+        }
+        
         return `
           <div class="history-card">
             <div class="history-header">
               <div>
-                <strong style="font-size: 16px;">${escapeHtml(cat.name)}</strong><br>
-                <span style="color: #6b7280; font-size: 13px;">${escapeHtml(cat.description || '')}</span>
+                <strong style="font-size: 16px;">${escapeHtml(displayName)}</strong>${displayDesc ? ` - <span style="color: #6b7280; font-size: 14px;">${escapeHtml(displayDesc)}</span>` : ''}
               </div>
               <div style="display: flex; gap: 8px;">
                 ${subCats.length > 0 ? `
@@ -1034,13 +1044,13 @@ function renderAIHistory(records, total) {
                     <i class="fa-solid fa-eye"></i> Xem con
                   </button>
                 ` : ''}
-                <button class="btn-refresh" onclick="editCategory(${cat.id}, '${escapeHtml(cat.name)}', '${escapeHtml(cat.description || '')}')" style="background: #25519c; border-color: #25519c;">
+                <button class="btn-refresh" onclick="editCategory(${cat.id}, '${escapeHtml(displayName)}', '${escapeHtml(cat.description || '')}')" style="background: #25519c; border-color: #25519c;">
                   <i class="fa-solid fa-edit"></i> Sửa
                 </button>
-                <button class="btn-refresh" onclick="addSubCategory(${cat.id}, '${escapeHtml(cat.name)}')" style="margin-right: 5px;">
+                <button class="btn-refresh" onclick="addSubCategory(${cat.id}, '${escapeHtml(displayName)}')" style="margin-right: 5px;">
                   <i class="fa-solid fa-plus"></i> Thêm con
                 </button>
-                <button class="btn-delete" onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')">
+                <button class="btn-delete" onclick="deleteCategory(${cat.id}, '${escapeHtml(displayName)}')">
                   <i class="fa-solid fa-trash"></i> Xóa
                 </button>
               </div>
@@ -1054,8 +1064,7 @@ function renderAIHistory(records, total) {
                     <li style="margin: 8px 0;">
                       <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div style="flex: 1;">
-                          <strong>${escapeHtml(sub.name)}</strong>
-                          ${sub.description ? `<br><span style="color: #6b7280; font-size: 12px;">${escapeHtml(sub.description)}</span>` : ''}
+                          <strong>${escapeHtml(sub.name)}</strong> - <span style="color: #6b7280; font-size: 13px;">${escapeHtml(sub.description || '')}</span>
                         </div>
                         <div style="display: flex; gap: 5px; margin-left: 10px;">
                           <button class="btn-refresh" onclick="editSubCategory(${sub.id}, ${cat.id}, '${escapeHtml(sub.name)}', '${escapeHtml(sub.description || '')}')" style="padding: 4px 8px; font-size: 11px;">
