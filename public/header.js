@@ -51,47 +51,18 @@ function setupNavigation(currentPage = '') {
     
     if (!navButtons) return;
     
-    // Tạo các nút navigation
+    // ✅ SỬA: Dùng <a> thay vì <button>
     navButtons.innerHTML = `
-        <button class="nav-btn" id="btnHome"><i class="fa-solid fa-house"></i> Trang Chủ</button>
-        <button class="nav-btn" id="btnPath"><i class="fa-solid fa-route"></i> Lộ Trình Học</button>
-        <button class="nav-btn" id="btnProgress"><i class="fa-solid fa-chart-line"></i> Tiến Độ</button>
+        <a href="main.html" class="nav-btn" id="btnHome">
+            <i class="fa-solid fa-house"></i> Trang Chủ
+        </a>
+        <a href="path.html" class="nav-btn" id="btnPath">
+            <i class="fa-solid fa-route"></i> Lộ Trình Học
+        </a>
+        <a href="progress.html" class="nav-btn" id="btnProgress">
+            <i class="fa-solid fa-chart-line"></i> Tiến Độ
+        </a>
     `;
-    
-    // Thêm event listeners
-    const btnHome = document.getElementById('btnHome');
-    const btnPath = document.getElementById('btnPath');
-    const btnProgress = document.getElementById('btnProgress');
-    
-    if (btnHome) {
-        btnHome.addEventListener('click', () => {
-            window.location.href = 'main.html';
-        });
-    }
-    
-    if (btnPath) {
-        btnPath.addEventListener('click', () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Vui lòng đăng nhập!');
-                window.location.href = 'login.html';
-            } else {
-                window.location.href = 'path.html';
-            }
-        });
-    }
-    
-    if (btnProgress) {
-        btnProgress.addEventListener('click', () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Vui lòng đăng nhập!');
-                window.location.href = 'login.html';
-            } else {
-                window.location.href = 'progress.html';
-            }
-        });
-    }
     
     // Set active state
     if (currentPage) {
@@ -224,13 +195,12 @@ async function loadUser(currentPage = '') {
     
     if (serverRole === 'admin' && navButtons) {
         if (!document.getElementById('btnAdmin')) {
-            const adminBtn = document.createElement('button');
+            // ✅ SỬA: Dùng <a> cho nút Admin
+            const adminBtn = document.createElement('a');
+            adminBtn.href = 'admin.html?page=admin';
             adminBtn.className = 'nav-btn';
             adminBtn.id = 'btnAdmin';
             adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
-            adminBtn.addEventListener('click', () => {
-                window.location.href = 'admin.html?page=admin';
-            });
             navButtons.appendChild(adminBtn);
         }
         
