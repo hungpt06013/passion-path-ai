@@ -324,6 +324,24 @@ tbody tr:hover {
     color: #6b7280;
     font-weight: 500;
 }
+.info-message {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border-left: 4px solid #3b82f6;
+  font-weight: 600;
+  animation: slideIn 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.info-message::before {
+  content: "⏳";
+  font-size: 20px;
+}
 .error-message {
   background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
   color: #991b1b;
@@ -486,6 +504,9 @@ const ADMIN_TOKEN = 'admin-token';
     const days = [];
 
     async function createRoadmap() {
+      // ✅ HIỂN THỊ MESSAGE "VUI LÒNG ĐỢI" NGAY ĐẦU
+      showMessage('⏳ Vui lòng đợi, đang xử lý...', 'info');
+      
       try {
         // Step 1: Check if user can create this roadmap
         const checkResponse = await fetch('/api/check-roadmap-exists', {
@@ -579,13 +600,27 @@ const ADMIN_TOKEN = 'admin-token';
         showMessage('❌ Lỗi: ' + error.message, 'error');
       }
     }
+    
     function showMessage(message, type = 'info') {
       const msgDiv = document.createElement('div');
-      msgDiv.className = type === 'success' ? 'success-message' : 'error-message';
+      
+      // ✅ HỖ TRỢ 3 LOẠI: success, error, info
+      if (type === 'success') {
+        msgDiv.className = 'success-message';
+      } else if (type === 'error') {
+        msgDiv.className = 'error-message';
+      } else {
+        msgDiv.className = 'info-message';
+      }
+      
       msgDiv.textContent = message;
       promptMessage.innerHTML = '';
       promptMessage.appendChild(msgDiv);
-      setTimeout(() => { msgDiv.remove(); }, 3000);
+      
+      // ✅ CHỈ TỰ ĐỘNG XÓA VỚI SUCCESS/ERROR, INFO GIỮ LẠI
+      if (type === 'success' || type === 'error') {
+        setTimeout(() => { msgDiv.remove(); }, 3000);
+      }
     }
 
 // THAY THẾ hàm viewRoadmapDetails hiện tại bằng code này:
