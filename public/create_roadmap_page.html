@@ -29,8 +29,8 @@ body {
 }
 .container {
     max-width: 1000px;
-    margin: 100px auto 0 auto; /* Thêm margin-top để tránh bị header che */
-    width: 1000px;
+    margin: 100px auto 0 auto;
+    width: 100%; /* ✅ Sửa từ 1000px thành 100% */
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 40px rgba(0,0,0,0.1);
@@ -725,181 +725,236 @@ body {
     cursor: not-allowed;
     transform: none;
 }
-    @media (max-width: 768px) {
-        body {
-            padding: 10px;
-        }
 
-        .header {
-            padding: 20px 15px;
-        }
-
-        .header h1 {
-            font-size: 1.8rem;
-            margin-top: 50px;
-        }
-
-        .header p {
-            font-size: 0.95rem;
-        }
-
-        .back-btn {
-            position: static;
-            margin-bottom: 15px;
-            display: block;
-            width: 100%;
-            text-align: center;
-            transform: none;
-        }
-
-        .form-container {
-            padding: 20px;
-        }
-
-        .form-section {
-            padding: 15px;
-        }
-
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .checkbox-group {
-            grid-template-columns: 1fr;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-        }
-
-        .submit-btn {
-            width: 100%;
-            font-size: 1rem;
-            padding: 15px 20px;
-        }
-
-        .ai-btn {
-            font-size: 1rem;
-        }
+@media (max-width: 900px) {
+    body {
+        padding: 10px;
+        padding-top: 200px;
     }
 
-    @media (max-width: 480px) {
-        .header h1 {
-            font-size: 1.5rem;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            font-size: 14px;
-            padding: 10px 12px;
-        }
-
-        .day-item {
-            padding: 15px;
-        }
-
-        .days-container {
-            max-height: 300px;
-        }
+    .container {
+        margin: 20px 15px 0 15px;
+        width: calc(100% - 30px);
+        border-radius: 16px;
     }
 
-    @media (max-width: 768px) {
-        body {
-            padding: 10px;
-        }
-
-        .header {
-            padding: 20px 15px;
-        }
-
-        .header h1 {
-            font-size: 1.8rem;
-            margin-top: 50px;
-        }
-
-        .header p {
-            font-size: 0.95rem;
-        }
-
-        .back-btn {
-            position: static;
-            margin-bottom: 15px;
-            display: block;
-            width: 100%;
-            text-align: center;
-            transform: none;
-        }
-
-        .form-container {
-            padding: 20px;
-        }
-
-        .form-section {
-            padding: 15px;
-        }
-
-        .form-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .checkbox-group {
-            grid-template-columns: 1fr;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-        }
-
-        .submit-btn {
-            width: 100%;
-            font-size: 1rem;
-            padding: 15px 20px;
-        }
-
-        .ai-btn {
-            font-size: 1rem;
-        }
-
-        .modal-content {
-            width: 95%;
-            max-height: 95vh;
-        }
-
-        .modal-body {
-            max-height: 70vh;
-        }
+    .header {
+        padding: 20px 15px;
     }
 
-    @media (max-width: 480px) {
-        .header h1 {
-            font-size: 1.5rem;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            font-size: 14px;
-            padding: 10px 12px;
-        }
-
-        .day-item {
-            padding: 15px;
-        }
-
-        .days-container {
-            max-height: 300px;
-        }
-
-        .modal-header h2 {
-            font-size: 1.1rem;
-        }
-
-        .btn {
-            font-size: 0.9rem;
-            padding: 10px 15px;
-        }
+    .header h1 {
+        font-size: 1.6rem;
+        margin-top: 40px;
     }
+
+    .header p {
+        font-size: 0.9rem;
+    }
+
+    .back-btn {
+        position: static; /* ✅ Bỏ absolute */
+        transform: none; /* ✅ Bỏ transform */
+        display: block; /* ✅ Block để căn giữa */
+        width: fit-content; /* ✅ Width vừa đủ */
+        margin: 15px auto 0 auto; /* ✅ Căn giữa */
+        padding: 10px 20px;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    .form-container {
+        padding: 20px;
+    }
+
+    .form-section {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .checkbox-group,
+    .checkbox-group-two-columns {
+        grid-template-columns: 1fr !important;
+    }
+
+    .checkbox-group label {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+
+    .submit-btn {
+        width: 100%;
+        font-size: 1.1rem;
+        padding: 15px 20px;
+    }
+
+    .ai-btn {
+        font-size: 1rem;
+        padding: 12px 24px;
+    }
+
+    .add-day-btn {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+
+    .day-item {
+        padding: 15px;
+    }
+
+    .day-header {
+        flex-wrap: wrap;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 90vh;
+        border-radius: 12px;
+    }
+
+    .modal-body {
+        max-height: 70vh;
+    }
+
+    .custom-select-dropdown {
+        max-height: 250px;
+    }
+
+    .custom-select-option {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    pre {
+        font-size: 13px;
+        max-height: 350px;
+    }
+}
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+        padding-top: 200px;
+    }
+
+    .container {
+        margin: 16px 4px 0 4px;
+        width: calc(100% - 10px);
+        border-radius: 12px;
+    }
+
+    .header h1 {
+        font-size: 1.3rem;
+        margin-top: 30px;
+    }
+
+    .header p {
+        font-size: 0.85rem;
+    }
+
+    .form-container {
+        padding: 12px;
+    }
+
+    .form-section {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+
+    .checkbox-group label {
+        padding: 10px;
+        font-size: 13px;
+    }
+
+    .ai-btn, .prompt-btn {
+        font-size: 0.9rem;
+        padding: 10px 18px;
+    }
+
+    .submit-btn {
+        font-size: 1rem;
+        padding: 12px 18px;
+    }
+
+    .add-day-btn {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    .day-item {
+        padding: 12px;
+    }
+
+    .day-number {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    .remove-day-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+
+    .days-container {
+        max-height: 300px;
+    }
+
+    .modal-content {
+        width: 98%;
+        margin: 5px;
+    }
+
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .btn, .prompt-btn {
+        font-size: 0.9rem;
+        padding: 10px 15px;
+    }
+
+    pre {
+        font-size: 11px;
+        padding: 10px;
+        max-height: 280px;
+    }
+
+    .custom-select-trigger {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .custom-select-option {
+        padding: 8px;
+        font-size: 13px;
+    }
+}
 /* ============ CUSTOM DROPDOWN CHO CATEGORY ============ */
 .custom-select-wrapper {
     position: relative;
@@ -1042,11 +1097,11 @@ body {
 </script>
 <div class="container">
 <div class="form-container">
-    <div style="background: #007bff; padding: 40px; margin: -40px -40px 30px -40px; border-radius: 20px 20px 0 0; position: relative;">
-        <a href="path.html" class="back-btn" style="color: white; margin-left: 40px;">← Quay lại</a>
-        <h1 style="text-align: center; margin-bottom: 10px; color: white;">Tạo Lộ Trình Học Mới</h1>
-        <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 0;">Sử dụng AI để tạo lộ trình học cá nhân hóa cho bạn</p>
-    </div>
+<div style="background: #007bff; padding: 40px; margin: -40px -40px 30px -40px; border-radius: 20px 20px 0 0; position: relative;">
+    <h1 style="text-align: center; margin-bottom: 10px; color: white;">Tạo Lộ Trình Học Mới</h1>
+    <p style="text-align: center; color: rgba(255,255,255,0.9); margin-bottom: 0;">Sử dụng AI để tạo lộ trình học cá nhân hóa cho bạn</p>
+    <a href="path.html" class="back-btn" style="color: white;">← Quay lại</a>
+</div>
         <form id="roadmapForm">
                 <!-- =============== PHẦN HỎI 20 CÂU =============== -->
 
