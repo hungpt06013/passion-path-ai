@@ -116,11 +116,13 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-decoration: none; /* ✅ THÊM: Bỏ underline mặc định */
 }
 
 .nav-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     transform: scale(1.01);
+    text-decoration: none; /* ✅ THÊM: Bỏ underline khi hover */
 }
 
 .nav-btn .fa {
@@ -130,7 +132,7 @@
 
 .nav-btn.active {
     color: #e6f2ff;
-    text-decoration: underline;
+    text-decoration: underline; /* ✅ GIỮ NGUYÊN: CHỈ active mới có underline */
 }
 
 /* ========== USER INFO ========== */
