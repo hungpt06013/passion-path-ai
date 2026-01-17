@@ -217,14 +217,14 @@ footer {
 .footer-link {
   color: #9ca3af !important;
   text-decoration: none !important;
-  font-size: 13px !important;
+  font-size: clamp(12px, 1.3vw, 13px) !important; /* ✅ RESPONSIVE */
   transition: color 0.3s ease !important;
   display: inline-block !important;
   cursor: pointer !important;
   padding: 0 !important;
   margin: 0 !important;
   line-height: 1.5 !important;
-  width: fit-content !important; /* Quan trọng! */
+  width: fit-content !important;
 }
 
 .footer-link:hover {
