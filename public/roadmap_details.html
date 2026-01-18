@@ -1061,13 +1061,13 @@ function renderRoadmap() {
   const badgesHTML = `<span class="badge badge-level"><i class="fas fa-signal"></i> ${getLevelText(roadmapData.start_level)}</span><span class="badge badge-duration"><i class="fas fa-calendar"></i> ${roadmapData.duration_days} ngày</span><span class="badge badge-learners"><i class="fas fa-users"></i> ${roadmapData.total_user_learning || 0} học viên</span>`;
   document.getElementById('badgesContainer').innerHTML = badgesHTML;
   
-  const metaHTML = `<div class="meta-tag"><i class="fas fa-clock"></i><span>${roadmapData.duration_hours} giờ học</span></div>${roadmapData.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(roadmapData.sub_category)}</span></div>` : ''}`;
+  const metaHTML = `<div class="meta-tag"><i class="fas fa-clock"></i><span>${formatHours(roadmapData.duration_hours)}</span></div>${roadmapData.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(roadmapData.sub_category)}</span></div>` : ''}`;
 document.getElementById('metaContainer').innerHTML = metaHTML;
 
 // ✅ BUILD TOÀN BỘ STATS HTML CÙNG LÚC
 let statsHTML = `
   <div class="stat-box"><span class="stat-value">${roadmapData.duration_days}</span><span class="stat-label">Ngày học</span></div>
-  <div class="stat-box"><span class="stat-value">${roadmapData.duration_hours}h</span><span class="stat-label">Tổng thời gian</span></div>
+  <div class="stat-box"><span class="stat-value">${formatHours(roadmapData.duration_hours)}</span><span class="stat-label">Tổng thời gian</span></div>
   <div class="stat-box"><span class="stat-value">${roadmapData.total_user_learning}</span><span class="stat-label">Học viên</span></div>
 
     <div class="stat-box">
