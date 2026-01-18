@@ -5695,11 +5695,21 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
         lrs.updated_at,
         lrs.roadmap_analyst,
         c.id as category_id,
-        COUNT(DISTINCT lr.user_id) FILTER (WHERE lr.overall_rating >= 4) as high_overall_rating_count,
-        COUNT(DISTINCT lr.user_id) FILTER (WHERE lr.learning_effectiveness >= 4) as high_effectiveness_count
+        COUNT(DISTINCT lr.user_id) FILTER (
+          WHERE lr.overall_rating >= 4 
+          AND lr.roadmap_name = lrs.roadmap_name 
+          AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
+        ) as high_overall_rating_count,
+        COUNT(DISTINCT lr.user_id) FILTER (
+          WHERE lr.learning_effectiveness >= 4 
+          AND lr.roadmap_name = lrs.roadmap_name 
+          AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
+        ) as high_effectiveness_count
       FROM learning_roadmaps_system lrs
-      LEFT JOIN categories c ON c.name = lrs.category
-      LEFT JOIN learning_roadmaps lr ON lr.roadmap_name = lrs.roadmap_name AND lr.category = lrs.category
+      LEFT JOIN categories c ON LOWER(TRIM(c.name)) = LOWER(TRIM(lrs.category))
+      LEFT JOIN learning_roadmaps lr 
+        ON lr.roadmap_name = lrs.roadmap_name 
+        AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
       WHERE lrs.roadmap_id = $1
       GROUP BY lrs.roadmap_id, c.id
     `;
