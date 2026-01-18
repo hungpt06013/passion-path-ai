@@ -893,6 +893,39 @@ details > div {
     <div id="feedbackArea"></div>
     <div id="feedbackMessage" role="status" aria-live="polite"></div>
 </section>
+<!-- ===== SECTION: LỘ TRÌNH HỆ THỐNG ===== -->
+<section id="systemRoadmapsSection" style="display:none;" class="card">
+    <h2>🗂️ Lộ Trình Hệ Thống</h2>
+    <p class="small">Danh sách các lộ trình đã được hệ thống chấp nhận (rating >= 4)</p>
+    
+    <div style="margin: 15px 0;">
+        <button id="fetchSystemRoadmapsBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Lộ Trình
+        </button>
+        <input type="text" id="searchSystemRoadmap" placeholder="Tìm kiếm theo tên lộ trình..." 
+               style="margin-left: 10px; padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; width: 300px;">
+    </div>
+    
+    <div id="systemRoadmapsArea"></div>
+    <div id="systemRoadmapsMessage" role="status" aria-live="polite"></div>
+</section>
+
+<!-- ===== SECTION: LỘ TRÌNH NGƯỜI DÙNG ===== -->
+<section id="userRoadmapsSection" style="display:none;" class="card">
+    <h2>👥 Lộ Trình Người Dùng</h2>
+    <p class="small">Tất cả lộ trình học của người dùng trong hệ thống</p>
+    
+    <div style="margin: 15px 0;">
+        <button id="fetchUserRoadmapsBtn" class="btn-refresh">
+            <i class="fa-solid fa-sync"></i> Tải Lộ Trình
+        </button>
+        <input type="text" id="searchUserRoadmap" placeholder="Tìm kiếm theo tên/user..." 
+               style="margin-left: 10px; padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; width: 300px;">
+    </div>
+    
+    <div id="userRoadmapsArea"></div>
+    <div id="userRoadmapsMessage" role="status" aria-live="polite"></div>
+</section>
     </main>
 <div id="footer"></div>
   <script>
@@ -2173,7 +2206,332 @@ if (viewStatsBtn) {
     }
   });
 }
-    function setupAdminNavigation() {
+// ============ SYSTEM ROADMAPS MANAGEMENT ============
+// ============ SYSTEM ROADMAPS MANAGEMENT ============
+function renderSystemRoadmaps(roadmaps) {
+    if (!roadmaps || roadmaps.length === 0) {
+        systemRoadmapsArea.innerHTML = '<div class="muted">Chưa có lộ trình hệ thống nào</div>';
+        return;
+    }
+    
+    const html = roadmaps.map(r => {
+        const createdAt = toVietnamTime(r.created_at);
+        const updatedAt = toVietnamTime(r.updated_at);
+        
+        // ✅ THÊM: Check trạng thái ẩn
+        const isHidden = r.is_hidden || false;
+        const hiddenBadge = isHidden 
+            ? '<span class="status-badge" style="background: #6b7280; color: white;">🔒 Đã ẩn</span>' 
+            : '';
+        
+        return `
+            <div class="history-card">
+                <div class="history-header">
+                    <div>
+                        <strong style="font-size: 16px; color: #007bff;">#${r.roadmap_id} - ${escapeHtml(r.roadmap_name)}</strong>
+                        ${hiddenBadge}
+                        <br>
+                        <span style="color: #6b7280; font-size: 14px;">
+                            📚 ${escapeHtml(r.category)} ${r.sub_category ? `> ${escapeHtml(r.sub_category)}` : ''}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="status-badge status-success">⭐ ${r.overall_rating || 'N/A'}/5</span>
+                        <span class="status-badge" style="background: #dbeafe; color: #1e40af;">
+                            👥 ${r.total_user_learning || 0} người học
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div><strong>Trình độ:</strong> ${escapeHtml(r.start_level || 'N/A')}</div>
+                    <div><strong>Thời lượng:</strong> ${r.duration_days} ngày (${r.duration_hours}h)</div>
+                    <div><strong>Hiệu quả học:</strong> ⭐ ${r.learning_effectiveness || 'N/A'}/5</div>
+                    <div><strong>Tạo lúc:</strong> ${createdAt}</div>
+                </div>
+                
+                ${r.roadmap_analyst ? `
+                    <details style="margin-top: 12px;">
+                        <summary style="cursor: pointer; color: #007bff; font-weight: 600;">
+                            📝 Xem Phân Tích
+                        </summary>
+                        <div style="margin-top: 10px; padding: 15px; background: #f9fafb; border-radius: 8px; white-space: pre-wrap;">
+                            ${escapeHtml(r.roadmap_analyst)}
+                        </div>
+                    </details>
+                ` : ''}
+                
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="btn-refresh" onclick="viewSystemRoadmapDetails(${r.roadmap_id})" style="background: #10b981;">
+                        <i class="fa-solid fa-eye"></i> Xem Chi Tiết
+                    </button>
+                    
+                    ${isHidden ? `
+                        <button class="btn-refresh" onclick="toggleHideSystemRoadmap(${r.roadmap_id}, false)" style="background: #f59e0b;">
+                            <i class="fa-solid fa-eye"></i> Hiện
+                        </button>
+                    ` : `
+                        <button class="btn-refresh" onclick="toggleHideSystemRoadmap(${r.roadmap_id}, true)" style="background: #6b7280;">
+                            <i class="fa-solid fa-eye-slash"></i> Ẩn
+                        </button>
+                    `}
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    systemRoadmapsArea.innerHTML = html;
+}
+let fetchSystemRoadmapsClickCount = 0;
+const fetchSystemRoadmapsBtn = document.getElementById('fetchSystemRoadmapsBtn');
+const systemRoadmapsArea = document.getElementById('systemRoadmapsArea');
+const systemRoadmapsMessage = document.getElementById('systemRoadmapsMessage');
+const searchSystemRoadmap = document.getElementById('searchSystemRoadmap');
+
+if (fetchSystemRoadmapsBtn) {
+    fetchSystemRoadmapsBtn.addEventListener('click', async function() {
+        fetchSystemRoadmapsClickCount++;
+        
+        if (fetchSystemRoadmapsClickCount % 2 === 1) {
+            systemRoadmapsMessage.textContent = 'Đang tải...';
+            fetchSystemRoadmapsBtn.disabled = true;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/roadmaps-system', {
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                window.systemRoadmapsData = data.data; // Lưu để search
+                renderSystemRoadmaps(data.data);
+                systemRoadmapsMessage.textContent = `Đã tải ${data.data.length} lộ trình`;
+            } catch (err) {
+                console.error(err);
+                systemRoadmapsMessage.textContent = 'Lỗi khi tải lộ trình';
+                systemRoadmapsArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+            } finally {
+                fetchSystemRoadmapsBtn.disabled = false;
+                setTimeout(() => { systemRoadmapsMessage.textContent = ''; }, 2500);
+            }
+        } else {
+            systemRoadmapsArea.innerHTML = '';
+            systemRoadmapsMessage.textContent = 'Danh sách đã đóng.';
+            setTimeout(() => { systemRoadmapsMessage.textContent = ''; }, 1400);
+        }
+    });
+}
+
+if (searchSystemRoadmap) {
+    searchSystemRoadmap.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (!window.systemRoadmapsData) return;
+        
+        if (query === '') {
+            renderSystemRoadmaps(window.systemRoadmapsData);
+        } else {
+            const filtered = window.systemRoadmapsData.filter(r => 
+                r.roadmap_name.toLowerCase().includes(query) ||
+                r.category.toLowerCase().includes(query)
+            );
+            renderSystemRoadmaps(filtered);
+        }
+    });
+}
+
+window.viewSystemRoadmapDetails = function(roadmapId) {
+    // ✅ MỞ TRANG roadmap_details.html VỚI ID
+    window.open(`roadmap_details.html?id=${roadmapId}`, '_blank');
+};
+
+// ✅ HÀM MỚI: ẨN/HIỆN LỘ TRÌNH
+window.toggleHideSystemRoadmap = async function(roadmapId, shouldHide) {
+    const action = shouldHide ? 'ẩn' : 'hiện';
+    
+    if (!confirm(`Bạn có chắc muốn ${action} lộ trình này khỏi danh sách phổ biến?`)) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/roadmaps-system/${roadmapId}/toggle-hide`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ is_hidden: shouldHide })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            if (fetchSystemRoadmapsClickCount % 2 === 1) {
+                fetchSystemRoadmapsBtn.click(); // Refresh
+            }
+        } else {
+            alert('❌ ' + data.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi cập nhật');
+    }
+};
+
+window.deleteSystemRoadmap = async function(roadmapId, name) {
+    if (!confirm(`Xóa lộ trình hệ thống "${name}"?\n\nLưu ý: Lộ trình này sẽ bị xóa khỏi hệ thống!`)) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/admin/roadmaps-system/${roadmapId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            alert('✅ ' + data.message);
+            if (fetchSystemRoadmapsClickCount % 2 === 1) {
+                fetchSystemRoadmapsBtn.click();
+            }
+        } else {
+            alert('❌ ' + data.error);
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Lỗi khi xóa');
+    }
+};
+
+// ============ USER ROADMAPS MANAGEMENT ============
+function renderUserRoadmaps(roadmaps) {
+    if (!roadmaps || roadmaps.length === 0) {
+        userRoadmapsArea.innerHTML = '<div class="muted">Chưa có lộ trình người dùng nào</div>';
+        return;
+    }
+    
+    const html = roadmaps.map(r => {
+        const createdAt = toVietnamTime(r.created_at);
+        const statusColor = r.status === 'COMPLETED' ? '#10b981' : 
+                          r.status === 'ACTIVE' ? '#007bff' : '#6b7280';
+        
+        return `
+            <div class="history-card">
+                <div class="history-header">
+                    <div>
+                        <strong style="font-size: 16px; color: #007bff;">#${r.roadmap_id} - ${escapeHtml(r.roadmap_name)}</strong>
+                        <br>
+                        <span style="color: #6b7280; font-size: 14px;">
+                            👤 ${escapeHtml(r.user_name || 'N/A')} (${escapeHtml(r.user_email || 'N/A')})
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span class="status-badge" style="background: ${statusColor}20; color: ${statusColor};">
+                            ${r.status}
+                        </span>
+                        <span class="status-badge" style="background: #fef3c7; color: #92400e;">
+                            📊 ${r.progress_percentage || 0}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div><strong>Danh mục:</strong> ${escapeHtml(r.category || 'N/A')}</div>
+                    <div><strong>Trình độ:</strong> ${escapeHtml(r.start_level || 'N/A')}</div>
+                    <div><strong>Thời lượng:</strong> ${r.duration_days} ngày (${r.duration_hours}h)</div>
+                    <div><strong>Đã học:</strong> ${r.total_studied_hours || 0}h</div>
+                    <div><strong>Tạo lúc:</strong> ${createdAt}</div>
+                    ${r.overall_rating ? `<div><strong>Đánh giá:</strong> ⭐ ${r.overall_rating}/5</div>` : ''}
+                </div>
+                
+                <div style="margin-top: 15px; display: flex; gap: 10px;">
+                    <button class="btn-refresh" onclick="viewUserRoadmapDetails(${r.roadmap_id})" style="background: #10b981;">
+                        <i class="fa-solid fa-eye"></i> Xem Chi Tiết
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    userRoadmapsArea.innerHTML = html;
+}
+
+let fetchUserRoadmapsClickCount = 0;
+const fetchUserRoadmapsBtn = document.getElementById('fetchUserRoadmapsBtn');
+const userRoadmapsArea = document.getElementById('userRoadmapsArea');
+const userRoadmapsMessage = document.getElementById('userRoadmapsMessage');
+const searchUserRoadmap = document.getElementById('searchUserRoadmap');
+
+if (fetchUserRoadmapsBtn) {
+    fetchUserRoadmapsBtn.addEventListener('click', async function() {
+        fetchUserRoadmapsClickCount++;
+        
+        if (fetchUserRoadmapsClickCount % 2 === 1) {
+            userRoadmapsMessage.textContent = 'Đang tải...';
+            fetchUserRoadmapsBtn.disabled = true;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/admin/roadmaps-user', {
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Cache-Control': 'no-cache'
+                    }
+                });
+                
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                
+                const data = await res.json();
+                window.userRoadmapsData = data.data; // Lưu để search
+                renderUserRoadmaps(data.data);
+                userRoadmapsMessage.textContent = `Đã tải ${data.data.length} lộ trình`;
+            } catch (err) {
+                console.error(err);
+                userRoadmapsMessage.textContent = 'Lỗi khi tải lộ trình';
+                userRoadmapsArea.innerHTML = '<div class="muted">Không thể tải dữ liệu</div>';
+            } finally {
+                fetchUserRoadmapsBtn.disabled = false;
+                setTimeout(() => { userRoadmapsMessage.textContent = ''; }, 2500);
+            }
+        } else {
+            userRoadmapsArea.innerHTML = '';
+            userRoadmapsMessage.textContent = 'Danh sách đã đóng.';
+            setTimeout(() => { userRoadmapsMessage.textContent = ''; }, 1400);
+        }
+    });
+}
+
+if (searchUserRoadmap) {
+    searchUserRoadmap.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (!window.userRoadmapsData) return;
+        
+        if (query === '') {
+            renderUserRoadmaps(window.userRoadmapsData);
+        } else {
+            const filtered = window.userRoadmapsData.filter(r => 
+                r.roadmap_name.toLowerCase().includes(query) ||
+                (r.user_name && r.user_name.toLowerCase().includes(query)) ||
+                (r.user_email && r.user_email.toLowerCase().includes(query))
+            );
+            renderUserRoadmaps(filtered);
+        }
+    });
+}
+
+window.viewUserRoadmapDetails = async function(roadmapId) {
+    window.open(`path.html?roadmap=${roadmapId}`, '_blank');
+};
+
+
+      function setupAdminNavigation() {
         const role = localStorage.getItem('role');
         if (role === 'admin') {
             const adminNavContainer = document.getElementById('adminNavContainer');
@@ -2189,6 +2547,8 @@ if (viewStatsBtn) {
                     <button class="admin-nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
                     <button class="admin-nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
                     <button class="admin-nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
+                    <button class="admin-nav-btn" id="btnSystemRoadmaps"><i class="fa-solid fa-sitemap"></i> Lộ Trình Hệ Thống</button>
+                    <button class="admin-nav-btn" id="btnUserRoadmaps"><i class="fa-solid fa-map"></i> Lộ Trình Người Dùng</button>
                 `;
                 
                 // Event listeners
@@ -2218,6 +2578,15 @@ if (viewStatsBtn) {
                     showAdminSection('feedbackSection');
                     setActiveAdminBtn('btnFeedback');
                 });
+                document.getElementById('btnSystemRoadmaps').addEventListener('click', () => {
+                    showAdminSection('systemRoadmapsSection');
+                    setActiveAdminBtn('btnSystemRoadmaps');
+                });
+
+                document.getElementById('btnUserRoadmaps').addEventListener('click', () => {
+                    showAdminSection('userRoadmapsSection');
+                    setActiveAdminBtn('btnUserRoadmaps');
+                });
             }
         }
     }
@@ -2228,6 +2597,8 @@ if (viewStatsBtn) {
         document.getElementById('categoriesSection').style.display = 'none';
         document.getElementById('promptSection').style.display = 'none';
         document.getElementById('feedbackSection').style.display = 'none';
+        document.getElementById('systemRoadmapsSection').style.display = 'none';
+        document.getElementById('userRoadmapsSection').style.display = 'none';
         
         document.getElementById(sectionId).style.display = 'block';
     }
