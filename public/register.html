@@ -858,7 +858,7 @@ function updatePasswordCriteriaVisual(pw) {
     let verificationTimerInterval = null;
     let verificationExpiresAt = null;
     let pendingRegistrationData = null;
-
+    let isRegistrationComplete = false;
     function openVerificationModal() {
       verificationModal.classList.add('active');
       verificationCodeInputs[0].focus();
@@ -866,20 +866,23 @@ function updatePasswordCriteriaVisual(pw) {
     }
 
     function closeVerificationModal() {
-      // Hiển thị cảnh báo
-      const confirmClose = confirm('Bạn chưa hoàn tất xác thực email. Nếu đóng cửa sổ này, bạn sẽ phải đăng ký lại từ đầu. Bạn có chắc muốn đóng?');
-      
-      if (!confirmClose) {
-        return; // Không đóng modal nếu user chọn Cancel
+      // ✅ Không cảnh báo nếu đã hoàn thành đăng ký
+      if (!isRegistrationComplete) {
+        const confirmClose = confirm('Bạn chưa hoàn tất xác thực email. Nếu đóng cửa sổ này, bạn sẽ phải đăng ký lại từ đầu. Bạn có chắc muốn đóng?');
+        
+        if (!confirmClose) {
+          return; // Không đóng modal nếu user chọn Cancel
+        }
       }
       
-      // Chỉ đóng khi user xác nhận
+      // Đóng modal
       verificationModal.classList.remove('active');
       clearVerificationTimer();
       verificationCodeInputs.forEach(input => input.value = '');
       verificationCodeError.hidden = true;
       verificationMessage.textContent = '';
       pendingRegistrationData = null;
+      isRegistrationComplete = false; // ✅ Reset flag
     }
 
     function startVerificationTimer() {
@@ -1032,78 +1035,84 @@ function updatePasswordCriteriaVisual(pw) {
       }
     }
 
-    async function completeRegistration() {
-      if (!pendingRegistrationData) {
-        showGeneralMessage('Lỗi: Không có dữ liệu đăng ký', 'error');
-        closeVerificationModal();
-        return;
+async function completeRegistration() {
+  if (!pendingRegistrationData) {
+    showGeneralMessage('Lỗi: Không có dữ liệu đăng ký', 'error');
+    // ✅ Không gọi closeVerificationModal() vì sẽ trigger alert
+    verificationModal.classList.remove('active');
+    clearVerificationTimer();
+    return;
+  }
+
+  disableSubmitButtonInProgress();
+  
+  try {
+    const response = await fetch(`${API_BASE}/api/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pendingRegistrationData)
+    });
+
+    const responseBody = await response.json().catch(() => null);
+
+    if (response.ok) {
+      if (responseBody && responseBody.token) {
+        localStorage.setItem('token', responseBody.token);
       }
-
-      disableSubmitButtonInProgress();
+      const roleFromServer = (responseBody && responseBody.role) ? responseBody.role : 'user';
+      localStorage.setItem('role', roleFromServer);
       
-      try {
-        const response = await fetch(`${API_BASE}/api/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(pendingRegistrationData)
+      // ✅ TẮT MODAL NGAY LẬP TỨC (không trigger alert)
+      isRegistrationComplete = true; // ✅ THÊM FLAG
+      verificationModal.classList.remove('active');
+      clearVerificationTimer();
+      
+      showGeneralMessage((responseBody && responseBody.message) ? responseBody.message : 'Đăng ký thành công. Chuyển tới Lộ Trình Học...', 'success');
+      
+      setTimeout(() => {
+        window.location.href = '/path.html';
+      }, 1000);
+    } else {
+      // ✅ Không gọi closeVerificationModal() vì sẽ trigger alert
+      verificationModal.classList.remove('active');
+      clearVerificationTimer();
+      
+      let messageFromServer = 'Đã xảy ra lỗi khi đăng ký.';
+      if (responseBody && responseBody.message) {
+        messageFromServer = responseBody.message;
+      } else if (response.status === 409) {
+        messageFromServer = 'Tên đăng nhập hoặc email đã được sử dụng.';
+      } else if (response.status === 422 || response.status === 400) {
+        messageFromServer = 'Dữ liệu gửi lên không hợp lệ.';
+      }
+      showGeneralMessage(messageFromServer, 'error');
+
+      if (responseBody && responseBody.errors && typeof responseBody.errors === 'object') {
+        Object.keys(responseBody.errors).forEach(function(fieldName) {
+          const message = responseBody.errors[fieldName];
+          if (!message) return;
+          if (fieldName === 'name') {
+            fullNameErrorElement.textContent = message; fullNameErrorElement.hidden = false;
+          } else if (fieldName === 'username') {
+            userNameErrorElement.textContent = message; userNameErrorElement.hidden = false;
+          } else if (fieldName === 'email') {
+            emailAddressErrorElement.textContent = message; emailAddressErrorElement.hidden = false;
+          } else if (fieldName === 'password') {
+            passwordErrorElement.textContent = message; passwordErrorElement.hidden = false;
+          }
         });
-
-        const responseBody = await response.json().catch(() => null);
-
-        if (response.ok) {
-          if (responseBody && responseBody.token) {
-            localStorage.setItem('token', responseBody.token);
-          }
-          const roleFromServer = (responseBody && responseBody.role) ? responseBody.role : 'user';
-          localStorage.setItem('role', roleFromServer);
-          
-          // ✅ XÓA MODAL KHỎI DOM HOÀN TOÀN
-          verificationModal.classList.remove('active');
-          clearVerificationTimer();
-          verificationModal.remove(); // XÓA KHỎI DOM
-          
-          showGeneralMessage((responseBody && responseBody.message) ? responseBody.message : 'Đăng ký thành công. Chuyển tới Lộ Trình Học...', 'success');
-          
-          setTimeout(() => {
-            window.location.href = '/path.html';
-          }, 1000);
-        } else {
-          closeVerificationModal();
-          let messageFromServer = 'Đã xảy ra lỗi khi đăng ký.';
-          if (responseBody && responseBody.message) {
-            messageFromServer = responseBody.message;
-          } else if (response.status === 409) {
-            messageFromServer = 'Tên đăng nhập hoặc email đã được sử dụng.';
-          } else if (response.status === 422 || response.status === 400) {
-            messageFromServer = 'Dữ liệu gửi lên không hợp lệ.';
-          }
-          showGeneralMessage(messageFromServer, 'error');
-
-          if (responseBody && responseBody.errors && typeof responseBody.errors === 'object') {
-            Object.keys(responseBody.errors).forEach(function(fieldName) {
-              const message = responseBody.errors[fieldName];
-              if (!message) return;
-              if (fieldName === 'name') {
-                fullNameErrorElement.textContent = message; fullNameErrorElement.hidden = false;
-              } else if (fieldName === 'username') {
-                userNameErrorElement.textContent = message; userNameErrorElement.hidden = false;
-              } else if (fieldName === 'email') {
-                emailAddressErrorElement.textContent = message; emailAddressErrorElement.hidden = false;
-              } else if (fieldName === 'password') {
-                passwordErrorElement.textContent = message; passwordErrorElement.hidden = false;
-              }
-            });
-          }
-        }
-      } catch (networkError) {
-        console.error('Lỗi khi gửi API đăng ký:', networkError);
-        closeVerificationModal();
-        showGeneralMessage('Không thể kết nối tới server. Vui lòng kiểm tra mạng hoặc server.', 'error');
-      } finally {
-        enableSubmitButton();
       }
     }
-
+  } catch (networkError) {
+    console.error('Lỗi khi gửi API đăng ký:', networkError);
+    // ✅ Không gọi closeVerificationModal()
+    verificationModal.classList.remove('active');
+    clearVerificationTimer();
+    showGeneralMessage('Không thể kết nối tới server. Vui lòng kiểm tra mạng hoặc server.', 'error');
+  } finally {
+    enableSubmitButton();
+  }
+}
     // Verify button click
     verifyEmailBtn.addEventListener('click', async () => {
       const code = getVerificationCode();
@@ -1320,7 +1329,8 @@ if (backButton) {
 }
 // Xử lý khi reload page trong lúc verification
 window.addEventListener('beforeunload', (e) => {
-  if (verificationModal.classList.contains('active')) {
+  // ✅ Không cảnh báo nếu đã hoàn thành đăng ký
+  if (verificationModal.classList.contains('active') && !isRegistrationComplete) {
     e.preventDefault();
     e.returnValue = 'Bạn chưa hoàn tất xác thực email. Nếu tải lại trang, bạn sẽ phải đăng ký lại từ đầu.';
     return e.returnValue;
