@@ -959,8 +959,7 @@ details > div {
         const d = new Date(iso);
         if (isNaN(d)) return iso;
         
-        // ✅ QUAN TRỌNG: Backend đã cộng +7h, nên trừ lại 7h
-        const corrected = new Date(d.getTime() - (7 * 60 * 60 * 1000));
+        const corrected = new Date(d.getTime() - (14 * 60 * 60 * 1000));
         
         // ✅ Format theo timezone Việt Nam
         return corrected.toLocaleString('vi-VN', {
