@@ -273,3 +273,8 @@ html, body {
   scrollbar-width: auto;
   scrollbar-color: rgba(0, 0, 0, 0.4) transparent;
 }
+
+/* Căn giữa cột Tính Năng */
+footer > div:first-child > div:nth-child(2) {
+  justify-self: center;
+}
