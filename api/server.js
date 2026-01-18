@@ -107,7 +107,7 @@ if (fs.existsSync(publicDir)) {
 }
 
 // ✅ SAU ĐÓ MỚI SERVE DATA FOLDER
-const dataDir = path.join(__dirname, 'Data');
+const dataDir = path.join(publicDir, 'Data');
 if (fs.existsSync(dataDir)) {
   app.use('/Data', express.static(dataDir));
   console.log(`✅ Serving Data folder from: ${dataDir}`);
