@@ -162,16 +162,19 @@
         gap: 30px;
     }
 
-    .roadmap-card {
-        background: white;
-        border-radius: 16px;
-        padding: 25px; /* ✅ SỬA: Bỏ padding-bottom 60px */
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid #e5e7eb;
-        transition: all 0.3s ease;
-        cursor: pointer;
-        position: relative;
-    }
+.roadmap-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 2px solid #e5e7eb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    min-height: 400px; /* ✅ THÊM: Chiều cao tối thiểu cho card */
+    display: flex; /* ✅ THÊM: Để các phần tử bên trong căn đều */
+    flex-direction: column; /* ✅ THÊM: Sắp xếp theo chiều dọc */
+}
 
     .roadmap-card:hover {
         transform: translateY(-8px);
@@ -1292,7 +1295,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
 .roadmap-actions {
     display: flex;
     gap: 10px;
-    margin-top: 15px;
+    margin-top: auto; /* ✅ THÊM: Đẩy nút xuống dưới cùng */
     width: 100%;
 }
 
@@ -2529,51 +2532,59 @@ function renderRoadmaps(roadmaps) {
     
     return `
     <div class="roadmap-card">
-        <div class="roadmap-header">
-        <div class="roadmap-title">${roadmap.roadmap_name}</div>
-        ${getStatusBadge(roadmap)}
+        <!-- ✅ PHẦN TRÊN -->
+        <div style="flex-shrink: 0;">
+            <div class="roadmap-header">
+                <div class="roadmap-title">${roadmap.roadmap_name}</div>
+                ${getStatusBadge(roadmap)}
+            </div>
+            
+            <div class="roadmap-meta">
+                <div class="meta-item">📂 ${roadmap.category_name || roadmap.category}</div>
+                ${roadmap.sub_category ? `<div class="meta-item">📁 ${roadmap.sub_category}</div>` : ''}
+            </div>
         </div>
         
-        <div class="roadmap-meta">
-        <div class="meta-item">📁 ${roadmap.category_name || roadmap.category}</div>
-        ${roadmap.sub_category ? `<div class="meta-item">📂 ${roadmap.sub_category}</div>` : ''}
-        </div>
+        <!-- ✅ SPACER ĐỂ ĐẨY PHẦN DƯỚI XUỐNG -->
+        <div style="flex: 1;"></div>
         
-        <div class="progress-section">
-        <div class="progress-label">
-            <span>Tiến độ học tập</span>
-            <span>${Math.round(roadmap.progress_percentage)}%</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: ${roadmap.progress_percentage}%"></div>
-        </div>
-        </div>
-        
-        <div class="roadmap-stats">
-        <div class="stat-item">
-            <div class="stat-value">${roadmap.duration_days}</div>
-            <div class="stat-label">Ngày</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-value">${formatHours(roadmap.duration_hours)}</div>
-            <div class="stat-label">Tổng thời gian</div>
-        </div>
-        ${ratingHTML}
-        <div class="stat-item">
-            <div class="stat-value">${Math.round(roadmap.progress_percentage)}%</div>
-            <div class="stat-label">Tiến độ</div>
-        </div>
-        </div>
-        
-        <!-- ✅ SỬA: Wrap 2 nút trong div mới -->
-        <div class="roadmap-actions">
-        <button class="view-details-btn" onclick="openDetails(${roadmap.roadmap_id})">
-            👁️ Xem Chi Tiết
-        </button>
-        
-        <button class="delete-roadmap-btn" onclick="confirmDeleteRoadmap(${roadmap.roadmap_id}, '${roadmap.roadmap_name.replace(/'/g, "\\'")}')">
-            <strong>🗑️ Xóa</strong>
-        </button>
+        <!-- ✅ PHẦN DƯỚI (Progress + Stats + Buttons) -->
+        <div style="flex-shrink: 0;">
+            <div class="progress-section">
+                <div class="progress-label">
+                    <span>Tiến độ học tập</span>
+                    <span>${Math.round(roadmap.progress_percentage)}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${roadmap.progress_percentage}%"></div>
+                </div>
+            </div>
+            
+            <div class="roadmap-stats">
+                <div class="stat-item">
+                    <div class="stat-value">${roadmap.duration_days}</div>
+                    <div class="stat-label">Ngày</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${formatHours(roadmap.duration_hours)}</div>
+                    <div class="stat-label">Tổng thời gian</div>
+                </div>
+                ${ratingHTML}
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round(roadmap.progress_percentage)}%</div>
+                    <div class="stat-label">Tiến độ</div>
+                </div>
+            </div>
+            
+            <div class="roadmap-actions">
+                <button class="view-details-btn" onclick="openDetails(${roadmap.roadmap_id})">
+                    👁️ Xem Chi Tiết
+                </button>
+                
+                <button class="delete-roadmap-btn" onclick="confirmDeleteRoadmap(${roadmap.roadmap_id}, '${roadmap.roadmap_name.replace(/'/g, "\\'")}')">
+                    <strong>🗑️ Xóa</strong>
+                </button>
+            </div>
         </div>
     </div>
     `;
