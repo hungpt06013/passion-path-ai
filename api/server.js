@@ -2553,9 +2553,24 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
         
         // ✅ Verify ownership
         const checkQuery = `
-            SELECT roadmap_id, roadmap_name, category, overall_rating 
-            FROM learning_roadmaps 
-            WHERE roadmap_id = $1 AND user_id = $2
+            SELECT 
+                lr.roadmap_id, 
+                lr.roadmap_name, 
+                lr.category, 
+                lr.overall_rating,
+                lr.learning_effectiveness,
+                lr.user_id,
+                -- ✅ Kiểm tra xem user này có phải là creator không
+                EXISTS(
+                    SELECT 1 FROM learning_roadmaps_system lrs
+                    WHERE lrs.roadmap_name = lr.roadmap_name
+                    AND (
+                        lrs.category = lr.category 
+                        OR SPLIT_PART(lr.category, ' - ', 1) = lrs.category
+                    )
+                ) as exists_in_system
+            FROM learning_roadmaps lr
+            WHERE lr.roadmap_id = $1 AND lr.user_id = $2
         `;
         const checkResult = await client.query(checkQuery, [roadmapId, req.user.id]);
         
@@ -2570,16 +2585,26 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
         
         const roadmap = checkResult.rows[0];
         
-        // ✅ LOGIC: Nếu rating >= 4 sao, XÓA KHỎI learning_roadmaps_system
-        if (roadmap.overall_rating && roadmap.overall_rating >= 4) {
-            console.log(`🗑️ Xóa roadmap "${roadmap.roadmap_name}" khỏi system (rating: ${roadmap.overall_rating})`);
-            
-            // Tìm roadmap_id trong bảng system dựa trên tên và category
+        console.log('🔍 Delete roadmap:', {
+            roadmap_id: roadmap.roadmap_id,
+            roadmap_name: roadmap.roadmap_name,
+            category: roadmap.category,
+            overall_rating: roadmap.overall_rating,
+            learning_effectiveness: roadmap.learning_effectiveness,
+            exists_in_system: roadmap.exists_in_system
+        });
+        
+        // ✅ NẾU LỘ TRÌNH TỒN TẠI TRONG SYSTEM
+        if (roadmap.exists_in_system) {
+            // Tìm system roadmap
             const systemRoadmapQuery = `
-                SELECT roadmap_id 
+                SELECT roadmap_id, total_user_learning
                 FROM learning_roadmaps_system 
                 WHERE roadmap_name = $1 
-                AND category = $2
+                AND (
+                    category = SPLIT_PART($2, ' - ', 1)
+                    OR category = $2
+                )
                 LIMIT 1
             `;
             const systemResult = await client.query(systemRoadmapQuery, [
@@ -2588,25 +2613,60 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
             ]);
             
             if (systemResult.rows.length > 0) {
-                const systemRoadmapId = systemResult.rows[0].roadmap_id;
+                const systemRoadmap = systemResult.rows[0];
+                const systemRoadmapId = systemRoadmap.roadmap_id;
                 
-                // Xóa chi tiết trong learning_roadmap_details_system
+                // ✅ GIẢM total_user_learning
                 await client.query(
-                    'DELETE FROM learning_roadmap_details_system WHERE roadmap_id = $1',
+                    `UPDATE learning_roadmaps_system 
+                     SET total_user_learning = GREATEST(0, total_user_learning - 1),
+                         updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+                     WHERE roadmap_id = $1`,
                     [systemRoadmapId]
                 );
                 
-                // Xóa roadmap trong learning_roadmaps_system
-                await client.query(
-                    'DELETE FROM learning_roadmaps_system WHERE roadmap_id = $1',
-                    [systemRoadmapId]
-                );
+                console.log(`✅ Giảm total_user_learning cho system roadmap #${systemRoadmapId}`);
                 
-                console.log(`✅ Đã xóa roadmap system #${systemRoadmapId}`);
+                // ✅ KIỂM TRA XEM CÒN USER NÀO HỌC LỘ TRÌNH NÀY KHÔNG
+                const remainingUsersQuery = `
+                    SELECT COUNT(*) as count
+                    FROM learning_roadmaps
+                    WHERE roadmap_name = $1
+                    AND (
+                        category = $2
+                        OR SPLIT_PART(category, ' - ', 1) = SPLIT_PART($2, ' - ', 1)
+                    )
+                    AND roadmap_id != $3
+                `;
+                
+                const remainingResult = await client.query(remainingUsersQuery, [
+                    roadmap.roadmap_name,
+                    roadmap.category,
+                    roadmapId
+                ]);
+                
+                const remainingUsers = parseInt(remainingResult.rows[0].count) || 0;
+                
+                console.log(`📊 Remaining users: ${remainingUsers}`);
+                
+                // ✅ NẾU KHÔNG CÒN USER NÀO → XÓA KHỎI SYSTEM
+                if (remainingUsers === 0) {
+                    console.log(`🗑️ Không còn user nào, xóa roadmap khỏi system #${systemRoadmapId}`);
+                    
+                    await client.query(
+                        'DELETE FROM learning_roadmap_details_system WHERE roadmap_id = $1',
+                        [systemRoadmapId]
+                    );
+                    
+                    await client.query(
+                        'DELETE FROM learning_roadmaps_system WHERE roadmap_id = $1',
+                        [systemRoadmapId]
+                    );
+                }
             }
         }
         
-        // ✅ Xóa roadmap của user (cascade sẽ tự động xóa details)
+        // ✅ XÓA ROADMAP CỦA USER (cascade tự động xóa details)
         await client.query('DELETE FROM learning_roadmaps WHERE roadmap_id = $1', [roadmapId]);
         
         await client.query('COMMIT');
@@ -5681,6 +5741,7 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
   try {
     const { roadmapId } = req.params;
     
+    // ✅ FIX: Match bằng roadmap_name VÀ category_name (không có description)
     const query = `
       SELECT 
         lrs.roadmap_id,
@@ -5695,21 +5756,24 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
         lrs.updated_at,
         lrs.roadmap_analyst,
         c.id as category_id,
-        COUNT(DISTINCT lr.user_id) FILTER (
-          WHERE lr.overall_rating >= 4 
-          AND lr.roadmap_name = lrs.roadmap_name 
-          AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
-        ) as high_overall_rating_count,
-        COUNT(DISTINCT lr.user_id) FILTER (
-          WHERE lr.learning_effectiveness >= 4 
-          AND lr.roadmap_name = lrs.roadmap_name 
-          AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
-        ) as high_effectiveness_count
+        -- ✅ Match chính xác: roadmap_name + category (chỉ lấy phần tên, không có description)
+        COUNT(DISTINCT CASE 
+          WHEN lr.overall_rating >= 4 THEN lr.user_id 
+        END) as high_overall_rating_count,
+        COUNT(DISTINCT CASE 
+          WHEN lr.learning_effectiveness >= 4 THEN lr.user_id 
+        END) as high_effectiveness_count
       FROM learning_roadmaps_system lrs
-      LEFT JOIN categories c ON LOWER(TRIM(c.name)) = LOWER(TRIM(lrs.category))
+      LEFT JOIN categories c ON c.name = lrs.category
       LEFT JOIN learning_roadmaps lr 
         ON lr.roadmap_name = lrs.roadmap_name 
-        AND LOWER(TRIM(lr.category)) = LOWER(TRIM(lrs.category))
+        AND (
+          -- ✅ Match chính xác category
+          lr.category = lrs.category 
+          OR 
+          -- ✅ Hoặc match phần đầu (trước dấu " - ")
+          SPLIT_PART(lr.category, ' - ', 1) = lrs.category
+        )
       WHERE lrs.roadmap_id = $1
       GROUP BY lrs.roadmap_id, c.id
     `;
@@ -5723,7 +5787,15 @@ app.get('/api/roadmapsystem/:roadmapId', async (req, res) => {
       });
     }
     
-    // ✅ ĐÚNG: Format timestamps
+    // ✅ DEBUG: Log để kiểm tra
+    console.log('🔍 Debug roadmap query:', {
+      roadmapId,
+      resultCount: result.rows.length,
+      high_overall: result.rows[0].high_overall_rating_count,
+      high_effectiveness: result.rows[0].high_effectiveness_count
+    });
+    
+    // ✅ Format timestamps
     const formatTimestamp = (timestamp) => {
       if (!timestamp) return null;
       const rawDate = new Date(timestamp);
