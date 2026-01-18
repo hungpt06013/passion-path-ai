@@ -3513,11 +3513,52 @@ async function loadCategoriesForUpload() {
             'upload_category_name',
             categories,
             renderCategoryOptions,
-            (categoryId) => {
-                loadSubCategoriesForUpload(categoryId);
+            (categoryId, categoryName) => {
+                // ✅ TÌM PARENT CONTAINER (chứa cả label + sub_category_container)
+                const formGroup = document.querySelector('.form-group:has(#upload_sub_category_container)');
+                
+                if (categoryId === 'Khác') {
+                    // ✅ RENDER INPUT NHẬP CATEGORY TRƯỚC LABEL
+                    formGroup.innerHTML = `
+                        <label>Danh mục *</label>
+                        <div style="margin-bottom: 15px;">
+                            <input type="text" 
+                                id="upload_category_other_input"
+                                name="category_other" 
+                                class="form-input" 
+                                required 
+                                placeholder="Nhập tên danh mục..."
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                        </div>
+                        
+                        <label>Danh mục chi tiết *</label>
+                        <div id="upload_sub_category_container">
+                            <input type="text" 
+                                name="sub_category" 
+                                class="form-input" 
+                                required 
+                                placeholder="Nhập danh mục chi tiết..."
+                                style="width: 100%; padding: 10px 12px; border: 2px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                        </div>
+                    `;
+                    
+                    setTimeout(() => {
+                        const otherInput = document.getElementById('upload_category_other_input');
+                        if (otherInput) otherInput.focus();
+                    }, 100);
+                } else {
+                    // ✅ TRƯỜNG HỢP BÌNH THƯỜNG - CHỈ RENDER LẠI LABEL + CONTAINER
+                    formGroup.innerHTML = `
+                        <label>Danh mục chi tiết *</label>
+                        <div id="upload_sub_category_container">
+                            <input type="text" placeholder="Vui lòng chọn danh mục trước..." required disabled style="background: #f3f4f6; cursor: not-allowed; color: #9ca3af;">
+                        </div>
+                    `;
+                    
+                    loadSubCategoriesForUpload(categoryId);
+                }
             }
         );
-        
     } catch (error) {
         console.error('Error loading categories:', error);
         const optionsEl = document.getElementById('category-options');
