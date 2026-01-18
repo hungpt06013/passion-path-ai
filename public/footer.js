@@ -6,9 +6,16 @@ let feedbackDataChanged = false;
 // Hàm kiểm tra và mở modal
 function checkAndOpenFeedbackModal() {
     if (window.location.hash === '#feedback-section') {
-        openFeedbackModal();
+        const modal = document.getElementById('feedbackModal');
+        if (modal) {
+            openFeedbackModal();
+        } else {
+            // Nếu modal chưa có, đợi 100ms rồi thử lại
+            setTimeout(checkAndOpenFeedbackModal, 5000);
+        }
     }
 }
+
 
 // Kiểm tra khi load trang
 window.addEventListener('load', checkAndOpenFeedbackModal);
@@ -224,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     
     .catch(error => console.error('Error loading footer:', error));
+    
 });
 // Cảnh báo khi reload/đóng trang nếu có dữ liệu chưa lưu
 window.addEventListener('beforeunload', function(e) {
