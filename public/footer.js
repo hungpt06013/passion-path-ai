@@ -3,18 +3,18 @@ const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.
 // Feedback modal logic
 let feedbackRatings = {};
 let feedbackDataChanged = false;
-// Kiểm tra nếu URL có #feedback-section thì tự động mở modal
-window.addEventListener('load', function() {
+// Hàm kiểm tra và mở modal
+function checkAndOpenFeedbackModal() {
     if (window.location.hash === '#feedback-section') {
         openFeedbackModal();
     }
-});
-// Lắng nghe thay đổi hash (khi click vào link #feedback-section)
-window.addEventListener('hashchange', function() {
-    if (window.location.hash === '#feedback-section') {
-        openFeedbackModal();
-    }
-});
+}
+
+// Kiểm tra khi load trang
+window.addEventListener('load', checkAndOpenFeedbackModal);
+
+// Kiểm tra khi thay đổi hash
+window.addEventListener('hashchange', checkAndOpenFeedbackModal);
 window.openFeedbackModal = function() {
     // Check if user is logged in
     const token = localStorage.getItem('token');
@@ -74,10 +74,6 @@ window.closeFeedbackModal = function() {
     document.getElementById('feedbackModal').classList.remove('active');
     feedbackDataChanged = false; // Reset trạng thái
     
-    // Xóa hash khỏi URL
-    if (window.location.hash === '#feedback-section') {
-        history.pushState("", document.title, window.location.pathname + window.location.search);
-    }
 }
 // Project Info modal logic
 window.openProjectInfoModal = function() {
