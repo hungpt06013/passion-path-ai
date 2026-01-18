@@ -1695,18 +1695,49 @@ async function loadCategories() {
             'q2_category_name',
             categories,
             renderCategoryOptionsForCreate,
-            (categoryId) => {
+            (categoryId, categoryName) => {
+                // ✅ TÌM FORM-GROUP CHỨA Q3
+                const q3FormGroup = document.querySelector('.form-group:has(#q3_subCategoryContainer)');
+                
                 if (categoryId === 'Khác') {
-                    const subContainer = document.getElementById('q3_subCategoryContainer');
-                    if (subContainer) {
-                        subContainer.innerHTML = '<input type="text" name="q3_category_detail" class="form-input" required placeholder="Nhập danh mục chi tiết...">';
-                    }
+                    // ✅ RENDER INPUT CATEGORY + LABEL + SUB_CATEGORY
+                    q3FormGroup.innerHTML = `
+                        <label class="form-label">Danh mục *</label>
+                        <input type="text" 
+                            id="q2_category_other_input"
+                            name="q2_category_other" 
+                            class="form-input" 
+                            required 
+                            placeholder="Nhập tên danh mục..."
+                            style="margin-bottom: 15px;">
+                        
+                        <label class="form-label">Danh mục chi tiết *</label>
+                        <div id="q3_subCategoryContainer">
+                            <input type="text" 
+                                name="q3_category_detail" 
+                                class="form-input" 
+                                required 
+                                placeholder="Nhập danh mục chi tiết...">
+                        </div>
+                    `;
+                    
+                    setTimeout(() => {
+                        const otherInput = document.getElementById('q2_category_other_input');
+                        if (otherInput) otherInput.focus();
+                    }, 100);
                 } else {
+                    // ✅ TRƯỜNG HỢP BÌNH THƯỜNG
+                    q3FormGroup.innerHTML = `
+                        <label class="form-label">Danh mục chi tiết *</label>
+                        <div id="q3_subCategoryContainer">
+                            Vui lòng chọn danh mục trước
+                        </div>
+                    `;
+                    
                     loadSubCategoriesForCreate(categoryId);
                 }
             }
         );
-        
     } catch (err) {
         console.error('Error loading categories:', err);
         document.getElementById('category-options').innerHTML = 
@@ -1717,7 +1748,6 @@ async function loadCategories() {
 function renderCategoryOptionsForCreate(allCategories, filteredCategories) {
     const optionsContainer = document.getElementById('category-options');
     
-    // ✅ FIX: Bỏ dấu khi so sánh
     const searchInput = document.getElementById('category-search-input');
     const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const showKhac = !searchTerm || removeDiacritics('khác').includes(removeDiacritics(searchTerm));
@@ -1738,7 +1768,6 @@ function renderCategoryOptionsForCreate(allCategories, filteredCategories) {
         `;
     });
     
-    // ✅ CHỈ THÊM NẾU MATCH
     if (showKhac) {
         html += `
             <div class="custom-select-option" 
@@ -1829,7 +1858,7 @@ function setupCustomSelectForCreate(triggerId, dropdownId, searchInputId, option
         
         // Callback
         if (onSelectCallback) {
-            onSelectCallback(value);
+            onSelectCallback(value, name);
         }
     });
 }
@@ -1991,7 +2020,27 @@ async function loadSubCategoriesForCreate(categoryId) {
     if (!container) return;
     
     if (!categoryId || categoryId === 'Khác') {
-        container.innerHTML = '<input type="text" name="q3_category_detail" class="form-input" required placeholder="Nhập danh mục chi tiết...">';
+        // ✅ INPUT NHẬP TÊN CATEGORY TRƯỚC, CHI TIẾT SAU
+        container.innerHTML = `
+            <input type="text" 
+                id="q2_category_other_input"
+                name="q2_category_other" 
+                class="form-input" 
+                required 
+                placeholder="Nhập tên danh mục..."
+                style="margin-bottom: 10px;">
+            <input type="text" 
+                name="q3_category_detail" 
+                class="form-input" 
+                required 
+                placeholder="Nhập danh mục chi tiết...">
+        `;
+        
+        // ✅ Focus vào ô nhập danh mục
+        setTimeout(() => {
+            const otherInput = document.getElementById('q2_category_other_input');
+            if (otherInput) otherInput.focus();
+        }, 100);
         return;
     }
     
@@ -2405,20 +2454,23 @@ async function generateRoadmapWithAI() {
     // Q1
     const q1_roadmap_name = getField(formData, 'q1_roadmap_name');
 
-    // Q2
-// Q2 - Lấy TÊN danh mục
-const q2_category_hidden = document.getElementById('q2_category_hidden');
-const q2_category_name_input = document.getElementById('q2_category_name');
-let q2_category = '';
+    // Q2 - Lấy TÊN danh mục
+    const q2_category_hidden = document.getElementById('q2_category_hidden');
+    const q2_category_name_input = document.getElementById('q2_category_name');
+    let q2_category = '';
 
-if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
-  const otherInput = document.getElementById('q2_other_text');
-  q2_category = otherInput ? (otherInput.value || '').trim() : '';
-} else if (q2_category_name_input && q2_category_name_input.value) {
-  q2_category = q2_category_name_input.value.trim();
-} else {
-  q2_category = 'Chưa xác định';
-}
+    if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
+    const otherInput = document.getElementById('q2_category_other_input');
+    q2_category = otherInput ? (otherInput.value || '').trim() : '';
+    
+    if (!q2_category) {
+        throw new Error('❌ Vui lòng nhập tên danh mục (Khác)');
+    }
+    } else if (q2_category_name_input && q2_category_name_input.value) {
+    q2_category = q2_category_name_input.value.trim();
+    } else {
+    q2_category = 'Chưa xác định';
+    }
 
     // Q3 - Xử lý danh mục chi tiết
     let q3_category_detail = getField(formData, 'q3_category_detail');
@@ -2946,8 +2998,12 @@ const q2_category_name_input = document.getElementById('q2_category_name');
 let q2_category = '';
 
 if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
-  const otherInput = document.getElementById('q2_other_text');
+  const otherInput = document.getElementById('q2_category_other_input');
   q2_category = otherInput ? (otherInput.value || '').trim() : '';
+  
+  if (!q2_category) {
+    throw new Error('❌ Vui lòng nhập tên danh mục (Khác)');
+  }
 } else if (q2_category_name_input && q2_category_name_input.value) {
   q2_category = q2_category_name_input.value.trim();
 } else {
