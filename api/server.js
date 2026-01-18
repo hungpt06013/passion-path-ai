@@ -492,6 +492,32 @@ await pool.query(`
     END IF;
   END $$;
 `);
+    await pool.query(`
+      SELECT setval('learning_roadmaps_roadmap_id_seq', 
+        COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps), 1)
+      );
+    `);
+
+    // ✅ THÊM: Reset sequence cho learning_roadmaps_system
+    await pool.query(`
+      SELECT setval('learning_roadmaps_system_roadmap_id_seq', 
+        COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps_system), 1)
+      );
+    `);
+
+    // ✅ THÊM: Reset sequence cho learning_roadmap_details
+    await pool.query(`
+      SELECT setval('learning_roadmap_details_detail_id_seq', 
+        COALESCE((SELECT MAX(detail_id) FROM learning_roadmap_details), 1)
+      );
+    `);
+
+    // ✅ THÊM: Reset sequence cho learning_roadmap_details_system
+    await pool.query(`
+      SELECT setval('learning_roadmap_details_system_detail_id_seq', 
+        COALESCE((SELECT MAX(detail_id) FROM learning_roadmap_details_system), 1)
+      );
+    `);
     console.log("✅ DB initialized");
   } catch (err) {
     console.error("❌ DB init error:", err && err.message ? err.message : err);
