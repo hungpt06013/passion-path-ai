@@ -81,6 +81,10 @@ window.closeFeedbackModal = function() {
     document.getElementById('feedbackModal').classList.remove('active');
     feedbackDataChanged = false; // Reset trạng thái
     
+    // XÓA HASH KHỎI URL
+    if (window.location.hash === '#feedback-section') {
+        history.pushState('', document.title, window.location.pathname + window.location.search);
+    }
 }
 // Project Info modal logic
 window.openProjectInfoModal = function() {
