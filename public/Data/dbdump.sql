@@ -112,6 +112,7 @@ CREATE TABLE "learning_roadmaps_system" (
 	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text),
 	"updated_at" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text),
 	"roadmap_analyst" text,
+	"is_hidden" boolean DEFAULT false,
 	CONSTRAINT "learning_roadmaps_system_learning_effectiveness_check" CHECK (CHECK (((learning_effectiveness >= 0) AND (learning_effectiveness <= 100)))),
 	CONSTRAINT "learning_roadmaps_system_overall_rating_check" CHECK (CHECK (((overall_rating >= 0) AND (overall_rating <= 100))))
 );
