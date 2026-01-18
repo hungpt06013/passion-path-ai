@@ -1562,7 +1562,7 @@ function validateAllQuestions() {
     
     // Q11: Thời gian lộ trình
     const q11 = document.getElementById('q11_program_days');
-    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 90) {
+    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 360) {
         errors.push('Câu thời gian lộ trình');
     }
     
@@ -1637,7 +1637,6 @@ function validateAllQuestions() {
 }
 
 
-        const MAX_AI_DAYS = 90;
         let dayCount = 0;
         let isGenerating = false;
         let categoriesData = [];
