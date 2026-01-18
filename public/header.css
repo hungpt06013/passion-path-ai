@@ -60,7 +60,7 @@
 
 .brand-title {
     color: white;
-    font-size: clamp(14px, 1.8vw, 20px);
+    font-size: clamp(14px, 1.8vw, 18px);
     font-weight: 700;
     white-space: normal; /* ✅ CHO XUỐNG HÀNG */
     word-wrap: break-word;
