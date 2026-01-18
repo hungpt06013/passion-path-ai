@@ -479,6 +479,19 @@ await pool.query(`
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_reset_code ON password_reset_codes(code);
     `);
+// ✅ THÊM cột is_hidden cho learning_roadmaps_system
+await pool.query(`
+  DO $$ 
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'learning_roadmaps_system' 
+      AND column_name = 'is_hidden'
+    ) THEN
+      ALTER TABLE learning_roadmaps_system ADD COLUMN is_hidden BOOLEAN DEFAULT FALSE;
+    END IF;
+  END $$;
+`);
     console.log("✅ DB initialized");
   } catch (err) {
     console.error("❌ DB init error:", err && err.message ? err.message : err);
@@ -2703,42 +2716,33 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
 });
 app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
   try {
-    console.log('🔍 /api/roadmaps/:id - req.params.id:', req.params.id);
-    console.log('👤 User ID:', req.user?.id);
-    
     const roadmapId = parseInt(req.params.id);
     
     if (isNaN(roadmapId)) {
-      console.error('❌ Invalid roadmap ID');
       return res.status(400).json({ success: false, error: "ID lộ trình không hợp lệ" });
     }
     
     const userId = parseInt(req.user?.id);
     
     if (!userId || isNaN(userId)) {
-      console.error('❌ Invalid user ID:', req.user?.id);
       return res.status(401).json({ success: false, error: "Phiên đăng nhập không hợp lệ" });
     }
     
-    // Check ownership
-    console.log('🔍 Checking ownership with roadmapId:', roadmapId, 'userId:', userId);
+    // ✅ CHECK OWNERSHIP
     const ownershipCheck = await pool.query(
       "SELECT roadmap_id, user_id FROM learning_roadmaps WHERE roadmap_id = $1::integer", 
       [roadmapId]
     );
     
-    console.log('✅ Ownership check result, rows:', ownershipCheck.rows.length);
-    
     if (ownershipCheck.rows.length === 0) {
-      console.warn('⚠️ Roadmap not found');
       return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
     }
     
     const ownerId = parseInt(ownershipCheck.rows[0].user_id);
-    console.log('🔍 Comparing ownerId:', ownerId, 'with userId:', userId);
+    const userRole = req.user?.role || 'user';
     
-    if (ownerId !== userId) {
-      console.error('❌ Access denied. Owner:', ownerId, 'User:', userId);
+    // ✅ CHO PHÉP ADMIN VÀO BẤT KỲ ROADMAP NÀO
+    if (ownerId !== userId && userRole !== 'admin') {
       return res.status(403).json({ 
         success: false, 
         error: "Bạn không có quyền truy cập lộ trình này" 
@@ -4407,7 +4411,112 @@ const updateDetailStatusSchema = Joi.object({
     status: Joi.string().valid('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED', 'SKIPPED').required(),
     studyDate: Joi.string().allow(null, '')
 });
+// ============ ADMIN: SYSTEM ROADMAPS ============
+app.get("/api/admin/roadmaps-system", requireAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        roadmap_id, roadmap_name, category, sub_category, start_level,
+        total_user_learning, duration_days, duration_hours,
+        overall_rating, learning_effectiveness, roadmap_analyst,
+        is_hidden, created_at, updated_at
+      FROM learning_roadmaps_system
+      ORDER BY created_at DESC
+    `;
+    
+    const result = await pool.query(query);
+    
+    const formattedData = result.rows.map(row => ({
+      ...row,
+      created_at: formatTimestampForAPI(row.created_at),
+      updated_at: formatTimestampForAPI(row.updated_at)
+    }));
+    
+    res.json({ success: true, data: formattedData });
+  } catch (error) {
+    console.error('Error fetching system roadmaps:', error);
+    res.status(500).json({ success: false, error: 'Không thể tải lộ trình hệ thống' });
+  }
+});
 
+app.get("/api/admin/roadmaps-system/:id", requireAdmin, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    
+    const query = `
+      SELECT * FROM learning_roadmap_details_system
+      WHERE roadmap_id = $1
+      ORDER BY day_number ASC
+    `;
+    
+    const result = await pool.query(query, [roadmapId]);
+    
+    res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Error fetching system roadmap details:', error);
+    res.status(500).json({ success: false, error: 'Không thể tải chi tiết' });
+  }
+});
+
+// ============ ADMIN: USER ROADMAPS ============
+app.get("/api/admin/roadmaps-user", requireAdmin, async (req, res) => {
+  try {
+    const query = `
+      SELECT 
+        r.roadmap_id, r.roadmap_name, r.category, r.sub_category, r.start_level,
+        r.duration_days, r.duration_hours, r.status, r.progress_percentage,
+        r.total_studied_hours, r.overall_rating, r.created_at, r.updated_at,
+        u.name as user_name, u.email as user_email
+      FROM learning_roadmaps r
+      LEFT JOIN users u ON r.user_id = u.id
+      ORDER BY r.created_at DESC
+    `;
+    
+    const result = await pool.query(query);
+    
+    const formattedData = result.rows.map(row => ({
+      ...row,
+      created_at: formatTimestampForAPI(row.created_at),
+      updated_at: formatTimestampForAPI(row.updated_at)
+    }));
+    
+    res.json({ success: true, data: formattedData });
+  } catch (error) {
+    console.error('Error fetching user roadmaps:', error);
+    res.status(500).json({ success: false, error: 'Không thể tải lộ trình người dùng' });
+  }
+});
+// ✅ API: Ẩn/hiện lộ trình hệ thống
+app.put("/api/admin/roadmaps-system/:id/toggle-hide", requireAdmin, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const { is_hidden } = req.body;
+    
+    if (typeof is_hidden !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'is_hidden phải là boolean' });
+    }
+    
+    const result = await pool.query(
+      `UPDATE learning_roadmaps_system 
+       SET is_hidden = $1, updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+       WHERE roadmap_id = $2
+       RETURNING roadmap_id`,
+      [is_hidden, roadmapId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Lộ trình không tồn tại' });
+    }
+    
+    res.json({ 
+      success: true, 
+      message: is_hidden ? 'Đã ẩn lộ trình khỏi danh sách phổ biến' : 'Đã hiện lộ trình trong danh sách phổ biến'
+    });
+  } catch (error) {
+    console.error('Error toggling hide roadmap:', error);
+    res.status(500).json({ success: false, error: 'Không thể cập nhật' });
+  }
+});
 // Tìm đoạn code này (khoảng dòng 1180-1230):
 
 app.get("/api/roadmap", requireAuth, async (req, res) => {
@@ -5487,26 +5596,27 @@ app.get('/api/roadmapsystem/category/:categoryName', async (req, res) => {
     `;
     const countResult = await pool.query(countQuery, [result.rows[0].name]);
     
-    const query = `
-      SELECT 
-        roadmap_id,
-        roadmap_name,
-        category,
-        sub_category,
-        start_level,
-        total_user_learning,
-        duration_days,
-        duration_hours,
-        overall_rating,
-        learning_effectiveness,
-        created_at,
-        updated_at
-      FROM learning_roadmaps_system
-      WHERE category = $1
-        AND (overall_rating >= 4 OR learning_effectiveness >= 4)
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
-    `;
+const query = `
+  SELECT 
+    roadmap_id,
+    roadmap_name,
+    category,
+    sub_category,
+    start_level,
+    total_user_learning,
+    duration_days,
+    duration_hours,
+    overall_rating,
+    learning_effectiveness,
+    created_at,
+    updated_at
+  FROM learning_roadmaps_system
+  WHERE category = $1
+    AND (overall_rating >= 4 OR learning_effectiveness >= 4)
+    AND (is_hidden IS NULL OR is_hidden = FALSE)
+  ORDER BY created_at DESC
+  LIMIT $2 OFFSET $3
+`;
     const roadmaps = await pool.query(query, [result.rows[0].name, limit, offset]);
 
     // ✅ Format timestamps
