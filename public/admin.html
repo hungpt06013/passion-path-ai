@@ -954,14 +954,28 @@ details > div {
     function fmtDate(iso) {
       try {
         if (!iso) return '-';
+        
+        // ✅ Parse ISO string từ backend
         const d = new Date(iso);
         if (isNaN(d)) return iso;
         
-        // ✅ ĐÚNG: Database đã trả về GMT+7, chỉ cần format
-        return d.toLocaleString('vi-VN', { 
-          timeZone: 'Asia/Ho_Chi_Minh' // ← CHỈ FORMAT, KHÔNG CỘNG THÊM
+        // ✅ QUAN TRỌNG: Backend đã cộng +7h, nên trừ lại 7h
+        const corrected = new Date(d.getTime() - (7 * 60 * 60 * 1000));
+        
+        // ✅ Format theo timezone Việt Nam
+        return corrected.toLocaleString('vi-VN', {
+          timeZone: 'Asia/Ho_Chi_Minh',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false
         });
+        
       } catch (e) {
+        console.error('Date format error:', e);
         return iso;
       }
     }
