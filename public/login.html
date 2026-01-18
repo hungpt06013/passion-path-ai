@@ -297,6 +297,26 @@
       font-weight: 600;
       margin: 12px 0;
     }
+/* ✅ THÊM STYLE MỚI cho password-toggle */
+.password-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px; /* ✅ THÊM để icon có size đẹp */
+}
+
+.password-toggle:hover {
+  background: rgba(10,20,40,0.05);
+  color: var(--primary);
+}
 @media (max-width: 900px) {
   body {
     padding-top: 200px; /* ✅ Đẩy xuống 200px */
@@ -493,7 +513,9 @@
           <label for="loginPasswordInput">Mật khẩu</label>
           <div class="inline">
             <input id="loginPasswordInput" name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu" style="flex:1;" required>
-            <button type="button" id="toggleLoginPasswordButton" class="password-toggle" aria-pressed="false" aria-label="Hiện mật khẩu">Hiện</button>
+            <button type="button" id="toggleLoginPasswordButton" class="password-toggle" aria-pressed="false" aria-label="Hiện mật khẩu">
+              <i class="fa-solid fa-eye"></i>
+            </button>
           </div>
           <div id="passwordError" class="error-text" role="alert" aria-live="polite" hidden></div>
         </div>
@@ -726,10 +748,14 @@
       const isPass = inpPass.type === 'password';
       if (isPass){
         inpPass.type = 'text';
-        toggleBtn.textContent = 'Ẩn';
+        toggleBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+        toggleBtn.setAttribute('aria-pressed', 'true');
+        toggleBtn.setAttribute('aria-label', 'Ẩn mật khẩu');
       } else {
         inpPass.type = 'password';
-        toggleBtn.textContent = 'Hiện';
+        toggleBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        toggleBtn.setAttribute('aria-pressed', 'false');
+        toggleBtn.setAttribute('aria-label', 'Hiện mật khẩu');
       }
     }
 
