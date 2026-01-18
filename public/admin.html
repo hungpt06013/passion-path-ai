@@ -957,10 +957,10 @@ details > div {
         const d = new Date(iso);
         if (isNaN(d)) return iso;
         
-        // Convert sang múi giờ Việt Nam (GMT+7)
-        const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
-        const vnTime = new Date(utc + (7 * 60 * 60 * 1000));
-        return vnTime.toLocaleString('vi-VN');
+        // ✅ ĐÚNG: Database đã trả về GMT+7, chỉ cần format
+        return d.toLocaleString('vi-VN', { 
+          timeZone: 'Asia/Ho_Chi_Minh' // ← CHỈ FORMAT, KHÔNG CỘNG THÊM
+        });
       } catch (e) {
         return iso;
       }
