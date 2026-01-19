@@ -843,8 +843,55 @@ body {
         font-size: 13px;
         max-height: 350px;
     }
+    #promptModal .modal-content {
+        width: 98%;
+        max-height: 95vh;
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    #promptModal .modal-header {
+        padding: 20px 15px;
+    }
+    
+    #promptModal .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    #promptModal .modal-body {
+        padding: 20px 15px;
+        max-height: calc(95vh - 80px);
+    }
+    
+    #promptModal pre,
+    #promptModal #customPromptContent {
+        font-size: 12px;
+        padding: 12px;
+        max-height: 350px;
+    }
+    
+    #promptModal .prompt-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        width: 100%;
+    }
+    
+    #promptModal .info-box {
+        font-size: 13px;
+        padding: 12px;
+    }
 }
+
 @media (max-width: 480px) {
+    #promptModal .modal-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    #promptModal pre,
+    #promptModal #customPromptContent {
+        font-size: 11px;
+        padding: 10px;
+    }
     body {
         padding: 5px;
         padding-top: 200px;
