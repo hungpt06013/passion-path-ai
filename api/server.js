@@ -2198,7 +2198,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
     if (missingColumns.length > 0) {
       return res.status(400).json({ 
         success: false, 
-        error: `Thiếu các cột bắt buộc hoặc sai thứ tự: ${missingColumns.join(', ')}. \n\nCột hiện có: ${headers.join(', ')}`,
+        error: `Dữ liệu trong file excel bị sai cấu trúc. Bạn hãy tham khảo file ví dụ sẽ upload thành công bên dưới file template. Sau đó copy nội dung AI trả về vào dòng 1 (Phân tích hiện trạng), dòng 2 là tiêu đề 8 cột ko được thay đổi và từ dòng 3 là 1 bảng gồm 8 cột gồm chi tiết lộ trình học. Thiếu các cột bắt buộc hoặc sai thứ tự: ${missingColumns.join(', ')}. \n\nCột hiện có: ${headers.join(', ')}`,
         details: {
           required: requiredColumns,
           found: headers,
