@@ -80,16 +80,22 @@
 .nav-buttons {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: center; /* ✅ GIỮ NGUYÊN: Mặc định căn giữa */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    padding: 4px 8px;
+    padding: 4px 8px 10px 8px; /* ✅ Thêm padding-bottom cho scrollbar */
     min-width: 0;
     white-space: nowrap;
     flex-wrap: nowrap;
     gap: clamp(10px, 1.8vw, 22px) !important;
     flex: 1 1 auto;
     transition: padding-left 0.3s ease;
+}
+
+/* ✅ THÊM: Khi có scrollbar thì căn trái và scroll về đầu */
+.nav-buttons.has-scroll {
+    justify-content: flex-start;
+    padding-left: 8px;
 }
 
 .nav-buttons::-webkit-scrollbar {
@@ -361,4 +367,13 @@
         font-size: 13px;
         padding: 8px 14px;
     }
+}
+/* ✅ THÊM: Đảm bảo nav-buttons luôn scroll về đầu */
+.nav-buttons {
+    scroll-behavior: smooth;
+}
+
+.nav-buttons::before {
+    content: '';
+    padding-left: 1px; /* Tạo khoảng cách nhỏ ở đầu */
 }
