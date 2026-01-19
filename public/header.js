@@ -20,6 +20,7 @@ function checkNavScrollbar() {
     
     if (hasHorizontalScroll) {
         navButtons.classList.add('has-scroll');
+        navButtons.scrollLeft = 0; // ✅ THÊM: Scroll về đầu
     } else {
         navButtons.classList.remove('has-scroll');
     }
@@ -63,7 +64,10 @@ function setupNavigation(currentPage = '') {
             <i class="fa-solid fa-chart-line"></i> Tiến Độ
         </a>
     `;
-    
+    setTimeout(() => {
+        navButtons.scrollLeft = 0; // ← QUAN TRỌNG: Scroll về vị trí đầu
+        checkNavScrollbar();
+    }, 100);
     // Set active state
     if (currentPage) {
         const idMap = {
