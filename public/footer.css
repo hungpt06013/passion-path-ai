@@ -230,18 +230,109 @@ footer {
 .footer-link:hover {
   color: #007bff !important;
 }
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     .modal-content {
         width: 98%;
         max-height: 95vh;
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .modal-header {
+        padding: 20px 15px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.3rem;
+        margin-bottom: 5px;
+    }
+    
+    .modal-header p {
+        font-size: 13px;
+    }
+    
+    .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 15px;
     }
     
     .modal-body {
-        padding: 20px;
+        padding: 20px 15px;
+        max-height: calc(95vh - 80px);
+    }
+    
+    /* Thu thập ý kiến */
+    .rating-stars {
+        font-size: 24px;
+        gap: 6px;
+    }
+    
+    .rating-group {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .rating-group label {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    
+    .textarea-group {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .textarea-group label {
+        font-size: 13px;
+    }
+    
+    .textarea-group textarea {
+        min-height: 70px;
+        font-size: 13px;
+    }
+    
+    .submit-evaluation-btn {
+        padding: 14px 24px;
+        font-size: 15px;
+    }
+    
+    /* Thông tin dự án */
+    .info-box {
+        padding: 12px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .modal-header p {
+        font-size: 12px;
+    }
+    
+    .modal-body {
+        padding: 15px 10px;
     }
     
     .rating-stars {
-        font-size: 28px;
+        font-size: 20px;
+        gap: 4px;
+    }
+    
+    .rating-group,
+    .textarea-group {
+        padding: 12px;
+    }
+    
+    .submit-evaluation-btn {
+        padding: 12px 20px;
+        font-size: 14px;
     }
 }
 /* ✅ Clean Modern Scrollbar - Rộng & Tối màu hơn */
