@@ -800,11 +800,12 @@
     .notification.error {
         background: #dc2626;
     }
-
+    .notification.info {
+        background: #3b82f6;
+    }
     .form-group {
         margin-bottom: 15px;
     }
-
     .form-group label {
         display: block;
         font-weight: 600;
@@ -2452,18 +2453,19 @@ async function saveChanges() {
     const table = document.querySelector('.roadmap-section table');
     if (!table) return;
     
+    // ✅ THÊM: HIỂN THỊ NOTIFICATION ĐANG XỬ LÝ
+    showNotification('⏳ Vui lòng đợi, đang xử lý...', 'info');
+    
     const analysisTextarea = document.getElementById('analysis-content-edit');
     const updatedAnalysis = analysisTextarea ? analysisTextarea.value.trim() : null;
     
     const tbody = table.querySelector('tbody');
     const allRows = tbody.querySelectorAll('tr');
     
-    // ✅ PHÂN LOẠI: Existing IDs vs New IDs vs Deleted IDs
     const existingRows = [];
     const newRows = [];
     const deletedIds = [];
     
-    // ✅ BỘ SƯU TẬP TẤT CẢ ROWS (bao gồm cả marked-for-deletion)
     const allDataRows = [];
     
     allRows.forEach((row) => {
@@ -2472,16 +2474,14 @@ async function saveChanges() {
         const isNewRow = String(detailId).startsWith('new_');
         
         if (isMarkedForDeletion) {
-            // Chỉ DELETE những row CŨ (không phải new_*)
             if (!isNewRow) {
                 deletedIds.push(parseInt(detailId));
             }
-            return; // Skip processing
+            return;
         }
         
         const cells = row.querySelectorAll('td');
         
-        // ✅ Xử lý STUDY DATE
         let studyDate = null;
         const dateInput = cells[1].querySelector('input');
         if (dateInput && dateInput.value.trim()) {
@@ -2498,7 +2498,6 @@ async function saveChanges() {
             }
         }
         
-        // ✅ Xử lý MATERIALS
         let materials = '';
         const materialsTextarea = cells[5].querySelector('textarea');
         if (materialsTextarea) {
@@ -2521,7 +2520,6 @@ async function saveChanges() {
             completion_status: cells[8].querySelector('select')?.value || 'NOT_STARTED'
         };
         
-        // ✅ THU THẬP TẤT CẢ (để sort sau)
         allDataRows.push(detail);
         
         if (isNewRow) {
@@ -2531,30 +2529,23 @@ async function saveChanges() {
         }
     });
     
-    // ✅ ✅ ✅ SORT THEO STUDY_DATE (ngày học)
     allDataRows.sort((a, b) => {
-        // Xử lý NULL/undefined dates (đưa xuống cuối)
         if (!a.study_date && !b.study_date) return 0;
         if (!a.study_date) return 1;
         if (!b.study_date) return -1;
         
-        // So sánh dates
         const dateA = new Date(a.study_date);
         const dateB = new Date(b.study_date);
         
-        return dateA - dateB; // Tăng dần (ngày cũ lên trên)
+        return dateA - dateB;
     });
     
-    console.log(`📊 Sorted by study_date:`, allDataRows.map(d => d.study_date));
-    
-    // ✅ ĐÁNH SỐ LẠI day_number THEO THỨ TỰ SAU KHI SORT
     let dayCounter = 1;
     
     allDataRows.forEach(detail => {
         detail.day_number = dayCounter++;
     });
     
-    // ✅ PHÂN LOẠI LẠI SAU KHI SORT
     const sortedExistingRows = allDataRows.filter(d => !String(d.detail_id).startsWith('new_'));
     const sortedNewRows = allDataRows.filter(d => String(d.detail_id).startsWith('new_'));
     
@@ -2587,7 +2578,7 @@ async function saveChanges() {
         
         const result = await response.json();
         
-        // ✅ HIỂN THỊ THỐNG KÊ
+        // ✅ SỬA: THAY ĐỔI MESSAGE SUCCESS
         let message = '✅ Đã lưu thay đổi thành công!';
         if (result.stats) {
             const parts = [];
