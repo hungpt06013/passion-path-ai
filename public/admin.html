@@ -1227,7 +1227,7 @@ function renderAIHistory(records, total) {
           <!-- ✅ HIỂN THỊ MÃ LỘ TRÌNH -->
           <strong>Mã lộ trình:</strong> 
           ${r.roadmap_id 
-            ? `<a href="path.html?open=${r.roadmap_id}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">#${r.roadmap_id}</a>` 
+            ? `<a href="path.html?roadmap=${r.roadmap_id}" target="_blank" style="color: #007bff; font-weight: bold; text-decoration: underline;">#${r.roadmap_id}</a>` 
             : '<span style="color: #999; font-style: italic;">Chưa lưu</span>'
           }
           ${r.roadmap_name ? ` - ${escapeHtml(r.roadmap_name)}` : ''}<br>
