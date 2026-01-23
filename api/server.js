@@ -5689,7 +5689,7 @@ app.get('/api/categories/top', async (req, res) => {
             GROUP BY c.id, c.name, c.description
             HAVING COUNT(DISTINCT lrs.roadmap_id) > 0
             ORDER BY roadmap_count DESC
-            LIMIT 9
+            LIMIT 30
         `;
         
         const result = await pool.query(query);
