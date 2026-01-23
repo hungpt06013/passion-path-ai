@@ -407,6 +407,20 @@ details > div {
 .admin-nav-btn .fa {
     font-size: 14px;
 }
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
 @media (max-width: 900px) {
   body {
     padding-top: 200px; /* ✅ Đẩy xuống 200px */
@@ -562,7 +576,6 @@ details > div {
   .modal-body {
     padding: 16px;
   }
-
   .rating-stars {
     font-size: 24px;
   }
@@ -926,6 +939,25 @@ details > div {
     <div id="userRoadmapsArea"></div>
     <div id="userRoadmapsMessage" role="status" aria-live="polite"></div>
 </section>
+<!-- ✅ MODAL XEM CHI TIẾT LỘ TRÌNH USER (ADMIN) -->
+<div class="modal-overlay" id="adminDetailsModal">
+    <div class="modal-content" style="min-width: 1400px; max-width: 95%;">
+        <div class="modal-header">
+            <div>
+                <h2 id="adminModalTitle">Chi tiết lộ trình</h2>
+                <p style="opacity: 0.9;">Xem chi tiết lộ trình người dùng</p>
+            </div>
+            <button class="close-modal" onclick="closeAdminDetailsModal()">✕</button>
+        </div>
+        <div class="modal-body" id="adminModalBody">
+            <div class="loading">
+                <div class="spinner"></div>
+                <br><br>
+                Đang tải...
+            </div>
+        </div>
+    </div>
+</div>
     </main>
 <div id="footer"></div>
   <script>
@@ -2540,9 +2572,116 @@ if (searchUserRoadmap) {
 }
 
 window.viewUserRoadmapDetails = async function(roadmapId) {
-    window.open(`path.html?roadmap=${roadmapId}`, '_blank');
+    // ✅ MỞ MODAL XEM CHI TIẾT TRỰC TIẾP (KHÔNG MỞ PATH.HTML)
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`/api/roadmaps/${roadmapId}`, {
+            headers: { 
+                'Authorization': 'Bearer ' + token,
+                'Cache-Control': 'no-cache'
+            }
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+        
+        const data = await res.json();
+        
+        // ✅ RENDER MODAL (GIỐNG PATH.HTML)
+        displayAdminRoadmapDetails(data.data.roadmap, data.data.details);
+        document.getElementById('adminDetailsModal').classList.add('active');
+        
+    } catch (err) {
+        console.error('Error loading roadmap:', err);
+        alert('❌ Không thể tải lộ trình: ' + err.message);
+    }
 };
+// ✅ HÀM RENDER CHI TIẾT LỘ TRÌNH (MODAL ADMIN)
+function displayAdminRoadmapDetails(roadmap, details) {
+    const modalBody = document.getElementById('adminModalBody');
+    const modalTitle = document.getElementById('adminModalTitle');
+    
+    modalTitle.textContent = roadmap.roadmap_name;
+    
+    const analysisHTML = `
+        <div class="analysis-section">
+            <h3>📊 Phân Tích AI</h3>
+            <div class="analysis-content" style="white-space: pre-wrap;">${roadmap.roadmap_analyst || 'Không có phân tích'}</div>
+        </div>
+    `;
+    
+    const tableHTML = `
+        <div class="roadmap-section">
+            <h3>📅 Lộ Trình Chi Tiết</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Ngày học</th>
+                        <th>Mục tiêu</th>
+                        <th>Nội dung</th>
+                        <th>Bài tập</th>
+                        <th>Tài liệu</th>
+                        <th>Hướng dẫn</th>
+                        <th>Thời lượng</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${details.map(d => {
+                        let materialsHTML = 'N/A';
+                        if (d.learning_materials) {
+                            const links = d.learning_materials.split(/[;\n]/).map(link => link.trim()).filter(link => link && link.match(/^https?:\/\//i));
+                            if (links.length > 0) {
+                                materialsHTML = links.map((link, idx) => `<a href="${link}" target="_blank" style="color: #007bff; display: block;">Xem</a>`).join('');
+                            }
+                        }
+                        
+                        const statusMap = {
+                            'NOT_STARTED': 'Chưa học',
+                            'IN_PROGRESS': 'Đang học',
+                            'COMPLETED': 'Hoàn thành',
+                            'SKIPPED': 'Bỏ qua'
+                        };
+                        
+                        return `
+                            <tr>
+                                <td class="day-cell">${d.day_number}</td>
+                                <td class="date-cell">${d.study_date || 'N/A'}</td>
+                                <td>${d.daily_goal || 'N/A'}</td>
+                                <td>${d.learning_content || 'N/A'}</td>
+                                <td>${d.practice_exercises || 'N/A'}</td>
+                                <td>${materialsHTML}</td>
+                                <td>${d.usage_instructions || 'N/A'}</td>
+                                <td style="text-align: center;"><strong>${formatHours(d.study_duration)}</strong></td>
+                                <td>${statusMap[d.completion_status] || d.completion_status}</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    modalBody.innerHTML = analysisHTML + tableHTML;
+}
 
+// ✅ HÀM ĐÓNG MODAL
+function closeAdminDetailsModal() {
+    document.getElementById('adminDetailsModal').classList.remove('active');
+}
+
+// ✅ HÀM FORMAT GIỜ (NẾU CHƯA CÓ)
+function formatHours(hours) {
+    if (!hours || isNaN(hours)) return '0m';
+    const totalMinutes = Math.round(hours * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+}
 
       function setupAdminNavigation() {
         const role = localStorage.getItem('role');
