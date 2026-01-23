@@ -35,6 +35,8 @@
     "nodemailer": "^7.0.12",
     "openai": "^4.104.0",
     "p-queue": "^9.0.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
     "xlsx": "^0.18.5"
   },
