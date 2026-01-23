@@ -13,6 +13,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import nodemailer from 'nodemailer';
 dotenv.config();
 
@@ -100,7 +102,64 @@ const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "p
 // parsers
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
+// ============ GOOGLE OAUTH CONFIGURATION ============
+app.use(passport.initialize());
 
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:5000/api/auth/google/callback'
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const email = profile.emails[0].value;
+    const name = profile.displayName;
+    const googleId = profile.id;
+    
+    // Kiểm tra user đã tồn tại chưa
+    let result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 LIMIT 1',
+      [email]
+    );
+    
+    let user;
+    
+    if (result.rows.length > 0) {
+      // User đã tồn tại
+      user = result.rows[0];
+    } else {
+      // Tạo user mới
+      const username = email.split('@')[0] + '_' + Math.random().toString(36).substr(2, 5);
+      const randomPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
+      const hashedPassword = await hashPassword(randomPassword, 10);
+      
+      result = await pool.query(
+        `INSERT INTO users (name, username, email, password, created_at) 
+         VALUES ($1, $2, $3, $4, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) 
+         RETURNING *`,
+        [name, username, email, hashedPassword]
+      );
+      
+      user = result.rows[0];
+    }
+    
+    return done(null, user);
+  } catch (error) {
+    return done(error, null);
+  }
+}));
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+    done(null, result.rows[0]);
+  } catch (error) {
+    done(error, null);
+  }
+});
 // ✅ SERVE PUBLIC FOLDER TRƯỚC
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
@@ -3291,7 +3350,27 @@ app.post("/api/login", async (req, res) => {
     return res.status(500).json({ message: "Lỗi server khi đăng nhập!" });
   }
 });
+// ============ GOOGLE OAUTH ENDPOINTS ============
+app.get('/api/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  session: false
+}));
 
+app.get('/api/auth/google/callback', 
+  passport.authenticate('google', { session: false, failureRedirect: '/login.html?error=google_auth_failed' }),
+  async (req, res) => {
+    try {
+      const user = req.user;
+      const token = makeToken(user.id);
+      
+      // Redirect về frontend với token
+      res.redirect(`/login.html?token=${token}&success=google_login`);
+    } catch (error) {
+      console.error('Google OAuth callback error:', error);
+      res.redirect('/login.html?error=auth_callback_failed');
+    }
+  }
+);
 app.get("/api/me", async (req, res) => {
   const auth = req.headers.authorization || "";
   const token = auth.replace(/^Bearer\s+/i, "").trim();
