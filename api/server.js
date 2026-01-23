@@ -1,4 +1,5 @@
 // server.js (ESM) - Optimized for AI Roadmap Generation
+// Khai báo các module cần thiết
 import express from "express";
 import { Pool } from "pg";
 import path from "path";
@@ -18,7 +19,7 @@ dotenv.config();
 const app = express();
 import cors from "cors";
 
-// -------- CORS -----------
+// Thiết lập CORS
 const rawAllowed = (process.env.ALLOWED_ORIGINS || "").trim();
 if (rawAllowed) {
   const allowedList = rawAllowed.split(",").map((s) => s.trim()).filter(Boolean);
@@ -37,6 +38,8 @@ if (rawAllowed) {
   }
   app.use(cors());
 }
+
+// Cấu hình email
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -47,7 +50,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Verify email configuration
+// Kiểm tra kết nối email
 transporter.verify(function(error, success) {
   if (error) {
     console.error('❌ Email configuration error:', error.message);
@@ -79,7 +82,7 @@ if (anthropicKey && anthropicKey.length > 20) {
   console.warn("⚠️ ANTHROPIC_API_KEY not set");
 }
 
-// ✅ KHAI BÁO CÁC BIẾN AI CONFIG TRƯỚC (di chuyển từ dòng 175 lên đây)
+// Cái đặt model
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
 const FALLBACK_CLAUDE_MODEL = process.env.FALLBACK_CLAUDE_MODEL || "claude-3-5-haiku-20241022";
 const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
@@ -87,11 +90,11 @@ const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-5";
 
 const openai = new OpenAI({ apiKey: openAiKey });
 
-// __dirname ESM
+// Cài đặt path
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// public dir
+// Cài đặt public folder
 const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "public"));
 
 // parsers
@@ -2809,23 +2812,26 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
     }
     
     const userId = parseInt(req.user?.id);
+    const userRole = req.user?.role || 'user';
     
     if (!userId || isNaN(userId)) {
       return res.status(401).json({ success: false, error: "Phiên đăng nhập không hợp lệ" });
     }
-    
-    // ✅ CHECK OWNERSHIP
+
+    // ✅ FIX: CHECK OWNERSHIP TRƯỚC
     const ownershipCheck = await pool.query(
       "SELECT roadmap_id, user_id FROM learning_roadmaps WHERE roadmap_id = $1::integer", 
       [roadmapId]
     );
     
     if (ownershipCheck.rows.length === 0) {
-      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+      return res.status(404).json({ 
+        success: false, 
+        error: "Lộ trình không tồn tại" 
+      });
     }
     
     const ownerId = parseInt(ownershipCheck.rows[0].user_id);
-    const userRole = req.user?.role || 'user';
     
     // ✅ CHO PHÉP ADMIN VÀO BẤT KỲ ROADMAP NÀO
     if (ownerId !== userId && userRole !== 'admin') {
@@ -2837,7 +2843,7 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
     
     console.log('✅ Access granted, fetching data...');
     
-    // Lấy thông tin roadmap
+    // ✅ FIX: QUERY CHỈ CẦN roadmap_id (đã check ownership rồi)
     const roadmapQuery = `
       SELECT 
         roadmap_id,
@@ -2864,11 +2870,19 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
         created_at,
         updated_at
       FROM learning_roadmaps
-      WHERE roadmap_id = $1::integer AND user_id = $2::integer
+      WHERE roadmap_id = $1::integer
     `;
     
-    const roadmapResult = await pool.query(roadmapQuery, [roadmapId, userId]);
+    const roadmapResult = await pool.query(roadmapQuery, [roadmapId]);
     
+    // ✅ FIX: THÊM CHECK AN TOÀN
+    if (!roadmapResult.rows || roadmapResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Không tìm thấy lộ trình'
+      });
+    }
+
     // Lấy chi tiết các ngày học
     const detailsQuery = `
       SELECT 
@@ -4721,13 +4735,9 @@ app.get("/api/roadmap", requireAuth, async (req, res) => {
 });
 app.get("/api/roadmap/:id", requireAuth, async (req, res) => {
   try {
-    console.log('🔍 /api/roadmap/:id - req.params.id:', req.params.id);
-    console.log('👤 req.user:', JSON.stringify(req.user, null, 2));
-    
     const roadmapId = parseInt(req.params.id);
     
     if (isNaN(roadmapId)) {
-      console.error('❌ Invalid roadmap ID:', req.params.id);
       return res.status(400).json({
         error: 'Invalid roadmap ID',
         message: 'ID lộ trình không hợp lệ'
@@ -4735,26 +4745,77 @@ app.get("/api/roadmap/:id", requireAuth, async (req, res) => {
     }
     
     const userId = parseInt(req.user?.id);
+    const userRole = req.user?.role || 'user';
     
     if (!userId || isNaN(userId)) {
-      console.error('❌ Invalid user ID:', req.user?.id);
       return res.status(401).json({
         error: 'Invalid user session',
         message: 'Phiên đăng nhập không hợp lệ'
       });
     }
 
+    // ✅ FIX: CHECK OWNERSHIP TRƯỚC
+    const ownershipCheck = await pool.query(
+      "SELECT roadmap_id, user_id FROM learning_roadmaps WHERE roadmap_id = $1::integer", 
+      [roadmapId]
+    );
+    
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        error: "Lộ trình không tồn tại" 
+      });
+    }
+    
+    const ownerId = parseInt(ownershipCheck.rows[0].user_id);
+    
+    // ✅ CHO PHÉP ADMIN VÀO BẤT KỲ ROADMAP NÀO
+    if (ownerId !== userId && userRole !== 'admin') {
+      return res.status(403).json({ 
+        success: false, 
+        error: "Bạn không có quyền truy cập lộ trình này" 
+      });
+    }
+    
+    console.log('✅ Access granted, fetching data...');
+    
+    // ✅ FIX: QUERY CHỈ CẦN roadmap_id (đã check ownership rồi)
     const roadmapQuery = `
-      SELECT * FROM learning_roadmaps
-      WHERE roadmap_id = $1::integer AND user_id = $2::integer
+      SELECT 
+        roadmap_id,
+        roadmap_name,
+        category,
+        sub_category,
+        start_level,
+        duration_days,
+        duration_hours,
+        status,
+        expected_outcome,
+        progress_percentage,
+        total_studied_hours,
+        overall_rating,
+        learning_effectiveness,
+        difficulty_suitability,
+        content_relevance,
+        engagement_level,
+        detailed_feedback,
+        actual_learning_outcomes,
+        improvement_suggestions,
+        would_recommend,
+        roadmap_analyst,
+        created_at,
+        updated_at
+      FROM learning_roadmaps
+      WHERE roadmap_id = $1::integer
     `;
-
-    const roadmapResult = await pool.query(roadmapQuery, [roadmapId, userId]);
-
-    if (roadmapResult.rows.length === 0) {
+    
+    const roadmapResult = await pool.query(roadmapQuery, [roadmapId]);
+    
+    // ✅ FIX: THÊM CHECK AN TOÀN
+    if (!roadmapResult.rows || roadmapResult.rows.length === 0) {
       return res.status(404).json({
-        error: 'Roadmap not found',
-        message: 'Lộ trình học không tìm thấy'
+        success: false,
+        error: 'Không tìm thấy lộ trình'
       });
     }
 
