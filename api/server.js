@@ -779,7 +779,7 @@ function getHardcodedJsonFormat() {
 }
 
 // ============================================================================
-// 16. HELPER FUNCTIONS - Duration Parsing
+// 16. HELPER FUNCTIONS - Duration and Day Parsing
 // ============================================================================
 
 function parseDurationToHours(value) {
@@ -816,7 +816,97 @@ function isValidDuration(value) {
   const hours = parseDurationToHours(value);
   return hours >= 0.05;
 }
-
+    function parseDayStudy(dayStudyValue) {
+      if (!dayStudyValue || dayStudyValue.toString().trim() === '') {
+        return null;
+      }
+      
+      try {
+        // Xử lý Excel serial number
+        if (typeof dayStudyValue === 'number') {
+          const excelEpoch = new Date(1899, 11, 30);
+          const rawDate = new Date(excelEpoch.getTime() + dayStudyValue * 86400000);
+          
+          // ✅ APPLY VN TIMEZONE
+          const utc = rawDate.getTime() + (rawDate.getTimezoneOffset() * 60000);
+          const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+          
+          const year = vnDate.getFullYear();
+          const month = String(vnDate.getMonth() + 1).padStart(2, '0');
+          const day = String(vnDate.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        
+        const dayStudyStr = dayStudyValue.toString().trim().replace(/^'/, '');
+        
+        // Thử parse với dấu /
+        let parts = dayStudyStr.split('/');
+        if (parts.length === 3) {
+          let day = parseInt(parts[0], 10);
+          let month = parseInt(parts[1], 10);
+          let year = parseInt(parts[2], 10);
+          
+          if (year < 100) {
+            year += 2000;
+          }
+          
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            const monthStr = String(month).padStart(2, '0');
+            const dayStr = String(day).padStart(2, '0');
+            return `${year}-${monthStr}-${dayStr}`;
+          }
+        }
+        
+        // Thử parse với dấu -
+        parts = dayStudyStr.split('-');
+        if (parts.length === 3) {
+          if (parts[0].length === 4) {
+            // Format: yyyy-mm-dd
+            let year = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            let day = parseInt(parts[2], 10);
+            
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+              const monthStr = String(month).padStart(2, '0');
+              const dayStr = String(day).padStart(2, '0');
+              return `${year}-${monthStr}-${dayStr}`;
+            }
+          } else {
+            // Format: dd-mm-yyyy
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            let year = parseInt(parts[2], 10);
+            
+            if (year < 100) {
+              year += 2000;
+            }
+            
+            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+              const monthStr = String(month).padStart(2, '0');
+              const dayStr = String(day).padStart(2, '0');
+              return `${year}-${monthStr}-${dayStr}`;
+            }
+          }
+        }
+        
+        // Fallback: thử parse trực tiếp
+        const directParse = new Date(dayStudyStr);
+        if (!isNaN(directParse.getTime())) {
+          // ✅ APPLY VN TIMEZONE
+          const utc = directParse.getTime() + (directParse.getTimezoneOffset() * 60000);
+          const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+          
+          const year = vnDate.getFullYear();
+          const month = String(vnDate.getMonth() + 1).padStart(2, '0');
+          const day = String(vnDate.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+        
+        return null;
+      } catch (e) {
+        return null;
+      }
+    }
 // ============================================================================
 // 17. HELPER FUNCTIONS - AI Response Parsing
 // ============================================================================
@@ -3543,19 +3633,35 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
 // 7. GET /api/roadmaps/progress - Lấy tổng hợp tiến độ học tập
 app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
   try {
-    const userId = parseInt(req.user?.id);
+    // ✅ FIX 1: Validation chặt chẽ hơn
+    const userIdRaw = req.user?.id;
     
-    if (!userId || isNaN(userId)) {
+    if (!userIdRaw) {
+      console.error('❌ No user ID in token');
       return res.status(401).json({ 
         success: false, 
-        error: "Phiên đăng nhập không hợp lệ"
+        error: "Token không chứa user ID"
       });
     }
+    
+    const userId = parseInt(userIdRaw);
+    
+    if (isNaN(userId) || userId <= 0) {
+      console.error('❌ Invalid user ID:', userIdRaw, '→', userId);
+      return res.status(401).json({ 
+        success: false, 
+        error: "User ID không hợp lệ"
+      });
+    }
+    
+    console.log('✅ Valid user ID:', userId);
     
     const todayVN = getVietnamDate();
     todayVN.setHours(0, 0, 0, 0);
     const todayStr = toVietnamDateString(todayVN);
     
+    console.log('📅 Today (VN):', todayStr);
+    // ✅ FIX 2: Xóa ::integer casting trong query
     const result = await pool.query(`
       SELECT 
         d.detail_id,
@@ -3571,19 +3677,22 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
         r.category
       FROM learning_roadmap_details d
       JOIN learning_roadmaps r ON d.roadmap_id = r.roadmap_id
-      WHERE r.user_id = $1::integer
+      WHERE r.user_id = $1
         AND r.status = 'ACTIVE'
       ORDER BY 
         CASE WHEN d.study_date IS NULL THEN 1 ELSE 0 END,
         d.study_date ASC NULLS LAST, 
         d.day_number ASC
-    `, [userId]);
+    `, [userId]); // ✅ Không cần ::integer
+    
+    console.log('📋 Found', result.rows.length, 'tasks');
     
     const tasks = result.rows || [];
     const today_tasks = [];
     const upcoming_tasks = [];
     const overdue_tasks = [];
     
+    // ✅ FORMAT study_date TRƯỚC KHI SO SÁNH
     tasks.forEach(task => {
       if (!task.study_date) {
         upcoming_tasks.push(task);
@@ -3591,11 +3700,13 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
       }
       
       try {
+        // ✅ APPLY VN TIMEZONE khi parse study_date
         const taskDateRaw = new Date(task.study_date);
         const utc = taskDateRaw.getTime() + (taskDateRaw.getTimezoneOffset() * 60000);
         const taskDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
         
         if (isNaN(taskDate.getTime())) {
+          console.warn('⚠️ Invalid date for task', task.detail_id);
           upcoming_tasks.push(task);
           return;
         }
@@ -3613,8 +3724,15 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
           }
         }
       } catch (dateError) {
+        console.warn('⚠️ Date parse error for task', task.detail_id, ':', dateError.message);
         upcoming_tasks.push(task);
       }
+    });
+    
+    console.log('✅ Categorized:', {
+      today: today_tasks.length,
+      upcoming: upcoming_tasks.length,
+      overdue: overdue_tasks.length
     });
     
     res.json({ 
@@ -3625,10 +3743,16 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
     });
     
   } catch (err) {
-    console.error("Error in /api/roadmaps/progress:", err);
+    console.error("❌❌❌ ERROR in /api/roadmaps/progress:");
+    console.error("Message:", err?.message);
+    console.error("Stack:", err?.stack);
+    console.error("Code:", err?.code);
+    console.error("Detail:", err?.detail);
+    
     res.status(500).json({ 
       success: false, 
-      error: "Không thể lấy tiến độ"
+      error: "Không thể lấy tiến độ",
+      details: process.env.NODE_ENV === 'development' ? err?.message : undefined
     });
   }
 });
