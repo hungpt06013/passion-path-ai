@@ -389,7 +389,7 @@ function toVietnamTime(isoDate) {
   const vnTime = new Date(utc + (7 * 60 * 60 * 1000));
   return vnTime.toLocaleDateString('vi-VN');
 }
-    function renderTasks(containerId, tasks) {
+function renderTasks(containerId, tasks) {
       const container = document.getElementById(containerId);
       
       if (tasks.length === 0) {
@@ -405,8 +405,12 @@ function toVietnamTime(isoDate) {
         return;
       }
       
-      const html = tasks.map(task => `
-        <div class="task-card" onclick="viewTaskDetail(${task.roadmap_id})">
+      const html = tasks.map(task => {
+        console.log('📋 Task data:', task);
+        console.log('🆔 roadmap_id:', task.roadmap_id);
+        
+        return `
+        <div class="task-card" onclick="viewTaskDetail('${task.roadmap_id}')">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
             <div>
               <h4>${task.daily_goal || 'Không có tiêu đề'}</h4>
@@ -426,16 +430,20 @@ function toVietnamTime(isoDate) {
           <div style="display: flex; gap: 15px; margin-top: 10px; color: #6b7280; font-size: 13px;">
             <span><i class="fa-solid fa-clock"></i> ${task.study_duration}h</span>
             ${task.study_date ? `<span><i class="fa-solid fa-calendar"></i> ${toVietnamTime(task.study_date)}</span>` : ''}
-
             <span><i class="fa-solid fa-tag"></i> ${task.category}</span>
           </div>
         </div>
-      `).join('');
+      `;}).join('');
       
       container.innerHTML = html;
     }
 
     function viewTaskDetail(roadmapId) {
+      console.log('🔗 Navigating to roadmap:', roadmapId);
+      if (!roadmapId || roadmapId === 'undefined' || roadmapId === 'null') {
+        alert('ID lộ trình không hợp lệ');
+        return;
+      }
       window.location.href = `path.html?roadmap=${roadmapId}`;
     }
 
