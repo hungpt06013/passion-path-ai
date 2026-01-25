@@ -6,7 +6,9 @@
     <title>Lộ Trình Học Của Tôi - Con đường theo đuổi đam mê</title>
     <script>
     const Token = localStorage.getItem('token');
+    setTimeout(() => {
     if (!Token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
+    }, 2000);
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
