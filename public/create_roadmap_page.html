@@ -3432,11 +3432,13 @@ const q2_category_name_input = document.getElementById('q2_category_name');
 let q2_category = '';
 
 if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
-  // Nếu chọn "Khác" → lấy từ input text
-  const otherInput = document.getElementById('q2_other_text');
+  const otherInput = document.getElementById('q2_category_other_input');
   q2_category = otherInput ? (otherInput.value || '').trim() : '';
+  
+  if (!q2_category) {
+    throw new Error('❌ Vui lòng nhập tên danh mục (Khác)');
+  }
 } else if (q2_category_name_input && q2_category_name_input.value) {
-  // Lấy TÊN từ hidden input (không phải ID)
   q2_category = q2_category_name_input.value.trim();
 } else {
   q2_category = 'Chưa xác định';
