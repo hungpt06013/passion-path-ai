@@ -439,7 +439,17 @@ main {
     // Get category from URL
     const urlParams = new URLSearchParams(window.location.search);
     currentCategory = urlParams.get('category') || '';
-
+    function formatHours(hours) {
+        if (!hours || isNaN(hours)) return '0m';
+        
+        const totalMinutes = Math.round(hours * 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        
+        if (h === 0) return `${m}m`;
+        if (m === 0) return `${h}h`;
+        return `${h}h ${m}m`;
+    }
     async function loadCategoryData() {
       if (!currentCategory) {
         showError('Không tìm thấy thông tin lĩnh vực');
@@ -549,7 +559,7 @@ function renderRoadmaps() {
         <h3>${escapeHtml(roadmap.roadmap_name)}</h3>
         <div class="roadmap-meta">
           <div class="meta-item"><i class="fas fa-calendar"></i><span>${roadmap.duration_days} ngày</span></div>
-          <div class="meta-item"><i class="fas fa-clock"></i><span>${roadmap.duration_hours}h</span></div>
+          <div class="meta-item"><i class="fas fa-clock"></i><span>${formatHours(roadmap.duration_hours)}</span></div>
           ${roadmap.sub_category ? `<div class="meta-item"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
         </div>
         ${ratingHtml}
