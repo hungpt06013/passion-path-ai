@@ -439,41 +439,53 @@ function toVietnamTime(isoDate) {
       window.location.href = `path.html?roadmap=${roadmapId}`;
     }
 
-    async function loadProgress() {
-      try {
-        const response = await fetch('/api/roadmaps/progress', {
-          headers: getAuthHeaders()
-        });
-        
-        if (!response.ok) {
-          if (response.status === 401) {
-            window.location.href = 'login.html';
-            return;
-          }
-          throw new Error(`HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        renderTasks('today', data.today || []);
-        renderTasks('upcoming', data.upcoming || []);
-        renderTasks('overdue', data.overdue || []);
-        
-      } catch (error) {
-        console.error('Error loading progress:', error);
-        ['today', 'upcoming', 'overdue'].forEach(id => {
-          document.getElementById(id).innerHTML = `
-            <div class="error">
-              ⚠️ Không thể tải dữ liệu. Vui lòng thử lại.
-              <button onclick="loadProgress()" style="margin-left: 10px; padding: 5px 10px;">
-                Thử lại
-              </button>
-            </div>
-          `;
-        });
+async function loadProgress() {
+  try {
+    console.log('🚀 Starting loadProgress...');
+    console.log('📡 Token:', localStorage.getItem('token')?.substring(0, 20) + '...');
+    
+    const response = await fetch('/api/roadmaps/progress', {
+      headers: getAuthHeaders()
+    });
+    
+    // ✅ ĐỌC RESPONSE BODY TRƯỚC
+    const text = await response.text();
+    
+    console.log('📦 Response status:', response.status);
+    console.log('📦 Response headers:', Object.fromEntries(response.headers));
+    console.log('📦 Response body:', text);
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        alert('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+        window.location.href = 'login.html';
+        return;
       }
+      throw new Error(`HTTP ${response.status}: ${text}`);
     }
-
+    
+    const data = JSON.parse(text);
+    
+    renderTasks('today', data.today || []);
+    renderTasks('upcoming', data.upcoming || []);
+    renderTasks('overdue', data.overdue || []);
+    
+  } catch (error) {
+    console.error('❌ Error loading progress:', error);
+    console.error('❌ Error stack:', error.stack);
+    
+    ['today', 'upcoming', 'overdue'].forEach(id => {
+      document.getElementById(id).innerHTML = `
+        <div class="error" style="text-align: center; padding: 20px; color: #dc2626;">
+          ⚠️ Không thể tải dữ liệu: ${error.message}
+          <button onclick="loadProgress()" style="margin-left: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Thử lại
+          </button>
+        </div>
+      `;
+    });
+  }
+}
     // Tab switching
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
