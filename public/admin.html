@@ -2718,6 +2718,9 @@ window.toggleHideSystemRoadmap = async function(roadmapId, shouldHide) {
             alert('✅ ' + data.message);
             if (fetchSystemRoadmapsClickCount % 2 === 1) {
                 fetchSystemRoadmapsBtn.click(); // Refresh
+                setTimeout(() => {
+                    fetchSystemRoadmapsBtn.click();
+                }, 1);
             }
         } else {
             alert('❌ ' + data.error);
