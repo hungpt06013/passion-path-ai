@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lộ Trình Học Của Tôi - Con đường theo đuổi đam mê</title>
     <script>
-    setTimeout(() => {
-        const Token = localStorage.getItem('token');
-        if (!Token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
-    }, 10000);
+    // Kiểm tra auth ngay khi trang load - không dùng alert, redirect ngay
+    (function checkAuthOnLoad() {
+        const _token = localStorage.getItem('token');
+        if (!_token) {
+            window.location.replace('login.html');
+        }
+    })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
