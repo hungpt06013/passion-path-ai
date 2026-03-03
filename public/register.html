@@ -1342,27 +1342,24 @@ const success = urlParams.get('success');
 const error = urlParams.get('error');
 
 if (token && success === 'google_login') {
+  // Lưu token ngay lập tức (đồng bộ) rồi chuyển trang
   localStorage.setItem('token', token);
-  
-  fetch(`${API_BASE}/api/me`, { 
+  localStorage.setItem('role', 'user'); // Mặc định, path.html sẽ cập nhật sau
+
+  // Fetch role ở background nhưng KHÔNG chờ - chuyển trang ngay
+  fetch(`${API_BASE}/api/me`, {
     headers: { Authorization: 'Bearer ' + token }
   })
   .then(res => res.json())
   .then(data => {
     if (data.user && data.user.role) {
       localStorage.setItem('role', data.user.role);
-    } else {
-      localStorage.setItem('role', 'user');
     }
-    showGeneralMessage('Đăng ký thành công. Chuyển tới Lộ Trình Học...', 'success');
-    setTimeout(() => {
-      window.location.href = '/path.html';
-    }, 1000);
   })
-  .catch(() => {
-    localStorage.setItem('role', 'user');
-    window.location.href = '/path.html';
-  });
+  .catch(() => {});
+
+  // Chuyển sang path.html ngay, không chờ fetch
+  window.location.replace('/path.html');
 }
 
 if (error) {
