@@ -137,4 +137,5 @@ AI sẽ trả lời theo thứ tự:
 ```
 **Bước 2:** Trình bày 1. PHÂN TÍCH HIỆN TRẠNG
 **Bước 3:** Trình bày 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
+Sau đó, bạn hãy xuất kết quả thành file excel theo template đính kèm
 ```
