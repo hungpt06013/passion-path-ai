@@ -292,6 +292,12 @@ body.has-admin-nav main {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+    .var-list li {
+            list-style: none;
         }
 
     .warning {
@@ -1113,7 +1119,7 @@ details > div {
 
               <div class="info-text">
                   Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng.
-              </div>
+              </div><br>
 
               <ul class="var-list">
                   <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
@@ -1222,12 +1228,21 @@ details > div {
     <h2>🗂️ Lộ Trình Hệ Thống</h2>
     <p class="small">Danh sách các lộ trình đã được hệ thống chấp nhận (rating >= 4)</p>
     
-    <div style="margin: 15px 0;">
+    <div style="margin: 15px 0; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
         <button id="fetchSystemRoadmapsBtn" class="btn-refresh">
             <i class="fa-solid fa-sync"></i> Tải Lộ Trình
         </button>
         <input type="text" id="searchSystemRoadmap" placeholder="Tìm kiếm theo tên lộ trình..." 
-               style="margin-left: 10px; padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; width: 300px;">
+               style="padding: 8px 12px; border-radius: 6px; border: 1px solid #d1d5db; width: 280px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px; font-weight: 600; color: #4b5563;">Sắp xếp:</span>
+            <select id="sortSystemRoadmap" style="padding: 8px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; font-weight: 500; background: white; cursor: pointer; transition: border-color 0.2s;">
+                <option value="newest">Mới nhất</option>
+                <option value="popular">Phổ biến nhất</option>
+                <option value="rating_overall">Tổng thể ≥4⭐ (nhiều → ít)</option>
+                <option value="rating_effectiveness">Hiệu quả ≥4⭐ (nhiều → ít)</option>
+            </select>
+        </div>
     </div>
     
     <div id="systemRoadmapsArea"></div>
@@ -2562,6 +2577,12 @@ if (viewStatsBtn) {
     }
   });
 }
+// ============ UTILITY: Vietnamese-aware search ============
+function removeDiacritics(str) {
+    return str.normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase();
+}
 // ============ SYSTEM ROADMAPS MANAGEMENT ============
 // ============ SYSTEM ROADMAPS MANAGEMENT ============
 function renderSystemRoadmaps(roadmaps) {
@@ -2654,7 +2675,8 @@ if (fetchSystemRoadmapsBtn) {
                 
                 const data = await res.json();
                 window.systemRoadmapsData = data.data; // Lưu để search
-                renderSystemRoadmaps(data.data);
+                window.systemRoadmapsFiltered = data.data;
+                applySortSystemRoadmaps();
                 systemRoadmapsMessage.textContent = `Đã tải ${data.data.length} lộ trình`;
             } catch (err) {
                 console.error(err);
@@ -2674,20 +2696,47 @@ if (fetchSystemRoadmapsBtn) {
 
 if (searchSystemRoadmap) {
     searchSystemRoadmap.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase().trim();
+        const query = removeDiacritics(e.target.value.trim());
         
         if (!window.systemRoadmapsData) return;
         
         if (query === '') {
-            renderSystemRoadmaps(window.systemRoadmapsData);
+            window.systemRoadmapsFiltered = window.systemRoadmapsData;
         } else {
-            const filtered = window.systemRoadmapsData.filter(r => 
-                r.roadmap_name.toLowerCase().includes(query) ||
-                r.category.toLowerCase().includes(query)
+            window.systemRoadmapsFiltered = window.systemRoadmapsData.filter(r => 
+                removeDiacritics(r.roadmap_name).includes(query) ||
+                removeDiacritics(r.category || '').includes(query)
             );
-            renderSystemRoadmaps(filtered);
         }
+        applySortSystemRoadmaps();
     });
+}
+
+const sortSystemRoadmap = document.getElementById('sortSystemRoadmap');
+if (sortSystemRoadmap) {
+    sortSystemRoadmap.addEventListener('change', function() {
+        applySortSystemRoadmaps();
+    });
+}
+
+function applySortSystemRoadmaps() {
+    const data = window.systemRoadmapsFiltered || window.systemRoadmapsData;
+    if (!data) return;
+    
+    const sort = sortSystemRoadmap ? sortSystemRoadmap.value : 'newest';
+    const sorted = [...data];
+    
+    if (sort === 'popular') {
+        sorted.sort((a, b) => (b.total_user_learning || 0) - (a.total_user_learning || 0));
+    } else if (sort === 'rating_overall') {
+        sorted.sort((a, b) => (b.overall_rating || 0) - (a.overall_rating || 0));
+    } else if (sort === 'rating_effectiveness') {
+        sorted.sort((a, b) => (b.learning_effectiveness || 0) - (a.learning_effectiveness || 0));
+    } else {
+        sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+    
+    renderSystemRoadmaps(sorted);
 }
 
 window.viewSystemRoadmapDetails = function(roadmapId) {
@@ -2857,7 +2906,7 @@ if (fetchUserRoadmapsBtn) {
 
 if (searchUserRoadmap) {
     searchUserRoadmap.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase().trim();
+        const query = removeDiacritics(e.target.value.trim());
         
         if (!window.userRoadmapsData) return;
         
@@ -2865,9 +2914,9 @@ if (searchUserRoadmap) {
             renderUserRoadmaps(window.userRoadmapsData);
         } else {
             const filtered = window.userRoadmapsData.filter(r => 
-                r.roadmap_name.toLowerCase().includes(query) ||
-                (r.user_name && r.user_name.toLowerCase().includes(query)) ||
-                (r.user_email && r.user_email.toLowerCase().includes(query))
+                removeDiacritics(r.roadmap_name).includes(query) ||
+                (r.user_name && removeDiacritics(r.user_name).includes(query)) ||
+                (r.user_email && removeDiacritics(r.user_email).includes(query))
             );
             renderUserRoadmaps(filtered);
         }
