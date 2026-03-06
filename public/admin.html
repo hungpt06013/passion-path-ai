@@ -1110,81 +1110,102 @@ details > div {
       </section>
 
       <section id="promptSection" style="display:none;" class="card">
-        <div class="panel">
-              <h2>Biến Bắt Buộc (Không Được Sửa)</h2>
-              
-              <div class="warning">
-                  Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
-              </div>
 
-              <div class="info-text">
-                  Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng.
-              </div><br>
-
-              <ul class="var-list">
-                  <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
-                  <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
-                  <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
-                  <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
-                  <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
-                  <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
-                  <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
-                  <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
-                  <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
-                  <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
-                  <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
-                  <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
-                  <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
-                  <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
-                  <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
-                  <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
-                  <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
-                  <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
-                  <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
-                  <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
-                  <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
-              </ul>
+        <!-- ===== KHỐI 1: CÁC BIẾN TRONG PROMPT ===== -->
+        <h2>🧩 Quản Lý Các Biến Trong Prompt</h2>
+        <p class="small">Quản lý các biến được sử dụng trong các prompt.</p>
+        <div style="margin: 15px 0;">
+          <button class="btn-refresh" onclick="togglePromptBlock('varBlock')">
+            <i class="fa-solid fa-sync"></i> Tải Các Biến
+          </button>
+        </div>
+        <div id="varBlock" style="display:none;">
+          <div class="panel">
+            <div class="warning">
+              Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
+            </div>
+            <div class="info-text">
+              Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng.
+            </div><br>
+            <ul class="var-list">
+              <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
+              <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
+              <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
+              <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
+              <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
+              <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
+              <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
+              <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
+              <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
+              <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
+              <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
+              <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
+              <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
+              <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
+              <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
+              <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
+              <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
+              <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
+              <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
+              <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
+              <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
+            </ul>
           </div>
+        </div>
 
-          <div class="section-divider"></div>
+        <div class="section-divider"></div>
+
+        <!-- ===== KHỐI 2: QUẢN LÝ PROMPT TEMPLATE AI ===== -->
         <h2>📝 Quản Lý Prompt Template AI</h2>
         <p class="small">Chỉnh sửa template prompt được sử dụng để tạo lộ trình học với AI.</p>
-        
-        <div id="promptMessage" role="status" aria-live="polite"></div>
-        
-        <div style="margin: 20px 0;">
-          <h3>✏️ Chỉnh Sửa Prompt</h3>
-          <textarea id="promptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
-          
-          <div style="margin-top: 15px;">
-            <button id="savePromptBtn" class="btn-save">
-              <i class="fa-solid fa-save"></i> Lưu Prompt
-            </button>
-            <button id="resetPromptBtn" class="btn-reset">
-              <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
-            </button>
+        <div style="margin: 15px 0;">
+          <button class="btn-refresh" onclick="togglePromptBlock('aiPromptBlock')">
+            <i class="fa-solid fa-sync"></i> Tải Prompt AI
+          </button>
+        </div>
+        <div id="aiPromptBlock" style="display:none;">
+          <div id="promptMessage" role="status" aria-live="polite"></div>
+
+          <div style="margin: 20px 0;">
+            <h3>✏️ Chỉnh Sửa Prompt</h3>
+            <textarea id="promptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
+            <div style="margin-top: 15px;">
+              <button id="savePromptBtn" class="btn-save">
+                <i class="fa-solid fa-save"></i> Lưu Prompt
+              </button>
+              <button id="resetPromptBtn" class="btn-reset">
+                <i class="fa-solid fa-undo"></i> Khôi Phục Mặc Định
+              </button>
+            </div>
+          </div>
+
+          <div style="margin: 20px 0;">
+            <h3>👁️ Nội Dung Prompt Mẫu</h3>
+            <div id="promptPreview" class="prompt-preview">Đang tải...</div>
+          </div>
+
+          <div style="margin: 20px 0;">
+            <h3>Định dạng AI trả về</h3>
+            <div id="jsonFormat" class="json-format"></div>
           </div>
         </div>
 
-        <div style="margin: 20px 0;">
-          <h3>👁️ Nội Dung Prompt Mẫu</h3>
-          <div id="promptPreview" class="prompt-preview">Đang tải...</div>
+        <div class="section-divider"></div>
+
+        <!-- ===== KHỐI 3: PROMPT TEMPLATE THỦ CÔNG ===== -->
+        <h2>📝 Quản Lý Prompt Template Tạo Thủ Công</h2>
+        <p class="small">Chỉnh sửa template prompt được hiển thị cho user non-admin để họ tự hỏi AI bên ngoài.</p>
+        <div style="margin: 15px 0;">
+          <button class="btn-refresh" onclick="togglePromptBlock('manualPromptBlock')">
+            <i class="fa-solid fa-sync"></i> Tải Prompt Thủ Công
+          </button>
         </div>
-        <div style="margin: 20px 0;">
-          <h3>Định dạng AI trả về</h3>
-          <div id="jsonFormat" class="json-format"></div>
-        </div>
-        <!-- ===== PHẦN MỚI: PROMPT TẠO THỦ CÔNG ===== -->
-        <div style="margin: 20px 0; border-top: 2px solid #e5e7eb; padding-top: 30px;">
-          <h2>📝 Prompt Template (Tạo Thủ Công)</h2>
-          <p class="small">Prompt này sẽ được hiển thị cho user non-admin để họ tự hỏi AI bên ngoài.</p>
-          
+        <div id="manualPromptBlock" style="display:none;">
           <div id="manualPromptMessage" role="status" aria-live="polite"></div>
-          
+
           <div style="margin: 20px 0;">
             <h3>✏️ Chỉnh Sửa Prompt (Tạo Thủ Công)</h3>
             <textarea id="manualPromptEditor" class="prompt-editor" placeholder="Đang tải prompt template..."></textarea>
-            
             <div style="margin-top: 15px;">
               <button id="saveManualPromptBtn" class="btn-save">
                 <i class="fa-solid fa-save"></i> Lưu Prompt Thủ Công
@@ -1200,6 +1221,7 @@ details > div {
             <div id="manualPromptPreview" class="prompt-preview">Đang tải...</div>
           </div>
         </div>
+
       </section>
       <section id="feedbackSection" style="display:none;" class="card">
     <h2>💬 Phản Hồi Người Dùng</h2>
@@ -1300,6 +1322,13 @@ details > div {
     const createCategoryBtn = document.getElementById('createCategoryBtn');
     const categoriesArea = document.getElementById('categoriesArea');
     const categoriesMessage = document.getElementById('categoriesMessage');
+
+    // ===== TOGGLE PROMPT BLOCKS =====
+    window.togglePromptBlock = function(blockId) {
+      const block = document.getElementById(blockId);
+      if (!block) return;
+      block.style.display = block.style.display === 'none' ? 'block' : 'none';
+    };
 
     const promptEditor = document.getElementById('promptEditor');
     const promptPreview = document.getElementById('promptPreview');
