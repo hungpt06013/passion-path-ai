@@ -2594,7 +2594,7 @@ app.post("/api/get-manual-prompt", requireAuth, async (req, res) => {
     if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
       manualPromptTemplate = result.rows[0].manual_prompt_template;
     } else {
-      const defaultPath = path.join(__dirname, 'Data', 'default_prompt.txt');
+      const defaultPath = path.join(dataDir, 'default_prompt.txt');
       if (fs.existsSync(defaultPath)) {
         manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
       } else {
@@ -5365,7 +5365,7 @@ app.get("/api/admin/manual-prompt", requireAuth, async (req, res) => {
     if (result.rows.length > 0 && result.rows[0].manual_prompt_template) {
       manualPromptTemplate = result.rows[0].manual_prompt_template;
     } else {
-      const defaultPath = path.join(__dirname, 'Data', 'default_prompt.txt');
+      const defaultPath = path.join(dataDir, 'default_prompt.txt');
       if (fs.existsSync(defaultPath)) {
         manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
       } else {
@@ -5448,7 +5448,7 @@ app.post("/api/admin/manual-prompt/reset", requireAdmin, async (req, res) => {
   try {
     let manualPromptTemplate;
 
-    const defaultPath = path.join(__dirname, 'Data', 'default_prompt.txt');
+    const defaultPath = path.join(dataDir, 'default_prompt.txt');
     
     if (fs.existsSync(defaultPath)) {
       manualPromptTemplate = fs.readFileSync(defaultPath, 'utf8');
@@ -5521,7 +5521,7 @@ app.post("/api/admin/prompt-template/reset", requireAdmin, async (req, res) => {
     let defaultPrompt;
     let defaultJsonFormat;
     
-    const defaultPath = path.join(__dirname, 'Data', 'default_prompt_ai.txt');
+    const defaultPath = path.join(dataDir, 'default_prompt_ai.txt');
     
     if (fs.existsSync(defaultPath)) {
       const content = fs.readFileSync(defaultPath, 'utf8');
