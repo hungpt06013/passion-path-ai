@@ -383,11 +383,10 @@ body {
       return map[status] || status;
     }
 function toVietnamTime(isoDate) {
-  if (!isoDate) return '';
+  if (!isoDate) return 'N/A';
   const date = new Date(isoDate);
-  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const vnTime = new Date(utc + (7 * 60 * 60 * 1000));
-  return vnTime.toLocaleDateString('vi-VN');
+  if (isNaN(date)) return isoDate;
+  return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); // ✅ để browser tự xử lý đúng
 }
     function renderTasks(containerId, tasks) {
       const container = document.getElementById(containerId);
