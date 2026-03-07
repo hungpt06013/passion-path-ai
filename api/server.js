@@ -541,9 +541,8 @@ function makeToken(userId) {
 // ============================================================================
 
 function getVietnamDate() {
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utc + (7 * 60 * 60 * 1000));
+  // Dùng Intl để lấy đúng giờ VN, tránh lỗi khi server chạy ở timezone khác
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
 }
 
 function toVietnamDateString(date) {
@@ -557,9 +556,10 @@ function toVietnamDateString(date) {
 function formatTimestampForAPI(timestamp) {
   if (!timestamp) return null;
   const rawDate = new Date(timestamp);
-  const utc = rawDate.getTime() + (rawDate.getTimezoneOffset() * 60000);
-  const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-  return vnDate.toISOString();
+  if (isNaN(rawDate)) return null;
+  // DB lưu giờ VN dạng TIMESTAMP WITHOUT TIMEZONE → pg đọc vào coi như UTC
+  // Trừ 7h để ra UTC thật, frontend sẽ cộng lại +7 khi hiển thị
+  return new Date(rawDate.getTime() - VIETNAM_TIMEZONE_OFFSET).toISOString();
 }
 
 // ============================================================================
@@ -826,15 +826,7 @@ function isValidDuration(value) {
         if (typeof dayStudyValue === 'number') {
           const excelEpoch = new Date(1899, 11, 30);
           const rawDate = new Date(excelEpoch.getTime() + dayStudyValue * 86400000);
-          
-          // ✅ APPLY VN TIMEZONE
-          const utc = rawDate.getTime() + (rawDate.getTimezoneOffset() * 60000);
-          const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-          
-          const year = vnDate.getFullYear();
-          const month = String(vnDate.getMonth() + 1).padStart(2, '0');
-          const day = String(vnDate.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
+          return rawDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
         }
         
         const dayStudyStr = dayStudyValue.toString().trim().replace(/^'/, '');
@@ -892,14 +884,7 @@ function isValidDuration(value) {
         // Fallback: thử parse trực tiếp
         const directParse = new Date(dayStudyStr);
         if (!isNaN(directParse.getTime())) {
-          // ✅ APPLY VN TIMEZONE
-          const utc = directParse.getTime() + (directParse.getTimezoneOffset() * 60000);
-          const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-          
-          const year = vnDate.getFullYear();
-          const month = String(vnDate.getMonth() + 1).padStart(2, '0');
-          const day = String(vnDate.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
+          return directParse.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
         }
         
         return null;
@@ -1744,8 +1729,7 @@ app.post("/api/register/verify-code", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const utc = expiresAtRaw.getTime() + (expiresAtRaw.getTimezoneOffset() * 60000);
-    const expiresAtVN = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
     
     if (vnNow > expiresAtVN) {
       return res.status(400).json({
@@ -2133,8 +2117,7 @@ app.post("/api/password-reset/verify", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const utc = expiresAtRaw.getTime() + (expiresAtRaw.getTimezoneOffset() * 60000);
-    const expiresAtVN = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
     
     if (vnNow > expiresAtVN) {
       return res.status(400).json({
@@ -2205,8 +2188,7 @@ app.post("/api/password-reset/reset", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const utc = expiresAtRaw.getTime() + (expiresAtRaw.getTimezoneOffset() * 60000);
-    const expiresAtVN = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
     
     if (vnNow > expiresAtVN) {
       return res.status(400).json({
@@ -2752,8 +2734,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const roadmapId = roadmapResult.rows[0].roadmap_id;
     
     const roadmapCreatedAtRaw = new Date(roadmapResult.rows[0].created_at);
-    const utc = roadmapCreatedAtRaw.getTime() + (roadmapCreatedAtRaw.getTimezoneOffset() * 60000);
-    const roadmapCreatedAt = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+    const roadmapCreatedAt = new Date(roadmapCreatedAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
     roadmapCreatedAt.setHours(0, 0, 0, 0);
     
     // Cập nhật roadmap_id vào ai_query_history
@@ -3129,16 +3110,13 @@ app.get("/api/roadmaps/progress", requireAuth, async (req, res) => {
       
       try {
         const taskDateRaw = new Date(task.study_date);
-        const utc = taskDateRaw.getTime() + (taskDateRaw.getTimezoneOffset() * 60000);
-        const taskDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
+        // study_date là DATE column → pg trả về midnight UTC, dùng Intl để lấy đúng ngày VN
+        const taskDateStr = taskDateRaw.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
         
-        if (isNaN(taskDate.getTime())) {
+        if (!taskDateStr || taskDateStr === 'Invalid Date') {
           upcoming_tasks.push(task);
           return;
         }
-        
-        taskDate.setHours(0, 0, 0, 0);
-        const taskDateStr = toVietnamDateString(taskDate);
         
         if (taskDateStr === todayStr) {
           today_tasks.push(task);
@@ -3305,12 +3283,8 @@ app.get("/api/roadmaps/:id/details", requireAuth, async (req, res) => {
       
       if (row.study_date) {
         const rawDate = new Date(row.study_date);
-        const utc = rawDate.getTime() + (rawDate.getTimezoneOffset() * 60000);
-        const vnDate = new Date(utc + VIETNAM_TIMEZONE_OFFSET);
-        
-        const day = String(vnDate.getDate()).padStart(2, '0');
-        const month = String(vnDate.getMonth() + 1).padStart(2, '0');
-        const year = vnDate.getFullYear();
+        const vnDateStr = rawDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Ho_Chi_Minh' });
+        const [year, month, day] = vnDateStr.split('-');
         studyDateFormatted = `${day}/${month}/${year}`;
       }
       
