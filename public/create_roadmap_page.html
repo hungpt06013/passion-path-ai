@@ -1288,7 +1288,7 @@ body {
                     <!-- Q9: Thời gian lộ trình (ngày) -->
                     <div class="form-group">
                         <label class="form-label" id="q11_label">9. Thời gian (ngày) của lộ trình (15 - 60 ngày) *</label>
-                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="60" required
+                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="360" required
                             placeholder="Nhập số ngày (15 - 60)">
                         <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
                             ⚠️ Số ngày tối đa: 60. Nếu bạn muốn hơn 60 ngày, vui lòng tạo thủ công.
@@ -1431,10 +1431,17 @@ body {
                 <div class="form-section ai-generate-section">
                     <h3 class="section-title">🤖 Tạo Lộ Trình</h3>
                     <div class="ai-notice">
-                        <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn nút này trước khi có thể tạo lộ trình.
+                        <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn một trong các nút bên dưới trước khi có thể tạo lộ trình.
                     </div>
+
+                    <!-- Nút AI (mặc định cho mọi role, admin cũng thấy) -->
                     <button type="button" id="generateAI" class="ai-btn">
-                    <span id="generateBtnText">🤖 Tạo lộ trình với AI</span>
+                        <span id="generateBtnText">🤖 Tạo lộ trình với AI</span>
+                    </button>
+
+                    <!-- Nút thủ công: chỉ admin mới thấy -->
+                    <button type="button" id="adminManualBtn" class="ai-btn" style="display:none; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.3); margin-top: 12px;">
+                        📝 Tạo lộ trình thủ công (Prompt + Excel)
                     </button>
                 </div>
                 <div class="analysis-section">
@@ -2282,7 +2289,7 @@ async function getMaxDaysForCurrentUser() {
     const data = await response.json();
     const role = data.user?.role || 'user';
     
-    return role === 'admin' ? 60 : 360;
+    return 360; // Admin và user đều được nhập 15-360
   } catch {
     return 360; // Fallback
   }
@@ -2312,41 +2319,59 @@ async function checkUserRoleAndUpdateUI() {
   const role = localStorage.getItem('role');
   const generateBtn = document.getElementById('generateAI');
   const generateBtnText = document.getElementById('generateBtnText');
+  const adminManualBtn = document.getElementById('adminManualBtn');
   const analysisSection = document.querySelector('.analysis-section');
   const daysSection = document.querySelectorAll('.form-section')[document.querySelectorAll('.form-section').length - 1];
   const submitSection = document.querySelector('.submit-section');
-  
+
+  // Hàm validate rồi hiện prompt (dùng chung cho user và admin-manual)
+  function handleManualClick() {
+    const validationErrors = validateAllQuestions();
+    if (validationErrors && validationErrors.length > 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    showManualPromptForUser();
+  }
+
   if (!token || role !== 'admin') {
-    // User thường: Đổi nút thành "Tạo lộ trình"
+    // ── USER THƯỜNG ──────────────────────────────────────────────
+    // Đổi nút AI thành nút "Tạo lộ trình" (hiện prompt + Excel)
     if (generateBtnText) {
       generateBtnText.textContent = '📝 Tạo lộ trình';
     }
-    
+
     // Ẩn analysis section, days section, submit section
     if (analysisSection) analysisSection.style.display = 'none';
     if (daysSection) daysSection.style.display = 'none';
     if (submitSection) submitSection.style.display = 'none';
-    
-    // ✅ FIX: Validate form trước khi hiện prompt
+
+    // Wire nút duy nhất → hiện prompt thủ công
     if (generateBtn) {
       generateBtn.removeEventListener('click', generateRoadmapWithAI);
-      generateBtn.addEventListener('click', function() {
-        // ✅ VALIDATE FORM TRƯỚC
-        const validationErrors = validateAllQuestions();
-        if (validationErrors && validationErrors.length > 0) {
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return; // Dừng nếu có lỗi
-        }
-        
-        // ✅ Nếu pass validation, hiện prompt
-        showManualPromptForUser();
-      });
+      generateBtn.addEventListener('click', handleManualClick);
     }
+
+    // Đảm bảo nút admin ẩn
+    if (adminManualBtn) adminManualBtn.style.display = 'none';
+
   } else {
-    // Admin: giữ nguyên
+    // ── ADMIN ─────────────────────────────────────────────────────
+    // Nút AI giữ nguyên text và handler
     if (generateBtnText) {
       generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
     }
+
+    // Hiện nút thủ công thứ 2
+    if (adminManualBtn) {
+      adminManualBtn.style.display = 'block';
+      adminManualBtn.addEventListener('click', handleManualClick);
+    }
+
+    // Analysis / days / submit vẫn hiện cho admin
+    if (analysisSection) analysisSection.style.display = '';
+    if (daysSection) daysSection.style.display = '';
+    if (submitSection) submitSection.style.display = '';
   }
 }
 // ✅ Cập nhật hàm validateDays()
@@ -2360,8 +2385,8 @@ async function validateDays() {
   const days = parseInt(daysInput.value);
   const role = localStorage.getItem('role');
   
-  // ✅ LOGIC MỚI: Admin max 60, User max 360
-  const maxDays = (role === 'admin') ? 60 : 360;
+  // Cả admin lẫn user đều nhập được 15-360 ngày
+  const maxDays = 360;
   
   // Nếu input trống
   if (!daysInput.value || daysInput.value.trim() === '') {
@@ -2370,17 +2395,12 @@ async function validateDays() {
     return;
   }
   
-  // Validate theo role
+  // Validate
   if (isNaN(days) || days < 15 || days > maxDays) {
     aiBtn.disabled = true;
     warning.style.display = 'block';
-    
     if (days > maxDays) {
-      if (role === 'admin') {
-        warning.textContent = `⚠️ Admin chỉ được tạo tối đa ${maxDays} ngày với AI. Vui lòng giảm số ngày.`;
-      } else {
-        warning.textContent = `⚠️ Số ngày tối đa: ${maxDays}. Nếu bạn muốn hơn ${maxDays} ngày, vui lòng tạo thủ công.`;
-      }
+      warning.textContent = `⚠️ Số ngày tối đa là ${maxDays}.`;
     } else if (days < 15) {
       warning.textContent = '⚠️ Số ngày tối thiểu là 15.';
     }
@@ -2600,8 +2620,8 @@ async function generateRoadmapWithAI() {
     if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
     if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
     if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
-    if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
-    throw new Error('❌ Số ngày phải từ 15 đến 30 (Q9)');
+    if (!q11_program_days || q11_program_days < 15) {
+        throw new Error('❌ Số ngày tối thiểu là 15 (Q9)');
     }
 
     // ✅ THÊM VALIDATION CHO CÂU HỎI NHIỀU LỰA CHỌN
@@ -2630,13 +2650,13 @@ async function generateRoadmapWithAI() {
     console.log('✅ Validation passed!');
 
     // days limit
-    // ✅ FIXED: Kiểm tra max days theo role
+    // ✅ Admin dùng AI chỉ được tối đa 60 ngày; tạo thủ công không bị giới hạn
     const role = localStorage.getItem('role');
     const MAX = (role === 'admin') ? 60 : 360;
 
     if (q11_program_days > MAX) {
-        const message = (role === 'admin') 
-            ? `Admin chỉ có thể tạo lộ trình tối đa ${MAX} ngày với AI. Vui lòng giảm số ngày.`
+        const message = (role === 'admin')
+            ? `⚠️ Tạo lộ trình với AI chỉ hỗ trợ tối đa ${MAX} ngày.\nVui lòng giảm số ngày xuống ≤ ${MAX}, hoặc dùng nút "Tạo lộ trình thủ công" để tạo lộ trình nhiều hơn ${MAX} ngày.`
             : `Số ngày tối đa là ${MAX}. Vui lòng giảm số ngày hoặc tạo thủ công.`;
         
         showNotification(message, 'error');
@@ -3147,8 +3167,8 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
     if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
     if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
     if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
-if (!q11_program_days || q11_program_days < 15 || q11_program_days > 30) {
-  throw new Error('❌ Số ngày phải từ 15 đến 30 (Q9)');
+if (!q11_program_days || q11_program_days < 15) {
+  throw new Error('❌ Số ngày tối thiểu là 15 (Q9)');
 }
 
     // =========================================
