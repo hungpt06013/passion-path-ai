@@ -137,5 +137,5 @@ AI sẽ trả lời theo thứ tự:
 ```
 **Bước 2:** Trình bày 1. PHÂN TÍCH HIỆN TRẠNG
 **Bước 3:** Trình bày 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
-Sau đó, bạn hãy xuất kết quả thành file excel theo template đính kèm
+Sau đó, bạn hãy xuất kết quả mục phân tích hiện trạng vào dòng đầu, 8 cột vào đúng vị trí trong file excel theo template đính kèm (Không thêm bất kỳ dòng nào khác vì tôi dùng kết quả template này để upload vào hệ thống)
 ```
