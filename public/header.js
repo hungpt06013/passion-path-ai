@@ -1,6 +1,6 @@
 const Tokens = localStorage.getItem('token');
 const CurrentPage = window.location.pathname.split('/').pop() || 'main.html';
-const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_category.html'];
+const PublicPagesHTML = ['login.html', 'register.html', 'main.html', 'main_category.html', 'roadmap_details.html'];
 
 const CurrentPath = window.location.pathname;
 const IsHomePage = CurrentPath === '/' || CurrentPath === '' || CurrentPath === '/main.html' || CurrentPage === 'main.html';
