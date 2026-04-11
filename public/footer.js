@@ -1,5 +1,5 @@
 const currentPageHTML = window.location.pathname.split('/').pop() || 'main.html';
-const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html'];
+const publicPages = ['login.html', 'register.html', 'main.html', 'main_category.html', "roadmap_details.html"];
 // Feedback modal logic
 let feedbackRatings = {};
 let feedbackDataChanged = false;
