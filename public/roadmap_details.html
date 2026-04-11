@@ -4,10 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chi Tiết Lộ Trình - Con đường theo đuổi đam mê</title>
-  <script>
-    const Token = localStorage.getItem('token');
-    if (!Token) {alert('Vui lòng đăng nhập!'); window.location.href = 'login.html';}
-  </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
@@ -841,9 +838,6 @@ const ADMIN_TOKEN = 'admin-token';
     const urlParams = new URLSearchParams(window.location.search);
     const roadmapId = urlParams.get('id');
     const token = localStorage.getItem('token');
-    if (!token) {
-      window.location.href = 'login.html';
-    }
 
     let roadmapData = null;
     let details = null;
@@ -851,6 +845,14 @@ const ADMIN_TOKEN = 'admin-token';
     const days = [];
 
     async function createRoadmap() {
+      // ✅ KIỂM TRA ĐĂNG NHẬP TRƯỚC KHI HỌC
+      if (!localStorage.getItem('token')) {
+        if (confirm('Bạn cần đăng nhập để học lộ trình này.\nNhấn OK để đến trang đăng nhập.')) {
+          window.location.href = 'login.html';
+        }
+        return;
+      }
+
       // ✅ HIỂN THỊ MESSAGE "VUI LÒNG ĐỢI" NGAY ĐẦU
       showMessage('Vui lòng đợi, đang xử lý...', 'info');
       
@@ -979,7 +981,7 @@ async function viewRoadmapDetails(roadmapId, roadmap_analyst) {
   try {
     const response = await fetch(`/api/roadmapsystem/${roadmapId}/details`, {
       method: 'GET', 
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     if (!response.ok) throw new Error('Failed to fetch roadmap details');
     const result = await response.json();
@@ -1021,8 +1023,8 @@ async function loadRoadmapDetails() {
   if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
   try {
     const roadmapResponse = await fetch(`/api/roadmapsystem/${roadmapId}`, { 
-      method: 'GET', 
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+      method: 'GET',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
     const roadmapResult = await roadmapResponse.json();
     if (!roadmapResult.success) throw new Error('Không thể tải thông tin lộ trình');
@@ -1203,9 +1205,6 @@ function renderDays() {
 
     // Call on page load
     document.addEventListener('DOMContentLoaded', loadNavButtons);
-        if (!token) {
-      window.location.href = 'login.html';
-    }
 
 </script>
 <script src="footer.js"></script>
