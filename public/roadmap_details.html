@@ -718,6 +718,109 @@ tbody tr:hover {
     font-size: 13px;
   }
 }
+#myAnalysisAndDetails table {
+    width: 100%; border-collapse: separate; border-spacing: 0; background: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; overflow: visible; margin-bottom: 40px;
+}
+#myAnalysisAndDetails th:nth-child(1), #myAnalysisAndDetails td:nth-child(1) { width: 60px !important; min-width: 60px !important; }
+#myAnalysisAndDetails th:nth-child(2), #myAnalysisAndDetails td:nth-child(2) { width: 130px !important; min-width: 130px !important; }
+#myAnalysisAndDetails th:nth-child(9), #myAnalysisAndDetails td:nth-child(9) { min-width: 150px !important; }
+#myAnalysisAndDetails th:nth-child(10), #myAnalysisAndDetails td:nth-child(10) { width: 100px !important; }
+#myAnalysisAndDetails table:not(.edit-mode-active) th:last-child,
+#myAnalysisAndDetails table:not(.edit-mode-active) td:last-child { display: none; }
+
+#myAnalysisAndDetails td.date-cell { text-align: center; font-weight: 600; color: #059669; background: #f0fdf4; }
+#myAnalysisAndDetails td.editable { position: relative; cursor: text; }
+#myAnalysisAndDetails td.editable:hover { background: #fef3c7; outline: 2px solid #f59e0b; }
+#myAnalysisAndDetails td.editable input,
+#myAnalysisAndDetails td.editable textarea {
+    width: 100%; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;
+    font-family: inherit; font-size: 0.9rem; background: white;
+}
+#myAnalysisAndDetails td.editable input:focus,
+#myAnalysisAndDetails td.editable textarea:focus {
+    outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+#myAnalysisAndDetails td.editable textarea { min-height: 80px; resize: vertical; }
+
+#myAnalysisAndDetails tbody tr.draggable { cursor: move; }
+#myAnalysisAndDetails tbody tr.dragging { opacity: 0.5; background: #f0f9ff; }
+#myAnalysisAndDetails tbody tr.drag-over { border-top: 3px solid #007bff; }
+#myAnalysisAndDetails .drag-handle { cursor: move; color: #9ca3af; font-size: 1.2rem; padding: 0 8px; }
+#myAnalysisAndDetails .drag-handle:hover { color: #007bff; }
+
+#myAnalysisAndDetails tbody tr.marked-for-deletion { background: #fee2e2 !important; }
+#myAnalysisAndDetails tbody tr.marked-for-deletion input,
+#myAnalysisAndDetails tbody tr.marked-for-deletion textarea,
+#myAnalysisAndDetails tbody tr.marked-for-deletion select {
+    pointer-events: none; opacity: 0.5; cursor: not-allowed; background: #fef2f2 !important;
+}
+#myAnalysisAndDetails tbody tr.marked-for-deletion td:not(:last-child) {
+    text-decoration: line-through; color: #991b1b; position: relative;
+}
+#myAnalysisAndDetails tbody tr.marked-for-deletion .undo-delete-btn {
+    pointer-events: auto !important; opacity: 1 !important; cursor: pointer !important;
+    background: #10b981 !important; color: white !important;
+}
+
+#myAnalysisAndDetails .roadmap-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+#myAnalysisAndDetails .edit-mode-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px;
+    border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+}
+#myAnalysisAndDetails .edit-mode-btn.active { background: linear-gradient(135deg, #10b981, #059669); }
+#myAnalysisAndDetails .add-day-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px 24px;
+    border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+}
+#myAnalysisAndDetails .save-changes-btn {
+    background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 24px;
+    border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    margin-top: 20px; display: inline-flex; align-items: center; gap: 8px;
+}
+#myAnalysisAndDetails .cancel-edit-btn {
+    background: #6b7280; color: white; padding: 12px 24px; border: none; border-radius: 8px;
+    font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 20px; margin-left: 10px;
+    display: inline-flex; align-items: center; gap: 8px;
+}
+#myAnalysisAndDetails .delete-day-btn {
+    background: #266cdc; color: white; border: none; border-radius: 6px; padding: 6px 12px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+}
+#myAnalysisAndDetails .undo-delete-btn {
+    background: #10b981; color: white; border: none; border-radius: 6px; padding: 6px 12px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+}
+
+#myAnalysisAndDetails .evaluation-section {
+    background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%); padding: 30px; border-radius: 16px;
+    border-left: 5px solid #f59e0b; margin-top: 40px;
+}
+#myAnalysisAndDetails .evaluation-section h3 { color: #92400e; margin-bottom: 25px; font-size: 1.3rem; }
+#myAnalysisAndDetails .rating-group { margin-bottom: 25px; background: white; padding: 20px; border-radius: 12px; border: 2px solid #e5e7eb; }
+#myAnalysisAndDetails .rating-group label { display: block; font-weight: 600; color: #374151; margin-bottom: 12px; font-size: 1rem; }
+#myAnalysisAndDetails .rating-stars { display: flex; gap: 8px; font-size: 2rem; }
+#myAnalysisAndDetails .star { cursor: pointer; color: #d1d5db; transition: all 0.2s ease; }
+#myAnalysisAndDetails .star.active { color: #fbbf24; transform: scale(1.2); }
+#myAnalysisAndDetails .rating-value { margin-top: 10px; font-size: 0.9rem; color: #6b7280; font-weight: 600; }
+#myAnalysisAndDetails .textarea-group { margin-bottom: 20px; background: white; padding: 20px; border-radius: 12px; border: 2px solid #e5e7eb; }
+#myAnalysisAndDetails .textarea-group label { display: block; font-weight: 600; color: #374151; margin-bottom: 10px; }
+#myAnalysisAndDetails .textarea-group textarea {
+    width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-family: inherit;
+    font-size: 0.95rem; resize: vertical; min-height: 100px;
+}
+#myAnalysisAndDetails .checkbox-group {
+    margin-bottom: 20px; background: white; padding: 20px; border-radius: 12px; border: 2px solid #e5e7eb;
+    display: flex; align-items: center; gap: 15px;
+}
+#myAnalysisAndDetails .checkbox-group label { display: flex; align-items: center; gap: 10px; font-weight: 600; color: #374151; cursor: pointer; margin: 0; }
+#myAnalysisAndDetails .checkbox-group input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; }
+#myAnalysisAndDetails .submit-evaluation-btn {
+    width: 100%; padding: 16px 32px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
+    border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 20px;
+}
   </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
@@ -824,6 +927,8 @@ tbody tr:hover {
     </table>
   </div>
 </div>
+<div id="myAnalysisAndDetails" style="display:none;"></div>
+
           <!-- Modal chi tiết lộ trình -->
 
         </div>
@@ -833,12 +938,15 @@ tbody tr:hover {
 <div id="footer"></div>
   <script>
 const ADMIN_TOKEN = 'admin-token';
+const API_BASE_URL = 'http://localhost:3000/api';
+const urlParams = new URLSearchParams(window.location.search);
+const roadmapId = urlParams.get('id');
+const isMine = urlParams.get('mine') === 'true';
+const token = localStorage.getItem('token');
 
-    const API_BASE_URL = 'http://localhost:3000/api';
-    const urlParams = new URLSearchParams(window.location.search);
-    const roadmapId = urlParams.get('id');
-    const token = localStorage.getItem('token');
-
+if (isMine && !token) {
+    window.location.replace('login.html');
+}
     let roadmapData = null;
     let details = null;
     let daysData = [];
@@ -1021,6 +1129,12 @@ function displayRoadmapDetails(roadmap, details) {
 
 async function loadRoadmapDetails() {
   if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
+
+  if (isMine) {
+    await loadMyRoadmapDetails();
+    return;
+  }
+
   try {
     const roadmapResponse = await fetch(`/api/roadmapsystem/${roadmapId}`, { 
       method: 'GET',
@@ -1029,10 +1143,6 @@ async function loadRoadmapDetails() {
     const roadmapResult = await roadmapResponse.json();
     if (!roadmapResult.success) throw new Error('Không thể tải thông tin lộ trình');
     roadmapData = roadmapResult.data;
-    
-    // ✅ THÊM DEBUG NÀY
-    console.log('🔍 roadmapData:', roadmapData);
-    console.log('🔍 roadmap_analyst:', roadmapData.roadmap_analyst);
     
     viewRoadmapDetails(roadmapId, roadmapData.roadmap_analyst);
     renderRoadmap();
@@ -1205,7 +1315,768 @@ function renderDays() {
 
     // Call on page load
     document.addEventListener('DOMContentLoaded', loadNavButtons);
+// ============================================================
+// ============ CHẾ ĐỘ MINE (lộ trình cá nhân) ================
+// ============================================================
+let isEditMode = false;
+let myRoadmapData = null;
+let myRoadmapDetails = [];
+let hasEvaluationChanges = false;
+let originalEvaluationData = {};
+let evaluationData = {};
 
+function getMyAuthHeaders() {
+  return {
+    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+function getVietnamDateMine() {
+  const now = new Date();
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utc + (7 * 60 * 60 * 1000));
+}
+
+async function loadMyRoadmapDetails() {
+  try {
+    const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.status === 403) {
+      showNotification('⚠️ Bạn không có quyền truy cập lộ trình này', 'error');
+      setTimeout(() => window.location.href = 'path.html', 1500);
+      return;
+    }
+    if (!response.ok) throw new Error('Không thể tải lộ trình');
+
+    const result = await response.json();
+    myRoadmapData = result.data.roadmap;
+    myRoadmapDetails = result.data.details;
+
+    renderMyRoadmap();
+    displayMyRoadmapDetails(myRoadmapData, myRoadmapDetails);
+    document.getElementById('myAnalysisAndDetails').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Không thể tải dữ liệu: ' + error.message);
+    window.location.href = 'path.html';
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('roadmapContent').style.display = 'block';
+  }
+}
+
+function getMyStatusText(status) {
+  const map = { ACTIVE: 'Đang học', COMPLETED: 'Hoàn thành', PAUSED: 'Tạm dừng' };
+  return map[status] || status;
+}
+
+function renderMyRoadmap() {
+  document.getElementById('roadmapTitle').textContent = myRoadmapData.roadmap_name;
+
+  const categoryLink = document.getElementById('categoryLink');
+  categoryLink.textContent = myRoadmapData.category;
+  categoryLink.removeAttribute('href');
+  categoryLink.style.pointerEvents = 'none';
+  categoryLink.style.cursor = 'default';
+
+  document.getElementById('badgesContainer').innerHTML = `
+    <span class="badge badge-level"><i class="fas fa-signal"></i> ${getLevelText(myRoadmapData.start_level)}</span>
+    <span class="badge badge-duration"><i class="fas fa-calendar"></i> ${myRoadmapData.duration_days} ngày</span>
+    <span class="badge badge-learners"><i class="fas fa-play"></i> ${getMyStatusText(myRoadmapData.status)}</span>
+  `;
+
+  document.getElementById('metaContainer').innerHTML = `
+    <div class="meta-tag"><i class="fas fa-clock"></i><span>${formatHours(myRoadmapData.duration_hours)}</span></div>
+    ${myRoadmapData.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(myRoadmapData.sub_category)}</span></div>` : ''}
+  `;
+
+  const avgRating = myRoadmapData.overall_rating ? `${myRoadmapData.overall_rating}⭐` : '-';
+
+  document.getElementById('statsContainer').innerHTML = `
+    <div class="stat-box"><span class="stat-value">${myRoadmapData.duration_days}</span><span class="stat-label">Ngày học</span></div>
+    <div class="stat-box"><span class="stat-value">${formatHours(myRoadmapData.duration_hours)}</span><span class="stat-label">Tổng thời gian</span></div>
+    <div class="stat-box"><span class="stat-value">${formatHours(myRoadmapData.total_studied_hours || 0)}</span><span class="stat-label">Đã học</span></div>
+    <div class="stat-box"><span class="stat-value">${Math.round(myRoadmapData.progress_percentage || 0)}%</span><span class="stat-label">Tiến độ</span></div>
+    <div class="stat-box"><span class="stat-value">${avgRating}</span><span class="stat-label">Đánh giá tổng thể</span></div>
+  `;
+
+  const createBtn = document.querySelector('.create-btn');
+  if (createBtn) createBtn.style.display = 'none';
+
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  if (fill) fill.style.width = (myRoadmapData.progress_percentage || 0) + '%';
+  if (text) text.textContent = Math.round(myRoadmapData.progress_percentage || 0) + '%';
+
+  const daysContainer = document.getElementById('daysContainer');
+  if (daysContainer) daysContainer.style.display = 'none';
+}
+
+function displayMyRoadmapDetails(roadmap, details) {
+  const analysisHTML = `
+    <div class="analysis-section">
+      <h3>📊 Phân Tích AI</h3>
+      <div class="analysis-content" id="myAnalysisContentDisplay" style="white-space: pre-wrap;">${roadmap.roadmap_analyst || 'Không có phân tích'}</div>
+      <textarea id="myAnalysisContentEdit" rows="4" style="display:none; width:100%; padding:15px; border:2px solid #10b981; border-radius:8px; font-family:inherit; font-size:0.95rem; margin-top:10px; resize:vertical; line-height:1.6;">${roadmap.roadmap_analyst || ''}</textarea>
+    </div>
+  `;
+
+  const tableHTML = `
+    <div class="roadmap-section">
+      <div class="roadmap-section-header">
+        <h3>📅 Lộ Trình Chi Tiết</h3>
+        <button class="edit-mode-btn" onclick="toggleMyEditMode()">
+          <i class="fa-solid fa-pen"></i> Chỉnh sửa
+        </button>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:60px;">Ngày</th>
+            <th style="width:130px;">Ngày học</th>
+            <th style="min-width:130px;">Mục tiêu</th>
+            <th style="min-width:150px;">Nội dung</th>
+            <th style="min-width:120px;">Bài tập</th>
+            <th style="width:100px;">Tài liệu</th>
+            <th style="min-width:110px;">Hướng dẫn</th>
+            <th style="width:80px;">Thời lượng</th>
+            <th style="min-width:150px;">Trạng thái</th>
+            <th style="width:100px;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${details.map(d => {
+            let materialsHTML = 'N/A';
+            if (d.learning_materials) {
+              const links = d.learning_materials.split(/[;\n]/).map(l => l.trim()).filter(l => l && l.match(/^https?:\/\//i));
+              if (links.length > 0) {
+                materialsHTML = links.map(link => `<a href="${link}" target="_blank" style="color:#007bff;display:block;margin:2px 0;font-size:0.8rem;font-weight:600;">Xem</a>`).join('');
+              } else if (d.learning_materials.trim()) {
+                materialsHTML = `<span style="font-size:0.85rem;">${escapeHtml(d.learning_materials)}</span>`;
+              }
+            }
+            return `
+            <tr data-detail-id="${d.detail_id}">
+              <td class="day-cell">${d.day_number}</td>
+              <td class="date-cell">${d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN') : 'N/A'}</td>
+              <td><strong>${escapeHtml(d.daily_goal || 'N/A')}</strong></td>
+              <td>${escapeHtml(d.learning_content || 'N/A')}</td>
+              <td>${escapeHtml(d.practice_exercises || 'N/A')}</td>
+              <td>${materialsHTML}</td>
+              <td>${escapeHtml(d.usage_instructions || 'N/A')}</td>
+              <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
+              <td>
+                <select onchange="updateMyDayStatus(${roadmap.roadmap_id}, ${d.detail_id}, this.value)">
+                  <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
+                  <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
+                  <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+                  <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
+                </select>
+              </td>
+              <td style="text-align:center;">
+                <button class="delete-day-btn" onclick="deleteMyDay(this)"><i class="fa-solid fa-trash"></i> Xóa</button>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const evaluationHTML = buildMyEvaluationForm(roadmap);
+
+  document.getElementById('myAnalysisAndDetails').innerHTML = analysisHTML + tableHTML + evaluationHTML;
+
+  window.onbeforeunload = function(e) {
+    if (isEditMode || hasEvaluationChanges) {
+      e.preventDefault();
+      e.returnValue = 'Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời khỏi trang?';
+      return e.returnValue;
+    }
+  };
+}
+
+function toggleMyEditMode() {
+  if (isEditMode) {
+    saveMyChanges();
+  } else {
+    isEditMode = true;
+    const btn = document.querySelector('#myAnalysisAndDetails .edit-mode-btn');
+    const table = document.querySelector('#myAnalysisAndDetails table');
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Đang chỉnh sửa';
+    btn.classList.add('active');
+    enableMyEditMode(table);
+    showMyEditButtons();
+  }
+}
+
+function enableMyEditMode(table) {
+  const displayDiv = document.getElementById('myAnalysisContentDisplay');
+  const editTextarea = document.getElementById('myAnalysisContentEdit');
+  if (displayDiv && editTextarea) {
+    displayDiv.style.display = 'none';
+    editTextarea.style.display = 'block';
+  }
+  if (!table) return;
+
+  table.classList.add('edit-mode-active');
+  const rows = table.querySelectorAll('tbody tr');
+
+  rows.forEach((row) => {
+    const dayCell = row.querySelector('td:first-child');
+    if (dayCell && !dayCell.querySelector('.drag-handle')) {
+      const currentNumber = dayCell.textContent.trim();
+      dayCell.innerHTML = `<span class="drag-handle">☰</span><br>${currentNumber}`;
+    }
+
+    row.draggable = true;
+    row.classList.add('draggable');
+    row.addEventListener('dragstart', handleMyDragStart);
+    row.addEventListener('dragend', handleMyDragEnd);
+    row.addEventListener('dragover', handleMyDragOver);
+    row.addEventListener('drop', handleMyDrop);
+    row.addEventListener('dragleave', handleMyDragLeave);
+
+    const cells = row.querySelectorAll('td');
+    cells.forEach((cell, cellIndex) => {
+      if (cellIndex === 0) return;
+      cell.classList.add('editable');
+      const originalContent = cell.innerHTML;
+
+      if (cellIndex === 1) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'dd/mm/yyyy';
+        const dateText = cell.textContent.trim();
+        if (dateText !== 'N/A') {
+          const parts = dateText.split('/');
+          if (parts.length === 3) {
+            input.value = `${parts[0].padStart(2,'0')}/${parts[1].padStart(2,'0')}/${parts[2]}`;
+          }
+        }
+        input.dataset.originalContent = originalContent;
+        input.style.width = '100%';
+        cell.innerHTML = '';
+        cell.appendChild(input);
+        return;
+      }
+
+      if (cellIndex === 2 || cellIndex === 3 || cellIndex === 4 || cellIndex === 6) {
+        const textarea = document.createElement('textarea');
+        textarea.value = cell.textContent.trim();
+        textarea.dataset.originalContent = originalContent;
+        cell.innerHTML = '';
+        cell.appendChild(textarea);
+        return;
+      }
+
+      if (cellIndex === 5) {
+        const textarea = document.createElement('textarea');
+        const links = cell.querySelectorAll('a');
+        const fullUrls = Array.from(links).map(link => link.href).filter(Boolean);
+        textarea.value = fullUrls.length > 0 ? fullUrls.join('\n') : cell.textContent.trim();
+        textarea.dataset.originalContent = originalContent;
+        textarea.placeholder = 'Nhập URL (mỗi link một dòng)';
+        cell.innerHTML = '';
+        cell.appendChild(textarea);
+        return;
+      }
+
+      if (cellIndex === 7) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = cell.textContent.trim();
+        input.dataset.originalContent = originalContent;
+        input.placeholder = 'VD: 1.5h, 90m';
+        cell.innerHTML = '';
+        cell.appendChild(input);
+        return;
+      }
+
+      if (cellIndex === 8) {
+        cell.classList.add('editable');
+        const select = cell.querySelector('select');
+        if (select) select.dataset.originalContent = originalContent;
+      }
+    });
+  });
+}
+
+function disableMyEditMode(table) {
+  const displayDiv = document.getElementById('myAnalysisContentDisplay');
+  const editTextarea = document.getElementById('myAnalysisContentEdit');
+  if (displayDiv && editTextarea) {
+    displayDiv.style.display = 'block';
+    editTextarea.style.display = 'none';
+  }
+  if (!table) return;
+
+  table.classList.remove('edit-mode-active');
+  const rows = table.querySelectorAll('tbody tr');
+
+  rows.forEach(row => {
+    const handle = row.querySelector('.drag-handle');
+    if (handle) handle.remove();
+    row.draggable = false;
+    row.classList.remove('draggable', 'dragging', 'drag-over');
+    row.removeEventListener('dragstart', handleMyDragStart);
+    row.removeEventListener('dragend', handleMyDragEnd);
+    row.removeEventListener('dragover', handleMyDragOver);
+    row.removeEventListener('drop', handleMyDrop);
+    row.removeEventListener('dragleave', handleMyDragLeave);
+
+    row.querySelectorAll('td.editable').forEach(cell => {
+      const input = cell.querySelector('input, textarea');
+      if (input && input.dataset.originalContent) cell.innerHTML = input.dataset.originalContent;
+      cell.classList.remove('editable');
+    });
+  });
+}
+
+function showMyEditButtons() {
+  const section = document.querySelector('#myAnalysisAndDetails .roadmap-section');
+  if (!section) return;
+
+  if (!document.querySelector('#myAnalysisAndDetails .edit-actions')) {
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'edit-actions';
+    actionsDiv.style.textAlign = 'center';
+    actionsDiv.style.marginTop = '20px';
+    actionsDiv.innerHTML = `
+      <div class="info-box" style="text-align:left; margin-bottom:20px; background:#fee2e2; border-left:4px solid #dc2626;">
+        <strong>⚠️ Lưu ý khi chỉnh sửa:</strong>
+        <ul style="margin:10px 0 0 20px; line-height:1.8;">
+          <li>Định dạng của <code>Ngày học</code> là dưới dạng <strong>dd/mm/yyyy</strong>.</li>
+          <li><code>Thời lượng</code> phải có đơn vị là <strong>m</strong> HOẶC/VÀ <strong>h</strong>.</li>
+          <li><code>Tài liệu</code> phải là URL đầy đủ. Nếu có nhiều URL, mỗi URL để trên một dòng riêng.</li>
+          <li>Kéo thả các dòng để <strong>sắp xếp lại thứ tự</strong>.</li>
+          <li><strong>Ngày đánh dấu xóa</strong> chỉ bị xóa khi bạn nhấn "Lưu thay đổi".</li>
+        </ul>
+      </div>
+      <div id="myDeleteWarning" style="display:none; background:#fef2f2; border:2px solid #dc2626; padding:15px; border-radius:8px; margin-bottom:15px;">
+        <strong style="color:#dc2626;">⚠️ Cảnh báo:</strong>
+        <span id="myDeleteCount">0</span> ngày sẽ bị xóa vĩnh viễn khi bạn nhấn "Lưu thay đổi"
+      </div>
+      <button class="add-day-btn" onclick="addMyNewDay()"><i class="fa-solid fa-plus"></i> Thêm ngày</button>
+      <button class="save-changes-btn" onclick="saveMyChanges()" style="margin-left:10px;"><i class="fa-solid fa-save"></i> Lưu thay đổi</button>
+      <button class="cancel-edit-btn" onclick="cancelMyEdit()"><i class="fa-solid fa-times"></i> Hủy</button>
+    `;
+    section.appendChild(actionsDiv);
+  }
+  updateMyDeleteWarning();
+}
+
+function hideMyEditButtons() {
+  const actions = document.querySelector('#myAnalysisAndDetails .edit-actions');
+  if (actions) actions.remove();
+}
+
+function updateMyDeleteWarning() {
+  const markedRows = document.querySelectorAll('#myAnalysisAndDetails tbody tr.marked-for-deletion');
+  const warning = document.getElementById('myDeleteWarning');
+  const countSpan = document.getElementById('myDeleteCount');
+  if (!warning || !countSpan) return;
+  if (markedRows.length > 0) {
+    warning.style.display = 'block';
+    countSpan.textContent = markedRows.length;
+  } else {
+    warning.style.display = 'none';
+  }
+}
+
+function addMyNewDay() {
+  const vnToday = getVietnamDateMine();
+  const defaultDate = vnToday.toLocaleDateString('vi-VN').split('/').reverse().join('-');
+  const tbody = document.querySelector('#myAnalysisAndDetails tbody');
+  if (!tbody) return;
+
+  const newRow = document.createElement('tr');
+  newRow.draggable = true;
+  newRow.classList.add('draggable');
+  newRow.dataset.detailId = 'new_' + Date.now();
+
+  newRow.innerHTML = `
+    <td class="day-cell"><span class="drag-handle">☰</span><br> 1</td>
+    <td class="date-cell editable">
+      <input type="text" placeholder="dd/mm/yyyy" value="${defaultDate.split('-').reverse().join('/')}"
+        style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;background:#f0fdf4;text-align:center;font-weight:600;color:#059669;">
+    </td>
+    <td class="editable"><textarea placeholder="Nhập mục tiêu ngày..." required style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
+    <td class="editable"><textarea placeholder="Nhập nội dung học..." required style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
+    <td class="editable"><textarea placeholder="Nhập bài tập..." style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
+    <td class="editable"><textarea placeholder="Nhập URL (mỗi link một dòng)" style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
+    <td class="editable"><textarea placeholder="Nhập hướng dẫn..." style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
+    <td class="editable"><input type="text" placeholder="VD: 1.5h, 90m" required style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;"></td>
+    <td>
+      <select style="padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.85rem;width:100%;">
+        <option value="NOT_STARTED" selected>Chưa học</option>
+        <option value="IN_PROGRESS">Đang học</option>
+        <option value="COMPLETED">Hoàn thành</option>
+        <option value="SKIPPED">Bỏ qua</option>
+      </select>
+    </td>
+    <td style="text-align:center;">
+      <button class="delete-day-btn" onclick="deleteMyDay(this)"><i class="fa-solid fa-trash"></i> Xóa</button>
+    </td>
+  `;
+  tbody.appendChild(newRow);
+  newRow.addEventListener('dragstart', handleMyDragStart);
+  newRow.addEventListener('dragend', handleMyDragEnd);
+  newRow.addEventListener('dragover', handleMyDragOver);
+  newRow.addEventListener('drop', handleMyDrop);
+  newRow.addEventListener('dragleave', handleMyDragLeave);
+
+  updateMyDayNumbers();
+  showNotification('✅ Đã thêm ngày mới! Vui lòng điền thông tin.', 'success');
+}
+
+function deleteMyDay(button) {
+  const row = button.closest('tr');
+  const dayCell = row.querySelector('.day-cell');
+  const dayNumber = dayCell.textContent.trim().replace(/☰/g, '').replace(/\s+/g, ' ').split(' ').pop();
+
+  if (row.classList.contains('marked-for-deletion')) {
+    row.classList.remove('marked-for-deletion');
+    button.innerHTML = '<i class="fa-solid fa-trash"></i> Xóa';
+    button.classList.remove('undo-delete-btn');
+    button.classList.add('delete-day-btn');
+    dayCell.innerHTML = `<span class="drag-handle">☰</span><br>${dayNumber}`;
+    showNotification(`↩️ Đã hủy xóa ngày ${dayNumber}`, 'success');
+  } else {
+    row.classList.add('marked-for-deletion');
+    button.innerHTML = '<i class="fa-solid fa-undo"></i> Hủy';
+    button.classList.remove('delete-day-btn');
+    button.classList.add('undo-delete-btn');
+    dayCell.innerHTML = `<span class="drag-handle" style="opacity:0.3;">☰</span><br>${dayNumber}`;
+    showNotification(`🗑️ Ngày ${dayNumber} sẽ bị xóa khi lưu`, 'info');
+  }
+  updateMyDayNumbers();
+  updateMyDeleteWarning();
+}
+
+let myDraggedElement = null;
+function handleMyDragStart(e) {
+  myDraggedElement = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+function handleMyDragEnd(e) {
+  this.classList.remove('dragging');
+  document.querySelectorAll('#myAnalysisAndDetails tbody tr').forEach(row => row.classList.remove('drag-over'));
+}
+function handleMyDragOver(e) {
+  if (e.preventDefault) e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if (this !== myDraggedElement) this.classList.add('drag-over');
+  return false;
+}
+function handleMyDrop(e) {
+  if (e.stopPropagation) e.stopPropagation();
+  if (myDraggedElement !== this) {
+    const tbody = this.parentNode;
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const draggedIndex = allRows.indexOf(myDraggedElement);
+    const targetIndex = allRows.indexOf(this);
+    if (draggedIndex < targetIndex) {
+      this.parentNode.insertBefore(myDraggedElement, this.nextSibling);
+    } else {
+      this.parentNode.insertBefore(myDraggedElement, this);
+    }
+    updateMyDayNumbers();
+  }
+  this.classList.remove('drag-over');
+  return false;
+}
+function handleMyDragLeave(e) { this.classList.remove('drag-over'); }
+
+function updateMyDayNumbers() {
+  const tbody = document.querySelector('#myAnalysisAndDetails tbody');
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr');
+  let validDayNumber = 1;
+  rows.forEach((row) => {
+    const dayCell = row.querySelector('td:first-child');
+    if (!dayCell) return;
+    const currentText = dayCell.textContent || '';
+    const currentNumber = currentText.replace(/☰/g, '').replace(/\s+/g, ' ').trim();
+    if (row.classList.contains('marked-for-deletion')) {
+      dayCell.innerHTML = `<span class="drag-handle" style="opacity:0.3;">☰</span><br>${currentNumber}`;
+    } else {
+      dayCell.innerHTML = `<span class="drag-handle">☰</span><br>${validDayNumber}`;
+      validDayNumber++;
+    }
+  });
+}
+
+async function saveMyChanges() {
+  const confirmSave = confirm('Bạn có chắc muốn lưu các thay đổi?');
+  if (!confirmSave) return;
+
+  const table = document.querySelector('#myAnalysisAndDetails table');
+  if (!table) return;
+
+  showNotification('⏳ Vui lòng đợi, đang xử lý...', 'info');
+
+  const analysisTextarea = document.getElementById('myAnalysisContentEdit');
+  const updatedAnalysis = analysisTextarea ? analysisTextarea.value.trim() : null;
+
+  const allRows = table.querySelectorAll('tbody tr');
+  const deletedIds = [];
+  const allDataRows = [];
+
+  allRows.forEach((row) => {
+    const detailId = row.dataset.detailId;
+    const isMarkedForDeletion = row.classList.contains('marked-for-deletion');
+    const isNewRow = String(detailId).startsWith('new_');
+
+    if (isMarkedForDeletion) {
+      if (!isNewRow) deletedIds.push(parseInt(detailId));
+      return;
+    }
+
+    const cells = row.querySelectorAll('td');
+    let studyDate = null;
+    const dateInput = cells[1].querySelector('input');
+    if (dateInput && dateInput.value.trim()) {
+      const parts = dateInput.value.trim().split('/');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0]), month = parseInt(parts[1]), year = parseInt(parts[2]);
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          studyDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        }
+      }
+    }
+
+    let materials = '';
+    const materialsTextarea = cells[5].querySelector('textarea');
+    if (materialsTextarea) {
+      materials = materialsTextarea.value.split('\n').map(l => l.trim()).filter(l => l).join('; ');
+    }
+
+    allDataRows.push({
+      detail_id: detailId,
+      study_date: studyDate,
+      daily_goal: cells[2].querySelector('textarea')?.value || cells[2].textContent.trim(),
+      learning_content: cells[3].querySelector('textarea')?.value || cells[3].textContent.trim(),
+      practice_exercises: cells[4].querySelector('textarea')?.value || cells[4].textContent.trim(),
+      learning_materials: materials,
+      usage_instructions: cells[6].querySelector('textarea')?.value || cells[6].textContent.trim(),
+      study_duration: cells[7].querySelector('input')?.value || cells[7].textContent.trim(),
+      completion_status: cells[8].querySelector('select')?.value || 'NOT_STARTED'
+    });
+  });
+
+  allDataRows.sort((a, b) => {
+    if (!a.study_date && !b.study_date) return 0;
+    if (!a.study_date) return 1;
+    if (!b.study_date) return -1;
+    return new Date(a.study_date) - new Date(b.study_date);
+  });
+
+  let dayCounter = 1;
+  allDataRows.forEach(detail => { detail.day_number = dayCounter++; });
+
+  const existingRows = allDataRows.filter(d => !String(d.detail_id).startsWith('new_'));
+  const newRows = allDataRows.filter(d => String(d.detail_id).startsWith('new_'));
+
+  try {
+    const response = await fetch(`/api/roadmaps/${myRoadmapData.roadmap_id}/update-details`, {
+      method: 'PUT',
+      headers: getMyAuthHeaders(),
+      body: JSON.stringify({ existingRows, newRows, deletedIds, roadmap_analyst: updatedAnalysis })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to save changes');
+    }
+
+    const result = await response.json();
+    let message = '✅ Đã lưu thay đổi thành công!';
+    if (result.stats) {
+      const parts = [];
+      if (result.stats.updated > 0) parts.push(`${result.stats.updated} cập nhật`);
+      if (result.stats.inserted > 0) parts.push(`${result.stats.inserted} thêm mới`);
+      if (result.stats.deleted > 0) parts.push(`${result.stats.deleted} xóa`);
+      if (parts.length > 0) message += ` (${parts.join(', ')})`;
+    }
+    showNotification(message, 'success');
+
+    isEditMode = false;
+    window.onbeforeunload = null;
+    setTimeout(() => window.location.reload(), 1000);
+  } catch (error) {
+    console.error('Error saving changes:', error);
+    showNotification('❌ ' + error.message, 'error');
+  }
+}
+
+function cancelMyEdit() {
+  const confirmCancel = confirm('Hủy tất cả thay đổi?');
+  if (!confirmCancel) return;
+  isEditMode = false;
+  window.onbeforeunload = null;
+  window.location.reload();
+}
+
+function buildMyEvaluationForm(roadmap) {
+  hasEvaluationChanges = false;
+  originalEvaluationData = {
+    overall_rating: roadmap.overall_rating || 0,
+    learning_effectiveness: roadmap.learning_effectiveness || 0,
+    difficulty_suitability: roadmap.difficulty_suitability || 0,
+    content_relevance: roadmap.content_relevance || 0,
+    engagement_level: roadmap.engagement_level || 0,
+    detailed_feedback: roadmap.detailed_feedback || '',
+    actual_learning_outcomes: roadmap.actual_learning_outcomes || '',
+    improvement_suggestions: roadmap.improvement_suggestions || '',
+    would_recommend: roadmap.would_recommend || false
+  };
+  evaluationData = { ...originalEvaluationData };
+
+  const renderRatingGroup = (fieldName, label, currentValue) => {
+    const value = currentValue || 0;
+    const starsHtml = [1,2,3,4,5].map(i =>
+      `<span class="star ${value >= i ? 'active' : ''}" onclick="setMyRating('${fieldName}', ${i})">★</span>`
+    ).join('');
+    return `
+      <div class="rating-group">
+        <label>${label} *</label>
+        <div class="rating-stars" id="my_${fieldName}">${starsHtml}</div>
+        <div class="rating-value">Chọn: <span id="my_${fieldName}-value">${value}</span>/5</div>
+      </div>
+    `;
+  };
+
+  return `
+    <div class="evaluation-section">
+      <h3>⭐ Đánh Giá Lộ Trình</h3>
+      ${renderRatingGroup('overall_rating', 'Đánh giá tổng thể lộ trình (1-5 sao)', roadmap.overall_rating)}
+      ${renderRatingGroup('learning_effectiveness', 'Hiệu quả học tập (1-5 sao)', roadmap.learning_effectiveness)}
+      ${renderRatingGroup('difficulty_suitability', 'Độ khó phù hợp (1-5 sao)', roadmap.difficulty_suitability)}
+      ${renderRatingGroup('content_relevance', 'Tính liên quan nội dung (1-5 sao)', roadmap.content_relevance)}
+      ${renderRatingGroup('engagement_level', 'Tính hấp dẫn lộ trình (1-5 sao)', roadmap.engagement_level)}
+
+      <div class="textarea-group">
+        <label>Nhận xét chi tiết về lộ trình</label>
+        <textarea id="my_detailed_feedback" placeholder="Chia sẻ nhận xét của bạn..."
+          oninput="trackMyEvaluationChange('detailed_feedback', this.value)">${roadmap.detailed_feedback || ''}</textarea>
+      </div>
+      <div class="textarea-group">
+        <label>Kết quả học được thực tế sau hoàn thành</label>
+        <textarea id="my_actual_learning_outcomes" placeholder="Mô tả kỹ năng bạn đã học được..."
+          oninput="trackMyEvaluationChange('actual_learning_outcomes', this.value)">${roadmap.actual_learning_outcomes || ''}</textarea>
+      </div>
+      <div class="textarea-group">
+        <label>Đề xuất cải thiện lộ trình</label>
+        <textarea id="my_improvement_suggestions" placeholder="Gợi ý cải thiện..."
+          oninput="trackMyEvaluationChange('improvement_suggestions', this.value)">${roadmap.improvement_suggestions || ''}</textarea>
+      </div>
+      <div class="checkbox-group">
+        <label>
+          <input type="checkbox" id="my_would_recommend" ${roadmap.would_recommend ? 'checked' : ''}
+            onchange="trackMyEvaluationChange('would_recommend', this.checked)">
+          <span>Tôi sẽ giới thiệu lộ trình này cho người khác</span>
+        </label>
+      </div>
+      <button class="submit-evaluation-btn" onclick="submitMyEvaluation()">💾 Lưu Đánh Giá</button>
+    </div>
+  `;
+}
+
+function trackMyEvaluationChange(fieldName, value) {
+  evaluationData[fieldName] = value;
+  hasEvaluationChanges = Object.keys(originalEvaluationData).some(
+    key => evaluationData[key] !== originalEvaluationData[key]
+  );
+}
+
+function setMyRating(fieldName, value) {
+  evaluationData[fieldName] = value;
+  if (originalEvaluationData[fieldName] !== value) hasEvaluationChanges = true;
+
+  const starContainer = document.getElementById(`my_${fieldName}`);
+  if (starContainer) {
+    starContainer.querySelectorAll('.star').forEach((star, index) => {
+      if (index < value) star.classList.add('active'); else star.classList.remove('active');
+    });
+  }
+  const valueSpan = document.getElementById(`my_${fieldName}-value`);
+  if (valueSpan) valueSpan.textContent = value;
+}
+
+async function updateMyDayStatus(roadmapId, detailId, status) {
+  try {
+    const response = await fetch(`/api/roadmap/${roadmapId}/update-status`, {
+      method: 'PUT',
+      headers: getMyAuthHeaders(),
+      body: JSON.stringify({
+        detailId: detailId,
+        status: status,
+        studyDate: status === 'COMPLETED' ? getVietnamDateMine().toISOString().split('T')[0] : null
+      })
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to update status');
+    }
+    showNotification('✅ Đã cập nhật trạng thái!', 'success');
+    await loadMyRoadmapDetails();
+  } catch (error) {
+    console.error('❌ Error updating status:', error);
+    showNotification('❌ Không thể cập nhật trạng thái: ' + error.message, 'error');
+  }
+}
+
+async function submitMyEvaluation() {
+  const requiredFields = ['overall_rating', 'learning_effectiveness', 'difficulty_suitability', 'content_relevance', 'engagement_level'];
+  const missingFields = requiredFields.filter(field => !evaluationData[field]);
+  if (missingFields.length > 0) {
+    showNotification('⚠ Vui lòng đánh giá tất cả 5 tiêu chí!', 'error');
+    return;
+  }
+
+  const submitBtn = document.querySelector('#myAnalysisAndDetails .submit-evaluation-btn');
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<div class="loading"><div class="spinner"></div> Đang lưu...</div>';
+
+  try {
+    const payload = {
+      overall_rating: evaluationData.overall_rating,
+      learning_effectiveness: evaluationData.learning_effectiveness,
+      difficulty_suitability: evaluationData.difficulty_suitability,
+      content_relevance: evaluationData.content_relevance,
+      engagement_level: evaluationData.engagement_level,
+      detailed_feedback: document.getElementById('my_detailed_feedback').value || '',
+      actual_learning_outcomes: document.getElementById('my_actual_learning_outcomes').value || '',
+      improvement_suggestions: document.getElementById('my_improvement_suggestions').value || '',
+      would_recommend: document.getElementById('my_would_recommend').checked
+    };
+
+    const response = await fetch(`/api/roadmap/${myRoadmapData.roadmap_id}/submit-evaluation`, {
+      method: 'POST',
+      headers: getMyAuthHeaders(),
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) throw new Error('Failed to submit evaluation');
+
+    showNotification('✓ Đánh giá đã được lưu thành công!', 'success');
+    hasEvaluationChanges = false;
+    originalEvaluationData = {};
+    window.onbeforeunload = null;
+    setTimeout(() => window.location.reload(), 1200);
+  } catch (error) {
+    console.error('Error submitting evaluation:', error);
+    showNotification('✗ Có lỗi xảy ra khi lưu đánh giá', 'error');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '💾 Lưu Đánh Giá';
+  }
+}
 </script>
 <script src="footer.js"></script>
 </body>
