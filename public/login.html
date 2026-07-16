@@ -770,6 +770,7 @@
 
         if (res.ok){
           if (body && body.token) localStorage.setItem('token', body.token);
+          if (body && body.user && body.user.name) localStorage.setItem('userName', body.user.name); // ✅ thêm dòng này
           setGeneralMessage('Đăng nhập thành công. Đang chuyển...', false);
 
           try {
@@ -1163,16 +1164,19 @@ if (token && success === 'google_login') {
   localStorage.setItem('role', 'user'); // Mặc định, path.html sẽ cập nhật sau
 
   // Fetch role ở background nhưng KHÔNG chờ - chuyển trang ngay
-  fetch(`${API_BASE}/api/me`, {
-    headers: { Authorization: 'Bearer ' + token }
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.user && data.user.role) {
-      localStorage.setItem('role', data.user.role);
-    }
-  })
-  .catch(() => {});
+fetch(`${API_BASE}/api/me`, {
+  headers: { Authorization: 'Bearer ' + token }
+})
+.then(res => res.json())
+.then(data => {
+  if (data.user && data.user.role) {
+    localStorage.setItem('role', data.user.role);
+  }
+  if (data.user && data.user.name) {
+    localStorage.setItem('userName', data.user.name); // ✅ thêm dòng này
+  }
+})
+.catch(() => {});
 
   // Chuyển sang path.html ngay, không chờ fetch
   window.location.replace('/path.html');
