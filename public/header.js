@@ -199,8 +199,14 @@ async function loadUser(currentPage = '') {
         const nameEl = userArea.querySelector('strong');
         if (nameEl && nameEl.textContent !== name) nameEl.textContent = name;
     }
+    if (serverRole === 'admin') {
+        document.body.classList.add('admin-mode'); // ✅ THÊM
+    } else {
+        document.body.classList.remove('admin-mode'); // ✅ THÊM
+    }
 
     if (serverRole === 'admin' && navButtons) {
+        //navButtons.classList.add('has-admin'); // ✅ THÊM: đánh dấu để CSS phân biệt admin/user
         if (!document.getElementById('btnAdmin')) {
             const adminBtn = document.createElement('a');
             adminBtn.href = 'admin.html?page=admin';
