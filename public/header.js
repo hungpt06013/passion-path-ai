@@ -97,109 +97,111 @@ function wireLogoutAndNav(logoutEl) {
     logoutEl.addEventListener('click', () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
+        localStorage.removeItem('userName'); // ✅ thêm dòng này
         window.location.href = 'main.html';
     });
 }
+// ✅ HIỂN THỊ NGAY LẬP TỨC dựa vào dữ liệu cache trong localStorage,
+// KHÔNG chờ API — tránh chớp nút đăng nhập/đăng ký khi đã đăng nhập
+function applyOptimisticAuthUI() {
+    const token = localStorage.getItem('token');
+    const userArea = document.getElementById('userArea');
+    if (!userArea || !token) return false;
 
+    const cachedName = localStorage.getItem('userName') || 'Người dùng';
+
+    const loginBtn = userArea.querySelector('.login-btn');
+    const registerBtn = userArea.querySelector('.register-btn');
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (registerBtn) registerBtn.style.display = 'none';
+
+    userArea.innerHTML = `
+        <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${cachedName}</strong></span>
+        <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    `;
+    const logoutEl = document.getElementById('logout');
+    wireLogoutAndNav(logoutEl);
+    return true;
+}
 // Hàm load thông tin user
 async function loadUser(currentPage = '') {
     const token = localStorage.getItem('token');
     const userArea = document.getElementById('userArea');
     const navButtons = document.getElementById('mainNavButtons');
-    
-    // Setup navigation
+
     setupNavigation(currentPage);
-    
-    // Setup login/register buttons
+
+    // ✅ Hiện "Xin chào..." + nút đăng xuất NGAY, không chờ mạng
+    applyOptimisticAuthUI();
+
     const loginBtn = userArea?.querySelector('.login-btn');
     const registerBtn = userArea?.querySelector('.register-btn');
-    
+
     if (loginBtn) {
-        loginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
-        });
+        loginBtn.addEventListener('click', () => window.location.href = 'login.html');
     }
-    
     if (registerBtn) {
-        registerBtn.addEventListener('click', () => {
-            window.location.href = 'register.html';
-        });
+        registerBtn.addEventListener('click', () => window.location.href = 'register.html');
     }
-    
-    // ✅ QUAN TRỌNG: RETURN NGAY KHI KHÔNG CÓ TOKEN
+
     if (!token) {
-        console.log('❌ No token found - showing auth buttons'); // Debug log
         showAuthButtons();
-        return; // ← DỪNG TẠI ĐÂY
+        return;
     }
-    
-    // ✅ CODE DƯỚI ĐÂY CHỈ CHẠY KHI CÓ TOKEN
-    console.log('✅ Token found - loading user info'); // Debug log
+
+    // Phần dưới đây (fetch /api/me) giờ chỉ để XÁC THỰC LẠI Ở NỀN,
+    // không còn chặn UI vì người dùng đã thấy "Xin chào..." rồi
     let name = 'Người dùng';
     let serverRole = 'user';
-    
-    // Kiểm tra admin token
+
     if (token === Admin_token) {
         name = 'Admin';
         serverRole = 'admin';
         localStorage.setItem('role', 'admin');
+        localStorage.setItem('userName', name);
     } else {
-        // Lấy thông tin user từ API
         try {
-            console.log('📡 Calling /api/me...'); // Debug log
             const res = await fetch('/api/me', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            
+
             if (!res.ok) {
-                console.log('❌ API call failed - clearing token'); // Debug log
-                // ✅ XÓA TOKEN KHÔNG HỢP LỆ
+                // Token không hợp lệ -> lúc này mới đổi lại về nút đăng nhập
                 localStorage.removeItem('token');
                 localStorage.removeItem('role');
+                localStorage.removeItem('userName');
                 showAuthButtons();
-                
-                // ✅ REDIRECT VỀ TRANG CHỦ NẾU ĐANG Ở TRANG PRIVATE
+
                 const currentPath = window.location.pathname;
                 const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html'];
                 const isPrivatePage = privatePaths.some(path => currentPath.includes(path));
-                
                 if (isPrivatePage) {
-                    console.log('🔄 Redirecting to login...');
                     alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
                     window.location.href = 'login.html';
                 }
                 return;
             }
-            
+
             const data = await res.json();
             serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
             name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
             localStorage.setItem('role', serverRole);
+            localStorage.setItem('userName', name); // ✅ cache lại để lần sau hiện ngay
         } catch (err) {
             console.error('❌ Error loading user:', err);
-            localStorage.removeItem('token');
-            showAuthButtons();
+            // Lỗi mạng: giữ nguyên UI optimistic đã hiện, không cần làm gì thêm
             return;
         }
     }
-    
-    // Phần còn lại giữ nguyên...
-    if (loginBtn) loginBtn.style.display = 'none';
-    if (registerBtn) registerBtn.style.display = 'none';
-    
+
+    // Cập nhật lại tên thật (nếu khác với cache) mà không gây chớp giật vì đã hiện sẵn tên gần đúng
     if (userArea) {
-        userArea.innerHTML = `
-            <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${name}</strong></span>
-            <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
-        `;
-        
-        const logoutEl = document.getElementById('logout');
-        wireLogoutAndNav(logoutEl);
+        const nameEl = userArea.querySelector('strong');
+        if (nameEl && nameEl.textContent !== name) nameEl.textContent = name;
     }
-    
+
     if (serverRole === 'admin' && navButtons) {
         if (!document.getElementById('btnAdmin')) {
-            // ✅ SỬA: Dùng <a> cho nút Admin
             const adminBtn = document.createElement('a');
             adminBtn.href = 'admin.html?page=admin';
             adminBtn.className = 'nav-btn';
@@ -207,7 +209,6 @@ async function loadUser(currentPage = '') {
             adminBtn.innerHTML = '<i class="fa-solid fa-user-shield"></i> Quản Trị';
             navButtons.appendChild(adminBtn);
         }
-        
         const currentPath = window.location.pathname;
         if (currentPath.includes('admin.html')) {
             const adminBtn = document.getElementById('btnAdmin');
