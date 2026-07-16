@@ -432,6 +432,38 @@ details > div {
     max-width: 1400px !important;
     min-width: auto !important;
 }
+
+.history-card {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.sub-cat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+.sub-cat-row .sub-cat-actions {
+    display: flex;
+    gap: 5px;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+@media (max-width: 401px) {
+    .sub-cat-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .sub-cat-row .sub-cat-actions {
+        margin-left: 0 !important;
+        margin-top: 8px;
+        justify-content: flex-start;
+    }
+}
+
+
 @media (min-width: 1401px) {
     .admin-roadmap-modal {
         width: 90% !important;
@@ -1019,6 +1051,30 @@ details > div {
     .admin-roadmap-modal td a {
         font-size: 0.65rem !important;
     }
+}
+@media (max-width: 876px) {
+  .users-table {
+    display: table !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+    table-layout: fixed !important;
+    font-size: 10px !important;
+  }
+  .users-table th,
+  .users-table td {
+    padding: 5px 3px !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+  .actions-cell {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .btn-delete {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
 }
     </style>
     <!-- Preload Font Awesome CSS -->
@@ -1626,7 +1682,7 @@ function renderAIHistory(records, total) {
             <summary style="cursor: pointer; color: #007bff; font-weight: 600; padding: 8px; background: #f0f9ff; border-radius: 6px;">
               🔍 Xem Prompt (${promptPreview.length} / ${fullPrompt.length} ký tự)
             </summary>
-            <div style="margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;">
+            <div style="margin-top: 10px; padding: 15px; background: #f5f5f5; border-radius: 8px; max-height: 500px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; overflow-wrap: break-word; max-width: 100%; box-sizing: border-box; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;">
               ${escapeHtml(fullPrompt)}
             </div>
           </details>
@@ -1726,11 +1782,11 @@ function renderAIHistory(records, total) {
                 <ul style="margin: 5px 0 0 20px;">
                   ${subCats.map(sub => `
                     <li style="margin: 8px 0;">
-                      <div style="display: flex; justify-content: space-between; align-items: start;">
+                      <div class="sub-cat-row">
                         <div style="flex: 1;">
                           <strong>${escapeHtml(sub.name)}</strong> - <span style="color: #6b7280; font-size: 13px;">${escapeHtml(sub.description || '')}</span>
                         </div>
-                        <div style="display: flex; gap: 5px; margin-left: 10px;">
+                        <div class="sub-cat-actions">
                           <button class="btn-refresh" onclick="editSubCategory(${sub.id}, ${cat.id}, '${escapeHtml(sub.name)}', '${escapeHtml(sub.description || '')}')" style="padding: 4px 8px; font-size: 11px;">
                             <i class="fa-solid fa-edit"></i> Sửa
                           </button>
