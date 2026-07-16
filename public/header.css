@@ -377,3 +377,74 @@
     content: '';
     padding-left: 1px; /* Tạo khoảng cách nhỏ ở đầu */
 }
+/* ============ ADMIN (4 nút): 900px-1285px thu nhỏ thay vì scroll ============ */
+@media (max-width: 1285px) and (min-width: 900px) {
+    .nav-buttons.has-admin {
+        gap: 6px !important;
+        overflow-x: hidden !important;
+        justify-content: center !important;
+    }
+    .nav-buttons.has-admin .nav-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+    .nav-buttons.has-admin .nav-btn .fa {
+        font-size: 11px;
+    }
+}
+
+/* ============ USER (3 nút): 900px-1183px thu nhỏ thay vì scroll ============ */
+@media (max-width: 1183px) and (min-width: 900px) {
+    .nav-buttons:not(.has-admin) {
+        gap: 8px !important;
+        overflow-x: hidden !important;
+        justify-content: center !important;
+    }
+    .nav-buttons:not(.has-admin) .nav-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+}
+
+/* ============ ADMIN (4 nút): <563px chia 2 hàng x 2 nút ============ */
+@media (max-width: 563px) {
+    .nav-buttons.has-admin {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        overflow-x: hidden !important;
+        padding: 6px 0 !important;
+    }
+    .nav-buttons.has-admin .nav-btn {
+        flex: 0 0 calc(50% - 10px);
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+
+/* ============ USER (3 nút): <400px chia 2 hàng (Trang chủ+Lộ trình / Tiến độ) ============ */
+@media (max-width: 400px) {
+    .nav-buttons:not(.has-admin) {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        overflow-x: hidden !important;
+        padding: 6px 0 !important;
+    }
+    .nav-buttons:not(.has-admin) .nav-btn {
+        flex: 0 0 calc(50% - 10px);
+        justify-content: center;
+        box-sizing: border-box;
+    }
+}
+/* ✅ Tăng khoảng trống phía trên khi admin nav wrap 2 hàng ở màn hình hẹp,
+   ghi đè padding-top mà từng trang tự đặt cho mobile */
+@media (max-width: 563px) {
+  body.admin-mode {
+    padding-top: 270px !important;
+  }
+}
+@media (max-width: 480px) {
+  body.admin-mode {
+    padding-top: 250px !important;
+  }
+}
