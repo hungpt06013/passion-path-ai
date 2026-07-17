@@ -1766,6 +1766,31 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
         font-size: 1rem;
     }
 }
+@media (max-width: 350px) {
+  body { overflow-x: hidden; }
+  .roadmap-card { padding: 14px; }
+  .roadmap-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px;
+  }
+  .stat-value { font-size: 1.1rem; }
+  .stat-label { font-size: 0.7rem; }
+  .roadmap-title { font-size: 1rem; }
+  .status-badge { font-size: 0.65rem; padding: 4px 8px; }
+  .meta-item { font-size: 11px; }
+  .roadmaps-grid { padding: 0 3px; }
+}
+@media (max-width: 400px) {
+  .container {
+    margin-top: 260px !important;
+  }
+}
+@media (max-width: 563px) {
+  body.admin-mode .container {
+    margin-top: 20px !important;
+  }
+}
 </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
