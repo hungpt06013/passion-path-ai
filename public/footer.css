@@ -369,3 +369,36 @@ html, body {
 footer > div:first-child > div:nth-child(2) {
   justify-self: center;
 }
+.footer-main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+  .footer-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 900px) and (min-width: 436px) {
+  .footer-main-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-areas:
+      "brand brand"
+      "features support" !important;
+    justify-items: center;
+    text-align: center;
+  }
+  .footer-main-grid > div:nth-child(1) { grid-area: brand; width: 100%; }
+  .footer-main-grid > div:nth-child(2) { grid-area: features; }
+  .footer-main-grid > div:nth-child(3) { grid-area: support; }
+}
+
+@media (max-width: 435px) {
+  .footer-main-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    justify-items: center;
+    text-align: center;
+  }
+}
