@@ -427,11 +427,7 @@ details > div {
 .modal-overlay.active {
     display: flex;
 }
-.admin-roadmap-modal {
-    width: 95% !important;
-    max-width: 1400px !important;
-    min-width: auto !important;
-}
+
 
 .history-card {
     overflow-wrap: break-word;
@@ -471,32 +467,6 @@ details > div {
 }
 
 @media (max-width: 1400px) and (min-width: 901px) {
-    #adminDetailsModal .modal-content {
-        min-width: auto;
-        width: 95%;
-    }
-    
-    #adminDetailsModal table {
-        font-size: 0.85rem;
-        display: block;
-        overflow-x: auto;
-    }
-    
-    #adminDetailsModal th,
-    #adminDetailsModal td {
-        padding: 10px 6px;
-        font-size: 0.85rem;
-    }
-    
-    #adminDetailsModal th:nth-child(1), #adminDetailsModal td:nth-child(1) { width: 50px !important; min-width: 50px !important; }
-    #adminDetailsModal th:nth-child(2), #adminDetailsModal td:nth-child(2) { width: 110px !important; min-width: 110px !important; }
-    #adminDetailsModal th:nth-child(3), #adminDetailsModal td:nth-child(3) { width: 120px !important; min-width: 120px !important; }
-    #adminDetailsModal th:nth-child(4), #adminDetailsModal td:nth-child(4) { width: 140px !important; min-width: 140px !important; }
-    #adminDetailsModal th:nth-child(5), #adminDetailsModal td:nth-child(5) { width: 110px !important; min-width: 110px !important; }
-    #adminDetailsModal th:nth-child(6), #adminDetailsModal td:nth-child(6) { width: 90px !important; min-width: 90px !important; }
-    #adminDetailsModal th:nth-child(7), #adminDetailsModal td:nth-child(7) { width: 100px !important; min-width: 100px !important; }
-    #adminDetailsModal th:nth-child(8), #adminDetailsModal td:nth-child(8) { width: 70px !important; min-width: 70px !important; }
-    #adminDetailsModal th:nth-child(9), #adminDetailsModal td:nth-child(9) { width: 130px !important; min-width: 130px !important; }
     .admin-roadmap-modal {
         width: 95% !important;
     }
@@ -693,65 +663,7 @@ details > div {
   .rating-stars {
     font-size: 24px;
   }
-    #adminDetailsModal .modal-content {
-        width: 95%;
-        margin: 10px;
-        min-width: auto;
-    }
-    
-    #adminDetailsModal .modal-header {
-        padding: 20px 15px;
-    }
-    
-    #adminDetailsModal .modal-header h2 {
-        font-size: 1.3rem;
-    }
-    
-    #adminDetailsModal .modal-header p {
-        font-size: 0.85rem;
-    }
-    
-    #adminDetailsModal .modal-body {
-        padding: 20px 15px;
-        max-height: calc(95vh - 100px);
-    }
-    
-    #adminDetailsModal .analysis-section {
-        padding: 20px 15px;
-        margin-bottom: 20px;
-    }
-    
-    #adminDetailsModal .analysis-section h3 {
-        font-size: 1.1rem;
-        margin-bottom: 12px;
-    }
-    
-    #adminDetailsModal .analysis-content {
-        font-size: 0.85rem;
-        line-height: 1.6;
-    }
-    
-    #adminDetailsModal table {
-        font-size: 0.75rem;
-        display: block;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-    
-    #adminDetailsModal th,
-    #adminDetailsModal td {
-        padding: 8px 4px;
-        font-size: 0.75rem;
-    }
-    
-    #adminDetailsModal .day-cell,
-    #adminDetailsModal .date-cell {
-        font-size: 0.75rem;
-    }
-    
-    #adminDetailsModal .roadmap-section h3 {
-        font-size: 1.1rem;
-    }
+
     .admin-roadmap-modal {
         width: 95% !important;
         max-width: 95% !important;
@@ -945,54 +857,6 @@ details > div {
   .rating-stars {
     font-size: 20px;
   }
-    #adminDetailsModal .modal-content {
-        width: 98%;
-        max-height: 95vh;
-        margin: 5px;
-    }
-    
-    #adminDetailsModal .modal-header {
-        padding: 15px 10px;
-    }
-    
-    #adminDetailsModal .modal-header h2 {
-        font-size: 1.1rem;
-    }
-    
-    #adminDetailsModal .modal-header p {
-        font-size: 0.8rem;
-    }
-    
-    #adminDetailsModal .modal-body {
-        padding: 15px 10px;
-    }
-    
-    #adminDetailsModal .analysis-section {
-        padding: 15px 12px;
-    }
-    
-    #adminDetailsModal .analysis-section h3 {
-        font-size: 1rem;
-    }
-    
-    #adminDetailsModal .analysis-content {
-        font-size: 0.8rem;
-        line-height: 1.5;
-    }
-    
-    #adminDetailsModal table {
-        font-size: 0.7rem;
-    }
-    
-    #adminDetailsModal th,
-    #adminDetailsModal td {
-        padding: 6px 3px;
-        font-size: 0.7rem;
-    }
-    
-    #adminDetailsModal .roadmap-section h3 {
-        font-size: 1rem;
-    }
     .admin-roadmap-modal {
         width: 98% !important;
         max-width: 98% !important;
@@ -1074,6 +938,12 @@ details > div {
   .btn-delete {
     font-size: 10px;
     padding: 4px 6px;
+  }
+}
+@media (max-width: 1182px) {
+  .admin-nav-btn{
+    margin-top: -5px !important;
+    margin-bottom: -5px !important;
   }
 }
     </style>
@@ -1343,28 +1213,11 @@ details > div {
     <div id="userRoadmapsArea"></div>
     <div id="userRoadmapsMessage" role="status" aria-live="polite"></div>
 </section>
-<!-- ✅ MODAL XEM CHI TIẾT LỘ TRÌNH USER (ADMIN) -->
-<div class="modal-overlay" id="adminDetailsModal">
-    <div class="modal-content admin-roadmap-modal">
-        <div class="modal-header">
-            <div>
-                <h2 id="adminModalTitle">Chi tiết lộ trình</h2>
-                <p style="opacity: 0.9;">Xem chi tiết lộ trình người dùng</p>
-            </div>
-            <button class="close-modal" onclick="closeAdminDetailsModal()">✕</button>
-        </div>
-        <div class="modal-body" id="adminModalBody">
-            <div class="loading">
-                <div class="spinner"></div>
-                <br><br>
-                Đang tải...
-            </div>
-        </div>
-    </div>
-</div>
+
     </main>
 <div id="footer"></div>
   <script>
+  
     // ============ DOM ELEMENTS ============
     const fetchUsersBtn = document.getElementById('fetchUsersBtn');
     const usersArea = document.getElementById('usersArea');
@@ -3006,108 +2859,9 @@ if (searchUserRoadmap) {
         }
     });
 }
-
-window.viewUserRoadmapDetails = async function(roadmapId) {
-    // ✅ MỞ MODAL XEM CHI TIẾT TRỰC TIẾP (KHÔNG MỞ PATH.HTML)
-    try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`/api/roadmaps/${roadmapId}`, {
-            headers: { 
-                'Authorization': 'Bearer ' + token,
-                'Cache-Control': 'no-cache'
-            }
-        });
-        
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-        }
-        
-        const data = await res.json();
-        
-        // ✅ RENDER MODAL (GIỐNG PATH.HTML)
-        displayAdminRoadmapDetails(data.data.roadmap, data.data.details);
-        document.getElementById('adminDetailsModal').classList.add('active');
-        
-    } catch (err) {
-        console.error('Error loading roadmap:', err);
-        alert('❌ Không thể tải lộ trình: ' + err.message);
-    }
+window.viewUserRoadmapDetails = function(roadmapId) {
+    window.open(`roadmap_details.html?id=${roadmapId}&admin=true`, '_blank');
 };
-// ✅ HÀM RENDER CHI TIẾT LỘ TRÌNH (MODAL ADMIN)
-function displayAdminRoadmapDetails(roadmap, details) {
-    const modalBody = document.getElementById('adminModalBody');
-    const modalTitle = document.getElementById('adminModalTitle');
-    
-    modalTitle.textContent = roadmap.roadmap_name;
-    
-    // ✅ STYLE GIỐNG PATH.HTML
-    const analysisHTML = `
-        <div class="analysis-section" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 30px; border-radius: 16px; margin-bottom: 30px; border-left: 5px solid #10b981;">
-            <h3 style="color: #065f46; margin-bottom: 15px; font-size: 1.3rem;">📊 Phân Tích AI</h3>
-            <div class="analysis-content" style="color: #374151; line-height: 1.8; white-space: pre-wrap;">${roadmap.roadmap_analyst || 'Không có phân tích'}</div>
-        </div>
-    `;
-    
-    // ✅ STYLE TABLE GIỐNG PATH.HTML
-    const tableHTML = `
-        <div class="roadmap-section">
-            <h3 style="color: #1f2937; margin-bottom: 20px; font-size: 1.3rem;">📅 Lộ Trình Chi Tiết</h3>
-            <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; margin-bottom: 40px;">
-                <thead style="background: linear-gradient(135deg, #007bff, #007bff); color: white;">
-                    <tr>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; width: 60px;">Ngày</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; width: 130px;">Ngày học</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; min-width: 120px;">Mục tiêu</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; min-width: 130px;">Nội dung</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; min-width: 110px;">Bài tập</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; width: 90px;">Tài liệu</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; min-width: 190px;">Hướng dẫn</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; width: 80px;">Thời lượng</th>
-                        <th style="padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; min-width: 100px;">Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${details.map(d => {
-                        let materialsHTML = 'N/A';
-                        if (d.learning_materials) {
-                            const links = d.learning_materials.split(/[;\n]/).map(link => link.trim()).filter(link => link && link.match(/^https?:\/\//i));
-                            if (links.length > 0) {
-                                materialsHTML = links.map((link, idx) => `<a href="${link}" target="_blank" style="color: #007bff; display: block; margin: 2px 0; font-size: 0.85rem; font-weight: 600; text-decoration: none;">Xem</a>`).join('');
-                            }
-                        }
-                        
-                        const statusMap = {
-                            'NOT_STARTED': 'Chưa học',
-                            'IN_PROGRESS': 'Đang học',
-                            'COMPLETED': 'Hoàn thành',
-                            'SKIPPED': 'Bỏ qua'
-                        };
-                        
-                        return `
-                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                <td class="day-cell" style="padding: 15px; text-align: center; font-weight: 700; color: #007bff; background: #f0f9ff;">${d.day_number}</td>
-                                <td class="date-cell" style="padding: 15px; text-align: center; font-weight: 600; color: #059669; background: #f0fdf4;">${d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN') : 'N/A'}</td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top;"><strong>${d.daily_goal || 'N/A'}</strong></td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${d.learning_content || 'N/A'}</td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${d.practice_exercises || 'N/A'}</td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top; width: fit-content;">${materialsHTML}</td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${d.usage_instructions || 'N/A'}</td>
-                                <td style="padding: 15px; text-align: center; border-bottom: 1px solid #e5e7eb; vertical-align: top;"><strong>${formatHours(d.study_duration)}</strong></td>
-                                <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; vertical-align: top;">${statusMap[d.completion_status] || d.completion_status}</td>
-                            </tr>
-                        `;
-                    }).join('')}
-                </tbody>
-            </table>
-        </div>
-    `;
-    
-    modalBody.innerHTML = analysisHTML + tableHTML;
-}
-// ✅ HÀM ĐÓNG MODAL
-function closeAdminDetailsModal() {
-    document.getElementById('adminDetailsModal').classList.remove('active');
-}
 
 // ✅ HÀM FORMAT GIỜ (NẾU CHƯA CÓ)
 function formatHours(hours) {
