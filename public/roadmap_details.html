@@ -718,30 +718,141 @@ tbody tr:hover {
     font-size: 13px;
   }
 }
-#myAnalysisAndDetails table {
-    width: 100%; border-collapse: separate; border-spacing: 0; background: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 12px; overflow: visible; margin-bottom: 40px;
+#myAnalysisAndDetails .roadmap-section {
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 8px;
 }
-#myAnalysisAndDetails th:nth-child(1), #myAnalysisAndDetails td:nth-child(1) { width: 60px !important; min-width: 60px !important; }
-#myAnalysisAndDetails th:nth-child(2), #myAnalysisAndDetails td:nth-child(2) { width: 130px !important; min-width: 130px !important; }
-#myAnalysisAndDetails th:nth-child(9), #myAnalysisAndDetails td:nth-child(9) { min-width: 150px !important; }
-#myAnalysisAndDetails th:nth-child(10), #myAnalysisAndDetails td:nth-child(10) { width: 100px !important; }
+
+#myAnalysisAndDetails table {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 40px;
+    table-layout: fixed;
+}
+#myAnalysisAndDetails table thead th {
+    background: linear-gradient(135deg, #007bff, #1e40af);
+    color: white;
+    font-weight: 700;
+    padding: 12px 8px;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(255,255,255,0.18);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    font-size: 0.8rem;
+    white-space: normal;
+    line-height: 1.3;
+}
+#myAnalysisAndDetails table tbody tr {
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+#myAnalysisAndDetails table tbody tr:hover {
+    background: #f8fafc;
+}
+#myAnalysisAndDetails table tbody tr td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    background: white;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+#myAnalysisAndDetails th:nth-child(1), #myAnalysisAndDetails td:nth-child(1) { width: 56px !important; min-width: 56px !important; }
+#myAnalysisAndDetails th:nth-child(2), #myAnalysisAndDetails td:nth-child(2) { width: 96px !important; min-width: 96px !important; }
+#myAnalysisAndDetails th:nth-child(3), #myAnalysisAndDetails td:nth-child(3) { width: 140px !important; min-width: 140px !important; }
+#myAnalysisAndDetails th:nth-child(4), #myAnalysisAndDetails td:nth-child(4) { width: 180px !important; min-width: 180px !important; }
+#myAnalysisAndDetails th:nth-child(5), #myAnalysisAndDetails td:nth-child(5) { width: 130px !important; min-width: 130px !important; }
+#myAnalysisAndDetails th:nth-child(6), #myAnalysisAndDetails td:nth-child(6) { width: 100px !important; min-width: 100px !important; }
+#myAnalysisAndDetails th:nth-child(7), #myAnalysisAndDetails td:nth-child(7) { width: 160px !important; min-width: 160px !important; }
+#myAnalysisAndDetails th:nth-child(8), #myAnalysisAndDetails td:nth-child(8) { width: 86px !important; min-width: 86px !important; }
+#myAnalysisAndDetails th:nth-child(9), #myAnalysisAndDetails td:nth-child(9) { width: 120px !important; min-width: 120px !important; }
+#myAnalysisAndDetails th:nth-child(10), #myAnalysisAndDetails td:nth-child(10) { width: 90px !important; min-width: 90px !important; }
 #myAnalysisAndDetails table:not(.edit-mode-active) th:last-child,
 #myAnalysisAndDetails table:not(.edit-mode-active) td:last-child { display: none; }
 
+#myAnalysisAndDetails table.edit-mode-active {
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+    table-layout: fixed;
+    width: 100%;
+}
+#myAnalysisAndDetails table.edit-mode-active th,
+#myAnalysisAndDetails table.edit-mode-active td {
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(1),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(1) { width: 50px !important; min-width: 50px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(2),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(2) { width: 78px !important; min-width: 78px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(3),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(3) { width: 120px !important; min-width: 120px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(4),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(4) { width: 150px !important; min-width: 150px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(5),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(5) { width: 110px !important; min-width: 110px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(6),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(6) { width: 90px !important; min-width: 90px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(7),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(7) { width: 130px !important; min-width: 130px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(8),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(8) { width: 70px !important; min-width: 70px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(9),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(9) { width: 100px !important; min-width: 100px !important; }
+#myAnalysisAndDetails table.edit-mode-active th:nth-child(10),
+#myAnalysisAndDetails table.edit-mode-active td:nth-child(10) { width: 84px !important; min-width: 84px !important; }
+#myAnalysisAndDetails table.edit-mode-active tbody tr {
+    background: white;
+}
+#myAnalysisAndDetails table.edit-mode-active tbody tr:hover {
+    background: #f9fafb;
+}
 #myAnalysisAndDetails td.date-cell { text-align: center; font-weight: 600; color: #059669; background: #f0fdf4; }
+#myAnalysisAndDetails table.edit-mode-active td.date-cell {
+    background: #f0fdf4;
+}
 #myAnalysisAndDetails td.editable { position: relative; cursor: text; }
-#myAnalysisAndDetails td.editable:hover { background: #fef3c7; outline: 2px solid #f59e0b; }
+#myAnalysisAndDetails table.edit-mode-active td.editable {
+    background: #fff;
+}
+#myAnalysisAndDetails table.edit-mode-active td.editable:hover {
+    background: #fef3c7;
+    box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.25);
+}
 #myAnalysisAndDetails td.editable input,
-#myAnalysisAndDetails td.editable textarea {
-    width: 100%; padding: 8px; border: 2px solid #e5e7eb; border-radius: 6px;
-    font-family: inherit; font-size: 0.9rem; background: white;
+#myAnalysisAndDetails td.editable textarea,
+#myAnalysisAndDetails td.editable select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    background: white;
+    color: #111827;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 #myAnalysisAndDetails td.editable input:focus,
-#myAnalysisAndDetails td.editable textarea:focus {
-    outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+#myAnalysisAndDetails td.editable textarea:focus,
+#myAnalysisAndDetails td.editable select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.12);
 }
-#myAnalysisAndDetails td.editable textarea { min-height: 80px; resize: vertical; }
+#myAnalysisAndDetails td.editable textarea { min-height: 72px; resize: none; overflow: hidden; }
 
 #myAnalysisAndDetails tbody tr.draggable { cursor: move; }
 #myAnalysisAndDetails tbody tr.dragging { opacity: 0.5; background: #f0f9ff; }
@@ -763,27 +874,59 @@ tbody tr:hover {
     background: #10b981 !important; color: white !important;
 }
 
-#myAnalysisAndDetails .roadmap-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-#myAnalysisAndDetails .edit-mode-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 10px 20px;
-    border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+#myAnalysisAndDetails .roadmap-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 12px;
 }
-#myAnalysisAndDetails .edit-mode-btn.active { background: linear-gradient(135deg, #10b981, #059669); }
-#myAnalysisAndDetails .add-day-btn {
-    background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 12px 24px;
-    border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
+.roadmap-edit-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+.roadmap-edit-controls .info-box {
+    flex: 1 1 100%;
+    text-align: left;
+    margin-bottom: 10px;
+    background: #fee2e2;
+    border-left: 4px solid #dc2626;
+    padding: 12px 14px;
+    border-radius: 8px;
+}
+.roadmap-edit-controls .edit-mode-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.roadmap-edit-controls .edit-mode-btn:hover {
+    transform: translateY(-1px);
+}
+.roadmap-edit-controls .add-day-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 10px 18px;
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
     display: inline-flex; align-items: center; gap: 8px;
 }
-#myAnalysisAndDetails .save-changes-btn {
-    background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 24px;
-    border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;
-    margin-top: 20px; display: inline-flex; align-items: center; gap: 8px;
-}
-#myAnalysisAndDetails .cancel-edit-btn {
-    background: #6b7280; color: white; padding: 12px 24px; border: none; border-radius: 8px;
-    font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 20px; margin-left: 10px;
+.roadmap-edit-controls .save-changes-btn {
+    background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 10px 18px;
+    border: none; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
     display: inline-flex; align-items: center; gap: 8px;
+}
+.roadmap-edit-controls .cancel-edit-btn {
+    background: #6b7280; color: white; padding: 10px 18px; border: none; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
 }
 #myAnalysisAndDetails .delete-day-btn {
     background: #266cdc; color: white; border: none; border-radius: 6px; padding: 6px 12px;
@@ -864,14 +1007,19 @@ tbody tr:hover {
 /* ≥1122px: bảng không co, nhưng không tràn trang — cho scroll ngang trong chính khung của nó */
 @media (min-width: 1122px) {
   #myAnalysisAndDetails .roadmap-section {
-    overflow-x: auto;
+    overflow-x: hidden;
   }
   #myAnalysisAndDetails table:not(.edit-mode-active) {
-    min-width: 1130px;
+    min-width: 0;
   }
 }
 
 @media (max-width: 1121px) {
+  #myAnalysisAndDetails .roadmap-section {
+    overflow-x: hidden;
+    padding-bottom: 8px;
+  }
+
   #myAnalysisAndDetails table:not(.edit-mode-active) {
     table-layout: fixed !important;
     width: 100% !important;
@@ -909,48 +1057,44 @@ tbody tr:hover {
     width: 100% !important;
   }
 
-  /* Mục 4: EDIT MODE — chuyển bảng thành card xếp dọc, full thông tin, KHÔNG tràn ngang */
+  /* Mục 4: EDIT MODE — giữ bảng ở dạng bảng, chỉ cho cuộn ngang để gần giống chế độ xem */
   #myAnalysisAndDetails table.edit-mode-active {
-    display: block !important;
+    display: table !important;
     width: 100% !important;
+    min-width: 980px;
+    border-collapse: separate !important;
+    border-spacing: 0;
+    overflow: visible !important;
   }
-  #myAnalysisAndDetails table.edit-mode-active thead { display: none; }
-  #myAnalysisAndDetails table.edit-mode-active tbody { display: block; width: 100%; }
+  #myAnalysisAndDetails table.edit-mode-active thead { display: table-header-group; }
+  #myAnalysisAndDetails table.edit-mode-active tbody { display: table-row-group; width: 100%; }
   #myAnalysisAndDetails table.edit-mode-active tbody tr {
-    display: block;
-    width: 100%;
+    display: table-row;
+    width: auto;
     box-sizing: border-box;
-    border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    margin-bottom: 16px;
-    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 0;
     background: white;
   }
-  #myAnalysisAndDetails table.edit-mode-active tbody tr.marked-for-deletion {
-    border-color: #dc2626;
-  }
   #myAnalysisAndDetails table.edit-mode-active tbody tr td {
-    display: block;
-    width: 100% !important;
+    display: table-cell;
+    width: auto !important;
     min-width: 0 !important;
     box-sizing: border-box;
-    padding: 8px 2px !important;
+    padding: 10px 8px !important;
     border-bottom: 1px solid #f3f4f6;
   }
   #myAnalysisAndDetails table.edit-mode-active tbody tr td:first-child {
-    border-bottom: 2px solid #007bff;
-    margin-bottom: 6px;
-    padding-bottom: 8px !important;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0;
+    padding-bottom: 10px !important;
     font-size: 14px;
+    background: #f8fafc;
   }
   #myAnalysisAndDetails table.edit-mode-active tbody tr td[data-label]::before {
-    content: attr(data-label);
-    display: block;
-    font-weight: 700;
-    font-size: 12px;
-    color: #007bff;
-    margin-bottom: 4px;
-    text-transform: uppercase;
+    content: none;
   }
   #myAnalysisAndDetails table.edit-mode-active td.editable input,
   #myAnalysisAndDetails table.edit-mode-active td.editable textarea,
@@ -962,10 +1106,10 @@ tbody tr:hover {
   }
   #myAnalysisAndDetails table.edit-mode-active .delete-day-btn,
   #myAnalysisAndDetails table.edit-mode-active .undo-delete-btn {
-    width: 100%;
+    width: auto;
     justify-content: center;
-    font-size: 14px !important;
-    padding: 10px !important;
+    font-size: 13px !important;
+    padding: 8px 10px !important;
   }
 }
 
@@ -1048,6 +1192,7 @@ tbody tr:hover {
         
         <div id="promptMessage" role="status" aria-live="polite"></div>
         <div class="days-section">
+          <div id="roadmapEditControls" class="roadmap-edit-controls"></div>
           <div class="section-header">
             <h2>Lộ Trình Chi Tiết Theo Ngày</h2>
             <div class="progress-indicator">
@@ -1687,9 +1832,6 @@ function displayMyRoadmapDetails(roadmap, details) {
     <div class="roadmap-section">
       <div class="roadmap-section-header">
         <h3>📅 Lộ Trình Chi Tiết</h3>
-        <button class="edit-mode-btn" onclick="toggleMyEditMode()">
-          <i class="fa-solid fa-pen"></i> Chỉnh sửa
-        </button>
       </div>
       <table>
         <thead>
@@ -1748,6 +1890,7 @@ function displayMyRoadmapDetails(roadmap, details) {
   const evaluationHTML = buildMyEvaluationForm(roadmap);
 
   document.getElementById('myAnalysisAndDetails').innerHTML = analysisHTML + tableHTML + evaluationHTML;
+  renderRoadmapEditControls(false);
 
   window.onbeforeunload = function(e) {
     if (isEditMode || hasEvaluationChanges) {
@@ -1758,15 +1901,42 @@ function displayMyRoadmapDetails(roadmap, details) {
   };
 }
 
+function renderRoadmapEditControls(isEditing = false) {
+  const host = document.getElementById('roadmapEditControls');
+  if (!host) return;
+
+  if (isEditing) {
+    host.innerHTML = `
+      <div class="info-box">
+        <strong>⚠️ Lưu ý khi chỉnh sửa:</strong>
+        <ul style="margin:8px 0 0 20px; line-height:1.6; font-size:0.9rem;">
+          <li>Định dạng <code>Ngày học</code> là <strong>dd/mm/yyyy</strong>.</li>
+          <li><code>Thời lượng</code> phải có đơn vị <strong>m</strong> hoặc <strong>h</strong>.</li>
+          <li><code>Tài liệu</code> phải là URL đầy đủ. Nếu có nhiều URL, mỗi URL trên một dòng riêng.</li>
+          <li>Kéo thả các dòng để sắp xếp lại thứ tự.</li>
+          <li>Ngày bị đánh dấu xóa chỉ bị xóa khi bạn nhấn “Lưu thay đổi”.</li>
+        </ul>
+      </div>
+      <div id="myDeleteWarning" style="display:none; background:#fef2f2; border:2px solid #dc2626; padding:10px 12px; border-radius:8px;">
+        <strong style="color:#dc2626;">⚠️ Cảnh báo:</strong>
+        <span id="myDeleteCount">0</span> ngày sẽ bị xóa vĩnh viễn khi bạn nhấn "Lưu thay đổi"
+      </div>
+      <button class="add-day-btn" onclick="addMyNewDay()"><i class="fa-solid fa-plus"></i> Thêm ngày</button>
+      <button class="save-changes-btn" onclick="saveMyChanges()"><i class="fa-solid fa-save"></i> Lưu thay đổi</button>
+      <button class="cancel-edit-btn" onclick="cancelMyEdit()"><i class="fa-solid fa-times"></i> Hủy</button>
+    `;
+    updateMyDeleteWarning();
+  } else {
+    host.innerHTML = `<button class="edit-mode-btn" onclick="toggleMyEditMode()"><i class="fa-solid fa-pen"></i> Chỉnh sửa</button>`;
+  }
+}
+
 function toggleMyEditMode() {
   if (isEditMode) {
     saveMyChanges();
   } else {
     isEditMode = true;
-    const btn = document.querySelector('#myAnalysisAndDetails .edit-mode-btn');
     const table = document.querySelector('#myAnalysisAndDetails table');
-    btn.innerHTML = '<i class="fa-solid fa-check"></i> Đang chỉnh sửa';
-    btn.classList.add('active');
     enableMyEditMode(table);
     showMyEditButtons();
   }
@@ -1898,41 +2068,11 @@ function disableMyEditMode(table) {
 }
 
 function showMyEditButtons() {
-  const section = document.querySelector('#myAnalysisAndDetails .roadmap-section');
-  if (!section) return;
-
-  if (!document.querySelector('#myAnalysisAndDetails .edit-actions')) {
-    const actionsDiv = document.createElement('div');
-    actionsDiv.className = 'edit-actions';
-    actionsDiv.style.textAlign = 'center';
-    actionsDiv.style.marginTop = '20px';
-    actionsDiv.innerHTML = `
-      <div class="info-box" style="text-align:left; margin-bottom:20px; background:#fee2e2; border-left:4px solid #dc2626;">
-        <strong>⚠️ Lưu ý khi chỉnh sửa:</strong>
-        <ul style="margin:10px 0 0 20px; line-height:1.8;">
-          <li>Định dạng của <code>Ngày học</code> là dưới dạng <strong>dd/mm/yyyy</strong>.</li>
-          <li><code>Thời lượng</code> phải có đơn vị là <strong>m</strong> HOẶC/VÀ <strong>h</strong>.</li>
-          <li><code>Tài liệu</code> phải là URL đầy đủ. Nếu có nhiều URL, mỗi URL để trên một dòng riêng.</li>
-          <li>Kéo thả các dòng để <strong>sắp xếp lại thứ tự</strong>.</li>
-          <li><strong>Ngày đánh dấu xóa</strong> chỉ bị xóa khi bạn nhấn "Lưu thay đổi".</li>
-        </ul>
-      </div>
-      <div id="myDeleteWarning" style="display:none; background:#fef2f2; border:2px solid #dc2626; padding:15px; border-radius:8px; margin-bottom:15px;">
-        <strong style="color:#dc2626;">⚠️ Cảnh báo:</strong>
-        <span id="myDeleteCount">0</span> ngày sẽ bị xóa vĩnh viễn khi bạn nhấn "Lưu thay đổi"
-      </div>
-      <button class="add-day-btn" onclick="addMyNewDay()"><i class="fa-solid fa-plus"></i> Thêm ngày</button>
-      <button class="save-changes-btn" onclick="saveMyChanges()" style="margin-left:10px;"><i class="fa-solid fa-save"></i> Lưu thay đổi</button>
-      <button class="cancel-edit-btn" onclick="cancelMyEdit()"><i class="fa-solid fa-times"></i> Hủy</button>
-    `;
-    section.appendChild(actionsDiv);
-  }
-  updateMyDeleteWarning();
+  renderRoadmapEditControls(true);
 }
 
 function hideMyEditButtons() {
-  const actions = document.querySelector('#myAnalysisAndDetails .edit-actions');
-  if (actions) actions.remove();
+  renderRoadmapEditControls(false);
 }
 
 function updateMyDeleteWarning() {
