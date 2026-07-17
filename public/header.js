@@ -206,7 +206,7 @@ async function loadUser(currentPage = '') {
     }
 
     if (serverRole === 'admin' && navButtons) {
-        //navButtons.classList.add('has-admin'); // ✅ THÊM: đánh dấu để CSS phân biệt admin/user
+        navButtons.classList.add('has-admin'); // ✅ THÊM: đánh dấu để CSS phân biệt admin/user
         if (!document.getElementById('btnAdmin')) {
             const adminBtn = document.createElement('a');
             adminBtn.href = 'admin.html?page=admin';
