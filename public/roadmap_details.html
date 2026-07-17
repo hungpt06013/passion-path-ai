@@ -821,6 +821,11 @@ tbody tr:hover {
     width: 100%; padding: 16px 32px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white;
     border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 20px;
 }
+@media (min-width: 947px) {
+  #analysisAndDetails .roadmap-section {
+    overflow-x: auto;
+  }
+}
 /* ===== Mục 5: bảng lộ trình HỆ THỐNG (không phải mine) <946px - không scroll, thu nhỏ ===== */
 @media (max-width: 946px) {
   #analysisAndDetails table {
@@ -856,55 +861,126 @@ tbody tr:hover {
   }
 }
 
+/* ≥1122px: bảng không co, nhưng không tràn trang — cho scroll ngang trong chính khung của nó */
+@media (min-width: 1122px) {
+  #myAnalysisAndDetails .roadmap-section {
+    overflow-x: auto;
+  }
+  #myAnalysisAndDetails table:not(.edit-mode-active) {
+    min-width: 1130px;
+  }
+}
+
 @media (max-width: 1121px) {
-  #myAnalysisAndDetails table {
+  #myAnalysisAndDetails table:not(.edit-mode-active) {
     table-layout: fixed !important;
     width: 100% !important;
     display: table !important;
-    overflow-x: hidden !important;
+    border-collapse: collapse !important;
+    overflow: hidden !important;
   }
-
-  #myAnalysisAndDetails th,
-  #myAnalysisAndDetails td {
+  #myAnalysisAndDetails table:not(.edit-mode-active) th,
+  #myAnalysisAndDetails table:not(.edit-mode-active) td {
     min-width: 0 !important;
     font-size: 10px !important;
     padding: 5px 3px !important;
     white-space: normal !important;
-    word-break: normal !important;
     overflow-wrap: break-word !important;
     line-height: 1.3;
   }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(1),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(1)  { width: 5%  !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(2),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(2)  { width: 9%  !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(3),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(3)  { width: 13% !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(4),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(4)  { width: 15% !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(5),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(5)  { width: 11% !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(6),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(6)  { width: 8%  !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(7),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(7)  { width: 11% !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(8),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(8)  { width: 7%  !important; }
+  #myAnalysisAndDetails table:not(.edit-mode-active) th:nth-child(9),  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(9)  { width: 12% !important; }
 
-  #myAnalysisAndDetails th:nth-child(1),  #myAnalysisAndDetails td:nth-child(1)  { width: 5%  !important; }
-  #myAnalysisAndDetails th:nth-child(2),  #myAnalysisAndDetails td:nth-child(2)  { width: 9%  !important; }
-  #myAnalysisAndDetails th:nth-child(3),  #myAnalysisAndDetails td:nth-child(3)  { width: 13% !important; }
-  #myAnalysisAndDetails th:nth-child(4),  #myAnalysisAndDetails td:nth-child(4)  { width: 15% !important; }
-  #myAnalysisAndDetails th:nth-child(5),  #myAnalysisAndDetails td:nth-child(5)  { width: 11% !important; }
-  #myAnalysisAndDetails th:nth-child(6),  #myAnalysisAndDetails td:nth-child(6)  { width: 8%  !important; }
-  #myAnalysisAndDetails th:nth-child(7),  #myAnalysisAndDetails td:nth-child(7)  { width: 11% !important; }
-  #myAnalysisAndDetails th:nth-child(8),  #myAnalysisAndDetails td:nth-child(8)  { width: 7%  !important; }
-  #myAnalysisAndDetails th:nth-child(9),  #myAnalysisAndDetails td:nth-child(9)  { width: 12% !important; }
-  #myAnalysisAndDetails th:nth-child(10), #myAnalysisAndDetails td:nth-child(10) { width: 9%  !important; }
+  /* Mục 3: chữ "Xem" nhỏ lại */
+  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(6) a {
+    font-size: 9px !important;
+  }
+  /* Mục 2: select trạng thái nhỏ lại */
+  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(9) select {
+    font-size: 9px !important;
+    padding: 3px 4px !important;
+    width: 100% !important;
+  }
 
-  /* Chữ khi đang edit (input/textarea/select) phải >= 80% so với chữ khi không edit (10px) */
-  #myAnalysisAndDetails td.editable input,
-  #myAnalysisAndDetails td.editable textarea,
-  #myAnalysisAndDetails td.editable select {
-    font-size: 9px !important; /* 9/10 = 90%, đạt yêu cầu >=80% */
-    padding: 4px !important;
+  /* Mục 4: EDIT MODE — chuyển bảng thành card xếp dọc, full thông tin, KHÔNG tràn ngang */
+  #myAnalysisAndDetails table.edit-mode-active {
+    display: block !important;
+    width: 100% !important;
+  }
+  #myAnalysisAndDetails table.edit-mode-active thead { display: none; }
+  #myAnalysisAndDetails table.edit-mode-active tbody { display: block; width: 100%; }
+  #myAnalysisAndDetails table.edit-mode-active tbody tr {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: white;
+  }
+  #myAnalysisAndDetails table.edit-mode-active tbody tr.marked-for-deletion {
+    border-color: #dc2626;
+  }
+  #myAnalysisAndDetails table.edit-mode-active tbody tr td {
+    display: block;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    padding: 8px 2px !important;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  #myAnalysisAndDetails table.edit-mode-active tbody tr td:first-child {
+    border-bottom: 2px solid #007bff;
+    margin-bottom: 6px;
+    padding-bottom: 8px !important;
+    font-size: 14px;
+  }
+  #myAnalysisAndDetails table.edit-mode-active tbody tr td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 700;
+    font-size: 12px;
+    color: #007bff;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  #myAnalysisAndDetails table.edit-mode-active td.editable input,
+  #myAnalysisAndDetails table.edit-mode-active td.editable textarea,
+  #myAnalysisAndDetails table.edit-mode-active td.editable select {
+    font-size: 14px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  #myAnalysisAndDetails table.edit-mode-active .delete-day-btn,
+  #myAnalysisAndDetails table.edit-mode-active .undo-delete-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 14px !important;
+    padding: 10px !important;
   }
 }
 
 @media (max-width: 700px) {
-  #myAnalysisAndDetails th,
-  #myAnalysisAndDetails td {
+  #myAnalysisAndDetails table:not(.edit-mode-active) th,
+  #myAnalysisAndDetails table:not(.edit-mode-active) td {
     font-size: 9px !important;
     padding: 4px 2px !important;
   }
-  #myAnalysisAndDetails td.editable input,
-  #myAnalysisAndDetails td.editable textarea,
-  #myAnalysisAndDetails td.editable select {
-    font-size: 8px !important; /* 8/9 ≈ 89% */
+  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(6) a {
+    font-size: 8px !important;
+  }
+  #myAnalysisAndDetails table:not(.edit-mode-active) td:nth-child(9) select {
+    font-size: 8px !important;
+    padding: 2px 3px !important;
   }
 }
   </style>
@@ -1028,10 +1104,18 @@ const API_BASE_URL = 'http://localhost:3000/api';
 const urlParams = new URLSearchParams(window.location.search);
 const roadmapId = urlParams.get('id');
 const isMine = urlParams.get('mine') === 'true';
+const isAdminView = urlParams.get('admin') === 'true';
 const token = localStorage.getItem('token');
 
 if (isMine && !token) {
     window.location.replace('login.html');
+}
+if (isAdminView) {
+    const role = localStorage.getItem('role');
+    if (!token || role !== 'admin') {
+        alert('Bạn không có quyền truy cập trang này!');
+        window.location.replace('path.html');
+    }
 }
     let roadmapData = null;
     let details = null;
@@ -1215,7 +1299,10 @@ function displayRoadmapDetails(roadmap, details) {
 
 async function loadRoadmapDetails() {
   if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
-
+  if (isAdminView) {
+    await loadAdminRoadmapDetails();
+    return;
+  }
   if (isMine) {
     await loadMyRoadmapDetails();
     return;
@@ -1453,7 +1540,85 @@ async function loadMyRoadmapDetails() {
     document.getElementById('roadmapContent').style.display = 'block';
   }
 }
+async function loadAdminRoadmapDetails() {
+  try {
+    const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!response.ok) throw new Error('Không thể tải lộ trình');
+    const result = await response.json();
+    const roadmap = result.data.roadmap;
+    const details = result.data.details;
 
+    document.getElementById('roadmapTitle').textContent = roadmap.roadmap_name;
+    const categoryLink = document.getElementById('categoryLink');
+    categoryLink.textContent = roadmap.category;
+    categoryLink.removeAttribute('href');
+    categoryLink.style.pointerEvents = 'none';
+    categoryLink.style.cursor = 'default';
+
+    document.getElementById('badgesContainer').innerHTML = `
+      <span class="badge badge-level"><i class="fas fa-signal"></i> ${getLevelText(roadmap.start_level)}</span>
+      <span class="badge badge-duration"><i class="fas fa-calendar"></i> ${roadmap.duration_days} ngày</span>
+    `;
+    document.getElementById('metaContainer').innerHTML = `
+      <div class="meta-tag"><i class="fas fa-clock"></i><span>${formatHours(roadmap.duration_hours)}</span></div>
+      ${roadmap.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(roadmap.sub_category)}</span></div>` : ''}
+    `;
+    document.getElementById('statsContainer').innerHTML = `
+      <div class="stat-box"><span class="stat-value">${roadmap.duration_days}</span><span class="stat-label">Ngày học</span></div>
+      <div class="stat-box"><span class="stat-value">${formatHours(roadmap.duration_hours)}</span><span class="stat-label">Tổng thời gian</span></div>
+      <div class="stat-box"><span class="stat-value">${roadmap.overall_rating ? roadmap.overall_rating + ' <i class="fas fa-star" style="color:#fbbf24;"></i>' : '-'}</span><span class="stat-label">Đánh giá tổng thể</span></div>
+      <div class="stat-box"><span class="stat-value">${roadmap.learning_effectiveness ? roadmap.learning_effectiveness + ' <i class="fas fa-star" style="color:#fbbf24;"></i>' : '-'}</span><span class="stat-label">Đánh giá hiệu quả</span></div>
+    `;
+
+    // Mục 6: bỏ thanh tiến độ, thay bằng ngày giờ tạo (theo múi giờ trình duyệt người xem)
+    const progressIndicator = document.querySelector('.progress-indicator');
+    if (progressIndicator) {
+      const createdDate = roadmap.created_at ? new Date(roadmap.created_at) : null;
+      const createdText = createdDate
+        ? createdDate.toLocaleString('vi-VN', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          })
+        : 'N/A';
+      progressIndicator.innerHTML = `
+        <span style="font-size: 14px; font-weight: 600; color: #4b5563;">
+          <i class="fa-solid fa-calendar-plus"></i> Ngày tạo: ${createdText}
+        </span>
+      `;
+    }
+
+    const createBtn = document.querySelector('.create-btn');
+    if (createBtn) createBtn.style.display = 'none';
+    document.getElementById('daysContainer').style.display = 'none';
+
+    document.getElementById('analysisContent').innerHTML = roadmap.roadmap_analyst || 'Không có phân tích';
+
+    const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
+    const tbody = document.getElementById('detailsTableBody');
+    tbody.innerHTML = details.map(d => `
+      <tr>
+        <td class="day-cell">${d.day_number}</td>
+        <td><strong>${escapeHtml(d.daily_goal)}</strong></td>
+        <td>${escapeHtml(d.learning_content)}</td>
+        <td>${escapeHtml(d.practice_exercises || '-')}</td>
+        <td>${d.learning_materials ? `<a href="${d.learning_materials}" target="_blank" style="color:#4f46e5;">Xem</a>` : '-'}</td>
+        <td>${escapeHtml(d.usage_instructions || '-')}</td>
+        <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
+        <td>${statusMap[d.completion_status] || d.completion_status}</td>
+      </tr>
+    `).join('');
+    document.getElementById('analysisAndDetails').style.display = 'block';
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Không thể tải dữ liệu: ' + error.message);
+    window.location.href = 'admin.html?page=admin';
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('roadmapContent').style.display = 'block';
+  }
+}
 function getMyStatusText(status) {
   const map = { ACTIVE: 'Đang học', COMPLETED: 'Hoàn thành', PAUSED: 'Tạm dừng' };
   return map[status] || status;
@@ -1472,7 +1637,7 @@ function renderMyRoadmap() {
     <span class="badge badge-level"><i class="fas fa-signal"></i> ${getLevelText(myRoadmapData.start_level)}</span>
     <span class="badge badge-duration"><i class="fas fa-calendar"></i> ${myRoadmapData.duration_days} ngày</span>
     <span class="badge badge-learners"><i class="fas fa-play"></i> ${getMyStatusText(myRoadmapData.status)}</span>
-    <button class="badge" onclick="scrollToEvaluationSection()" style="background:#dc2626; color:white; border:none; cursor:pointer; font-weight:700;">
+    <button class="badge" onclick="scrollToEvaluationSection()" style="background:#fee2e2; color:#991b1b; border:1px solid #fecaca; cursor:pointer; font-weight:700;">
       <i class="fas fa-star"></i> Đánh giá lộ trình
     </button>
   `;
@@ -1615,7 +1780,8 @@ function enableMyEditMode(table) {
     editTextarea.style.display = 'block';
   }
   if (!table) return;
-
+  // THÊM DÒNG NÀY
+  const columnLabels = ['Ngày','Ngày học','Mục tiêu','Nội dung','Bài tập','Tài liệu','Hướng dẫn','Thời lượng','Trạng thái','Thao tác'];
   table.classList.add('edit-mode-active');
   const rows = table.querySelectorAll('tbody tr');
 
@@ -1638,6 +1804,7 @@ function enableMyEditMode(table) {
     cells.forEach((cell, cellIndex) => {
       if (cellIndex === 0) return;
       cell.classList.add('editable');
+      cell.setAttribute('data-label', columnLabels[cellIndex] || ''); // THÊM DÒNG NÀY
       const originalContent = cell.innerHTML;
 
       if (cellIndex === 1) {
