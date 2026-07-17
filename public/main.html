@@ -101,10 +101,12 @@
         align-items: center;
         gap: 10px;
         transition: all 0.2s ease;
+        text-decoration: none; /* THÊM */
     }
     .cta-main:hover {
         transform: scale(1.1);
         opacity: 0.9;
+        text-decoration: none; /* THÊM để chắc chắn hover cũng không gạch chân */
     }
 
     .progress-card {
@@ -384,12 +386,17 @@
         border: 2px solid var(--primary);
         border-radius: 8px;
         transition: all 0.3s ease;
+        cursor: pointer;
     }
 
     .category-btn:hover {
         background: var(--primary);
         color: white;
     }
+.subdesc-break { display: none; }
+@media (max-width: 1110px) and (min-width: 901px) {
+  .subdesc-break { display: block; }
+}
 
 @media (max-width:900px) {
     body {
@@ -728,11 +735,12 @@
         <div class="hero">
             <div class="hero-left">
                 <h1 class="headline">Trưởng thành từ <span class="accent">Những Sở Thích</span></h1>
-                <p class="subdesc">Khám phá hệ thống học tập thông minh sử dụng AI để tạo lộ trình học tập cá nhân hóa. Biến đam mê thành kỹ năng, biến sở thích thành thành công.</p>
+                <p class="subdesc">Khám phá hệ thống học tập thông minh sử dụng AI để tạo lộ trình học tập cá nhân hóa.<br class="subdesc-break"> Biến đam mê thành kỹ năng, biến sở thích thành thành công.</p>
 
                 <div class="cta-row">
                     <div class="cta-center" style="width:100%;">
-                        <button class="cta-main" id="startNowBtn"><i class="fa-solid fa-rocket"></i> <strong>Bắt Đầu Ngay</strong></button>
+                        <!-- Mới -->
+                        <a class="cta-main" id="startNowBtn" href="register.html"><i class="fa-solid fa-rocket"></i> <strong>Bắt Đầu Ngay</strong></a>
                     </div>
                 </div>
 
@@ -984,12 +992,14 @@
             categories.forEach((cat) => {
                 // Tìm color scheme theo tên category, nếu không có thì dùng default
                 const colorScheme = categoryColors[cat.name] || categoryColors['default'];
-                const card = document.createElement('div');
+                // MỚI
+                const card = document.createElement('a');
                 card.className = 'category-card';
-                card.onclick = () => {
-                    window.location.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
-                };
-                
+                card.href = `main_category.html?category=${encodeURIComponent(cat.id)}`;
+                card.style.textDecoration = 'none';
+                card.style.color = 'inherit';
+                card.style.display = 'block';
+
                 card.innerHTML = `
                     <div class="category-icon" style="background: ${colorScheme.bg};">
                         <i class="fa-solid ${colorScheme.icon}"></i>
@@ -998,10 +1008,10 @@
                     <p class="category-desc">${cat.description}</p>
                     <div class="category-stats">
                         <span class="category-count">${cat.roadmap_count} lộ trình</span>
-                        <button class="category-btn">Xem chi tiết</button>
+                        <button class="category-btn" onclick="event.preventDefault(); window.location.href='main_category.html?category=${encodeURIComponent(cat.id)}';">Xem chi tiết</button>
                     </div>
                 `;
-                
+
                 grid.appendChild(card);
             });
         } catch (err) {
@@ -1011,15 +1021,11 @@
 
     loadTopCategories();
 
-    document.getElementById('startNowBtn').addEventListener('click', () => { 
-            const token = localStorage.getItem('token');
-             if (!token) {
-                alert('Vui lòng đăng nhập!');
-                window.location.href = 'login.html';
-             }else {
-            window.location.href = 'path.html';
-             }
-    });
+(function setStartNowHref() {
+    const startBtn = document.getElementById('startNowBtn');
+    const token = localStorage.getItem('token');
+    startBtn.href = token ? 'path.html' : 'register.html';
+})();
 
 </script>
 <script src="footer.js"></script>
