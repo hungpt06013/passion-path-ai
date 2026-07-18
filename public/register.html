@@ -533,14 +533,34 @@
 <body>
 <div id="header"></div>
 <script>
-  fetch('header.html')
-    .then(res => res.text())
+(function loadHeaderWithRetry(attempt) {
+  fetch('header.html', { cache: 'no-store' })
+    .then(res => { if (!res.ok) throw new Error('bad status'); return res.text(); })
     .then(html => {
       document.getElementById('header').innerHTML = html;
       const script = document.createElement('script');
       script.src = 'header.js';
       document.body.appendChild(script);
+    })
+    .catch(function() {
+      if (attempt < 1) {
+        setTimeout(function() { loadHeaderWithRetry(attempt + 1); }, 400);
+        return;
+      }
+      // Fallback cuối cùng: đảm bảo luôn có nút Đăng nhập/Đăng ký
+      var token = localStorage.getItem('token');
+      document.getElementById('header').innerHTML =
+        '<div class="fixed-bar"><div class="bar-inner">' +
+        '<div class="brand"><div class="brand-text"><div class="brand-title">Con đường theo đuổi đam mê</div></div></div>' +
+        '<div class="nav-buttons" id="mainNavButtons"><a href="main.html" class="nav-btn"><i class="fa-solid fa-house"></i> Trang Chủ</a></div>' +
+        '<div id="userArea" class="userInfo">' +
+        (token
+          ? '<button class="logout-btn" onclick="localStorage.clear();window.location.href=\'main.html\';"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>'
+          : '<button class="login-btn" onclick="window.location.href=\'login.html\'"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>' +
+            '<button class="register-btn" onclick="window.location.href=\'register.html\'"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>')
+        + '</div></div></div>';
     });
+})(0);
 </script>
   <div class="page-wrapper">
     <section class="card" aria-labelledby="registration-heading">
