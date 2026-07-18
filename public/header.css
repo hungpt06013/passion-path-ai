@@ -467,3 +467,61 @@
     padding-top: 250px !important;
   }
 }
+/* ========== LANDSCAPE MOBILE/TABLET FIX ========== */
+@media (orientation: landscape) and (max-height: 500px) {
+    .fixed-bar {
+        height: auto;
+        max-height: 28vh;
+        overflow-y: auto;
+    }
+    .bar-inner {
+        flex-direction: row;
+        flex-wrap: wrap;
+        height: auto;
+        padding: 6px 10px;
+        gap: 6px 10px;
+        justify-content: center;
+    }
+    .brand {
+        max-width: 160px;
+        width: auto;
+        justify-content: flex-start;
+    }
+    .brand-icon {
+        width: 26px;
+        height: 26px;
+        font-size: 13px;
+    }
+    .brand-title {
+        font-size: 11px;
+    }
+    .brand-sub {
+        display: none;
+    }
+    .nav-buttons {
+        width: auto;
+        gap: 6px !important;
+        padding: 0;
+        justify-content: center;
+    }
+    .nav-btn {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    .nav-btn .fa {
+        font-size: 9px;
+    }
+    .userInfo {
+        width: auto;
+        font-size: 10px;
+        gap: 4px;
+    }
+    .login-btn, .register-btn, .logout-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+    body,
+    body.admin-mode {
+        padding-top: 95px !important;
+    }
+}
