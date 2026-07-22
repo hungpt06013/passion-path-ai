@@ -452,7 +452,22 @@
         padding: 25px 30px;
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        gap: 12px;
+        position: relative;
+        flex-wrap: nowrap;
+    }
+
+    .modal-header > div {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .modal-header h2,
+    .modal-header p {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        margin: 0;
     }
 
     .close-modal {
@@ -462,6 +477,12 @@
         font-size: 1.5rem;
         cursor: pointer;
         padding: 5px 10px;
+        margin-left: auto;
+        flex-shrink: 0;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .modal-body {
@@ -1543,12 +1564,26 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
         margin: 10px;
     }
     
-    #uploadModal .modal-header {
-        padding: 20px 15px;
+    #uploadModal .modal-header,
+    #promptModal .modal-header {
+        padding: 18px 15px;
+        align-items: flex-start;
+        gap: 10px;
+        flex-wrap: nowrap;
     }
     
-    #uploadModal .modal-header h2 {
+    #uploadModal .modal-header h2,
+    #promptModal .modal-header h2 {
         font-size: 1.3rem;
+        line-height: 1.3;
+        margin-right: 8px;
+    }
+
+    #uploadModal .close-modal,
+    #promptModal .close-modal {
+        align-self: flex-start;
+        margin-left: 0;
+        padding: 4px 8px;
     }
     
     #uploadModal .modal-header p {
@@ -1672,12 +1707,34 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
         padding: 10px;
         font-size: 0.8rem;
     }
+    #promptContent {
+        font-size: 0.85rem;
+        padding: 12px;
+    }
 }
 
 @media (max-width: 480px) {
     #uploadModal .modal-header h2,
     #promptModal .modal-header h2 {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
+    }
+
+    #uploadModal .modal-header,
+    #promptModal .modal-header {
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    #uploadModal .modal-header > div,
+    #promptModal .modal-header > div {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    #uploadModal .close-modal,
+    #promptModal .close-modal {
+        padding: 3px 7px;
+        margin-left: 0;
     }
     
     #uploadModal .form-group input,
@@ -1764,6 +1821,11 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     
     .roadmap-section-header h3 {
         font-size: 1rem;
+    }
+
+    #promptContent {
+        font-size: 0.70rem;
+        padding: 9px;
     }
 }
 @media (max-width: 350px) {
