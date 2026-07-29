@@ -37,9 +37,7 @@ const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "p
 
 // AI Limits
 const MIN_AI_DAYS = 15;
-const MAX_AI_TOKENS = parseInt(process.env.MAX_AI_TOKENS || "200000", 10);
 const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "800", 10);
-const SAFETY_MARGIN_TOKENS = parseInt(process.env.SAFETY_MARGIN_TOKENS || "2048", 10);
 const MIN_COMPLETION_TOKENS = 128;
 
 // Timezone
