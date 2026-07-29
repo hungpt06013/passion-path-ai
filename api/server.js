@@ -14,8 +14,7 @@ import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import OpenAI from "openai";
-import Anthropic from '@anthropic-ai/sdk';
+import { search as ddgSearch, SafeSearchType } from 'duck-duck-scrape';
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
@@ -35,12 +34,6 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "public"));
-
-// AI Configuration
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-20250514";
-const FALLBACK_CLAUDE_MODEL = process.env.FALLBACK_CLAUDE_MODEL || "claude-3-5-haiku-20241022";
-const PREFERRED_OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-5-mini";
-const FALLBACK_OPENAI_MODEL = process.env.FALLBACK_OPENAI_MODEL || "gpt-5";
 
 // AI Limits
 const MIN_AI_DAYS = 15;
@@ -119,33 +112,59 @@ transporter.verify(function(error, success) {
 });
 
 // ============================================================================
-// 5. AI CLIENTS INITIALIZATION
+// 5. AI CLIENTS INITIALIZATION (Gemini free tier - key pool)
 // ============================================================================
 
-// OpenAI
-const rawOpenAiKey = (process.env.OPENAI_API_KEY || "").trim();
-const openAiKey = rawOpenAiKey.replace(/^['"]|['"]$/g, "");
-
-if (!openAiKey || openAiKey.length < 20) {
-  console.error("❌❌❌ OPENAI_API_KEY NOT SET OR INVALID!");
-  console.error("❌ Key length:", openAiKey.length);
-} else {
-  console.log("✅ OPENAI key valid, length:", openAiKey.length, "last6:", openAiKey.slice(-6));
+function loadKeyPool(prefix) {
+  const keys = [];
+  const regex = new RegExp(`^${prefix}_(\\d+)$`);
+  const indices = [];
+  for (const envKey of Object.keys(process.env)) {
+    const match = envKey.match(regex);
+    if (match) indices.push(parseInt(match[1], 10));
+  }
+  indices.sort((a, b) => a - b);
+  for (const idx of indices) {
+    const val = (process.env[`${prefix}_${idx}`] || "").trim().replace(/^['"]|['"]$/g, "");
+    if (val) keys.push(val);
+  }
+  if (keys.length === 0) {
+    const single = (process.env[prefix] || "").trim().replace(/^['"]|['"]$/g, "");
+    if (single) keys.push(single);
+  }
+  return keys;
 }
 
-const openai = new OpenAI({ apiKey: openAiKey });
+const GEMINI_API_KEYS = loadKeyPool("GEMINI_API_KEY");
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+const GEMINI_MATERIALS_MODEL = process.env.GEMINI_MATERIALS_MODEL || "gemini-3.6-flash";
+const GEMINI_DAILY_QUOTA_PER_KEY = parseInt(process.env.GEMINI_DAILY_QUOTA_PER_KEY || "1500", 10); // RPD free tier
 
-// Anthropic
-const rawAnthropicKey = (process.env.ANTHROPIC_API_KEY || "").trim();
-const anthropicKey = rawAnthropicKey.replace(/^['"]|['"]$/g, "");
-
-let anthropic = null;
-if (anthropicKey && anthropicKey.length > 20) {
-  anthropic = new Anthropic({ apiKey: anthropicKey });
-  console.log("✅ Anthropic key valid, length:", anthropicKey.length, "last6:", anthropicKey.slice(-6));
+if (GEMINI_API_KEYS.length === 0) {
+  console.warn("⚠️ Không có GEMINI_API_KEY nào - tính năng AI sẽ không hoạt động");
 } else {
-  console.warn("⚠️ ANTHROPIC_API_KEY not set");
+  console.log(`✅ Gemini key pool: ${GEMINI_API_KEYS.length} key(s), quota/ngày mỗi key: ${GEMINI_DAILY_QUOTA_PER_KEY}`);
 }
+
+// ============================================================================
+// 5b. SEARCH API KEY POOLS (Brave -> Tavily -> DuckDuckGo)
+// ============================================================================
+
+const SERPAPI_API_KEYS = loadKeyPool("SERPAPI_API_KEY");
+const TAVILY_API_KEYS = loadKeyPool("TAVILY_API_KEY");
+const SERPAPI_MONTHLY_QUOTA = parseInt(process.env.SERPAPI_MONTHLY_QUOTA || "100", 10); // free tier SerpAPI ~100 search/tháng
+const TAVILY_MONTHLY_QUOTA = parseInt(process.env.TAVILY_MONTHLY_QUOTA || "1000", 10);
+
+console.log(`✅ Search key pool: ${SERPAPI_API_KEYS.length} SerpAPI key(s), ${TAVILY_API_KEYS.length} Tavily key(s)`);
+
+// ============================================================================
+// 5c. FIRECRAWL KEY POOL (dùng để cào nội dung trang -> viết cột "hướng dẫn")
+// ============================================================================
+
+const FIRECRAWL_API_KEYS = loadKeyPool("FIRECRAWL_API_KEY");
+const FIRECRAWL_MONTHLY_QUOTA = parseInt(process.env.FIRECRAWL_MONTHLY_QUOTA || "500", 10); // free tier Firecrawl ~500 credit/tháng
+
+console.log(`✅ Firecrawl key pool: ${FIRECRAWL_API_KEYS.length} key(s)`);
 
 // ============================================================================
 // 6. MIDDLEWARE SETUP
@@ -469,6 +488,21 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
       );
     `);
+    // Bảng search_api_usage - theo dõi quota các key SerpAPI/Tavily/Firecrawl
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS search_api_usage (
+        id SERIAL PRIMARY KEY,
+        provider VARCHAR(20) NOT NULL,
+        key_index INTEGER NOT NULL,
+        period VARCHAR(10) NOT NULL,
+        used_count INTEGER NOT NULL DEFAULT 0,
+        quota_limit INTEGER NOT NULL,
+        updated_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'),
+        UNIQUE(provider, key_index, period)
+      );
+    `);
+
+    await pool.query(`ALTER TABLE search_api_usage ALTER COLUMN period TYPE VARCHAR(10);`);
 
     // Tạo indexes
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_roadmaps_user_id ON learning_roadmaps(user_id);`);
@@ -482,7 +516,7 @@ async function initDB() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_user_feedback_created ON user_feedback(created_at DESC);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reset_email ON password_reset_codes(email);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reset_code ON password_reset_codes(code);`);
-
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_search_usage_period ON search_api_usage(provider, period);`);
     // Reset sequences
     await pool.query(`SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 1));`);
     await pool.query(`SELECT setval('learning_roadmaps_roadmap_id_seq', COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps), 1));`);
@@ -961,8 +995,13 @@ async function validateUrlSmart(url, maxRetries = 2, timeout = 8000) {
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        console.log(`❌ HTTP ${response.status}: ${url}`);
-        return { valid: false, reason: `http_${response.status}`, url };
+            // Allow 403 (forbidden) as valid per product requirement: user may still access
+            if (response.status === 403) {
+              console.log(`⚠️ HTTP 403 (allowed): ${url}`);
+              return { valid: true, reason: `http_403_allowed`, url };
+            }
+            console.log(`❌ HTTP ${response.status}: ${url}`);
+            return { valid: false, reason: `http_${response.status}`, url };
       }
       
       const html = await response.text();
@@ -1003,6 +1042,12 @@ async function validateUrlSmart(url, maxRetries = 2, timeout = 8000) {
       }
       
       const contentType = response.headers.get('content-type') || '';
+      // Allow PDFs as valid learning materials
+      if (contentType.includes('application/pdf')) {
+        console.log(`✅ PDF content allowed: ${url}`);
+        return { valid: true, url };
+      }
+
       if (!contentType.includes('text/html')) {
         console.log(`⚠️ Non-HTML content: ${contentType}`);
         if (!url.includes('brilliant') && !url.includes('coursera')) {
@@ -1046,7 +1091,9 @@ async function validateUrlSmart(url, maxRetries = 2, timeout = 8000) {
   return { valid: false, reason: 'max_retries', url };
 }
 
-async function validateBatchLinksEnhanced(days) {
+async function validateBatchLinksEnhanced(days, options = {}) {
+  const category = options.category || '';
+  const subCategory = options.subCategory || '';
   const results = [];
   
   for (let i = 0; i < days.length; i++) {
@@ -1089,356 +1136,423 @@ async function validateBatchLinksEnhanced(days) {
     const icon = validation.valid ? '✅' : '❌';
     const reason = validation.reason ? ` (${validation.reason})` : '';
     console.log(`📋 Day ${day.day_number || i + 1}: ${icon} ${link.substring(0, 80)}...${reason}`);
+
+    // If invalid, attempt a single Tavily search to generate a replacement link
+    if (!validation.valid) {
+      try {
+        const combinedCategory = subCategory ? `(${category}) - (${subCategory})` : `(${category})`;
+        const tavilyQuery = `${combinedCategory} - (${day.daily_goal}) tutorial hướng dẫn`.trim().substring(0, 200);
+        const tavilyResults = await searchWithTavilyOnly(tavilyQuery, 3);
+        if (Array.isArray(tavilyResults) && tavilyResults.length > 0) {
+          const first = tavilyResults[0];
+          const newUrl = String(first.url || '').trim();
+          if (newUrl) {
+            // update the day in-place so callers see the repaired link
+            day.learning_materials = newUrl;
+            day.study_guide = `Hướng dẫn truy cập: Mở trang ${newUrl} → nếu là PDF thì tải về và đọc phần liên quan; nếu là trang web, nhấn vào "Bắt đầu/Start" hoặc mở "Mục lục/Table of Contents" và tìm phần liên quan đến "${day.daily_goal}".`;
+            results[results.length - 1].valid = true;
+            results[results.length - 1].validatedUrl = newUrl;
+            results[results.length - 1].reason = 'tavily_generated';
+            console.log(`🔧 Day ${day.day_number || i + 1}: Tavily generated replacement link: ${newUrl}`);
+            continue;
+          }
+        }
+      } catch (err) {
+        console.warn(`⚠️ Tavily repair failed for day ${day.day_number || i + 1}: ${err.message}`);
+      }
+    }
   }
   
   return results;
 }
 
-function createGoogleSearchFallback(day, category) {
-  const searchQuery = encodeURIComponent(`${day.daily_goal} ${category} tutorial`);
+function createGoogleSearchFallback(day, category, subCategory = '') {
+  const combined = `${category}${subCategory ? ' - ' + subCategory : ''}`.trim();
+  const searchQuery = encodeURIComponent(`${day.daily_goal} ${combined} tutorial hướng dẫn`);
   const googleSearchUrl = `https://www.google.com/search?q=${searchQuery}`;
-  
+
   let fallbackGuide = `${day.study_guide || ''}`;
   fallbackGuide = fallbackGuide.replace(/\n/g, '<br>');
 
+  // Explicit step-by-step guidance for users
+  const explicit = `Hướng dẫn truy cập: Mở trang ${googleSearchUrl} → nhấn vào kết quả có tiêu đề phù hợp; nếu là trang khóa học, nhấn 'Bắt đầu/Start' hoặc mở 'Mục lục' và tìm phần liên quan đến "${day.daily_goal}".`;
+
   return {
     learning_materials: googleSearchUrl,
-    study_guide: fallbackGuide
+    study_guide: (fallbackGuide ? fallbackGuide + '<br>' : '') + explicit
   };
 }
 
 // ============================================================================
-// 19. HELPER FUNCTIONS - AI API Calls
+// 19. HELPER FUNCTIONS - AI API Calls (Gemini + Search Key Pool)
 // ============================================================================
 
-async function callOpenAIForMainContent({ messages, desiredCompletionTokens, temperature = 1 }) {
-  const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS));
-  
-  try {
-    const params = {
-      model: PREFERRED_OPENAI_MODEL,
-      messages,
-      max_completion_tokens: capped,
-      temperature: temperature
-    };
-    
-    console.log(`📤 OpenAI call (main content): model=${params.model}, temp=${temperature}, tokens=${capped}`);
-    return await openai.chat.completions.create(params);
-    
-  } catch (err) {
-    console.error("❌ Model failed:", PREFERRED_OPENAI_MODEL, err.message);
-    
-    const code = err && (err.code || (err.error && err.error.code));
-    const status = err && err.status;
-    
-    if (code === "model_not_found" || status === 404 || String(err.message).toLowerCase().includes("model")) {
-      console.warn(`⚠️ Falling back to ${FALLBACK_OPENAI_MODEL}`);
-      
-      const fallbackParams = {
-        model: FALLBACK_OPENAI_MODEL,
-        messages,
-        max_completion_tokens: Math.min(capped, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS),
-        temperature: temperature
-      };
-      
-      return await openai.chat.completions.create(fallbackParams);
+function getCurrentPeriodMonth() {
+  const vnNow = getVietnamDate();
+  const year = vnNow.getFullYear();
+  const month = String(vnNow.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+}
+
+function getCurrentPeriodDay() {
+  const vnNow = getVietnamDate();
+  const year = vnNow.getFullYear();
+  const month = String(vnNow.getMonth() + 1).padStart(2, '0');
+  const day = String(vnNow.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function reserveKeySlot(provider, keyIndex, period, quotaLimit) {
+  const result = await pool.query(
+    `INSERT INTO search_api_usage (provider, key_index, period, used_count, quota_limit)
+     VALUES ($1, $2, $3, 1, $4)
+     ON CONFLICT (provider, key_index, period)
+     DO UPDATE SET used_count = search_api_usage.used_count + 1,
+                    updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+     WHERE search_api_usage.used_count < search_api_usage.quota_limit
+     RETURNING used_count`,
+    [provider, keyIndex, period, quotaLimit]
+  );
+  return result.rows.length > 0;
+}
+
+async function acquireKeyFromPool(provider, keys, period, quotaLimit, excludeIndexes = new Set()) {
+  for (let i = 0; i < keys.length; i++) {
+    if (excludeIndexes.has(i)) continue; // bỏ qua key vừa bị lỗi trong lượt này
+    const ok = await reserveKeySlot(provider, i, period, quotaLimit);
+    if (ok) return { key: keys[i], keyIndex: i };
+  }
+  return null;
+}
+
+async function callGeminiRaw({ apiKey, model, systemPrompt, userPrompt, temperature = 0.7, maxOutputTokens = 8000, jsonMode = true }) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const combinedPrompt = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
+
+  const body = {
+    contents: [{ role: "user", parts: [{ text: combinedPrompt }] }],
+    generationConfig: {
+      temperature,
+      maxOutputTokens,
+      ...(jsonMode ? { responseMimeType: "application/json" } : {})
     }
-    
-    throw err;
+  };
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+
+  if (res.status === 429) {
+      const errText = await res.text();          // ✅ THÊM
+      console.warn(`🔴 Gemini 429 body: ${errText.substring(0, 800)}`); // ✅ THÊM
+      const err = new Error("Gemini rate limited (429)");
+      err.isRateLimit = true;
+      err.rawBody = errText;                      // ✅ THÊM (tuỳ chọn, để dùng sau)
+      throw err;
+  }
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API lỗi ${res.status}: ${errText.substring(0, 500)}`);
+  }
+
+  const data = await res.json();
+  const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+  if (!text) {
+    const finishReason = data?.candidates?.[0]?.finishReason;
+    throw new Error(`Gemini trả về rỗng (finishReason: ${finishReason || 'unknown'})`);
+  }
+  return text;
+}
+
+// Gọi Gemini bằng key pool: duyệt qua các key còn quota trong ngày, key nào hết thì thử key kế
+async function callGemini({ model, systemPrompt, userPrompt, temperature = 0.7, maxOutputTokens = 8000, jsonMode = true }) {
+  if (GEMINI_API_KEYS.length === 0) throw new Error("Chưa cấu hình GEMINI_API_KEY nào");
+
+  const period = getCurrentPeriodDay();
+  let lastErr;
+  const excludeIndexes = new Set(); // ✅ THÊM: key đã thử và lỗi trong lượt gọi này
+
+  for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
+    const slot = await acquireKeyFromPool('gemini', GEMINI_API_KEYS, period, GEMINI_DAILY_QUOTA_PER_KEY, excludeIndexes); // ✅ truyền excludeIndexes
+    if (!slot) {
+      console.warn(`⚠️ Toàn bộ ${GEMINI_API_KEYS.length} Gemini key đã hết quota hoặc bị rate limit ngày ${period}`);
+      break;
+    }
+
+    try {
+      const text = await callGeminiRaw({
+        apiKey: slot.key, model, systemPrompt, userPrompt, temperature, maxOutputTokens, jsonMode
+      });
+      console.log(`🔑 Gemini key #${slot.keyIndex + 1}/${GEMINI_API_KEYS.length} → OK`);
+      return text;
+    } catch (err) {
+      lastErr = err;
+      excludeIndexes.add(slot.keyIndex); // ✅ THÊM: đánh dấu key này đã lỗi, lần sau bỏ qua
+      if (err.isRateLimit) {
+        console.warn(`⏳ Gemini key #${slot.keyIndex + 1} bị rate limit (429), thử key khác...`);
+        continue;
+      } else {
+        console.warn(`⚠️ Gemini key #${slot.keyIndex + 1} lỗi: ${err.message}`);
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+  }
+
+  throw lastErr || new Error("Không còn Gemini key nào khả dụng");
+}
+
+async function callGeminiForMainContent({ systemPrompt, userPrompt, desiredCompletionTokens }) {
+  const capped = Math.max(MIN_COMPLETION_TOKENS, Math.min(desiredCompletionTokens, 32000));
+  console.log(`📤 Gemini call (main content): model=${GEMINI_MODEL}, tokens=${capped}`);
+  return await callGemini({
+    model: GEMINI_MODEL,
+    systemPrompt,
+    userPrompt,
+    temperature: 0.8,
+    maxOutputTokens: capped,
+    jsonMode: true
+  });
+}
+
+async function searchDuckDuckGo(query, maxResults = 5) {
+  try {
+    const result = await ddgSearch(query, { safeSearch: SafeSearchType.MODERATE });
+    if (!result || !Array.isArray(result.results)) return [];
+    return result.results.slice(0, maxResults).map(r => ({
+      title: (r.title || '').replace(/<\/?b>/g, ''),
+      url: r.url,
+      description: (r.description || '').replace(/<\/?b>/g, '').substring(0, 200)
+    }));
+  } catch (err) {
+    console.warn(`⚠️ DuckDuckGo search lỗi cho "${query}": ${err.message}`);
+    return [];
   }
 }
 
-async function callClaudeForMaterials({ days, category, temperature = 0.3 }) {
-  if (!anthropic) {
-    throw new Error("Claude API key not configured");
-  }
+async function searchSerpApiWithKey(apiKey, query, maxResults = 5) {
+  const url = `https://serpapi.com/search.json?engine=google&q=${encodeURIComponent(query)}&num=${maxResults}&hl=vi&api_key=${apiKey}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`SerpAPI lỗi ${res.status}`);
+  const data = await res.json();
 
-  if (!Array.isArray(days) || days.length === 0) {
-    console.error('❌ Invalid days array:', days);
-    throw new Error("Days array is invalid or empty");
-  }
+  // SerpAPI có thể trả lỗi 200 kèm field "error" (vd hết quota) -> coi như lỗi để rớt xuống Tavily
+  if (data?.error) throw new Error(`SerpAPI: ${data.error}`);
 
-  const BATCH_SIZE = days.length;
-  const batches = [];
-  
-  for (let i = 0; i < days.length; i += BATCH_SIZE) {
-    const batch = days.slice(i, i + BATCH_SIZE);
-    
-    if (batch.length > 0) {
-      batches.push(batch);
+  const results = data?.organic_results || [];
+  return results.slice(0, maxResults).map(r => ({
+    title: r.title || '',
+    url: r.link,
+    description: (r.snippet || '').substring(0, 200)
+  })).filter(r => !!r.url);
+}
+
+async function searchTavilyWithKey(apiKey, query, maxResults = 5) {
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ api_key: apiKey, query, search_depth: 'basic', max_results: maxResults })
+  });
+  if (!res.ok) throw new Error(`Tavily API lỗi ${res.status}`);
+  const data = await res.json();
+  return (data.results || []).map(r => ({
+    title: r.title, url: r.url, description: (r.content || '').substring(0, 200)
+  }));
+}
+
+async function searchWithKeyPool(query, maxResults = 5) {
+  const period = getCurrentPeriodMonth();
+
+  if (SERPAPI_API_KEYS.length > 0) {
+    const slot = await acquireKeyFromPool('serpapi', SERPAPI_API_KEYS, period, SERPAPI_MONTHLY_QUOTA);
+    if (slot) {
+      try {
+        const results = await searchSerpApiWithKey(slot.key, query, maxResults);
+        if (results.length > 0) {
+          console.log(`🔑 SerpAPI key #${slot.keyIndex + 1}/${SERPAPI_API_KEYS.length} → ${results.length} kết quả`);
+          return results;
+        }
+      } catch (err) {
+        console.warn(`⚠️ SerpAPI key #${slot.keyIndex + 1} lỗi: ${err.message}`);
+      }
+    } else {
+      console.warn(`⚠️ Toàn bộ ${SERPAPI_API_KEYS.length} SerpAPI key đã hết quota tháng ${period}`);
     }
   }
 
-  console.log(`📊 Processing ${days.length} days in ${batches.length} batches`);
+  if (TAVILY_API_KEYS.length > 0) {
+    const slot = await acquireKeyFromPool('tavily', TAVILY_API_KEYS, period, TAVILY_MONTHLY_QUOTA);
+    if (slot) {
+      try {
+        const results = await searchTavilyWithKey(slot.key, query, maxResults);
+        if (results.length > 0) {
+          console.log(`🔑 Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → ${results.length} kết quả`);
+          return results;
+        }
+      } catch (err) {
+        console.warn(`⚠️ Tavily key #${slot.keyIndex + 1} lỗi: ${err.message}`);
+      }
+    } else {
+      console.warn(`⚠️ Toàn bộ ${TAVILY_API_KEYS.length} Tavily key đã hết quota tháng ${period}`);
+    }
+  }
+
+  console.log(`🦆 Dùng DuckDuckGo (fallback cuối) cho: "${query}"`);
+  return await searchDuckDuckGo(query, maxResults);
+}
+
+async function searchWithTavilyOnly(query, maxResults = 5) {
+  if (!Array.isArray(TAVILY_API_KEYS) || TAVILY_API_KEYS.length === 0) {
+    console.warn(`⚠️ Tavily: không có API key, bỏ qua tìm tài liệu cho "${query}"`);
+    return [];
+  }
+
+  const period = getCurrentPeriodMonth();
+  const slot = await acquireKeyFromPool('tavily', TAVILY_API_KEYS, period, TAVILY_MONTHLY_QUOTA);
+  if (!slot) {
+    console.warn(`⚠️ Tavily: toàn bộ ${TAVILY_API_KEYS.length} key đã hết quota tháng ${period}`);
+    return [];
+  }
+
+  try {
+    const results = await searchTavilyWithKey(slot.key, query, maxResults);
+    if (results.length > 0) {
+      console.log(`✅ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → ${results.length} kết quả cho: "${query}"`);
+      return results;
+    }
+
+    console.warn(`⚠️ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → không có kết quả cho: "${query}"`);
+  } catch (err) {
+    console.warn(`❌ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} lỗi: ${err.message}`);
+  }
+
+  return [];
+}
+
+// ============================================================================
+// 19b. FIRECRAWL - Cào nội dung trang web để viết cột "Hướng dẫn sử dụng"
+// ============================================================================
+
+async function firecrawlScrapeWithKey(apiKey, url) {
+  const res = await fetch('https://api.firecrawl.dev/v1/scrape', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      url,
+      formats: ['markdown'],
+      onlyMainContent: true,
+      timeout: 15000
+    })
+  });
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Firecrawl lỗi ${res.status}: ${errText.substring(0, 200)}`);
+  }
+
+  const data = await res.json();
+  if (data?.success === false) throw new Error(`Firecrawl: ${data?.error || 'unknown error'}`);
+
+  const markdown = data?.data?.markdown || data?.markdown || '';
+  return markdown.trim();
+}
+
+// Cào bằng key pool: hết quota/lỗi key này thì thử key kế tiếp
+async function firecrawlScrapeWithKeyPool(url) {
+  if (FIRECRAWL_API_KEYS.length === 0 || !url) return null;
+  const period = getCurrentPeriodMonth();
+
+  for (let i = 0; i < FIRECRAWL_API_KEYS.length; i++) {
+    const slot = await acquireKeyFromPool('firecrawl', FIRECRAWL_API_KEYS, period, FIRECRAWL_MONTHLY_QUOTA);
+    if (!slot) {
+      console.warn(`⚠️ Toàn bộ ${FIRECRAWL_API_KEYS.length} Firecrawl key đã hết quota tháng ${period}`);
+      return null;
+    }
+    try {
+      const content = await firecrawlScrapeWithKey(slot.key, url);
+      if (content) {
+        console.log(`🔑 Firecrawl key #${slot.keyIndex + 1}/${FIRECRAWL_API_KEYS.length} → cào được ${content.length} ký tự (${url})`);
+        // Giới hạn độ dài để tiết kiệm token khi đưa vào prompt Gemini
+        return content.substring(0, 6000);
+      }
+    } catch (err) {
+      console.warn(`⚠️ Firecrawl key #${slot.keyIndex + 1} lỗi (${url}): ${err.message}`);
+    }
+  }
+  return null;
+}
+
+// Dựa vào kết quả tìm kiếm từ Tavily để viết hướng dẫn sử dụng chi tiết
+async function generateGuideFromSearchResults({ dailyGoal, learningContent, searchResults }) {
+  const safeResults = Array.isArray(searchResults) ? searchResults.slice(0, 3) : [];
+  if (safeResults.length === 0) return "";
+
+  const topResult = safeResults[0] || {};
+  const title = String(topResult.title || '').trim();
+  const description = String(topResult.description || '').trim().replace(/\s+/g, ' ').slice(0, 300);
+  const fallback = description || 'nội dung chính của tài liệu được đề xuất';
+
+  const guidance = `Bắt đầu từ tài liệu "${title || 'đề xuất đầu tiên'}" để đạt mục tiêu "${dailyGoal}". Với nội dung "${learningContent}", hãy ưu tiên đọc phần giới thiệu trước, sau đó tập trung vào phần ${fallback}. Nếu tài liệu có mục lục, hãy chọn phần liên quan trực tiếp đến mục tiêu học hôm nay trước, rồi mới thực hành theo ví dụ.`;
+
+  return guidance.trim();
+}
+
+async function callFreeSearchForMaterials({ days, category, subCategory = '', temperature = 0.5 }) {
+  if (!Array.isArray(days) || days.length === 0) {
+    throw new Error("Days array không hợp lệ hoặc rỗng");
+  }
+
+  const validDays = days.filter(d => d && d.day_number && d.daily_goal && d.learning_content);
+  if (validDays.length === 0) {
+    return [];
+  }
+
+  console.log(`📊 Xử lý ${validDays.length} ngày bằng Tavily only (không dùng Gemini cho cột tài liệu/hướng dẫn)`);
 
   const allMaterials = [];
 
-  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
-    const batch = batches[batchIndex];
-    
-    if (!batch || batch.length === 0) {
-      console.warn(`⚠️ Batch ${batchIndex + 1} is empty, skipping...`);
-      continue;
-    }
+  for (const day of validDays) {
+    const combinedCategory = subCategory ? `(${category}) - (${subCategory})` : `(${category})`;
+    const query = `${combinedCategory} - (${day.daily_goal}) tutorial hướng dẫn`.trim().substring(0, 200);
+    const results = await searchWithTavilyOnly(query, 5);
 
-    const validBatch = batch.filter(d => 
-      d && 
-      typeof d === 'object' && 
-      d.day_number && 
-      d.daily_goal && 
-      d.learning_content
-    );
+    let learningMaterials = "";
+    let usageInstructions = "";
 
-    if (validBatch.length === 0) {
-      console.warn(`⚠️ Batch ${batchIndex + 1} has no valid days, skipping...`);
-      continue;
-    }
+    if (results.length > 0) {
+      const firstResult = results[0];
+      learningMaterials = String(firstResult?.url || "").trim();
 
-    const daysInfo = validBatch.map(d => {
-      try {
-        return {
-          day_number: d.day_number,
-          daily_goal: String(d.daily_goal || '').substring(0, 100),
-          learning_content: String(d.learning_content || '').substring(0, 150)
-        };
-      } catch (err) {
-        console.error('❌ Error mapping day:', err, d);
-        return null;
-      }
-    }).filter(Boolean);
-
-    if (daysInfo.length === 0) {
-      console.warn(`⚠️ Batch ${batchIndex + 1} has no valid daysInfo, skipping...`);
-      continue;
-    }
-
-    const userPrompt = `Tìm tài liệu học tập MIỄN PHÍ, CHẤT LƯỢNG cho ${validBatch.length} ngày học về "${category}".
-
-**DANH SÁCH NGÀY HỌC:**
-${JSON.stringify(daysInfo, null, 2)}
-
-**CHIẾN LƯỢC TÌM KIẾM:**
-
-1️⃣ **Tìm kiếm thông minh:**
-   - Tìm các nền tảng uy tín: YouTube (kênh giáo dục lớn), documentation chính thức, khóa học miễn phí
-   - Ưu tiên: Video tutorials, interactive courses, official docs
-   - Tránh: Blog cá nhân, forum posts, nội dung yêu cầu đăng ký
-
-2️⃣ **Phân phối link:**
-   - Nếu tìm được 1 playlist/course dài → Chia thành các phần khác nhau
-   - Nếu tìm được documentation series → Link đến các sections khác nhau
-   - MỖI NGÀY phải có link ĐỘC NHẤT (không trùng lặp)
-
-**YÊU CẦU BẮT BUỘC:**
-✅ Link phải CỤ THỂ (trực tiếp đến bài học, không phải trang chủ)
-✅ Link phải MIỄN PHÍ (không paywall)
-✅ Mỗi ngày phải có link KHÁC NHAU
-✅ Ghi rõ timestamp nếu cùng 1 video
-✅ Instructions phải CHI TIẾT: học phần nào, từ đâu đến đâu
-
-**TRẢ VỀ JSON (KHÔNG có markdown, KHÔNG có giải thích):**
-{
-  "search_summary": "Mô tả ngắn nguồn tìm được (vd: YouTube playlist Python Tutorial by freeCodeCamp)",
-  "materials": [
-    {
-      "day_number": ${daysInfo[0].day_number},
-      "learning_materials": "URL CỤ THỂ",
-      "usage_instructions": "📹 Xem video từ 0:00 đến 30:00 - Học về: [topic]. Tập trung vào [key points]."
-    }
-  ]
-}`;
-
-    const systemPrompt = `Bạn là chuyên gia tìm kiếm tài liệu học tập trực tuyến với 10+ năm kinh nghiệm.
-
-**⚠️ QUAN TRỌNG - ĐỌC KỸ:**
-- Bạn PHẢI trả về ĐÚNG format JSON như yêu cầu
-- KHÔNG được thêm bất kỳ text nào ngoài JSON
-- KHÔNG được thêm giải thích, lời mở đầu, hay kết luận
-- Bắt đầu response bằng { và kết thúc bằng }
-- KHÔNG wrap JSON trong markdown code blocks
-
-**NHIỆM VỤ:** Tìm tài liệu HỌC TẬP CHẤT LƯỢNG, MIỄN PHÍ
-
-**QUY TẮC VÀNG:**
-1. **Ưu tiên các nền tảng uy tín:**
-   - YouTube: freeCodeCamp, Traversy Media, Programming with Mosh, Academind
-   - Documentation: MDN, W3Schools, Official Docs
-   - Platforms: Khan Academy, Coursera (audit), edX (audit), Udacity (free tier)
-
-2. **Tránh các nguồn không đáng tin:**
-   - Blog cá nhân không rõ nguồn gốc
-   - Nội dung yêu cầu payment
-   - Links có quá nhiều ads
-   - Forum posts (trừ Stack Overflow cho references)
-
-3. **Link phải CỤ THỂ:**
-   ❌ SAI: https://youtube.com/user/channelname
-   ❌ SAI: https://website.com/courses
-   ✅ ĐÚNG: https://youtube.com/watch?v=abc123
-   ✅ ĐÚNG: https://website.com/courses/python/lesson-1
-
-4. **Instructions phải CHI TIẾT:**
-   ❌ SAI: "Học về Python basics"
-   ✅ ĐÚNG: "📹 Xem từ 0:00 đến 25:30. Học về: Variables, Data Types, Print function. Tập trung: Syntax và cách khai báo biến."
-
-**VÍ DỤ OUTPUT ĐÚNG:**
-{
-  "search_summary": "Tìm thấy playlist Khan Academy về toán lớp 3",
-  "materials": [
-    {
-      "day_number": 1,
-      "learning_materials": "https://www.khanacademy.org/math/cc-third-grade-math/intro-to-multiplication",
-      "usage_instructions": "📚 Xem video 'Introduction to Multiplication'. Học về: khái niệm nhân cơ bản, ví dụ thực tế. Thực hành: 5 bài tập cuối video."
-    }
-  ]
-}`;
-
-    try {
-      const estimatedTokensPerDay = 250;
-      const estimatedTotal = validBatch.length * estimatedTokensPerDay;
-      const maxTokens = Math.min(estimatedTotal + 1000, 8000);
-      
-      console.log(`📊 Batch ${batchIndex + 1}/${batches.length}: days=${validBatch.length}, tokens=${maxTokens}`);
-      
-      const params = {
-        model: CLAUDE_MODEL,
-        max_tokens: maxTokens,
-        temperature: temperature,
-        system: systemPrompt,
-        messages: [
-          {
-            role: 'user',
-            content: userPrompt
-          }
-        ],
-        tools: [
-          {
-            type: "web_search_20250305",
-            name: "web_search"
-          }
-        ],
-        stream: true
-      };
-      
-      console.log(`📤 Claude batch ${batchIndex + 1} with WEB SEARCH: model=${params.model}, max_tokens=${params.max_tokens}`);
-      
-      let fullText = '';
-      let chunkCount = 0;
-
-      const stream = await anthropic.messages.create(params);
-
-      for await (const event of stream) {
-        if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-          fullText += event.delta.text;
-          chunkCount++;
-
-          if (chunkCount % 50 === 0) {
-            console.log(`📄 [Claude batch ${batchIndex + 1}] ${chunkCount} chunks, ${fullText.length} chars...`);
-          }
-        }
-      }
-
-      console.log(`✅ [Claude batch ${batchIndex + 1}] Complete: ${fullText.length} chars`);
-
-      let parsed;
-      try {
-        const jsonMatch = fullText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        const jsonText = jsonMatch ? jsonMatch[1] : fullText;
-        
-        parsed = JSON.parse(jsonText);
-      } catch (e) {
-        console.warn(`⚠️ First parse failed, trying cleanup...`);
-        
+      if (learningMaterials) {
         try {
-          const cleaned = fullText
-            .replace(/```(?:json)?/g, '')
-            .replace(/[\u2018\u2019]/g, "'")
-            .replace(/[\u201C\u201D]/g, '"')
-            .replace(/,\s*([}\]])/g, '$1')
-            .trim();
-          
-          parsed = JSON.parse(cleaned);
-        } catch (e2) {
-          console.warn(`⚠️ Second parse failed, trying to extract JSON object...`);
-          
-          try {
-            const jsonObjectMatch = fullText.match(/\{[\s\S]*?\}(?=\s*$)/);
-            
-            if (!jsonObjectMatch) {
-              console.error(`❌ No JSON object found in response`);
-              console.error(`📄 Response preview:`, fullText.substring(0, 500));
-              
-              parsed = {
-                search_summary: "Claude không trả về JSON hợp lệ",
-                materials: validBatch.map(d => ({
-                  day_number: d.day_number,
-                  learning_materials: "",
-                  usage_instructions: "Vui lòng tự tìm tài liệu học tập phù hợp"
-                }))
-              };
-            } else {
-              parsed = JSON.parse(jsonObjectMatch[0]);
-            }
-          } catch (e3) {
-            console.error(`❌ All parse attempts failed`);
-            console.error(`📄 Full response:`, fullText);
-            
-            parsed = {
-              search_summary: "Không thể parse response từ Claude",
-              materials: validBatch.map(d => ({
-                day_number: d.day_number,
-                learning_materials: "",
-                usage_instructions: "Vui lòng tự tìm tài liệu học tập phù hợp"
-              }))
-            };
-          }
+          usageInstructions = await generateGuideFromSearchResults({
+            dailyGoal: day.daily_goal || '',
+            learningContent: day.learning_content || '',
+            searchResults: results
+          });
+        } catch (err) {
+          console.warn(`⚠️ Tavily guide lỗi cho ngày ${day.day_number} (${learningMaterials}): ${err.message}`);
         }
       }
-
-      if (!parsed || typeof parsed !== 'object') {
-        console.warn(`⚠️ Invalid parsed object`);
-        parsed = { materials: [] };
-      }
-
-      if (!Array.isArray(parsed.materials)) {
-        console.warn(`⚠️ materials is not an array`);
-        parsed.materials = [];
-      }
-
-      if (parsed.materials && Array.isArray(parsed.materials)) {
-        allMaterials.push(...parsed.materials);
-        console.log(`✅ Batch ${batchIndex + 1}: Got ${parsed.materials.length} materials`);
-        console.log(`🔍 Summary: ${parsed.search_summary || 'N/A'}`);
-      } else {
-        console.warn(`⚠️ Batch ${batchIndex + 1}: No valid materials returned`);
-      }
-
-      if (batchIndex < batches.length - 1) {
-        const delaySeconds = 3;
-        console.log(`⏳ Waiting ${delaySeconds}s before next batch...`);
-        await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
-      }
-
-    } catch (err) {
-      console.error(`❌ Claude batch ${batchIndex + 1} failed:`, err.message);
-      console.error(`Stack:`, err.stack);
-      
-      console.log(`⚠️ Skipping batch ${batchIndex + 1}, continuing...`);
-      continue;
     }
+
+    allMaterials.push({
+      day_number: day.day_number,
+      learning_materials: learningMaterials,
+      usage_instructions: usageInstructions || day.study_guide || ''
+    });
+
+    await new Promise(r => setTimeout(r, 400));
   }
 
-  console.log(`✅ Total materials collected: ${allMaterials.length}`);
-
-  return {
-    choices: [{
-      message: {
-        content: JSON.stringify({ materials: allMaterials })
-      }
-    }]
-  };
+  console.log(`✅ Tổng materials thu được: ${allMaterials.length}`);
+  return allMaterials;
 }
-
 // ============================================================================
 // 20. MIDDLEWARE - Authentication
 // ============================================================================
@@ -2235,7 +2349,7 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   try {
     console.log('🚀 AI REQUEST RECEIVED');
     
-    if (!process.env.OPENAI_API_KEY) {
+    if (GEMINI_API_KEYS.length === 0) {
       return res.status(503).json({ 
         success: false, 
         error: "Tính năng AI chưa được cấu hình." 
@@ -2410,20 +2524,16 @@ Trả về JSON format:
     );
     historyId = historyResult.rows[0].id;
 
-    console.log(`📞 Phase 1: OpenAI call for main content...`);
-    
-    const completion = await callOpenAIForMainContent({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt }
-      ],
-      desiredCompletionTokens: Math.min(actualDays * TOKENS_PER_DAY, MAX_AI_TOKENS - SAFETY_MARGIN_TOKENS),
-      temperature: 1
-    });
+    console.log(`📞 Phase 1: Gemini call for main content...`);
 
-    const aiResponse = completion?.choices?.[0]?.message?.content?.trim();
+    const aiResponse = (await callGeminiForMainContent({
+      systemPrompt,
+      userPrompt,
+      desiredCompletionTokens: Math.min(actualDays * TOKENS_PER_DAY, 32000)
+    })).trim();
+
     if (!aiResponse) {
-      throw new Error("OpenAI không trả về kết quả");
+      throw new Error("Gemini không trả về kết quả");
     }
 
     let roadmapData = parseAIResponse(aiResponse);
@@ -2434,35 +2544,23 @@ Trả về JSON format:
     
     console.log(`✅ Phase 1 complete: ${days.length} days generated`);
 
-    // STEP 2: Claude finds materials and instructions
-    console.log(`📞 Phase 2: Claude call for materials...`);
+    // STEP 2: Tavily only for materials and instructions
+    console.log(`📞 Phase 2: Tavily only for materials and instructions...`);
     
     let claudeMaterials = [];
     try {
-      const claudeCompletion = await callClaudeForMaterials({
+      claudeMaterials = await callFreeSearchForMaterials({
         days: days,
         category: finalData.category,
-        temperature: 1
+        subCategory: finalData.category_detail,
+        temperature: 0.5
       });
-
-      const claudeResponse = claudeCompletion?.choices?.[0]?.message?.content?.trim();
-      if (claudeResponse) {
-        const jsonMatch = claudeResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-        const jsonText = jsonMatch ? jsonMatch[1] : claudeResponse;
-        
-        try {
-          const parsed = JSON.parse(jsonText);
-          claudeMaterials = parsed.materials || [];
-          console.log(`✅ Claude returned ${claudeMaterials.length} materials`);
-        } catch (e) {
-          console.warn(`⚠️ Claude JSON parse failed:`, e.message);
-        }
-      }
+      console.log(`✅ Nhận được ${claudeMaterials.length} materials từ Tavily only`);
     } catch (error) {
-      console.warn(`⚠️ Claude materials failed:`, error.message);
+      console.warn(`⚠️ Tavily enrich thất bại:`, error.message);
     }
 
-    // Merge Claude materials into days
+    // Merge materials into days
     for (const material of claudeMaterials) {
       const day = days.find(d => d.day_number === material.day_number);
       if (day) {
@@ -2474,7 +2572,7 @@ Trả về JSON format:
     // STEP 3: Validate all links
     console.log('🔍 Phase 3: Validating links...');
 
-    const validationResults = await validateBatchLinksEnhanced(days);
+    const validationResults = await validateBatchLinksEnhanced(days, { category: finalData.category, subCategory: finalData.category_detail });
     const failedDays = validationResults
       .filter(r => !r.valid)
       .map(r => days[r.index]);
@@ -2490,7 +2588,7 @@ Trả về JSON format:
       for (const failed of failedDays) {
         const idx = finalDays.findIndex(d => d.day_number === failed.day_number);
         if (idx !== -1) {
-          const fallback = createGoogleSearchFallback(finalDays[idx], finalData.category);
+          const fallback = createGoogleSearchFallback(finalDays[idx], finalData.category, finalData.category_detail);
           finalDays[idx].learning_materials = fallback.learning_materials;
           finalDays[idx].study_guide = fallback.study_guide;
           console.log(`🔗 Day ${failed.day_number}: Google Search fallback applied`);
@@ -2499,7 +2597,7 @@ Trả về JSON format:
     }
 
     // Final validation
-    const finalValidation = await validateBatchLinksEnhanced(finalDays);
+    const finalValidation = await validateBatchLinksEnhanced(finalDays, { category: finalData.category, subCategory: finalData.category_detail });
     const finalFailCount = finalValidation.filter(r => !r.valid).length;
 
     const processingTime = Date.now() - startTime;
