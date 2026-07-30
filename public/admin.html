@@ -968,6 +968,7 @@ details > div {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+<script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -1389,7 +1390,7 @@ function renderUsersTable(users) {
       const token = localStorage.getItem('token');
       usersMessage.textContent = 'Đang xóa...';
       try {
-        const res = await fetch(`/api/users/${encodeURIComponent(id)}`, {
+        const res = await fetch(`${API_BASE}/api/users/${encodeURIComponent(id)}`, {
           method: 'DELETE',
           headers: {
             ...(token && { 'Authorization': 'Bearer ' + token }),
@@ -1423,7 +1424,7 @@ function renderUsersTable(users) {
       fetchUsersBtn.disabled = true;
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/users', {
+        const res = await fetch(`${API_BASE}/api/users`, {
           headers: {
             ...(token && { 'Authorization': 'Bearer ' + token }),
             'Cache-Control': 'no-cache',
@@ -1576,7 +1577,7 @@ function renderAIHistory(records, total) {
           
           try {
             const token = localStorage.getItem('token');
-            const res = await fetch('/api/admin/ai-history', {
+            const res = await fetch(`${API_BASE}/api/admin/ai-history`, {
               headers: { 
                 'Authorization': 'Bearer ' + token,
                 'Cache-Control': 'no-cache'
@@ -1705,7 +1706,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/categories', {
+        const res = await fetch(`${API_BASE}/api/categories`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         
@@ -1759,7 +1760,7 @@ function renderAIHistory(records, total) {
     async function createCategory(name, description) {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/categories', {
+        const res = await fetch(`${API_BASE}/api/admin/categories`, {
           method: 'POST',
           headers: { 
             'Authorization': 'Bearer ' + token,
@@ -1795,7 +1796,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/sub-categories', {
+        const res = await fetch(`${API_BASE}/api/admin/sub-categories`, {
           method: 'POST',
           headers: { 
             'Authorization': 'Bearer ' + token,
@@ -1829,7 +1830,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/categories/${id}`, {
+        const res = await fetch(`${API_BASE}/api/admin/categories/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -1857,7 +1858,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/categories/${id}`, {
+        const res = await fetch(`${API_BASE}/api/admin/categories/${id}`, {
           method: 'PUT',
           headers: { 
             'Authorization': 'Bearer ' + token,
@@ -1889,7 +1890,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/sub-categories/${id}`, {
+        const res = await fetch(`${API_BASE}/api/admin/sub-categories/${id}`, {
           method: 'DELETE',
           headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -1917,7 +1918,7 @@ function renderAIHistory(records, total) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/sub-categories/${subId}`, {
+        const res = await fetch(`${API_BASE}/api/admin/sub-categories/${subId}`, {
           method: 'PUT',
           headers: { 
             'Authorization': 'Bearer ' + token,
@@ -1953,7 +1954,7 @@ async function loadPromptTemplate() {
     if (promptPreview) promptPreview.textContent = 'Đang tải...';
     if (jsonFormat) jsonFormat.textContent = 'Đang tải...';
     
-    const res = await fetch('/api/admin/prompt', {
+    const res = await fetch(`${API_BASE}/api/admin/prompt`, {
      method: 'POST',
      headers: {
         'Content-Type': 'application/json',
@@ -2034,7 +2035,7 @@ function extractJsonFromPrompt(promptText) {
         if (manualPromptEditor) manualPromptEditor.value = 'Đang tải...';
         if (manualPromptPreview) manualPromptPreview.textContent = 'Đang tải...';
         
-        const res = await fetch('/api/admin/manual-prompt', {
+        const res = await fetch(`${API_BASE}/api/admin/manual-prompt`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -2102,7 +2103,7 @@ function extractJsonFromPrompt(promptText) {
         saveManualPromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
         
         try {
-          const res = await fetch('/api/admin/manual-prompt/save', {
+          const res = await fetch(`${API_BASE}/api/admin/manual-prompt/save`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -2140,7 +2141,7 @@ if (resetManualPromptBtn) {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/admin/manual-prompt/reset', {
+      const res = await fetch(`${API_BASE}/api/admin/manual-prompt/reset`, {
         method: 'POST',
         headers: { 
           'Authorization': 'Bearer ' + token
@@ -2207,7 +2208,7 @@ if (savePromptBtn) {
     savePromptBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
     
     try {
-      const res = await fetch('/api/admin/prompt/save', {
+      const res = await fetch(`${API_BASE}/api/admin/prompt/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2247,7 +2248,7 @@ if (resetPromptBtn) {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('/api/admin/prompt-template/reset', {
+      const res = await fetch(`${API_BASE}/api/admin/prompt-template/reset`, {
         method: 'POST',
         headers: { 
           'Authorization': 'Bearer ' + token
@@ -2375,7 +2376,7 @@ window.deleteFeedback = async function(feedbackId) {
   
   try {
     const token = localStorage.getItem('token');
-    const res = await fetch(`/api/admin/feedback/${feedbackId}`, {
+    const res = await fetch(`${API_BASE}/api/admin/feedback/${feedbackId}`, {
       method: 'DELETE',
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -2389,7 +2390,7 @@ window.deleteFeedback = async function(feedbackId) {
       
       // Reload stats nếu đang hiển thị
       if (statsArea.style.display === 'block') {
-        const statsRes = await fetch('/api/admin/feedback/stats', {
+        const statsRes = await fetch(`${API_BASE}/api/admin/feedback/stats`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         const statsData = await statsRes.json();
@@ -2468,7 +2469,7 @@ if (fetchFeedbackBtn) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/feedback', {
+        const res = await fetch(`${API_BASE}/api/admin/feedback`, {
           headers: { 
             'Authorization': 'Bearer ' + token,
             'Cache-Control': 'no-cache'
@@ -2515,7 +2516,7 @@ if (viewStatsBtn) {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('/api/admin/feedback/stats', {
+        const res = await fetch(`${API_BASE}/api/admin/feedback/stats`, {
           headers: { 'Authorization': 'Bearer ' + token }
         });
         
@@ -2620,7 +2621,7 @@ if (fetchSystemRoadmapsBtn) {
             
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('/api/admin/roadmaps-system', {
+                const res = await fetch(`${API_BASE}/api/admin/roadmaps-system`, {
                     headers: { 
                         'Authorization': 'Bearer ' + token,
                         'Cache-Control': 'no-cache'
@@ -2708,7 +2709,7 @@ window.toggleHideSystemRoadmap = async function(roadmapId, shouldHide) {
     
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/roadmaps-system/${roadmapId}/toggle-hide`, {
+        const res = await fetch(`${API_BASE}/api/admin/roadmaps-system/${roadmapId}/toggle-hide`, {
             method: 'PUT',
             headers: { 
                 'Authorization': 'Bearer ' + token,
@@ -2741,7 +2742,7 @@ window.deleteSystemRoadmap = async function(roadmapId, name) {
     
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/admin/roadmaps-system/${roadmapId}`, {
+        const res = await fetch(`${API_BASE}/api/admin/roadmaps-system/${roadmapId}`, {
             method: 'DELETE',
             headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -2831,7 +2832,7 @@ if (fetchUserRoadmapsBtn) {
             
             try {
                 const token = localStorage.getItem('token');
-                const res = await fetch('/api/admin/roadmaps-user', {
+                const res = await fetch(`${API_BASE}/api/admin/roadmaps-user`, {
                     headers: { 
                         'Authorization': 'Bearer ' + token,
                         'Cache-Control': 'no-cache'
