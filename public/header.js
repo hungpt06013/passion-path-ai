@@ -149,7 +149,7 @@ async function loadUser(currentPage = '') {
         return;
     }
 
-    // Phần dưới đây (fetch /api/me) giờ chỉ để XÁC THỰC LẠI Ở NỀN,
+    // Phần dưới đây (fetch ${API_BASE}/api/me) giờ chỉ để XÁC THỰC LẠI Ở NỀN,
     // không còn chặn UI vì người dùng đã thấy "Xin chào..." rồi
     let name = 'Người dùng';
     let serverRole = 'user';
@@ -161,7 +161,7 @@ async function loadUser(currentPage = '') {
         localStorage.setItem('userName', name);
     } else {
         try {
-            const res = await fetch('/api/me', {
+            const res = await fetch(`${API_BASE}/api/me`, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
 
