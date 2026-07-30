@@ -719,6 +719,7 @@
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+    <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -853,6 +854,7 @@
 
   <div id="footer"></div>
 <script>
+    
     // Color schemes for categories
     const categoryColors = {
         // Lập trình & Công nghệ
@@ -997,7 +999,7 @@
     // Load top categories
     async function loadTopCategories() {
         try {
-            const res = await fetch('/api/categories/top', {
+            const res = await fetch(`${API_BASE}/api/categories/top`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
