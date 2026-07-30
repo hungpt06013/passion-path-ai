@@ -526,6 +526,7 @@
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+  <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -685,8 +686,7 @@
   <div id="footer"></div>
 
   <script>
-    const API_BASE = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
-    
+  
     // Login Form Elements
     const loginForm = document.getElementById('loginForm');
     const inpIdentifier = document.getElementById('loginIdentifierInput');
