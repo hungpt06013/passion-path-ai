@@ -941,6 +941,7 @@ function parseAIResponse(aiResponseText) {
       .replace(/[\u201C\u201D]/g, '"')
       .replace(/,\s*([}\]])/g, '$1')
       .replace(/^\s*[\r\n]+/gm, '')
+      .replace(/\\(?!["\\/bfnrtu])/g, '\\\\')
       .trim();
     
     return JSON.parse(cleaned);
