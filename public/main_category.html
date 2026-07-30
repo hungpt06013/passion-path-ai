@@ -352,6 +352,7 @@ main {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+  <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -482,7 +483,7 @@ main {
       document.getElementById('categoryBreadcrumb').textContent = currentCategory;
 
       try {
-        const categoryResponse = await fetch(`/api/categories/${currentCategory}`, {
+        const categoryResponse = await fetch(`${API_BASE}/api/categories/${currentCategory}`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
@@ -495,7 +496,7 @@ main {
           }
         }
 
-        const roadmapsResponse = await fetch(`/api/roadmapsystem/category/${currentCategory}?limit=100`, {
+        const roadmapsResponse = await fetch(`${API_BASE}/api/roadmapsystem/category/${currentCategory}?limit=100`, {
           method: 'GET',
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
