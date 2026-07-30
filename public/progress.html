@@ -330,6 +330,7 @@ body {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+  <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -489,7 +490,7 @@ function toVietnamTime(isoDate) {
 
     async function loadProgress() {
       try {
-        const response = await fetch('/api/roadmaps/progress', {
+        const response = await fetch(`${API_BASE}/api/roadmaps/progress`, {
           headers: getAuthHeaders()
         });
         
