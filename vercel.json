@@ -7,11 +7,5 @@
       "destination": "/main.html",
       "permanent": false
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/server.js"
-    }
   ]
 }
