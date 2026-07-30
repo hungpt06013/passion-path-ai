@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   question_3: document.getElementById('question_3').value.trim()
               };
               
-              const response = await fetch('/api/feedback/submit', {
+              const response = await fetch(`${API_BASE}/api/feedback/submit`, {
                   method: 'POST',
                   headers: {
                       'Content-Type': 'application/json',
