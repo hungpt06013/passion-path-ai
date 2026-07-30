@@ -1077,6 +1077,7 @@ body {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+    <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -1698,7 +1699,7 @@ async function loadCategories() {
     `;
     
     try {
-        const response = await fetch('/api/categories', getAuthHeaders());
+        const response = await fetch(`${API_BASE}/api/categories`, getAuthHeaders());
         if (!response.ok) throw new Error('Failed to load');
         
         const data = await response.json();
@@ -1915,7 +1916,7 @@ async function loadSubCategories(categoryId) {
   `;
   
   try {
-    const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+    const response = await fetch(`${API_BASE}/api/categories/${categoryId}/sub-categories`, {
       headers: getAuthHeaders()
     });
     
@@ -2094,7 +2095,7 @@ async function loadSubCategoriesForCreate(categoryId) {
     `;
     
     try {
-        const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+        const response = await fetch(`${API_BASE}/api/categories/${categoryId}/sub-categories`, {
             headers: getAuthHeaders()
         });
         
@@ -2246,7 +2247,7 @@ async function getMaxDaysForCurrentUser() {
     const token = localStorage.getItem('token');
     if (!token) return 360; // Default cho user chưa đăng nhập
     
-    const response = await fetch('/api/me', {
+    const response = await fetch(`${API_BASE}/api/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
@@ -2679,8 +2680,7 @@ async function generateRoadmapWithAI() {
         };
 
         // prepare API URL
-        const apiBase = (window.location.protocol === 'file:') ? 'http://localhost:5000' : window.location.origin;
-        const apiUrl = apiBase.replace(/\/$/, '') + '/api/generate-roadmap-ai';
+        const apiUrl = `${API_BASE}/api/generate-roadmap-ai`;
 
         // prepare headers
         let headers = {};
@@ -3292,7 +3292,7 @@ if (!q11_program_days || q11_program_days < 15) {
       headers = { 'Content-Type': 'application/json' };
     }
 
-    const response = await fetch('/api/roadmaps', {
+    const response = await fetch(`${API_BASE}/api/roadmaps`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -3475,7 +3475,7 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
     };
     
     // ✅ Gọi API với form data
-    const response = await fetch('/api/get-manual-prompt', {
+    const response = await fetch(`${API_BASE}/api/get-manual-prompt`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
