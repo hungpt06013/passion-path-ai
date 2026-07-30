@@ -1273,6 +1273,7 @@ thead {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+  <script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -1428,7 +1429,7 @@ if (isAdminView) {
       
       try {
         // Step 1: Check if user can create this roadmap
-        const checkResponse = await fetch('/api/check-roadmap-exists', {
+        const checkResponse = await fetch(`${API_BASE}/api/check-roadmap-exists`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1488,7 +1489,7 @@ if (isAdminView) {
 
         if (days.length > 0) roadmapDataSystem.days = days;
 
-        const response = await fetch('/api/roadmap_from_system', {
+        const response = await fetch(`${API_BASE}/api/roadmap_from_system`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1549,7 +1550,7 @@ async function viewRoadmapDetails(roadmapId, roadmap_analyst) {
   document.getElementById('analysisAndDetails').style.display = 'block';
   
   try {
-    const response = await fetch(`/api/roadmapsystem/${roadmapId}/details`, {
+    const response = await fetch(`${API_BASE}/api/roadmapsystem/${roadmapId}/details`, {
       method: 'GET', 
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
@@ -1601,7 +1602,7 @@ async function loadRoadmapDetails() {
   }
 
   try {
-    const roadmapResponse = await fetch(`/api/roadmapsystem/${roadmapId}`, { 
+    const roadmapResponse = await fetch(`${API_BASE}/api/roadmapsystem/${roadmapId}`, { 
       method: 'GET',
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     });
@@ -1805,7 +1806,7 @@ function getVietnamDateMine() {
 
 async function loadMyRoadmapDetails() {
   try {
-    const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+    const response = await fetch(`${API_BASE}/api/roadmaps/${roadmapId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
 
@@ -1834,7 +1835,7 @@ async function loadMyRoadmapDetails() {
 }
 async function loadAdminRoadmapDetails() {
   try {
-    const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+    const response = await fetch(`${API_BASE}/api/roadmaps/${roadmapId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!response.ok) throw new Error('Không thể tải lộ trình');
@@ -2458,7 +2459,7 @@ async function saveMyChanges() {
   const newRows = allDataRows.filter(d => String(d.detail_id).startsWith('new_'));
 
   try {
-    const response = await fetch(`/api/roadmaps/${myRoadmapData.roadmap_id}/update-details`, {
+    const response = await fetch(`${API_BASE}/api/roadmaps/${myRoadmapData.roadmap_id}/update-details`, {
       method: 'PUT',
       headers: getMyAuthHeaders(),
       body: JSON.stringify({ existingRows, newRows, deletedIds, roadmap_analyst: updatedAnalysis })
@@ -2589,7 +2590,7 @@ function setMyRating(fieldName, value) {
 
 async function updateMyDayStatus(roadmapId, detailId, status) {
   try {
-    const response = await fetch(`/api/roadmap/${roadmapId}/update-status`, {
+    const response = await fetch(`${API_BASE}/api/roadmap/${roadmapId}/update-status`, {
       method: 'PUT',
       headers: getMyAuthHeaders(),
       body: JSON.stringify({
@@ -2635,7 +2636,7 @@ async function submitMyEvaluation() {
       would_recommend: document.getElementById('my_would_recommend').checked
     };
 
-    const response = await fetch(`/api/roadmap/${myRoadmapData.roadmap_id}/submit-evaluation`, {
+    const response = await fetch(`${API_BASE}/api/roadmap/${myRoadmapData.roadmap_id}/submit-evaluation`, {
       method: 'POST',
       headers: getMyAuthHeaders(),
       body: JSON.stringify(payload)
