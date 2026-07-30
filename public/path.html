@@ -1875,6 +1875,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
+   <script src="config.js"></script> 
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -2083,6 +2084,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
     <div id="footer"></div>
 <!-- ========== SCRIPTS: TẤT CẢ GIỮ NGUYÊN NHƯ TRONG path.html ========== -->
 <script>
+    
 (function redirectLegacyRoadmapLink(){
     const params = new URLSearchParams(window.location.search);
     const rid = params.get('roadmap');
@@ -2140,7 +2142,7 @@ function removeDiacritics(str) {
     // ====================================================
     async function fetchRoadmaps() {
         try {
-            const response = await fetch('/api/roadmap', {
+            const response = await fetch(`${API_BASE}/api/roadmap`, {
                 method: 'GET',
                 headers: getAuthHeaders()
             });
@@ -2482,7 +2484,7 @@ async function openPromptModal() {
     
     try {
         // ✅ GỌI API LẤY MANUAL PROMPT
-        const response = await fetch('/api/admin/manual-prompt', {
+        const response = await fetch(`${API_BASE}/api/admin/manual-prompt`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -2562,7 +2564,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const response = await fetch(`/api/roadmaps/${roadmapId}`, {
+            const response = await fetch(`${API_BASE}/api/roadmaps/${roadmapId}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
@@ -2684,7 +2686,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 console.log('🚀 Sending upload request...');
                 
-                const response = await fetch('/api/roadmaps/upload', {
+                const response = await fetch(`${API_BASE}/api/roadmaps/upload`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -2839,7 +2841,7 @@ async function loadCategoriesForUpload() {
     wrapper.appendChild(customSelectDiv);
     
     try {
-        const response = await fetch('/api/categories', {
+        const response = await fetch(`${API_BASE}/api/categories`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         
@@ -2970,7 +2972,7 @@ function setupCategorySearch() {
     let allCategories = [];
     
     // Lưu danh sách ban đầu
-    fetch('/api/categories', {
+    fetch(`${API_BASE}/api/categories`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
     })
     .then(res => res.json())
@@ -3046,7 +3048,7 @@ async function loadSubCategoriesForUpload(categoryId) {
     `;
     
     try {
-        const response = await fetch(`/api/categories/${categoryId}/sub-categories`, {
+        const response = await fetch(`${API_BASE}/api/categories/${categoryId}/sub-categories`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
         
