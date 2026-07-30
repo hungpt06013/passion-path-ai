@@ -15,6 +15,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { search as ddgSearch, SafeSearchType } from 'duck-duck-scrape';
+import PQueue from "p-queue";
 import multer from "multer";
 import XLSX from "xlsx";
 import Joi from "joi";
@@ -1092,50 +1093,44 @@ async function validateUrlSmart(url, maxRetries = 2, timeout = 8000) {
 async function validateBatchLinksEnhanced(days, options = {}) {
   const category = options.category || '';
   const subCategory = options.subCategory || '';
-  const results = [];
-  
-  for (let i = 0; i < days.length; i++) {
-    const day = days[i];
+  const results = new Array(days.length);
+
+  const queue = new PQueue({ concurrency: 5 });
+
+  const tasks = days.map((day, i) => queue.add(async () => {
     const link = String(day.learning_materials || '').trim();
-    
+
     if (!link) {
-      results.push({ 
-        index: i, 
+      results[i] = {
+        index: i,
         dayNumber: day.day_number || i + 1,
-        valid: false, 
+        valid: false,
         reason: 'no_link',
         originalUrl: '',
         validatedUrl: ''
-      });
-      continue;
+      };
+      return;
     }
-    
-    if (i > 0) {
-      await new Promise(resolve => 
-        setTimeout(resolve, LINK_VALIDATION_CONFIG.BATCH_VALIDATION_DELAY)
-      );
-    }
-    
+
     const validation = await validateUrlSmart(
-      link, 
-      2, 
+      link,
+      2,
       LINK_VALIDATION_CONFIG.VALIDATION_TIMEOUT
     );
-    
-    results.push({
+
+    const result = {
       index: i,
       dayNumber: day.day_number || i + 1,
       valid: validation.valid,
       originalUrl: link,
       validatedUrl: validation.url,
       reason: validation.reason || null
-    });
-    
-    const icon = validation.valid ? '✅' : '❌';
-    const reason = validation.reason ? ` (${validation.reason})` : '';
-    console.log(`📋 Day ${day.day_number || i + 1}: ${icon} ${link.substring(0, 80)}...${reason}`);
+    };
 
-    // If invalid, attempt a single Tavily search to generate a replacement link
+    const icon = validation.valid ? '✅' : '❌';
+    const reasonLabel = validation.reason ? ` (${validation.reason})` : '';
+    console.log(`📋 Day ${day.day_number || i + 1}: ${icon} ${link.substring(0, 80)}...${reasonLabel}`);
+
     if (!validation.valid) {
       try {
         const combinedCategory = subCategory ? `(${category}) - (${subCategory})` : `(${category})`;
@@ -1145,22 +1140,23 @@ async function validateBatchLinksEnhanced(days, options = {}) {
           const first = tavilyResults[0];
           const newUrl = String(first.url || '').trim();
           if (newUrl) {
-            // update the day in-place so callers see the repaired link
             day.learning_materials = newUrl;
             day.study_guide = `Hướng dẫn truy cập: Mở trang ${newUrl} → nếu là PDF thì tải về và đọc phần liên quan; nếu là trang web, nhấn vào "Bắt đầu/Start" hoặc mở "Mục lục/Table of Contents" và tìm phần liên quan đến "${day.daily_goal}".`;
-            results[results.length - 1].valid = true;
-            results[results.length - 1].validatedUrl = newUrl;
-            results[results.length - 1].reason = 'tavily_generated';
+            result.valid = true;
+            result.validatedUrl = newUrl;
+            result.reason = 'tavily_generated';
             console.log(`🔧 Day ${day.day_number || i + 1}: Tavily generated replacement link: ${newUrl}`);
-            continue;
           }
         }
       } catch (err) {
         console.warn(`⚠️ Tavily repair failed for day ${day.day_number || i + 1}: ${err.message}`);
       }
     }
-  }
-  
+
+    results[i] = result;
+  }));
+
+  await Promise.all(tasks);
   return results;
 }
 
@@ -1510,11 +1506,11 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
     return [];
   }
 
-  console.log(`📊 Xử lý ${validDays.length} ngày bằng Tavily only (không dùng Gemini cho cột tài liệu/hướng dẫn)`);
+  console.log(`📊 Xử lý ${validDays.length} ngày bằng Tavily only (song song, concurrency=5)`);
 
-  const allMaterials = [];
+  const queue = new PQueue({ concurrency: 5 });
 
-  for (const day of validDays) {
+  const tasks = validDays.map(day => queue.add(async () => {
     const combinedCategory = subCategory ? `(${category}) - (${subCategory})` : `(${category})`;
     const query = `${combinedCategory} - (${day.daily_goal}) tutorial hướng dẫn`.trim().substring(0, 200);
     const results = await searchWithTavilyOnly(query, 5);
@@ -1539,14 +1535,14 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
       }
     }
 
-    allMaterials.push({
+    return {
       day_number: day.day_number,
       learning_materials: learningMaterials,
       usage_instructions: usageInstructions || day.study_guide || ''
-    });
+    };
+  }));
 
-    await new Promise(r => setTimeout(r, 400));
-  }
+  const allMaterials = await Promise.all(tasks);
 
   console.log(`✅ Tổng materials thu được: ${allMaterials.length}`);
   return allMaterials;
@@ -2594,15 +2590,11 @@ Trả về JSON format:
       }
     }
 
-    // Final validation
-    const finalValidation = await validateBatchLinksEnhanced(finalDays, { category: finalData.category, subCategory: finalData.category_detail });
-    const finalFailCount = finalValidation.filter(r => !r.valid).length;
-
     const processingTime = Date.now() - startTime;
 
     console.log(`\n📊 FINAL REPORT:`);
     console.log(`✅ Total days: ${finalDays.length}`);
-    console.log(`✅ Valid links: ${finalDays.length - finalFailCount}`);
+    console.log(`✅ Valid links: ${finalDays.length - failedDays.length}`);
     console.log(`🔍 Google Search fallback: ${failedDays.length}`);
     console.log(`⏱️ Processing time: ${(processingTime/1000).toFixed(2)}s`);
 
