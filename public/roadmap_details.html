@@ -1251,6 +1251,76 @@ thead {
     padding: 10px 14px;
   }
 }
+
+.view-toggle-buttons { display: flex; gap: 8px; }
+.view-toggle-btn {
+  background: white; border: 2px solid #e5e7eb; color: #4b5563;
+  padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.2s ease;
+}
+.view-toggle-btn:hover { border-color: #007bff; color: #007bff; }
+.view-toggle-btn.active {
+  background: linear-gradient(135deg, #007bff, #1e40af);
+  border-color: #007bff; color: white;
+}
+
+.mine-calendar-hint { color: #6b7280; font-size: 0.85rem; margin-bottom: 12px; }
+
+.mine-calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.mine-calendar-cell {
+  background: white; border: 2px solid #e5e7eb; border-radius: 12px;
+  padding: 12px 6px; text-align: center; cursor: pointer;
+  transition: all 0.2s ease; display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+}
+.mine-calendar-cell:hover {
+  transform: translateY(-2px); border-color: #007bff;
+  box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+}
+.mine-calendar-cell.selected {
+  border-color: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+}
+.mine-calendar-cell .mcc-icon { font-size: 20px; }
+.mine-calendar-cell .mcc-day { font-weight: 700; color: #1f2937; font-size: 0.95rem; }
+.mine-calendar-cell .mcc-date { font-size: 0.7rem; color: #9ca3af; }
+
+.mine-calendar-cell.completed { background: #f0fdf4; border-color: #86efac; }
+.mine-calendar-cell.in-progress { background: #fffbeb; border-color: #fcd34d; }
+.mine-calendar-cell.skipped { background: #f3f4f6; border-color: #d1d5db; }
+.mine-calendar-cell.not-started { background: white; }
+
+.mine-calendar-detail {
+  background: #f8fafc; border: 2px solid #007bff; border-radius: 12px;
+  padding: 20px; margin-top: 10px;
+}
+.mcd-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.mcd-header h4 { margin: 0; color: #1f2937; }
+.mcd-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280; }
+.mcd-body p { margin: 8px 0; line-height: 1.6; font-size: 0.9rem; }
+.mcd-status-row { margin-top: 12px; display: flex; align-items: center; gap: 10px; }
+.mcd-status-row select { padding: 8px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 0.85rem; }
+
+@media (max-width: 700px) { .mine-calendar-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 420px) { .mine-calendar-grid { grid-template-columns: repeat(3, 1fr); } }
+.cell-inner { transition: max-height 0.25s ease; }
+.hd-toggle-btn {
+  margin-top: 6px; background: #eff6ff; border: 1px solid #bfdbfe; color: #007bff;
+  border-radius: 6px; width: 100%; padding: 4px 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  transition: background 0.2s;
+}
+.hd-toggle-btn:hover { background: #dbeafe; }
+
+.mcd-edit-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white; border: none; border-radius: 8px; padding: 6px 12px;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.mcd-edit-btn:hover { transform: translateY(-1px); }
   </style>
     <!-- Preload Font Awesome CSS -->
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" as="style">
@@ -1362,7 +1432,25 @@ thead {
   
   <!-- Bảng chi tiết -->
   <div class="roadmap-section">
-    <h3>📅 Lộ Trình Chi Tiết</h3>
+    <div class="roadmap-section-header">
+      <h3>📅 Lộ Trình Chi Tiết</h3>
+      <div class="view-toggle-buttons">
+        <button type="button" id="genericViewCalendarBtn" class="view-toggle-btn active" onclick="switchGenericViewMode('calendar')">
+          <i class="fa-solid fa-calendar-days"></i> Dạng Lịch
+        </button>
+        <button type="button" id="genericViewTableBtn" class="view-toggle-btn" onclick="switchGenericViewMode('table')">
+          <i class="fa-solid fa-table"></i> Dạng Bảng
+        </button>
+      </div>
+    </div>
+
+    <div id="genericCalendarViewWrap">
+      <p class="mine-calendar-hint">💡 Nhấn vào một ô để xem chi tiết ngày học đó.</p>
+      <div class="mine-calendar-grid" id="genericCalendarGrid"></div>
+      <div id="genericCalendarDetailPanel" class="mine-calendar-detail" style="display:none;"></div>
+    </div>
+
+    <div id="genericTableViewWrap" style="display:none;">
     <table>
       <thead>
         <tr>
@@ -1380,6 +1468,7 @@ thead {
         <!-- Dữ liệu sẽ được thêm bằng JS -->
       </tbody>
     </table>
+    </div>
   </div>
 </div>
 <div id="myAnalysisAndDetails" style="display:none;"></div>
@@ -1585,11 +1674,100 @@ function displayRoadmapDetails(roadmap, details) {
       <td>Chưa học</td>
     </tr>
   `).join('');
-  
+
+  populateGenericCalendar(details, false);
   document.getElementById('analysisAndDetails').style.display = 'block';
 }
 
+let genericCalendarDetails = [];
 
+function renderGenericCalendarHTML(details, hasStatus) {
+  return details.map(d => {
+    let statusClass = 'not-started';
+    let icon = '⚪';
+    if (hasStatus) {
+      if (d.completion_status === 'COMPLETED') { statusClass = 'completed'; icon = '🔥'; }
+      else if (d.completion_status === 'IN_PROGRESS') { statusClass = 'in-progress'; icon = '⏳'; }
+      else if (d.completion_status === 'SKIPPED') { statusClass = 'skipped'; icon = '⏭️'; }
+    }
+    return `
+      <div class="mine-calendar-cell ${statusClass}" onclick="openGenericCalendarDetail(${d.detail_id})" data-detail-id="${d.detail_id}" title="${escapeHtml(d.daily_goal || '')}">
+        <div class="mcc-icon">${icon}</div>
+        <div class="mcc-day">${d.day_number}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openGenericCalendarDetail(detailId) {
+  const d = genericCalendarDetails.find(x => x.detail_id === detailId);
+  if (!d) return;
+
+  document.querySelectorAll('#genericCalendarGrid .mine-calendar-cell').forEach(c => c.classList.remove('selected'));
+  const cell = document.querySelector(`#genericCalendarGrid .mine-calendar-cell[data-detail-id="${detailId}"]`);
+  if (cell) cell.classList.add('selected');
+
+  const panel = document.getElementById('genericCalendarDetailPanel');
+  let materialsHTML = 'N/A';
+  if (d.learning_materials) {
+    materialsHTML = /^https?:\/\//i.test(d.learning_materials)
+      ? `<a href="${d.learning_materials}" target="_blank">Xem tài liệu</a>`
+      : escapeHtml(d.learning_materials);
+  }
+  const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
+  const statusText = statusMap[d.completion_status] || null;
+
+  panel.innerHTML = `
+    <div class="mcd-header">
+      <h4>📅 Ngày ${d.day_number}</h4>
+      <button class="mcd-close" onclick="closeGenericCalendarDetail()">✕</button>
+    </div>
+    <div class="mcd-body">
+      <p><strong>🎯 Mục tiêu:</strong> ${escapeHtml(d.daily_goal || 'N/A')}</p>
+      <p><strong>📖 Nội dung:</strong> ${escapeHtml(d.learning_content || 'N/A')}</p>
+      <p><strong>✏️ Bài tập:</strong> ${escapeHtml(d.practice_exercises || 'N/A')}</p>
+      <p><strong>📎 Tài liệu:</strong> ${materialsHTML}</p>
+      <p><strong>💡 Hướng dẫn:</strong> ${escapeHtml(d.usage_instructions || 'N/A')}</p>
+      <p><strong>⏱️ Thời lượng:</strong> ${formatHours(d.study_duration)}</p>
+      ${statusText ? `<p><strong>📌 Trạng thái:</strong> ${statusText}</p>` : ''}
+    </div>
+  `;
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeGenericCalendarDetail() {
+  const panel = document.getElementById('genericCalendarDetailPanel');
+  if (panel) panel.style.display = 'none';
+  document.querySelectorAll('#genericCalendarGrid .mine-calendar-cell').forEach(c => c.classList.remove('selected'));
+}
+
+function switchGenericViewMode(mode) {
+  const tableWrap = document.getElementById('genericTableViewWrap');
+  const calWrap = document.getElementById('genericCalendarViewWrap');
+  const btnCal = document.getElementById('genericViewCalendarBtn');
+  const btnTable = document.getElementById('genericViewTableBtn');
+  if (!tableWrap || !calWrap) return;
+  if (mode === 'table') {
+    tableWrap.style.display = 'block';
+    calWrap.style.display = 'none';
+    btnTable.classList.add('active');
+    btnCal.classList.remove('active');
+  } else {
+    tableWrap.style.display = 'none';
+    calWrap.style.display = 'block';
+    btnCal.classList.add('active');
+    btnTable.classList.remove('active');
+  }
+}
+
+function populateGenericCalendar(details, hasStatus) {
+  genericCalendarDetails = details;
+  const grid = document.getElementById('genericCalendarGrid');
+  if (grid) grid.innerHTML = renderGenericCalendarHTML(details, hasStatus);
+  closeGenericCalendarDetail();
+  switchGenericViewMode('calendar');
+}
 async function loadRoadmapDetails() {
   if (!roadmapId) { alert('Không tìm thấy ID lộ trình'); window.location.href = 'main.html'; return; }
   if (isAdminView) {
@@ -1785,6 +1963,7 @@ function renderDays() {
 // ============ CHẾ ĐỘ MINE (lộ trình cá nhân) ================
 // ============================================================
 let isEditMode = false;
+let myCurrentViewMode = 'calendar';
 let myRoadmapData = null;
 let myRoadmapDetails = [];
 let hasEvaluationChanges = false;
@@ -1902,6 +2081,7 @@ async function loadAdminRoadmapDetails() {
         <td>${statusMap[d.completion_status] || d.completion_status}</td>
       </tr>
     `).join('');
+    populateGenericCalendar(details, true);
     document.getElementById('analysisAndDetails').style.display = 'block';
   } catch (error) {
     console.error('Error:', error);
@@ -1971,6 +2151,153 @@ function scrollToEvaluationSection() {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
+function switchMyViewMode(mode) {
+  myCurrentViewMode = mode;
+  const tableWrap = document.getElementById('myTableViewWrap');
+  const calWrap = document.getElementById('myCalendarViewWrap');
+  const btnCal = document.getElementById('myViewCalendarBtn');
+  const btnTable = document.getElementById('myViewTableBtn');
+  if (!tableWrap || !calWrap) return;
+  if (mode === 'table') {
+    tableWrap.style.display = 'block';
+    calWrap.style.display = 'none';
+    btnTable.classList.add('active');
+    btnCal.classList.remove('active');
+    setTimeout(adjustGuideColumnHeights, 50); // đợi bảng hiện xong mới đo
+  } else {
+    tableWrap.style.display = 'none';
+    calWrap.style.display = 'block';
+    btnCal.classList.add('active');
+    btnTable.classList.remove('active');
+  }
+}
+
+// ✅ Cắt chữ cột "Hướng dẫn" theo chiều cao cột cao thứ 2 trong dòng
+function adjustGuideColumnHeights() {
+  const table = document.querySelector('#myTableViewWrap table');
+  if (!table || table.classList.contains('edit-mode-active')) return;
+  const rows = table.querySelectorAll('tbody tr[data-detail-id]');
+
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    const guideCellInner = cells[6] ? cells[6].querySelector('.cell-inner') : null;
+    if (!guideCellInner) return;
+
+    guideCellInner.style.maxHeight = 'none';
+    guideCellInner.style.overflow = 'visible';
+
+    const otherHeights = [];
+    [2, 3, 4, 5].forEach(i => {
+      const inner = cells[i] ? cells[i].querySelector('.cell-inner') : null;
+      if (inner) otherHeights.push(inner.scrollHeight);
+    });
+    const guideHeight = guideCellInner.scrollHeight;
+    const allHeights = [...otherHeights, guideHeight].sort((a, b) => b - a);
+    const targetHeight = allHeights[1] || guideHeight; // chiều cao cao thứ 2
+
+    const toggleBtn = row.querySelector('.hd-toggle-btn');
+
+    if (guideHeight > targetHeight + 10) {
+      guideCellInner.style.maxHeight = targetHeight + 'px';
+      guideCellInner.style.overflow = 'hidden';
+      if (toggleBtn) {
+        toggleBtn.style.display = 'flex';
+        toggleBtn.dataset.expanded = 'false';
+        toggleBtn.dataset.targetHeight = targetHeight;
+        toggleBtn.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+      }
+    } else if (toggleBtn) {
+      toggleBtn.style.display = 'none';
+    }
+  });
+}
+
+function toggleGuideCell(btn) {
+  const cell = btn.closest('td');
+  const inner = cell.querySelector('.cell-inner');
+  if (!inner) return;
+  const expanded = btn.dataset.expanded === 'true';
+  if (expanded) {
+    inner.style.maxHeight = btn.dataset.targetHeight + 'px';
+    inner.style.overflow = 'hidden';
+    btn.dataset.expanded = 'false';
+    btn.innerHTML = '<i class="fa-solid fa-chevron-down"></i>';
+  } else {
+    inner.style.maxHeight = 'none';
+    inner.style.overflow = 'visible';
+    btn.dataset.expanded = 'true';
+    btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+  }
+}
+function openMyDayCalendarDetail(detailId) {
+  const d = myRoadmapDetails.find(x => x.detail_id === detailId);
+  if (!d) return;
+
+  document.querySelectorAll('.mine-calendar-cell').forEach(c => c.classList.remove('selected'));
+  const cell = document.querySelector(`.mine-calendar-cell[data-detail-id="${detailId}"]`);
+  if (cell) cell.classList.add('selected');
+
+  const panel = document.getElementById('myCalendarDetailPanel');
+  let materialsHTML = 'N/A';
+  if (d.learning_materials) {
+    const links = d.learning_materials.split(/[;\n]/).map(l => l.trim()).filter(l => l && l.match(/^https?:\/\//i));
+    materialsHTML = links.length > 0
+      ? links.map(l => `<a href="${l}" target="_blank">${l}</a>`).join('<br>')
+      : escapeHtml(d.learning_materials);
+  }
+
+  panel.innerHTML = `
+    <div class="mcd-header">
+      <h4>📅 Ngày ${d.day_number}${d.study_date ? ' - ' + new Date(d.study_date).toLocaleDateString('vi-VN') : ''}</h4>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="mcd-edit-btn" onclick="editThisDayFromCalendar(${d.detail_id})"><i class="fa-solid fa-pen"></i> Sửa</button>
+        <button class="mcd-close" onclick="closeMyDayCalendarDetail()">✕</button>
+      </div>
+    </div>
+    <div class="mcd-body">
+      <p><strong>🎯 Mục tiêu:</strong> ${escapeHtml(d.daily_goal || 'N/A')}</p>
+      <p><strong>📖 Nội dung:</strong> ${escapeHtml(d.learning_content || 'N/A')}</p>
+      <p><strong>✏️ Bài tập:</strong> ${escapeHtml(d.practice_exercises || 'N/A')}</p>
+      <p><strong>📎 Tài liệu:</strong> ${materialsHTML}</p>
+      <p><strong>💡 Hướng dẫn:</strong> ${escapeHtml(d.usage_instructions || 'N/A')}</p>
+      <p><strong>⏱️ Thời lượng:</strong> ${formatHours(d.study_duration)}</p>
+      <div class="mcd-status-row">
+        <strong>Trạng thái:</strong>
+        <select onchange="updateMyDayStatus(${myRoadmapData.roadmap_id}, ${d.detail_id}, this.value)">
+          <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
+          <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
+          <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+          <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
+        </select>
+      </div>
+    </div>
+  `;
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeMyDayCalendarDetail() {
+  const panel = document.getElementById('myCalendarDetailPanel');
+  if (panel) panel.style.display = 'none';
+  document.querySelectorAll('.mine-calendar-cell').forEach(c => c.classList.remove('selected'));
+}
+
+function editThisDayFromCalendar(detailId) {
+  if (!isEditMode) {
+    toggleMyEditMode(); // bật chế độ sửa (tự chuyển sang Dạng Bảng)
+  } else {
+    switchMyViewMode('table');
+  }
+  setTimeout(() => {
+    const row = document.querySelector(`#myAnalysisAndDetails tbody tr[data-detail-id="${detailId}"]`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.outline = '3px solid #f59e0b';
+      setTimeout(() => { row.style.outline = ''; }, 2000);
+    }
+  }, 300);
+}
+
 function displayMyRoadmapDetails(roadmap, details) {
   const analysisHTML = `
     <div class="analysis-section">
@@ -1981,17 +2308,51 @@ function displayMyRoadmapDetails(roadmap, details) {
   `;
 
   const progressPercent = Math.round(roadmap.progress_percentage || 0);
-
   const tableHTML = `
     <div class="roadmap-section">
       <div class="roadmap-section-header">
         <h3>📅 Lộ Trình Chi Tiết</h3>
-        <div class="progress-indicator" id="myProgressIndicator">
-          <span style="font-size: 14px; font-weight: 600; color: #4b5563;">Tiến độ:</span>
-          <div class="progress-bar-mini"><div class="progress-fill-mini" style="width: ${progressPercent}%"></div></div>
-          <span style="font-size: 14px; font-weight: 700; color: #4f46e5;">${progressPercent}%</span>
+        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div class="view-toggle-buttons">
+            <button type="button" id="myViewCalendarBtn" class="view-toggle-btn active" onclick="switchMyViewMode('calendar')">
+              <i class="fa-solid fa-calendar-days"></i> Dạng Lịch
+            </button>
+            <button type="button" id="myViewTableBtn" class="view-toggle-btn" onclick="switchMyViewMode('table')">
+              <i class="fa-solid fa-table"></i> Dạng Bảng
+            </button>
+          </div>
+          <div class="progress-indicator" id="myProgressIndicator">
+            <span style="font-size: 14px; font-weight: 600; color: #4b5563;">Tiến độ:</span>
+            <div class="progress-bar-mini"><div class="progress-fill-mini" style="width: ${progressPercent}%"></div></div>
+            <span style="font-size: 14px; font-weight: 700; color: #4f46e5;">${progressPercent}%</span>
+          </div>
         </div>
       </div>
+
+      <div id="myCalendarViewWrap">
+        <p class="mine-calendar-hint">💡 Nhấn vào một ô để xem chi tiết ngày học đó.</p>
+        <div class="mine-calendar-grid" id="myCalendarGrid">
+          ${details.map(d => {
+            const statusClass = d.completion_status === 'COMPLETED' ? 'completed' :
+                                 d.completion_status === 'IN_PROGRESS' ? 'in-progress' :
+                                 d.completion_status === 'SKIPPED' ? 'skipped' : 'not-started';
+            const icon = d.completion_status === 'COMPLETED' ? '🔥' :
+                         d.completion_status === 'IN_PROGRESS' ? '⏳' :
+                         d.completion_status === 'SKIPPED' ? '⏭️' : '⚪';
+            const dateLabel = d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'}) : '';
+            return `
+              <div class="mine-calendar-cell ${statusClass}" onclick="openMyDayCalendarDetail(${d.detail_id})" data-detail-id="${d.detail_id}" title="${escapeHtml(d.daily_goal || '')}">
+                <div class="mcc-icon">${icon}</div>
+                <div class="mcc-day">${d.day_number}</div>
+                ${dateLabel ? `<div class="mcc-date">${dateLabel}</div>` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <div id="myCalendarDetailPanel" class="mine-calendar-detail" style="display:none;"></div>
+      </div>
+
+      <div id="myTableViewWrap" style="display:none;">
       <table>
         <thead>
           <tr>
@@ -2022,11 +2383,14 @@ function displayMyRoadmapDetails(roadmap, details) {
             <tr data-detail-id="${d.detail_id}">
               <td class="day-cell">${d.day_number}</td>
               <td class="date-cell">${d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN') : 'N/A'}</td>
-              <td><strong>${escapeHtml(d.daily_goal || 'N/A')}</strong></td>
-              <td>${escapeHtml(d.learning_content || 'N/A')}</td>
-              <td>${escapeHtml(d.practice_exercises || 'N/A')}</td>
-              <td>${materialsHTML}</td>
-              <td>${escapeHtml(d.usage_instructions || 'N/A')}</td>
+              <td><div class="cell-inner"><strong>${escapeHtml(d.daily_goal || 'N/A')}</strong></div></td>
+              <td><div class="cell-inner">${escapeHtml(d.learning_content || 'N/A')}</div></td>
+              <td><div class="cell-inner">${escapeHtml(d.practice_exercises || 'N/A')}</div></td>
+              <td><div class="cell-inner">${materialsHTML}</div></td>
+              <td>
+                <div class="cell-inner">${escapeHtml(d.usage_instructions || 'N/A')}</div>
+                <button type="button" class="hd-toggle-btn" style="display:none;" onclick="toggleGuideCell(this)"><i class="fa-solid fa-chevron-down"></i></button>
+              </td>
               <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
               <td>
                 <select onchange="updateMyDayStatus(${roadmap.roadmap_id}, ${d.detail_id}, this.value)">
@@ -2043,9 +2407,9 @@ function displayMyRoadmapDetails(roadmap, details) {
           }).join('')}
         </tbody>
       </table>
+      </div>
     </div>
   `;
-
   const evaluationHTML = buildMyEvaluationForm(roadmap);
 
   document.getElementById('myAnalysisAndDetails').innerHTML = analysisHTML + tableHTML + evaluationHTML;
@@ -2100,6 +2464,7 @@ function toggleMyEditMode() {
     saveMyChanges();
   } else {
     isEditMode = true;
+    switchMyViewMode('table');
     const table = document.querySelector('#myAnalysisAndDetails table');
     enableMyEditMode(table);
     showMyEditButtons();
@@ -2604,7 +2969,17 @@ async function updateMyDayStatus(roadmapId, detailId, status) {
       throw new Error(errorData.error || 'Failed to update status');
     }
     showNotification('✅ Đã cập nhật trạng thái!', 'success');
+
+    const wasCalendarView = myCurrentViewMode !== 'table';
     await loadMyRoadmapDetails();
+
+    // ✅ Giữ nguyên chế độ xem, và mở lại đúng ngày vừa đổi trạng thái (không tự đóng)
+    if (wasCalendarView) {
+      switchMyViewMode('calendar');
+      openMyDayCalendarDetail(detailId);
+    } else {
+      switchMyViewMode('table');
+    }
   } catch (error) {
     console.error('❌ Error updating status:', error);
     showNotification('❌ Không thể cập nhật trạng thái: ' + error.message, 'error');
