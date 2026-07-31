@@ -93,6 +93,16 @@ Chỉ cung cấp link học liệu (bắt buộc) và tuân thủ các tiêu ch�
 - Chọn nguồn phù hợp với lĩnh vực học (ví dụ: Ngôn ngữ → Duolingo, BBC Learning English; Lập trình → freeCodeCamp, documentation; Marketing → HubSpot Academy; Toán → Khan Academy...)
 - Chỉ chọn các video từ kênh còn hoạt động, được đăng trong 3 năm trở lại đây
 - Tuyệt đối không chọn video bị giới hạn khu vực hoặc video từ tài khoản cá nhân không xác thực
+- **BẮT BUỘC: Chỉ chọn tài liệu MIỄN PHÍ 100%.** Tuyệt đối không chọn:
+  - Khóa học trả phí (Udemy, Coursera bản trả phí, LinkedIn Learning...)
+  - Nội dung yêu cầu mua gói Premium/Pro để xem đầy đủ
+  - Bài viết bị paywall (chỉ đọc được vài dòng rồi yêu cầu trả tiền)
+  - Video YouTube dạng "preview" phải trả tiền mới xem tiếp
+- Nếu nguồn tài liệu có cả bản miễn phí và bản trả phí (ví dụ Coursera có "Audit for free"):
+  - **BƯỚC 1:** AI phải kiểm tra xem bản miễn phí đó có bao gồm ĐÚNG nội dung cần học trong ngày hôm đó hay không (không chỉ là tên khóa học nghe có vẻ liên quan). Nếu bản miễn phí bị giới hạn/khóa mất phần nội dung cần thiết, thì KHÔNG được chọn nguồn này — phải tìm nguồn miễn phí khác thay thế.
+  - **BƯỚC 2:** Chỉ khi đã xác nhận bản miễn phí có đủ nội dung phù hợp, AI mới được đưa vào lộ trình, và PHẢI ghi rõ trong cột "Hướng dẫn sử dụng" cách truy cập bản MIỄN PHÍ (ví dụ: "Nhấn 'Enroll for Free' hoặc 'Audit the Course', KHÔNG chọn 'Enroll with Certificate'")
+- Ưu tiên các nền tảng miễn phí hoàn toàn: freeCodeCamp, Khan Academy, MIT OpenCourseWare, 
+  YouTube (kênh giáo dục), W3Schools, official documentation, Kaggle Learn, Google/Meta free courses...
 **2. Kiểm tra link trước khi đưa vào lộ trình:**
 - AI PHẢI TỰ KIỂM TRA TRƯỚC KHI GỬI: Tuyệt đối không được ghi link khi chưa kiểm chứng, cũng không được bỏ qua. Trong trường hợp link kiểm tra bị lỗi, AI phải tự động thay thế bằng nguồn khác tương đương
 - AI phải kiểm tra link còn truy cập được (không lỗi 404, không "video unavailable", không lỗi di chuyển trang,...). Mở link để kiểm tra thực tế (không suy đoán)
@@ -119,6 +129,7 @@ Trong cột "Hướng dẫn sử dụng", AI thể hiện rõ mục tiêu học 
 - **BẮT BUỘC**: Mọi kênh YouTube trong bảng phải đã verify ở Bước 2
 - **BẮT BUỘC**: Nếu phát hiện link lỗi, phải tìm thay thế ngay
 - **BẮT BUỘC**: Mỗi link video chỉ dùng 1 lần
+- **BẮT BUỘC**: Toàn bộ tài liệu trong lộ trình phải MIỄN PHÍ, không yêu cầu thanh toán dưới bất kỳ hình thức nào (kể cả free trial có giới hạn thời gian). Nếu nguồn có cả bản free/paid, AI phải xác minh nội dung bản free có khớp với nội dung học của ngày đó trước khi chọn.
 - Dựa trên tần suất đánh giá định kỳ: Hình thức đánh giá cần có link làm bài đánh giá cụ thể để có thể đánh giá chính xác kết quả học tập của học viên
 - Lộ trình phải thực tế, có thể thực hiện được
 - Lộ trình phải đi từ dễ đến khó, đáp ứng tất cả yêu cầu cụ thể thu thập từ học viên
