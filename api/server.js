@@ -600,10 +600,7 @@ function formatTimestampForAPI(timestamp) {
 // ============================================================================
 
 function getMaxDaysForUser(userRole) {
-  if (userRole === 'admin') {
-    return 60;
-  }
-  return 360;
+  return 180;
 }
 
 // ============================================================================
