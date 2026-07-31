@@ -1398,16 +1398,16 @@ body {
                 <div class="form-section ai-generate-section">
                     <h3 class="section-title">🤖 Tạo Lộ Trình</h3>
                     <div class="ai-notice">
-                        <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn một trong các nút bên dưới trước khi có thể tạo lộ trình.
+                        <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn một trong các nút bên dưới trước khi có thể tạo lộ trình.<br>
+                        🤖 <strong>Tạo với AI:</strong> hỗ trợ tối đa <strong>180 ngày</strong>.<br>
+                        📝 <strong>Tạo thủ công:</strong> hỗ trợ tối đa <strong>360 ngày</strong>.
                     </div>
 
-                    <!-- Nút AI (mặc định cho mọi role, admin cũng thấy) -->
-                    <button type="button" id="generateAI" class="ai-btn">
+                    <button type="button" id="generateAI" class="ai-btn" disabled>
                         <span id="generateBtnText">🤖 Tạo lộ trình với AI</span>
                     </button>
 
-                    <!-- Nút thủ công: chỉ admin mới thấy -->
-                    <button type="button" id="adminManualBtn" class="ai-btn" style="display:none; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.3); margin-top: 12px;">
+                    <button type="button" id="adminManualBtn" class="ai-btn" disabled style="display:none; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.3); margin-top: 12px;">
                         📝 Tạo lộ trình thủ công (Prompt + Excel)
                     </button>
                 </div>
@@ -1427,7 +1427,7 @@ body {
                 <!-- NÚT SUBMIT -->
                 <div class="submit-section">
                     <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                        <span id="submit-btn-text">⏳ Vui lòng tạo với AI trước</span>
+                        <span id="submit-btn-text">⏳ Vui lòng tạo lộ trình trước</span>
                     </button>
                 </div>
             </form>
@@ -1505,7 +1505,7 @@ function resetFormTracking() {
         beforeUnloadHandler = null;
     }
 }
-function validateAllQuestions() {
+function validateAllQuestions(silent = false) {
     const errors = [];
     
     // Q1: Tên lộ trình
@@ -1654,14 +1654,40 @@ function validateAllQuestions() {
 
     // Cuối cùng: hiển thị các lỗi nếu có
     if (errors.length > 0) {
-        // Alert ra các value trong mảng errors (mỗi dòng 1 lỗi)
-        alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
+        if (!silent) {
+          alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
+        }
         return errors;
     }
 
     return [];
 }
+function updateGenerateButtonsState() {
+  const generateBtn = document.getElementById('generateAI');
+  const adminManualBtn = document.getElementById('adminManualBtn');
+  if (!generateBtn && !adminManualBtn) return;
 
+  const errors = validateAllQuestions(true); // check im lặng, không alert
+  const daysInput = document.getElementById('q11_program_days');
+  const days = daysInput ? parseInt(daysInput.value) : NaN;
+
+  if (errors.length > 0) {
+    // Chưa trả lời hết câu hỏi -> khóa cả 2 nút (nhưng vẫn hiện cả 2)
+    if (generateBtn) { generateBtn.disabled = true; generateBtn.style.display = ''; }
+    if (adminManualBtn) { adminManualBtn.disabled = true; adminManualBtn.style.display = 'block'; }
+    return;
+  }
+
+  // Đã trả lời hết -> nút thủ công luôn bấm được
+  if (adminManualBtn) { adminManualBtn.disabled = false; adminManualBtn.style.display = 'block'; }
+
+  // Nút AI chỉ hiện + bấm được khi số ngày <= 180
+  if (!isNaN(days) && days > 0 && days <= 180) {
+    if (generateBtn) { generateBtn.disabled = false; generateBtn.style.display = ''; }
+  } else {
+    if (generateBtn) { generateBtn.disabled = true; generateBtn.style.display = 'none'; }
+  }
+}
 
         let dayCount = 0;
         let isGenerating = false;
@@ -2282,8 +2308,6 @@ async function updateDaysUIByRole() {
     }
 }
 async function checkUserRoleAndUpdateUI() {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
   const generateBtn = document.getElementById('generateAI');
   const generateBtnText = document.getElementById('generateBtnText');
   const adminManualBtn = document.getElementById('adminManualBtn');
@@ -2291,7 +2315,6 @@ async function checkUserRoleAndUpdateUI() {
   const daysSection = document.querySelectorAll('.form-section')[document.querySelectorAll('.form-section').length - 1];
   const submitSection = document.querySelector('.submit-section');
 
-  // Hàm validate rồi hiện prompt (dùng chung cho user và admin-manual)
   function handleManualClick() {
     const validationErrors = validateAllQuestions();
     if (validationErrors && validationErrors.length > 0) {
@@ -2301,45 +2324,20 @@ async function checkUserRoleAndUpdateUI() {
     showManualPromptForUser();
   }
 
-  if (!token || role !== 'admin') {
-    // ── USER THƯỜNG ──────────────────────────────────────────────
-    // Đổi nút AI thành nút "Tạo lộ trình" (hiện prompt + Excel)
-    if (generateBtnText) {
-      generateBtnText.textContent = '📝 Tạo lộ trình';
-    }
+  // ✅ Nút AI: luôn hiện & hoạt động cho CẢ admin và user
+  if (generateBtnText) generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
 
-    // Ẩn analysis section, days section, submit section
-    if (analysisSection) analysisSection.style.display = 'none';
-    if (daysSection) daysSection.style.display = 'none';
-    if (submitSection) submitSection.style.display = 'none';
-
-    // Wire nút duy nhất → hiện prompt thủ công
-    if (generateBtn) {
-      generateBtn.removeEventListener('click', generateRoadmapWithAI);
-      generateBtn.addEventListener('click', handleManualClick);
-    }
-
-    // Đảm bảo nút admin ẩn
-    if (adminManualBtn) adminManualBtn.style.display = 'none';
-
-  } else {
-    // ── ADMIN ─────────────────────────────────────────────────────
-    // Nút AI giữ nguyên text và handler
-    if (generateBtnText) {
-      generateBtnText.textContent = '🤖 Tạo lộ trình với AI';
-    }
-
-    // Hiện nút thủ công thứ 2
-    if (adminManualBtn) {
-      adminManualBtn.style.display = 'block';
-      adminManualBtn.addEventListener('click', handleManualClick);
-    }
-
-    // Analysis / days / submit vẫn hiện cho admin
-    if (analysisSection) analysisSection.style.display = '';
-    if (daysSection) daysSection.style.display = '';
-    if (submitSection) submitSection.style.display = '';
+  // ✅ Nút thủ công: luôn hiện cho CẢ admin và user
+  if (adminManualBtn) {
+    adminManualBtn.style.display = 'block';
+    adminManualBtn.removeEventListener('click', handleManualClick);
+    adminManualBtn.addEventListener('click', handleManualClick);
   }
+
+  // Hiện đầy đủ phần phân tích / ngày học / nút tạo cho mọi người
+  if (analysisSection) analysisSection.style.display = '';
+  if (daysSection) daysSection.style.display = '';
+  if (submitSection) submitSection.style.display = '';
 }
 // ✅ Cập nhật hàm validateDays()
 async function validateDays() {
@@ -2616,15 +2614,11 @@ async function generateRoadmapWithAI() {
 
     console.log('✅ Validation passed!');
 
-    // days limit
-    // ✅ Admin dùng AI chỉ được tối đa 60 ngày; tạo thủ công không bị giới hạn
-    const role = localStorage.getItem('role');
-    const MAX = (role === 'admin') ? 60 : 360;
+    // ✅ Giới hạn AI: tối đa 180 ngày cho CẢ admin lẫn user
+    const MAX_AI_DAYS = 180;
 
-    if (q11_program_days > MAX) {
-        const message = (role === 'admin')
-            ? `⚠️ Tạo lộ trình với AI chỉ hỗ trợ tối đa ${MAX} ngày.\nVui lòng giảm số ngày xuống ≤ ${MAX}, hoặc dùng nút "Tạo lộ trình thủ công" để tạo lộ trình nhiều hơn ${MAX} ngày.`
-            : `Số ngày tối đa là ${MAX}. Vui lòng giảm số ngày hoặc tạo thủ công.`;
+    if (q11_program_days > MAX_AI_DAYS) {
+        const message = `⚠️ Tạo lộ trình với AI chỉ hỗ trợ tối đa ${MAX_AI_DAYS} ngày.\nVui lòng giảm số ngày xuống ≤ ${MAX_AI_DAYS}, hoặc dùng nút "Tạo lộ trình thủ công" để tạo lộ trình nhiều hơn ${MAX_AI_DAYS} ngày.`;
         
         showNotification(message, 'error');
         generateBtn.disabled = false;
@@ -2768,10 +2762,8 @@ showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể ch
         submitText.innerHTML = '🎉 Tạo Lộ Trình';
     } finally {
         isGenerating = false;
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
-        
-        if (typeof validateDays === 'function') validateDays();
+        generateBtn.innerHTML = '<span id="generateBtnText">🤖 Tạo lộ trình với AI</span>';
+        updateGenerateButtonsState(); // ✅ tự tính lại trạng thái thay vì bật cứng
     }
 }
 document.getElementById('generateAI').addEventListener('click', generateRoadmapWithAI);
@@ -3541,6 +3533,14 @@ window.addEventListener('load', function() {
     
     // ✅ THÊM: SETUP TRACKING CHO TẤT CẢ INPUT/SELECT/TEXTAREA
     setupFormChangeTracking();
+    // ✅ Theo dõi MỌI thay đổi trong form (kể cả dropdown động) để bật/tắt 2 nút
+    const roadmapFormEl = document.getElementById('roadmapForm');
+    if (roadmapFormEl) {
+        roadmapFormEl.addEventListener('input', updateGenerateButtonsState);
+        roadmapFormEl.addEventListener('change', updateGenerateButtonsState);
+        roadmapFormEl.addEventListener('click', updateGenerateButtonsState);
+    }
+    updateGenerateButtonsState(); // trạng thái ban đầu: khóa cả 2 nút
 });
 
 function setupFormChangeTracking() {
