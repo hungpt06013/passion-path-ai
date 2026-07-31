@@ -124,6 +124,25 @@ Trong cột "Hướng dẫn sử dụng", AI thể hiện rõ mục tiêu học 
 - **Ví dụ tốt:** "Video 'Python Basics' - Xem từ phút 5:30-12:00 về Variables và Data Types"
 - **Ví dụ không tốt:** "Học trong link này" ❌
 ---
+
+#### 🔤 Yêu cầu về định dạng văn bản (KHÔNG dùng LaTeX/Markdown math)
+- **BẮT BUỘC:** Toàn bộ nội dung trong các cột (learning_content, practice_exercises, 
+  study_guide, daily_goal...) phải là VĂN BẢN THUẦN (plain text), không dùng cú pháp LaTeX 
+  hoặc Markdown math.
+- **TUYỆT ĐỐI KHÔNG** sử dụng các ký hiệu sau:
+  - Không dùng `$...$` hoặc `$$...$$` để bao quanh công thức (ví dụ SAI: `$10^{18}$`)
+  - Không dùng `^` để biểu thị lũy thừa (ví dụ SAI: `O(N^2)`)
+  - Không dùng `\log`, `\sqrt`, `\frac`, `\{`, `\}` hoặc bất kỳ lệnh LaTeX nào
+  - Không dùng `[L, R]` kiểu ký hiệu toán học nếu không cần thiết, thay bằng chữ thường
+- **THAY VÀO ĐÓ**, hãy viết theo cách đọc được trực tiếp, ví dụ:
+  - ✅ "10 mũ 18" hoặc "10^18" (không dùng dấu $ bao quanh)
+  - ✅ "độ phức tạp O(1), O(N), O(N log N), O(N bình phương)"
+  - ✅ "đoạn từ L đến R" thay vì "$[L, R]$"
+  - ✅ "căn bậc hai của N" thay vì "$\sqrt{N}$"
+- Lý do: Nội dung được hiển thị dưới dạng bảng HTML thuần, không có công cụ render LaTeX/MathJax, 
+  nên mọi ký hiệu LaTeX sẽ hiển thị sai (lỗi) cho học viên thay vì công thức đẹp.
+---
+
 ### ⚠️ LƯU Ý QUAN TRỌNG
 - **BẮT BUỘC**: AI phải hoàn thành QUY TRÌNH 4 BƯỚC ở đầu prompt trước khi tạo bảng lộ trình
 - **BẮT BUỘC**: Mọi kênh YouTube trong bảng phải đã verify ở Bước 2
