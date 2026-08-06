@@ -176,8 +176,19 @@ CREATE TABLE "user_feedback" (
 	CONSTRAINT "user_feedback_rating_7_check" CHECK ((rating_7 >= 1) AND (rating_7 <= 5)),
 	CONSTRAINT "user_feedback_rating_8_check" CHECK ((rating_8 >= 1) AND (rating_8 <= 5))
 );
+CREATE TABLE "search_api_usage" (
+	"id" SERIAL PRIMARY KEY,
+    "provider" VARCHAR(20) NOT NULL,
+    "key_index" INTEGER NOT NULL,
+    "period" VARCHAR(10) NOT NULL,
+    "used_count" INTEGER NOT NULL DEFAULT 0,
+    "quota_limit" INTEGER NOT NULL,
+    "updated_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'),
+    UNIQUE("provider", "key_index", "period")
+);
 
 -- Foreign Keys
+
 ALTER TABLE "admin_settings" ADD CONSTRAINT "admin_settings_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL;
 ALTER TABLE "ai_query_history" ADD CONSTRAINT "ai_query_history_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE SET NULL;
 ALTER TABLE "ai_query_history" ADD CONSTRAINT "ai_query_history_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
@@ -187,6 +198,10 @@ ALTER TABLE "learning_roadmaps" ADD CONSTRAINT "learning_roadmaps_user_id_fkey" 
 ALTER TABLE "sub_categories" ADD CONSTRAINT "sub_categories_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE CASCADE;
 ALTER TABLE "user_feedback" ADD CONSTRAINT "user_feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
 
+ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);
+ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);
+ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;
 -- Indexes
 CREATE INDEX "idx_admin_settings_key" ON "admin_settings" ("setting_key");
 CREATE INDEX "idx_ai_history_time" ON "ai_query_history" ("query_time");
