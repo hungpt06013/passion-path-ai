@@ -2096,7 +2096,28 @@ function getMyStatusText(status) {
   const map = { ACTIVE: 'Đang học', COMPLETED: 'Hoàn thành', PAUSED: 'Tạm dừng' };
   return map[status] || status;
 }
+const STREAK_TIERS = [
+  { label: '17%',  from: '#f97316', to: '#fbbf24' },
+  { label: '33%',  from: '#7c3aed', to: '#a78bfa' },
+  { label: '50%',  from: '#16a34a', to: '#4ade80' },
+  { label: '66%',  from: '#dc2626', to: '#f87171' },
+  { label: '83%',  from: '#2563eb', to: '#60a5fa' },
+  { label: '100%', from: '#ec4899', to: '#8b5cf6' }
+];
 
+function renderStreakBadge(tier) {
+  tier = Math.max(0, Math.min(6, tier || 0));
+  const achieved = tier > 0;
+  const t = STREAK_TIERS[achieved ? tier - 1 : 0];
+  return `
+    <div style="display:inline-flex;flex-direction:column;align-items:center;gap:6px;margin-left:8px;vertical-align:middle;">
+      <div style="font-size:34px;line-height:1;filter:${achieved ? 'none' : 'grayscale(1) opacity(0.35)'};">🔥</div>
+      <div style="background:linear-gradient(135deg, ${t.from}, ${t.to}); color:white; font-weight:700; padding:5px 14px; border-radius:20px; font-size:12px; white-space:nowrap;">
+        ${achieved ? 'Chuỗi ' + t.label : 'Chưa đạt mốc'}
+      </div>
+    </div>
+  `;
+}
 function renderMyRoadmap() {
   document.getElementById('roadmapTitle').textContent = myRoadmapData.roadmap_name;
 
@@ -2114,7 +2135,21 @@ function renderMyRoadmap() {
       <i class="fas fa-star"></i> Đánh giá lộ trình
     </button>
   `;
+  document.getElementById('badgesContainer').insertAdjacentHTML('beforeend', renderStreakBadge(myRoadmapData.streak_tier || 0));
 
+  const existingWarn = document.getElementById('overdueWarningBanner');
+  if (existingWarn) existingWarn.remove();
+
+  if (myRoadmapData.has_overdue) {
+    const warnDiv = document.createElement('div');
+    warnDiv.id = 'overdueWarningBanner';
+    warnDiv.className = 'error-message';
+    warnDiv.style.marginTop = '16px';
+    warnDiv.textContent = myRoadmapData.was_rescheduled
+      ? '⚠️ Bạn có bài học chưa hoàn thành đúng hạn. Lịch học các ngày còn lại đã được tự động dời lại từ hôm nay theo các thứ bạn đã chọn.'
+      : '⚠️ Bạn có bài học đến hạn hôm nay chưa hoàn thành. Hãy hoàn thành để giữ tiến độ streak nhé!';
+    document.querySelector('.roadmap-overview').appendChild(warnDiv);
+  }
   document.getElementById('metaContainer').innerHTML = `
     <div class="meta-tag"><i class="fas fa-clock"></i><span>${formatHours(myRoadmapData.duration_hours)}</span></div>
     ${myRoadmapData.sub_category ? `<div class="meta-tag"><i class="fas fa-tag"></i><span>${escapeHtml(myRoadmapData.sub_category)}</span></div>` : ''}
