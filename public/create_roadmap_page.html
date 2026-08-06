@@ -1239,17 +1239,17 @@ body {
 
                     <!-- Q8: Số buổi mỗi tuần -->
                     <div class="form-group">
-                        <label class="form-label">8. Bạn học bao nhiêu buổi mỗi tuần? *</label>
-                        <select class="form-select" name="q10_weekly_sessions" required>
-                            <option value="">-- Chọn --</option>
-                            <option value="1 buổi">1 buổi</option>
-                            <option value="2 buổi">2 buổi</option>
-                            <option value="3 buổi">3 buổi</option>
-                            <option value="4 buổi">4 buổi</option>
-                            <option value="5 buổi">5 buổi</option>
-                            <option value="6 buổi">6 buổi</option>
-                            <option value="7 buổi">7 buổi</option>
-                        </select>
+                        <label class="form-label">8. Bạn muốn học vào những ngày nào trong tuần? *</label>
+                        <div class="checkbox-group checkbox-group-two-columns">
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="1"> Thứ 2</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="2"> Thứ 3</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="3"> Thứ 4</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="4"> Thứ 5</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="5"> Thứ 6</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="6"> Thứ 7</label>
+                            <label><input type="checkbox" name="q10_weekly_days[]" value="7"> Chủ nhật</label>
+                        </div>
+                        <small style="color:#6b7280;font-size:0.8rem;display:block;margin-top:6px;">Lịch học và ngày dự kiến của từng ngày sẽ tự tính theo các thứ bạn chọn.</small>
                     </div>
 
                     <!-- Q9: Thời gian lộ trình (ngày) -->
@@ -1580,10 +1580,10 @@ function validateAllQuestions(silent = false) {
         errors.push('Câu thời gian học mỗi ngày');
     }
     
-    // Q10: Số buổi mỗi tuần
-    const q10 = document.querySelector('select[name="q10_weekly_sessions"]');
-    if (!q10 || !q10.value) {
-        errors.push('Câu số buổi mỗi tuần');
+    // Q10: Ngày học trong tuần
+    const q10days = document.querySelectorAll('input[name="q10_weekly_days[]"]:checked');
+    if (q10days.length === 0) {
+        errors.push('Câu chọn ngày học trong tuần');
     }
     
     // Q11: Thời gian lộ trình
@@ -1666,7 +1666,14 @@ function updateGenerateButtonsState() {
   const generateBtn = document.getElementById('generateAI');
   const adminManualBtn = document.getElementById('adminManualBtn');
   if (!generateBtn && !adminManualBtn) return;
-
+if (window.__aiQuotaExhausted) {
+  if (generateBtn) {
+    generateBtn.disabled = true;
+    generateBtn.style.opacity = '0.6';
+    const btnText = document.getElementById('generateBtnText');
+    if (btnText) btnText.textContent = '🤖 Bạn đã hết lượt tạo lộ trình bằng AI (giới hạn 1 lần)';
+  }
+}
   const errors = validateAllQuestions(true); // check im lặng, không alert
   const daysInput = document.getElementById('q11_program_days');
   const days = daysInput ? parseInt(daysInput.value) : NaN;
@@ -1693,6 +1700,47 @@ function updateGenerateButtonsState() {
         let isGenerating = false;
         let categoriesData = [];
         let hasFormChanges = false;
+
+        const WEEKDAY_LABELS_VN = {1:'Thứ 2',2:'Thứ 3',3:'Thứ 4',4:'Thứ 5',5:'Thứ 6',6:'Thứ 7',7:'Chủ nhật'};
+
+        function getSelectedWeekdays() {
+          return Array.from(document.querySelectorAll('input[name="q10_weekly_days[]"]:checked')).map(cb => parseInt(cb.value, 10));
+        }
+
+        function generateStudyDatesByWeekdaysJS(startDate, weekdays, count) {
+          const cursor = new Date(startDate);
+          cursor.setHours(0,0,0,0);
+          const dates = [];
+          const set = new Set(weekdays);
+          if (set.size === 0) {
+            for (let i = 0; i < count; i++) dates.push(new Date(cursor.getTime() + i*86400000));
+            return dates;
+          }
+          let safety = 0;
+          while (dates.length < count && safety < count*20+400) {
+            const iso = cursor.getDay() === 0 ? 7 : cursor.getDay();
+            if (set.has(iso)) dates.push(new Date(cursor));
+            cursor.setDate(cursor.getDate()+1);
+            safety++;
+          }
+          return dates;
+        }
+
+        function recalculateAllStudyDates() {
+          const weekdays = getSelectedWeekdays();
+          const items = document.querySelectorAll('#daysContainer .day-item');
+          if (items.length === 0) return;
+          const dates = generateStudyDatesByWeekdaysJS(getVietnamDate(), weekdays, items.length);
+          items.forEach((item, idx) => {
+            const hiddenDateInput = item.querySelector('input[type="hidden"][name*="[study_date]"]');
+            const d = dates[idx];
+            const isoStr = d.toISOString().split('T')[0];
+            if (hiddenDateInput) hiddenDateInput.value = isoStr;
+            const dateLabel = item.querySelector('.day-header > div:first-child > div:last-child');
+            if (dateLabel) dateLabel.textContent = '📅 ' + d.toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric'});
+          });
+        }
+
         function getAuthHeaders() {
             const token = localStorage.getItem('token');
             const headers = { 'Content-Type': 'application/json' };
@@ -2308,6 +2356,16 @@ async function updateDaysUIByRole() {
     }
 }
 async function checkUserRoleAndUpdateUI() {
+    try {
+    const meRes = await fetch(`${API_BASE}/api/me`, { headers: getAuthHeaders() });
+    if (meRes.ok) {
+        const meData = await meRes.json();
+        const remaining = meData.user?.ai_generations_remaining;
+        if (remaining !== null && remaining !== undefined && remaining <= 0) {
+        window.__aiQuotaExhausted = true;
+        }
+    }
+    } catch (e) { console.warn('Không thể kiểm tra lượt AI:', e); }
   const generateBtn = document.getElementById('generateAI');
   const generateBtnText = document.getElementById('generateBtnText');
   const adminManualBtn = document.getElementById('adminManualBtn');
@@ -2654,7 +2712,7 @@ async function generateRoadmapWithAI() {
             q7_current_level,
             q8_skills_text,
             q9_daily_time,
-            q10_weekly_sessions,
+            q10_weekly_days: getSelectedWeekdays(),
             q11_program_days,
             q12_learning_styles,
             q12_learning_styles_other,
@@ -2701,6 +2759,19 @@ async function generateRoadmapWithAI() {
 
         if (!response.ok) {
             const errorText = await response.text();
+            let parsedErr = null;
+            try { parsedErr = JSON.parse(errorText); } catch(e) {}
+            if (response.status === 403 && parsedErr?.code === 'AI_LIMIT_REACHED') {
+                window.__aiQuotaExhausted = true;
+                showNotification('⚠️ ' + parsedErr.error, 'error');
+                if (typeof updateGenerateButtonsState === 'function') updateGenerateButtonsState();
+                generateBtn.disabled = true;
+                submitBtn.disabled = false;
+                generateBtn.innerHTML = '<span id="generateBtnText">🤖 Bạn đã hết lượt tạo lộ trình bằng AI</span>';
+                submitText.innerHTML = '🎉 Tạo Lộ Trình';
+                isGenerating = false;
+                return;
+            }
             console.error('❌ API Error Response:', errorText);
             alert('LỖI API: ' + errorText);
             throw new Error(`HTTP ${response.status}: ${errorText}`);
@@ -2746,6 +2817,8 @@ result.data.forEach((aiDay, index) => {
         }
     }
 });
+
+recalculateAllStudyDates();
 
 // Display analysis
 document.getElementById('analysisContent').textContent = result.analysis;
@@ -2887,6 +2960,7 @@ function addDay(dayData = null) {
     `;
 
     container.appendChild(dayElement);
+    recalculateAllStudyDates();
 }
         function removeDay(button) {
             const dayItem = button.closest('.day-item');
@@ -2915,6 +2989,7 @@ function addDay(dayData = null) {
                 });
                 dayCount = remainingDays.length;
             }
+            recalculateAllStudyDates();
         }
 
 function showNotification(message, type = 'info') {
@@ -3065,7 +3140,7 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
 
     // Q9-Q11
     const q9_daily_time = getField(formData, 'q9_daily_time'); // e.g., "2-3 giờ"
-    const q10_weekly_sessions = getField(formData, 'q10_weekly_sessions');
+    const q10_weekly_days = getSelectedWeekdays();
     const q11_program_days = Number(getField(formData, 'q11_program_days')) || 0;
 
     // Q12 (learning styles) - checkbox array + other
@@ -3244,7 +3319,7 @@ if (!q11_program_days || q11_program_days < 15) {
       q7_current_level,
       q8_skills_text,
       q9_daily_time,
-      q10_weekly_sessions,
+      q10_weekly_days,
       q11_program_days,
       q12_learning_styles,
       q12_learning_styles_other,
@@ -3264,6 +3339,7 @@ if (!q11_program_days || q11_program_days < 15) {
     };
 
     if (days.length > 0) roadmapData.days = days;
+    roadmapData.study_weekdays = q10_weekly_days;
 
     console.log('📤 Sending data:', roadmapData);
 
@@ -3438,7 +3514,10 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
       current_level: getField(formData, 'q7_current_level'),
       skills_text: getField(formData, 'q8_skills_text'),
       daily_time: getField(formData, 'q9_daily_time'),
-      weekly_sessions: getField(formData, 'q10_weekly_sessions'),
+      weekly_sessions: (() => {
+        const w = getSelectedWeekdays();
+        return w.length ? w.map(d => WEEKDAY_LABELS_VN[d]).join(', ') : 'Chưa xác định';
+      })(),
       program_days: getField(formData, 'q11_program_days'),
       learning_styles: processArrayWithOther(
         collectCheckedWithOther(['input[name="q12_learning_styles[]"]'], 'q12_other_text').values,
