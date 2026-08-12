@@ -221,6 +221,28 @@
 .logout-btn:hover {
     background: linear-gradient(135deg, #3a0bbd 0%, #056bb3 100%);
 }
+.profile-link {
+    display: inline-flex;
+    align-items: center;
+    gap: clamp(6px, 0.8vw, 10px);
+    text-decoration: none;
+    cursor: pointer;
+}
+.avatar-circle {
+    width: clamp(28px, 3vw, 36px);
+    height: clamp(28px, 3vw, 36px);
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.6);
+    flex-shrink: 0;
+    background: #fff;
+}
+@media (max-width: 900px) {
+    .avatar-circle {
+        width: 32px;
+        height: 32px;
+    }
+}
 /* ========== RESPONSIVE - TABLET 1025px-1200px ========== */
 @media (max-width: 1200px) and (min-width: 1025px) {
     .bar-inner {
