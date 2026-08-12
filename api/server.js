@@ -2256,7 +2256,7 @@ app.get("/api/me", async (req, res) => {
     });
     
     const result = await pool.query(
-      "SELECT id, name, username, email, role, created_at, ai_roadmap_generations_used FROM users WHERE id = $1", 
+      "SELECT id, name, username, email, role, created_at, ai_roadmap_generations_used, avatar_url FROM users WHERE id = $1", 
       [payload.userId]
     );
 
@@ -2884,19 +2884,20 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     }
     const {
       roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome,
+      pass_threshold,
       q1_roadmap_name, q2_category, q3_category_detail,
-      q4_main_purpose, q4_main_purpose_other,
-      q5_specific_goal, q5_current_job,
-      q6_learning_duration, q7_current_level, q8_skills_text,
+      q4_main_purpose,
+      q5_specific_goal, q5b_target_milestone,
+      q7_current_level, q7_skill_breakdown, q8_known_skills, q9_skills_to_improve,
       q9_daily_time, q10_weekly_days, q11_program_days,
-      q12_learning_styles, q12_learning_styles_other,
-      q13_learning_combinations, q13_learning_combinations_other,
-      q14_challenges, q14_challenges_other,
-      q15_motivation, q15_motivation_other,
-      q16_material_types, q16_material_types_other,
-      q17_material_language,
-      q18_assessment_types, q19_result_display,
-      q20_assessment_frequency, q20_assessment_frequency_other
+      q13_learning_style, q13_learning_style_other,
+      q14_learning_method, q14_learning_method_other,
+      q15_engagement_trigger, q16_theme_preference,
+      q17_material_type, q17_material_type_other,
+      q18_material_language,
+      q19_pass_threshold,
+      q20_device_type,
+      q21_result_display
     } = req.body;
 
     const processArrayWithOther = (arr, otherValue) => {
@@ -2916,12 +2917,13 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       roadmap_name: q1_roadmap_name || roadmap_name,
       category: q2_category || category,
       category_detail: q3_category_detail || sub_category,
-      main_purpose: processRadioWithOther(q4_main_purpose, q4_main_purpose_other),
+      main_purpose: q4_main_purpose || 'Chưa xác định',
       specific_goal: q5_specific_goal || expected_outcome,
-      current_job: q5_current_job || 'Chưa xác định',
-      learning_duration: q6_learning_duration || 'Chưa xác định',
+      target_milestone: q5b_target_milestone || 'Không có, học tự do',
       current_level: q7_current_level || start_level,
-      skills_text: q8_skills_text || 'Chưa xác định',
+      skill_breakdown: q7_skill_breakdown || 'Chưa xác định',
+      known_skills: q8_known_skills || 'Chưa xác định',
+      skills_to_improve: q9_skills_to_improve || 'Chưa xác định',
       daily_time: (() => {
         const minutes = parseInt(q9_daily_time) || 0;
         if (minutes === 0) return '0m';
@@ -2936,21 +2938,22 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
         return w.length > 0 ? w.map(d => WEEKDAY_LABELS_VN[d]).join(', ') : 'Chưa xác định';
       })(),
       program_days: q11_program_days || duration_days,
-      learning_styles: processArrayWithOther(q12_learning_styles, q12_learning_styles_other),
-      learning_combinations: processArrayWithOther(q13_learning_combinations, q13_learning_combinations_other),
-      challenges: processArrayWithOther(q14_challenges, q14_challenges_other),
-      motivation: processArrayWithOther(q15_motivation, q15_motivation_other),
-      material_types: processArrayWithOther(q16_material_types, q16_material_types_other),
-      material_language: q17_material_language || 'Tiếng Việt',
-      assessment_types: Array.isArray(q18_assessment_types) ? q18_assessment_types.join(', ') : 'Chưa xác định',
-      result_display: Array.isArray(q19_result_display) ? q19_result_display.join(', ') : 'Chưa xác định',
-      assessment_frequency: processRadioWithOther(q20_assessment_frequency, q20_assessment_frequency_other),
+      learning_style: processArrayWithOther(q13_learning_style, q13_learning_style_other),
+      learning_method: processRadioWithOther(q14_learning_method, q14_learning_method_other),
+      engagement_trigger: q15_engagement_trigger || 'Chưa xác định',
+      theme_preference: q16_theme_preference || 'Chưa xác định',
+      material_type: processArrayWithOther(q17_material_type, q17_material_type_other),
+      material_language: q18_material_language || 'Tiếng Việt',
+      pass_threshold: q19_pass_threshold || pass_threshold || '80',
+      device_type: Array.isArray(q20_device_type) ? q20_device_type.join(', ') : 'Chưa xác định',
+      result_display: q21_result_display || 'Hiện điểm số + đáp án',
       start_level: q7_current_level || start_level,
       duration_days: q11_program_days || duration_days,
       duration_hours: duration_hours,
       expected_outcome: q5_specific_goal || expected_outcome
     };
 
+    finalData.pass_threshold = parseInt(finalData.pass_threshold) || 80;
     if (!finalData.roadmap_name || !finalData.category || !finalData.current_level || 
         !finalData.program_days || !finalData.specific_goal) {
       return res.status(400).json({ 
@@ -3001,30 +3004,35 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       'ROADMAP_NAME': finalData.roadmap_name,
       'MAIN_PURPOSE': finalData.main_purpose,
       'SPECIFIC_GOAL': finalData.specific_goal,
-      'CURRENT_JOB': finalData.current_job,
-      'STUDY_TIME': finalData.learning_duration,
+      'TARGET_MILESTONE': finalData.target_milestone,
       'CURRENT_LEVEL': finalData.current_level,
-      'SKILLS_TO_IMPROVE': finalData.skills_text,
+      'SKILL_BREAKDOWN': finalData.skill_breakdown,
+      'KNOWN_SKILLS': finalData.known_skills,
+      'SKILLS_TO_IMPROVE': finalData.skills_to_improve,
       'DAILY_TIME': finalData.daily_time,
-      'WEEKLY_FREQUENCY': finalData.weekly_sessions,
+      'STUDY_DAYS_OF_WEEK': finalData.weekly_sessions,
       'TOTAL_DURATION': finalData.program_days,
-      'LEARNING_STYLE': finalData.learning_styles,
-      'LEARNING_METHOD': finalData.learning_combinations,
-      'DIFFICULTIES': finalData.challenges,
-      'MOTIVATION': finalData.motivation,
-      'MATERIAL_TYPE': finalData.material_types,
+      'LEARNING_STYLE': finalData.learning_style,
+      'LEARNING_METHOD': finalData.learning_method,
+      'ENGAGEMENT_TRIGGER': finalData.engagement_trigger,
+      'THEME_PREFERENCE': finalData.theme_preference,
+      'MATERIAL_TYPE': finalData.material_type,
       'MATERIAL_LANGUAGE': finalData.material_language,
-      'ASSESSMENT_TYPE': finalData.assessment_types,
-      'RESULT_DISPLAY': finalData.result_display,
-      'ASSESSMENT_FREQUENCY': finalData.assessment_frequency
+      'PASS_THRESHOLD': finalData.pass_threshold,
+      'DEVICE_TYPE': finalData.device_type,
+      'RESULT_DISPLAY': finalData.result_display
     };
 
     Object.keys(variableMapping).forEach(key => {
       userPrompt = userPrompt.replace(new RegExp(`<${key}>`, 'g'), variableMapping[key]);
     });
 
+    // (variableMapping đã cập nhật ở đoạn dưới thay thế cho biến cũ)
+
     let systemPrompt = `Bạn là chuyên gia thiết kế lộ trình học.
 Tạo lộ trình ${actualDays} ngày KHÔNG bao gồm learning_materials và usage_instructions.
+Mỗi ngày phải kèm 1 mảng "quiz" gồm đúng 5 câu hỏi trắc nghiệm (4 phương án A/B/C/D, 1 đáp án đúng) bám sát learning_content/practice_exercises của chính ngày đó.
+Cứ mỗi 6 ngày liên tiếp và ở ngày cuối cùng của lộ trình, thêm mảng "chapter_review_quiz" gồm 5 câu hỏi tổng hợp cả chương; các ngày khác để chapter_review_quiz là mảng rỗng.
 
 Trả về JSON format:
 {
@@ -3035,7 +3043,11 @@ Trả về JSON format:
       "daily_goal": "...",
       "learning_content": "...",
       "practice_exercises": "...",
-      "study_duration": ${hoursPerDay}
+      "study_duration": ${hoursPerDay},
+      "quiz": [
+        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A"}
+      ],
+      "chapter_review_quiz": []
     }
   ]
 }`;
@@ -3362,9 +3374,9 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
     const weekdaysStr = weekdaysArr.join(',');
 
     const roadmapResult = await pool.query(
-      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst, study_weekdays, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) RETURNING roadmap_id, created_at`,
-      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst || null, weekdaysStr || null]
+      `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, expected_outcome, roadmap_analyst, study_weekdays, pass_threshold, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) RETURNING roadmap_id, created_at`,
+      [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, expected_outcome, roadmap_analyst || null, weekdaysStr || null, parseInt(roadmapData.pass_threshold) || 80]
     );
 
     const roadmapId = roadmapResult.rows[0].roadmap_id;
@@ -3542,6 +3554,8 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
+    const hasQuizColumn = headers[8] === 'quiz_content';
+
     const normalizedData = [];
     for (let i = 2; i < data.length; i++) {
       const row = data[i];
@@ -3551,6 +3565,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       headers.forEach((header, idx) => {
         normalized[header] = row[idx] || '';
       });
+      if (hasQuizColumn) normalized.quiz_content = row[8] || '';
       normalizedData.push(normalized);
     }
 
@@ -3631,8 +3646,8 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       await pool.query(
         `INSERT INTO learning_roadmap_details 
         (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
-          learning_materials, usage_instructions, study_duration, study_date, completion_status)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+          learning_materials, usage_instructions, study_duration, study_date, completion_status, quiz_content)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
         [
           roadmapId,
           dayNumber,
@@ -3643,7 +3658,8 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
           String(row.guide_learning || '').trim() || '',
           parseDurationToHours(row.study_duration),
           studyDateStr,
-          'NOT_STARTED'
+          'NOT_STARTED',
+          hasQuizColumn ? String(row.quiz_content || '').trim() : null
         ]
       );
     }
