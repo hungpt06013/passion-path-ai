@@ -2,29 +2,35 @@
 ## ⚠️ QUY TRÌNH BẮT BUỘC TRƯỚC KHI TẠO LỘ TRÌNH
 **TRƯỚC KHI** viết bất kỳ nội dung nào vào bảng lộ trình, AI PHẢI thực hiện theo đúng thứ tự:
 ### **BƯỚC 1: Phân tích thông tin học viên**
-- Đọc kỹ tất cả thông tin ở mục II.
-- Xác định chủ đề chính cần học dựa trên `<CATEGORY>`, `<SUB_CATEGORY>` và `<SPECIFIC_GOAL>`.
-- Nếu có `<TARGET_MILESTONE>` (kỳ thi/deadline cụ thể): tính ngược từ mốc đó để phân bổ độ khó theo tuần.
-- Chia nhỏ nội dung theo tuần (dễ → trung bình → khó), sau đó chia theo ngày phù hợp `<CURRENT_LEVEL>` và `<KNOWN_SKILLS>`.
-- Đối chiếu `<SKILL_BREAKDOWN>`: phân bổ nhiều thời lượng hơn cho kỹ năng con đang Yếu-Trung bình, giảm tải cho kỹ năng đã Khá-Tốt.
+- Đọc kỹ tất cả thông tin ở mục II
+- Xác định chủ đề chính cần học dựa trên `<CATEGORY>`, `<SUB_CATEGORY>` và `<SPECIFIC_GOAL>`
+- Chia nhỏ thành các nội dung học theo ngày phù hợp với `<CURRENT_LEVEL>`
 ### **BƯỚC 2: Tìm kiếm tài liệu học tập**
-- Dùng `web_search` (nếu có) để tìm `<TOTAL_DURATION>` link tiềm năng phù hợp với `<CATEGORY>`, `<SUB_CATEGORY>`, `<MATERIAL_TYPE>`, `<MATERIAL_LANGUAGE>`, `<CURRENT_LEVEL>`.
-- Nếu không có công cụ tìm kiếm web thực sự: không tự bịa URL cụ thể; chỉ dùng link tới trang chủ/mục lục khóa học của nền tảng uy tín đã biết chắc tồn tại (Khan Academy, Coursera, freeCodeCamp, HubSpot Academy, BBC Learning English, Duolingo, MDN, W3Schools, official docs...), ghi rõ trong hướng dẫn rằng học viên cần tự tìm bài học cụ thể trong mục lục đó.
-- Chỉ giữ lại link khi: truy cập được (không lỗi 404); phù hợp `<SPECIFIC_GOAL>` và `<CURRENT_LEVEL>`; không chặn địa lý tại Việt Nam; không cần đăng nhập đặc biệt; nguồn còn hoạt động, có nội dung trong 3 năm gần đây.
-- **LOẠI BỎ** ngay và tìm thay thế nếu link lỗi hoặc không đạt chuẩn.
-### **BƯỚC 3: Phân loại, sắp xếp link và thiết kế quiz**
-- Phân loại theo chủ đề, độ khó, kỹ năng; sắp xếp phù hợp `<TOTAL_DURATION>` và `<DAILY_TIME>` phút/ngày.
-- Đối chiếu `<DEVICE_TYPE>`: nếu chỉ dùng điện thoại/máy tính bảng, ưu tiên tài liệu video/đọc/quiz thân thiện di động.
-- Mỗi link chỉ dùng 1 lần, trừ khi ghi rõ phần/video khác trong cùng nguồn.
-- **Mỗi ngày** (mọi dòng trong bảng): tự soạn đúng **5 câu hỏi trắc nghiệm** (4 phương án A/B/C/D, 1 đáp án đúng) bám sát `learning_content`/`practice_exercises` của chính ngày đó — không dùng câu hỏi chung chung, không lặp câu hỏi giữa các ngày.
-- **Cứ mỗi 6 ngày liên tiếp** (một "chương") và **ở ngày cuối cùng của lộ trình**: ngoài 5 câu quiz thường của ngày đó, soạn thêm **5 câu hỏi kiểm tra tổng hợp cuối chương**, rút từ nội dung toàn bộ chương đó.
-- Áp dụng cùng ngưỡng "Đạt" `<PASS_THRESHOLD>` cho cả quiz ngày lẫn kiểm tra cuối chương.
+- Sử dụng `web_search` để tìm `<TOTAL_DURATION>` link tiềm năng phù hợp với:
+  - Lĩnh vực học: `<CATEGORY>` và `<SUB_CATEGORY>`
+  - Loại tài liệu: `<MATERIAL_TYPE>` (video, bài tập online, podcast...)
+  - Ngôn ngữ: `<MATERIAL_LANGUAGE>`
+  - Trình độ: `<CURRENT_LEVEL>`
+- HOẶC nếu `web_search` không hoạt động: Ưu tiên nguồn tài liệu giảng dạy uy tín và được đánh giá cao trên thế giới: ví dụ như YouTube channels verified, Khan Academy, Coursera, Codecademy, website tổ chức giáo dục uy tín, nguồn tài liệu công bố chính thức,...
+- Chỉ giữ lại link khi:
+  - ✅ Truy cập được (không lỗi 404, không "video unavailable")
+  - ✅ Nội dung phù hợp với `<SPECIFIC_GOAL>` và `<CURRENT_LEVEL>`
+  - ✅ Không bị chặn địa lý (accessible từ Việt Nam)
+  - ✅ Không yêu cầu đăng nhập đặc biệt
+- **LOẠI BỎ** link nếu có bất kỳ lỗi nào và tìm link thay thế ngay
+**⚠️ NGUYÊN TẮC:**
+- Xác nhận kênh có nội dung phù hợp với `<CURRENT_LEVEL>` và `<SPECIFIC_GOAL>`
+- **KHÔNG ĐƯỢC** đoán "link này chắc còn hoạt động"
+- Ghi log: Kênh nào đã verify (có thể sử dụng nhiều video từ kênh đó), kênh nào bị loại
+### **BƯỚC 3: Phân loại và sắp xếp link**
+- Phân loại link theo: Chủ đề, độ khó (dễ → trung bình → khó), kỹ năng
+- Sắp xếp phù hợp với `<TOTAL_DURATION>` ngày và `<DAILY_TIME>` phút mỗi ngày
+- Đảm bảo mỗi link chỉ dùng 1 lần (trừ khi chỉ định rõ phần khác)
+- Thêm link đánh giá vào các ngày theo `<ASSESSMENT_FREQUENCY>`
 ### **BƯỚC 4: Tạo bảng lộ trình**
-- Điền vào bảng 9 cột với link đã kiểm tra.
-- Ghi rõ trong cột "guide_learning": vì sao chọn nguồn này, học đúng phần/phút/bài/chương nào, cần làm gì sau khi học.
-- Đảm bảo nội dung khắc phục đúng điểm yếu ở `<SKILLS_TO_IMPROVE>`.
-- Tận dụng `<ENGAGEMENT_TRIGGER>` để thiết kế cách trình bày bài học hấp dẫn.
-- Áp dụng `<THEME_PREFERENCE>` xuyên suốt vào ví dụ, tình huống trong `learning_content`, `practice_exercises` và `guide_learning`.
+- Điền vào bảng 8 cột với link đã kiểm tra
+- Ghi rõ trong cột "Hướng dẫn": học phần nào, phút nào, bài số mấy
+- Đảm bảo nội dung giải quyết `<DIFFICULTIES>` và tận dụng `<MOTIVATION>`
 ---
 ### **YÊU CẦU TẠO LỘ TRÌNH HỌC CỦA HỌC VIÊN:**
 ---
@@ -35,86 +41,131 @@ Bạn là một chuyên gia giáo dục **`<CATEGORY>` -- `<SUB_CATEGORY>`** có
 ### TÊN LỘ TRÌNH
 `<ROADMAP_NAME>`
 ### 1. MỤC TIÊU HỌC TẬP
-- **Câu 1** - Mục đích bạn học điều này: `<MAIN_PURPOSE>`
-- **Câu 2** - Kết quả cụ thể muốn đạt được khi kết thúc lộ trình: `<SPECIFIC_GOAL>`
-- **Câu 2b** - Kỳ thi/chứng chỉ/deadline cụ thể (nếu có): `<TARGET_MILESTONE>`
+- **Câu 1** - Mục đích chính: `<MAIN_PURPOSE>`
+- **Câu 2** - Mục tiêu cụ thể: `<SPECIFIC_GOAL>`
 ### 2. TRÌNH ĐỘ HIỆN TẠI
-- **Câu 3** - Trình độ hiện tại (tự đánh giá): `<CURRENT_LEVEL>`
-- **Câu 4** - Đánh giá từng kỹ năng con (thang 1-5): `<SKILL_BREAKDOWN>`
-- **Câu 5** - Hiện đã làm/biết được những gì cụ thể: `<KNOWN_SKILLS>`
-- **Câu 6** - Kỹ năng/chủ đề yếu nhất muốn cải thiện trước: `<SKILLS_TO_IMPROVE>`
+- **Câu 3** - Công việc hiện tại: `<CURRENT_JOB>`
+- **Câu 4** - Thời gian đã học: `<STUDY_TIME>`
+- **Câu 5** - Trình độ hiện tại: `<CURRENT_LEVEL>`
+- **Câu 6** - Kỹ năng muốn cải thiện: `<SKILLS_TO_IMPROVE>`
 ### 3. CAM KẾT THỜI GIAN
 - **Câu 7** - Thời gian học mỗi ngày (phút): `<DAILY_TIME>`
-- **Câu 8** - Ngày học trong tuần: `<STUDY_DAYS_OF_WEEK>`
+- **Câu 8** - Số buổi mỗi tuần: `<WEEKLY_FREQUENCY>`
 - **Câu 9** - Tổng số ngày của lộ trình: `<TOTAL_DURATION>`
 ### 4. PHONG CÁCH HỌC TẬP
-- **Câu 10** - Hình thức tiếp thu tốt nhất: `<LEARNING_STYLE>`
-- **Câu 11** - Nhịp học ưa thích: `<LEARNING_METHOD>`
-### 5. ĐỘNG LỰC & HỨNG THÚ HỌC TẬP
-- **Câu 12** - Điều khiến buổi học "đáng nhớ"/hứng thú nhất: `<ENGAGEMENT_TRIGGER>`
-- **Câu 13** - Chủ đề mong muốn cho ví dụ/bài tập: `<THEME_PREFERENCE>`
+- **Câu 10** - Cách học yêu thích: `<LEARNING_STYLE>`
+- **Câu 11** - Kết hợp phương pháp học tập: `<LEARNING_METHOD>`
+### 5. KHÚC MẮC & ĐỘNG LỰC
+- **Câu 12** - Khó khăn thường gặp: `<DIFFICULTIES>`
+- **Câu 13** - Nguồn động lực: `<MOTIVATION>`
 ### 6. TÀI LIỆU & ĐÁNH GIÁ
-- **Câu 14** - Loại tài liệu học hiệu quả nhất: `<MATERIAL_TYPE>`
-- **Câu 15** - Ngôn ngữ tài liệu mong muốn: `<MATERIAL_LANGUAGE>`
-- **Câu 16** - Ngưỡng "Đạt" cho quiz/đánh giá: `<PASS_THRESHOLD>`
-- **Câu 17** - Thiết bị học chủ yếu: `<DEVICE_TYPE>`
-- **Câu 18** - Cách hiển thị kết quả sau đánh giá: `<RESULT_DISPLAY>`
+- **Câu 14** - Loại tài liệu ưu thích: `<MATERIAL_TYPE>`
+- **Câu 15** - Ngôn ngữ tài liệu: `<MATERIAL_LANGUAGE>`
+- **Câu 16** - Hình thức đánh giá: `<ASSESSMENT_TYPE>`
+- **Câu 17** - Cách hiển thị kết quả: `<RESULT_DISPLAY>`
+- **Câu 18** - Tần suất đánh giá: `<ASSESSMENT_FREQUENCY>`
 ---
 ## III. YÊU CẦU AI TRẢ LỜI
 Dựa trên thông tin trên, hãy thiết kế một lộ trình học **`<CATEGORY>` -- `<SUB_CATEGORY>`** bao gồm 2 mục chính sau (không trả lời thêm mục nào khác):
 ### 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ)
-- Tính khả thi của mục tiêu trong `<TOTAL_DURATION>` ngày
+- Phân tích tính khả thi của mục tiêu
 - Tiêu chí đánh giá và cách đo lường kết quả
-- Chiến lược phân chia nội dung từ dễ đến khó theo tuần
-- Lời khuyên thực tiễn ngắn gọn (tối đa 2-3 gạch đầu dòng)
+- Phân tích giải pháp học phù hợp dựa trên mục tiêu, thời gian, phong cách học, động lực, khó khăn và kỹ năng cần cải thiện
+- Xác định chiến lược phân chia nội dung từ dễ đến khó theo tuần
+- Lời khuyên thực tiễn
 ### 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
-Tạo "Lộ trình học chi tiết theo ngày" với **9 cột** cụ thể:
+Đánh giá tất cả các thông tin ở mục II để thiết kế lộ trình phù hợp. Tạo "Lộ trình học chi tiết theo ngày" với 8 cột cụ thể:
 | Cột | Mô tả |
 |-----|-------|
 | **day_number** | Số thứ tự ngày học (ví dụ: 1, 2, 3,...) |
-| **day_study** | Bắt đầu từ ngày hôm nay và tăng dần (theo định dạng dd/mm/yyyy) |
+| **day_study** | Bắt đầu từ ngày hôm nay và tăng dần (theo định dạng dd/mm/yyyy)
 | **daily_goal** | Điều cần đạt được sau ngày học |
 | **learning_content** | Kiến thức và kỹ năng sẽ học |
 | **practice_exercises** | Bài tập rèn luyện và thực hành |
-| **learning_materials** | Nguồn tài liệu dạng "đường link web" học trực tuyến |
-| **guide_learning** | Hướng dẫn vị trí/nội dung cụ thể cần học ở link web (vì sao chọn / học đúng đoạn nào / làm gì sau đó) |
-| **study_duration** | Thời gian học mỗi ngày (theo định dạng m hoặc/và h) |
-| **quiz_content** | 5 câu hỏi trắc nghiệm tự soạn của ngày đó (và thêm 5 câu kiểm tra cuối chương nếu là ngày cuối chương/ngày cuối lộ trình), trình bày dạng text theo format: "Câu 1: <nội dung>? A. ... B. ... C. ... D. ... Đáp án đúng: A" (mỗi câu một dòng, các câu cách nhau bằng dấu xuống dòng) |
+| **learning_materials** | Cung cấp nguồn tài liệu dạng "đường link web" có thể học trực tuyến |
+| **guide_learning** | Hướng dẫn vị trí/nội dung cụ thể cần học ở link web học tập |
+| **study_duration** | Theo thông tin thời gian học mỗi ngày của học viên (theo định dạng m hoặc/và h)|
 ---
-#### Yêu cầu về cột "learning_materials"
+#### Yêu cầu về cột "Công cụ/Tài liệu học tập"
 Chỉ cung cấp link học liệu (bắt buộc) và tuân thủ các tiêu chí sau:
 **1. Ưu tiên nguồn uy tín**
-- Ưu tiên nguồn uy tín nhất, bài học cụ thể nhất có liên quan đến nội dung học tập.
-- Chọn nguồn phù hợp lĩnh vực học (Ngôn ngữ → Duolingo, BBC Learning English; Lập trình → freeCodeCamp, MDN; Marketing → HubSpot Academy; Toán → Khan Academy...).
-- Chỉ chọn nguồn còn hoạt động, đăng nội dung trong 3 năm gần đây.
-- **BẮT BUỘC: Chỉ chọn tài liệu MIỄN PHÍ 100%.** Không chọn khóa học trả phí, nội dung yêu cầu Premium/Pro, bài viết bị paywall, video "preview" phải trả tiền mới xem tiếp.
-**2. Kiểm tra link trước khi đưa vào lộ trình**
-- Kiểm tra link còn truy cập được (không lỗi 404, không "video unavailable"). Mở link để kiểm tra thực tế (không suy đoán).
-- Link phải dẫn trực tiếp đến bài học cụ thể, không phải trang chung chung.
-- Không lặp lại link cho ngày khác trừ khi chỉ định chính xác video/phần/bài khác trong cùng nguồn.
+- Ưu tiên nguồn uy tín nhất, bài học cụ thể nhất có liên quan đến nội dung học tập
+- Chọn nguồn phù hợp với lĩnh vực học (ví dụ: Ngôn ngữ → Duolingo, BBC Learning English; Lập trình → freeCodeCamp, documentation; Marketing → HubSpot Academy; Toán → Khan Academy...)
+- Chỉ chọn các video từ kênh còn hoạt động, được đăng trong 3 năm trở lại đây
+- Tuyệt đối không chọn video bị giới hạn khu vực hoặc video từ tài khoản cá nhân không xác thực
+- **BẮT BUỘC: Chỉ chọn tài liệu MIỄN PHÍ 100%.** Tuyệt đối không chọn:
+  - Khóa học trả phí (Udemy, Coursera bản trả phí, LinkedIn Learning...)
+  - Nội dung yêu cầu mua gói Premium/Pro để xem đầy đủ
+  - Bài viết bị paywall (chỉ đọc được vài dòng rồi yêu cầu trả tiền)
+  - Video YouTube dạng "preview" phải trả tiền mới xem tiếp
+- Nếu nguồn tài liệu có cả bản miễn phí và bản trả phí (ví dụ Coursera có "Audit for free"):
+  - **BƯỚC 1:** AI phải kiểm tra xem bản miễn phí đó có bao gồm ĐÚNG nội dung cần học trong ngày hôm đó hay không (không chỉ là tên khóa học nghe có vẻ liên quan). Nếu bản miễn phí bị giới hạn/khóa mất phần nội dung cần thiết, thì KHÔNG được chọn nguồn này — phải tìm nguồn miễn phí khác thay thế.
+  - **BƯỚC 2:** Chỉ khi đã xác nhận bản miễn phí có đủ nội dung phù hợp, AI mới được đưa vào lộ trình, và PHẢI ghi rõ trong cột "Hướng dẫn sử dụng" cách truy cập bản MIỄN PHÍ (ví dụ: "Nhấn 'Enroll for Free' hoặc 'Audit the Course', KHÔNG chọn 'Enroll with Certificate'")
+- Ưu tiên các nền tảng miễn phí hoàn toàn: freeCodeCamp, Khan Academy, MIT OpenCourseWare, 
+  YouTube (kênh giáo dục), W3Schools, official documentation, Kaggle Learn, Google/Meta free courses...
+**2. Kiểm tra link trước khi đưa vào lộ trình:**
+- AI PHẢI TỰ KIỂM TRA TRƯỚC KHI GỬI: Tuyệt đối không được ghi link khi chưa kiểm chứng, cũng không được bỏ qua. Trong trường hợp link kiểm tra bị lỗi, AI phải tự động thay thế bằng nguồn khác tương đương
+- AI phải kiểm tra link còn truy cập được (không lỗi 404, không "video unavailable", không lỗi di chuyển trang,...). Mở link để kiểm tra thực tế (không suy đoán)
+- Link phải dẫn trực tiếp đến bài học cụ thể, nội dung học được đề xuất, không phải trang chung chung / không chọn trang tổng hợp không liên quan
+- AI phải theo dõi tất cả link đã sử dụng trong bảng. Tuyệt đối không lặp lại link cho ngày khác trừ khi chỉ định chính xác video/phần/bài khác trong cùng nguồn. Nếu lỡ dùng lại một nguồn, bắt buộc phải ghi rõ: học nội dung nào, phút bao nhiêu, bài số mấy, chương nào,...
 ---
-#### Yêu cầu về cột "quiz_content"
-- Mỗi ngày: đúng 5 câu hỏi trắc nghiệm bám sát nội dung ngày đó, mỗi câu có 4 phương án A/B/C/D và ghi rõ đáp án đúng.
-- Ngày cuối mỗi chương (cứ 6 ngày) và ngày cuối cùng của lộ trình: thêm 5 câu kiểm tra tổng hợp cuối chương, ghi rõ tiêu đề "--- KIỂM TRA CUỐI CHƯƠNG ---" trước khi liệt kê 5 câu này.
-- Không dùng câu hỏi chung chung, không tái sử dụng nguyên câu hỏi giữa các ngày.
+#### 🔑 Yêu cầu về tính khả dụng
+Mỗi link phải:
+- Truy cập được ngay tại thời điểm tạo lộ trình
+- Không cần đăng nhập tài khoản đặc biệt (trừ platforms miễn phí phổ biến như Khan Academy, Duolingo)
+- Không bị chặn tại Việt Nam
 ---
+#### 📝 Yêu cầu mô tả chi tiết
+
+Trong cột "Hướng dẫn sử dụng", AI thể hiện rõ mục tiêu học của ngày đó, bắt buộc phải ghi:
+- Phải ghi vì sao chọn link đó, link hỗ trợ mục tiêu gì
+- Học chính xác mục nào / video từ phút bao nhiêu đến phút bao nhiêu
+- Bài nào / Bài số mấy / Chương nào / Phần nào trong link
+- **Ví dụ tốt:** "Video 'Python Basics' - Xem từ phút 5:30-12:00 về Variables và Data Types"
+- **Ví dụ không tốt:** "Học trong link này" ❌
+---
+
+#### 🔤 Yêu cầu về định dạng văn bản (KHÔNG dùng LaTeX/Markdown math)
+- **BẮT BUỘC:** Toàn bộ nội dung trong các cột (learning_content, practice_exercises, 
+  study_guide, daily_goal...) phải là VĂN BẢN THUẦN (plain text), không dùng cú pháp LaTeX 
+  hoặc Markdown math.
+- **TUYỆT ĐỐI KHÔNG** sử dụng các ký hiệu sau:
+  - Không dùng `$...$` hoặc `$$...$$` để bao quanh công thức (ví dụ SAI: `$10^{18}$`)
+  - Không dùng `^` để biểu thị lũy thừa (ví dụ SAI: `O(N^2)`)
+  - Không dùng `\log`, `\sqrt`, `\frac`, `\{`, `\}` hoặc bất kỳ lệnh LaTeX nào
+  - Không dùng `[L, R]` kiểu ký hiệu toán học nếu không cần thiết, thay bằng chữ thường
+- **THAY VÀO ĐÓ**, hãy viết theo cách đọc được trực tiếp, ví dụ:
+  - ✅ "10 mũ 18" hoặc "10^18" (không dùng dấu $ bao quanh)
+  - ✅ "độ phức tạp O(1), O(N), O(N log N), O(N bình phương)"
+  - ✅ "đoạn từ L đến R" thay vì "$[L, R]$"
+  - ✅ "căn bậc hai của N" thay vì "$\sqrt{N}$"
+- Lý do: Nội dung được hiển thị dưới dạng bảng HTML thuần, không có công cụ render LaTeX/MathJax, 
+  nên mọi ký hiệu LaTeX sẽ hiển thị sai (lỗi) cho học viên thay vì công thức đẹp.
+---
+
 ### ⚠️ LƯU Ý QUAN TRỌNG
-- **BẮT BUỘC**: AI phải hoàn thành QUY TRÌNH 4 BƯỚC ở đầu prompt trước khi tạo bảng lộ trình.
-- **BẮT BUỘC**: Toàn bộ tài liệu trong lộ trình phải MIỄN PHÍ.
-- Lộ trình phải thực tế, có thể thực hiện được, đi từ dễ đến khó.
-- AI toàn quyền quyết định phương án tối ưu nhất cho học viên dựa trên mục I và III, không cần hỏi lại học viên.
-- Kết quả trả về chỉ bao gồm 1. PHÂN TÍCH HIỆN TRẠNG và 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY (9 cột).
+- **BẮT BUỘC**: AI phải hoàn thành QUY TRÌNH 4 BƯỚC ở đầu prompt trước khi tạo bảng lộ trình
+- **BẮT BUỘC**: Mọi kênh YouTube trong bảng phải đã verify ở Bước 2
+- **BẮT BUỘC**: Nếu phát hiện link lỗi, phải tìm thay thế ngay
+- **BẮT BUỘC**: Mỗi link video chỉ dùng 1 lần
+- **BẮT BUỘC**: Toàn bộ tài liệu trong lộ trình phải MIỄN PHÍ, không yêu cầu thanh toán dưới bất kỳ hình thức nào (kể cả free trial có giới hạn thời gian). Nếu nguồn có cả bản free/paid, AI phải xác minh nội dung bản free có khớp với nội dung học của ngày đó trước khi chọn.
+- Dựa trên tần suất đánh giá định kỳ: Hình thức đánh giá cần có link làm bài đánh giá cụ thể để có thể đánh giá chính xác kết quả học tập của học viên
+- Lộ trình phải thực tế, có thể thực hiện được
+- Lộ trình phải đi từ dễ đến khó, đáp ứng tất cả yêu cầu cụ thể thu thập từ học viên
+- AI không cần hỏi lại học viên mà hãy "đọc kỹ nội dung Prompt" hay "dùng think longer for a better answer", AI TOÀN QUYỀN quyết định chọn phương án có kết quả chính xác nhất cho người học dựa trên mục I/ Vai trò của AI và tạo lộ trình chi tiết cá nhân hóa theo yêu cầu tại mục III/ Yêu cầu AI trả lời
+- Lộ trình chi tiết cần thiết kế đáp ứng tất cả các thông tin ở mục II/ Thông tin thu thập từ học viên
+- Kết quả trả về chỉ bao gồm 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ) và 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY (gồm 8 cột)
 ---
 ## 📋 CÁCH HIỂN THỊ KẾT QUẢ
 AI sẽ trả lời theo thứ tự:
 **Bước 1:** Hiển thị ngắn gọn quá trình chuẩn bị
+```
 🔄 Đang chuẩn bị lộ trình...
 ✅ Đã phân tích thông tin học viên
 ✅ Đã tìm và kiểm tra [X] links phù hợp
 ✅ Đã sắp xếp nội dung cho [Y] ngày
-✅ Đã soạn [Y × 5] câu hỏi quiz tự chấm cho từng ngày
-
+```
 **Bước 2:** Trình bày 1. PHÂN TÍCH HIỆN TRẠNG
 **Bước 3:** Trình bày 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
-
-Sau đó, xuất kết quả mục phân tích hiện trạng vào dòng đầu, 9 cột vào đúng vị trí trong file excel theo template đính kèm (Không thêm bất kỳ dòng nào khác vì tôi dùng kết quả template này để upload vào hệ thống).
+Sau đó, bạn hãy xuất kết quả mục phân tích hiện trạng vào dòng đầu, 8 cột vào đúng vị trí trong file excel theo template đính kèm (Không thêm bất kỳ dòng nào khác vì tôi dùng kết quả template này để upload vào hệ thống)
+```
