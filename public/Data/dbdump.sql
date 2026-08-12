@@ -187,6 +187,34 @@ CREATE TABLE "search_api_usage" (
     UNIQUE("provider", "key_index", "period")
 );
 
+CREATE TABLE "quiz_questions" (
+	"quiz_id" SERIAL PRIMARY KEY,
+	"roadmap_id" INTEGER NOT NULL,
+	"day_number" INTEGER NOT NULL,
+	"is_chapter_review" BOOLEAN DEFAULT false,
+	"question_order" INTEGER NOT NULL,
+	"question_text" TEXT NOT NULL,
+	"option_a" TEXT NOT NULL,
+	"option_b" TEXT NOT NULL,
+	"option_c" TEXT NOT NULL,
+	"option_d" TEXT NOT NULL,
+	"correct_option" CHAR(1) NOT NULL,
+	"created_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'),
+	CONSTRAINT "quiz_questions_correct_option_check" CHECK (correct_option IN ('A','B','C','D'))
+);
+
+CREATE TABLE "quiz_attempts" (
+	"attempt_id" SERIAL PRIMARY KEY,
+	"roadmap_id" INTEGER NOT NULL,
+	"day_number" INTEGER NOT NULL,
+	"is_chapter_review" BOOLEAN DEFAULT false,
+	"user_id" INTEGER NOT NULL,
+	"score" INTEGER NOT NULL,
+	"passed" BOOLEAN NOT NULL,
+	"answers" JSONB,
+	"attempted_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+);
+
 -- Foreign Keys
 
 ALTER TABLE "admin_settings" ADD CONSTRAINT "admin_settings_updated_by_fkey" FOREIGN KEY ("updated_by") REFERENCES "users"("id") ON DELETE SET NULL;
@@ -202,6 +230,13 @@ ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;
+ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "pass_threshold" INTEGER DEFAULT 80;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_url" TEXT;
+ALTER TABLE "learning_roadmap_details" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
+ALTER TABLE "learning_roadmap_details_system" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
+ALTER TABLE "quiz_questions" ADD CONSTRAINT "quiz_questions_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
+ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
+ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
 -- Indexes
 CREATE INDEX "idx_admin_settings_key" ON "admin_settings" ("setting_key");
 CREATE INDEX "idx_ai_history_time" ON "ai_query_history" ("query_time");
