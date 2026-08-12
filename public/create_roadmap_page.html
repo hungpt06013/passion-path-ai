@@ -1148,69 +1148,64 @@ body {
                     </div>
                 </div>
                 <div class="form-section">
-                    <h3 class="section-title">📋 Phần 1: Mục tiêu học tập</h3>
-                    <!-- Q1: Mục đích chính -->
+                    <h3 class="section-title">📋 Phần 1: Mục Tiêu Học Tập</h3>
+                    <!-- C1: Mục đích -->
                     <div class="form-group">
-                        <label class="form-label">1. Mục đích chính của bạn là gì? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="radio" name="q4_main_purpose" value="Giao tiếp hàng ngày" required> Giao tiếp hàng ngày</label>
-                            <label><input type="radio" name="q4_main_purpose" value="Công việc"> Công việc</label>
-                            <label><input type="radio" name="q4_main_purpose" value="Học tập"> Học tập</label>
-                            <label><input type="radio" name="q4_main_purpose" value="Thi chứng chỉ"> Thi chứng chỉ</label>
-                            <label><input type="radio" name="q4_main_purpose" value="Du lịch-định cư"> Du lịch-định cư</label>
-                            <label><input type="radio" name="q4_main_purpose" value="Khác" id="q4_other_radio"> Khác</label>
-                        </div>
-                        <input type="text" id="q4_other_text" class="form-input other-input" name="q4_main_purpose_other"
-                            placeholder="Ghi rõ mục đích...">
+                        <label class="form-label">1. Mục đích bạn học điều này là gì? *</label>
+                        <textarea class="form-textarea" name="q4_main_purpose" required
+                                placeholder="VD: Cần tiếng Anh để phỏng vấn xin việc trong 1 tháng tới; Muốn chuyển ngành sang lập trình"></textarea>
                     </div>
 
-                    <!-- Q2: Mục tiêu cụ thể -->
+                    <!-- C2: Kết quả cụ thể -->
                     <div class="form-group">
-                        <label class="form-label">2. Mục tiêu cụ thể của bạn? *</label>
+                        <label class="form-label">2. Kết quả cụ thể bạn muốn đạt được khi kết thúc lộ trình là gì? *</label>
                         <textarea class="form-textarea" name="q5_specific_goal" required
-                                placeholder="VD: IELTS 6.5 sau 1 năm, TOEIC 800 trong 6 tháng..."></textarea>
+                                placeholder="VD: Giao tiếp được tình huống cơ bản; Đạt band 6.0 IELTS Speaking; Viết được app to-do list bằng Python"></textarea>
+                    </div>
+
+                    <!-- C2b: Deadline/chứng chỉ (tùy chọn) -->
+                    <div class="form-group">
+                        <label class="form-label">2b. Bạn có kỳ thi/chứng chỉ/deadline cụ thể cần đạt không? (tùy chọn)</label>
+                        <input type="text" class="form-input" name="q5b_target_milestone"
+                                placeholder="VD: Thi IELTS ngày 15/09/2026; Không có, học tự do">
                     </div>
                 </div>
 
                 <!-- PHẦN 2: TRÌNH ĐỘ HIỆN TẠI -->
                 <div class="form-section">
                     <h3 class="section-title">📊 Phần 2: Trình Độ Hiện Tại</h3>
-                    <!-- Q3: Công việc hiện tại -->
+                    <!-- C3: Trình độ tự đánh giá -->
                     <div class="form-group">
-                        <label class="form-label">3. Công việc hiện tại của bạn? *</label>
-                        <input type="text"  name="q5_current_job" class="form-input" required
-                            placeholder="VD: Nhân viên văn phòng, Giáo viên, Kỹ sư...">        
-                    </div>
-                    <!-- Q4: Thời gian đã học -->
-                    <div class="form-group">
-                        <label class="form-label">4. Bạn đã học lĩnh vực này được bao lâu? *</label>
-                        <select class="form-select" name="q6_learning_duration" required>
-                            <option value="">---- Chọn --</option>
-                            <option value="Chưa từng">Chưa từng</option>
-                            <option value="<6 tháng">Dưới 6 tháng</option>
-                            <option value="6 tháng-2 năm">6 tháng - 2 năm</option>
-                            <option value=">2 năm">Trên 2 năm</option>
-                        </select>
-                    </div>
-
-                    <!-- Q5: Trình độ hiện tại -->
-                    <div class="form-group">
-                        <label class="form-label">5. Trình độ hiện tại của bạn? *</label>
-                        <select class="form-select" name="q7_current_level" required>
+                        <label class="form-label">3. Bạn tự đánh giá trình độ hiện tại ở mức nào? *</label>
+                        <select class="form-select" name="q6_current_level" required>
                             <option value="">-- Chọn --</option>
                             <option value="Mới bắt đầu">Mới bắt đầu</option>
                             <option value="Cơ bản">Cơ bản</option>
                             <option value="Trung bình">Trung bình</option>
-                            <option value="Khá tốt">Khá tốt</option>
-                            <option value="Nâng cao">Nâng cao</option>
+                            <option value="Khá">Khá</option>
+                            <option value="Giỏi">Giỏi</option>
                         </select>
                     </div>
 
-                    <!-- Q6: Kỹ năng muốn cải thiện -->
+                    <!-- C4: Kỹ năng con -->
                     <div class="form-group">
-                        <label class="form-label">6. Kỹ năng nào bạn muốn cải thiện? (ghi rõ) *</label>
-                        <input type="text" name="q8_skills_text" class="form-input" required
-                            placeholder="VD: Nghe, Nói, Viết, Lập trình Python...">
+                        <label class="form-label">4. Hãy liệt kê các kỹ năng con quan trọng nhất trong danh mục chi tiết mà bạn muốn cải thiện, và tự đánh giá mức độ hiện tại của từng kỹ năng từ 1 đến 5 (1 thấp nhất, 5 cao nhất) *</label>
+                        <textarea class="form-textarea" name="q7_skill_breakdown" required
+                                placeholder="VD: Nghe: 2 | Nói: 2 | Đọc: 3 | Viết: 3"></textarea>
+                    </div>
+
+                    <!-- C5: Đã biết gì -->
+                    <div class="form-group">
+                        <label class="form-label">5. Hiện tại bạn đã làm/biết được những gì cụ thể? *</label>
+                        <textarea class="form-textarea" name="q8_known_skills" required
+                                placeholder="VD: Đã thuộc bảng chữ cái, biết chào hỏi cơ bản; Biết cú pháp Python cơ bản, chưa viết hàm/class"></textarea>
+                    </div>
+
+                    <!-- C6: Kỹ năng yếu nhất -->
+                    <div class="form-group">
+                        <label class="form-label">6. Kỹ năng/chủ đề nào bạn thấy yếu nhất, muốn cải thiện trước tiên? *</label>
+                        <input type="text" name="q9_skills_to_improve" class="form-input" required
+                            placeholder="VD: Phát âm và phản xạ nghe nói; Tư duy giải thuật">
                     </div>
                 </div>
 
@@ -1218,13 +1213,13 @@ body {
                 <div class="form-section">
                     <h3 class="section-title">⏰ Phần 3: Cam Kết Thời Gian</h3>
 
-                    <!-- Q7: Thời gian học mỗi ngày -->
+                    <!-- C7: Thời gian học mỗi ngày -->
                     <div class="form-group">
-                        <label class="form-label">7. Bạn có thể dành bao nhiêu thời gian học mỗi ngày? (phút) *</label>
+                        <label class="form-label">7. Mỗi ngày bạn có thể dành bao nhiêu phút để học? *</label>
                         <input 
                             type="number" 
                             class="form-input" 
-                            name="q9_daily_time" 
+                            name="q10_daily_time" 
                             id="q9_daily_time_input"
                             min="15" 
                             max="720" 
@@ -1237,28 +1232,28 @@ body {
                         </small>
                     </div>
 
-                    <!-- Q8: Số buổi mỗi tuần -->
+                    <!-- C8: Ngày học trong tuần -->
                     <div class="form-group">
                         <label class="form-label">8. Bạn muốn học vào những ngày nào trong tuần? *</label>
                         <div class="checkbox-group checkbox-group-two-columns">
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="1"> Thứ 2</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="2"> Thứ 3</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="3"> Thứ 4</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="4"> Thứ 5</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="5"> Thứ 6</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="6"> Thứ 7</label>
-                            <label><input type="checkbox" name="q10_weekly_days[]" value="7"> Chủ nhật</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="1"> Thứ 2</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="2"> Thứ 3</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="3"> Thứ 4</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="4"> Thứ 5</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="5"> Thứ 6</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="6"> Thứ 7</label>
+                            <label><input type="checkbox" name="q11_weekly_days[]" value="7"> Chủ nhật</label>
                         </div>
                         <small style="color:#6b7280;font-size:0.8rem;display:block;margin-top:6px;">Lịch học và ngày dự kiến của từng ngày sẽ tự tính theo các thứ bạn chọn.</small>
                     </div>
 
-                    <!-- Q9: Thời gian lộ trình (ngày) -->
+                    <!-- C9: Tổng số ngày -->
                     <div class="form-group">
-                        <label class="form-label" id="q11_label">9. Thời gian (ngày) của lộ trình (15 - 60 ngày) *</label>
-                        <input type="number" id="q11_program_days" name="q11_program_days" class="form-input" min="15" max="360" required
-                            placeholder="Nhập số ngày (15 - 60)">
+                        <label class="form-label" id="q11_label">9. Bạn muốn lộ trình kéo dài bao nhiêu ngày học? (15 - 360 ngày) *</label>
+                        <input type="number" id="q11_program_days" name="q12_program_days" class="form-input" min="15" max="360" required
+                            placeholder="Nhập số ngày (15 - 360)">
                         <small id="daysWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;">
-                            ⚠️ Số ngày tối đa: 60. Nếu bạn muốn hơn 60 ngày, vui lòng tạo thủ công.
+                            ⚠️ Số ngày tối đa: 360. Tạo với AI chỉ hỗ trợ tối đa 180 ngày.
                         </small>
                     </div>
                 </div>
@@ -1267,130 +1262,107 @@ body {
                 <div class="form-section">
                     <h3 class="section-title">🎨 Phần 4: Phong Cách Học Tập</h3>
 
-                    <!-- Q10: Phương pháp học -->
+                    <!-- C10: Hình thức tiếp thu -->
                     <div class="form-group">
-                        <label class="form-label">10. Phương pháp học bạn thích (chọn nếu phù hợp) *</label>
+                        <label class="form-label">10. Bạn tiếp thu kiến thức tốt nhất qua hình thức nào? *</label>
                         <div class="checkbox-group checkbox-group-two-columns">
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)"> Truyền thống (Đọc tài liệu, bài kiểm tra ngắn)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Hình ảnh (Sơ đồ, infographic, video trực quan)"> Hình ảnh (Sơ đồ, infographic, video trực quan)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Âm thanh (Podcast, giảng bài, thảo luận)"> Âm thanh (Podcast, giảng bài, thảo luận)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Thực hành (Làm dự án, thí nghiệm, coding)"> Thực hành (Làm dự án, thí nghiệm, coding)</label>
-                            <label><input type="checkbox" name="q12_learning_styles[]" value="Khác" id="q12_other_checkbox"> Khác</label>
+                            <label><input type="checkbox" name="q13_learning_style[]" value="Xem video"> Xem video</label>
+                            <label><input type="checkbox" name="q13_learning_style[]" value="Nghe podcast"> Nghe podcast</label>
+                            <label><input type="checkbox" name="q13_learning_style[]" value="Đọc văn bản"> Đọc văn bản</label>
+                            <label><input type="checkbox" name="q13_learning_style[]" value="Thực hành trực tiếp"> Thực hành trực tiếp</label>
+                            <label><input type="checkbox" name="q13_learning_style[]" value="Khác" id="q12_other_checkbox"> Khác</label>
                         </div>
-                        <input type="text" id="q12_other_text" class="form-input other-input" name="q12_learning_styles_other"
-                            placeholder="Ghi rõ phương pháp..." style="margin-top: 10px;">
+                        <input type="text" id="q12_other_text" class="form-input other-input" name="q13_learning_style_other"
+                            placeholder="Ghi rõ hình thức..." style="margin-top: 10px;">
                     </div>
 
-                    <!-- Q11: Kết hợp học - 2 CỘT CỐ ĐỊNH -->
+                    <!-- C11: Nhịp học -->
                     <div class="form-group">
-                        <label class="form-label">11. Bạn thích kết hợp học như thế nào? *</label>
+                        <label class="form-label">11. Bạn thích nhịp học theo kiểu nào? *</label>
                         <div class="checkbox-group checkbox-group-two-columns">
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Active Recall (Nhớ lại chủ động)"> Active Recall (Nhớ lại chủ động)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Spaced Repetition (Lặp lại ngắt quãng)"> Spaced Repetition (Lặp lại ngắt quãng)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Interleaving (Xen kẽ đa dạng chủ đề)"> Interleaving (Xen kẽ đa dạng chủ đề)</label>
-                            <label><input type="checkbox" name="q13_learning_combinations[]" value="Khác" id="q13_other_checkbox"> Khác</label>
+                            <label><input type="radio" name="q14_learning_method" value="Học chậm, chắc, ôn tập nhiều" required> Học chậm, chắc, ôn tập nhiều</label>
+                            <label><input type="radio" name="q14_learning_method" value="Học nhanh, ít lặp lại"> Học nhanh, ít lặp lại</label>
+                            <label><input type="radio" name="q14_learning_method" value="Khác" id="q13_other_checkbox"> Khác</label>
                         </div>
-                        <input type="text" id="q13_other_text" class="form-input other-input" name="q13_learning_combinations_other"
+                        <input type="text" id="q13_other_text" class="form-input other-input" name="q14_learning_method_other"
                             placeholder="Ghi rõ..." style="margin-top: 10px;">
                     </div>
                 </div>
-                 <!-- PHẦN 5: KHÓ KHĂN & ĐỘNG LỰC -->
+                 <!-- PHẦN 5: ĐỘNG LỰC & HỨNG THÚ HỌC TẬP -->
                 <div class="form-section">
-                    <h3 class="section-title">📅 Phần 5: Khó Khăn & Động Lực</h3>
-                    <!-- Q12: Thách thức -->
+                    <h3 class="section-title">🎯 Phần 5: Động Lực & Hứng Thú Học Tập</h3>
+                    <!-- C12: Điều gì khiến buổi học đáng nhớ -->
                     <div class="form-group">
-                        <label class="form-label">12. Thách thức bạn gặp phải? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="q14_challenges[]" value="Thiếu động lực"> Thiếu động lực</label>
-                            <label><input type="checkbox" name="q14_challenges[]" value="Thiếu thời gian"> Thiếu thời gian</label>
-                            <label><input type="checkbox" name="q14_challenges[]" value="Tài liệu khó"> Tài liệu khó</label>
-                            <label><input type="checkbox" name="q14_challenges[]" value="Khó tập trung"> Khó tập trung</label>
-                            <label><input type="checkbox" name="q14_challenges[]" value="Khác" id="q14_other_checkbox"> Khác</label>
-                        </div>
-                        <input type="text" id="q14_other_text" class="form-input other-input" name="q14_challenges_other"
-                            placeholder="Ghi rõ...">
+                        <label class="form-label">12. Điều gì khiến buổi học "đáng nhớ"/hứng thú nhất? *</label>
+                        <input type="text" name="q15_engagement_trigger" class="form-input" required
+                            placeholder="VD: Có mini-game để vượt qua; Có câu chuyện dẫn dắt; Thấy tiến bộ rõ ràng">
                     </div>
 
-                    <!-- Q13: Động lực -->
+                    <!-- C13: Chủ đề mong muốn -->
                     <div class="form-group">
-                        <label class="form-label">13. Điều gì giữ động lực cho bạn? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="q15_motivation[]" value="Phần thưởng"> Phần thưởng</label>
-                            <label><input type="checkbox" name="q15_motivation[]" value="Tiến bộ rõ ràng"> Tiến bộ rõ ràng</label>
-                            <label><input type="checkbox" name="q15_motivation[]" value="Mục tiêu lớn"> Mục tiêu lớn</label>
-                            <label><input type="checkbox" name="q15_motivation[]" value="Cộng đồng học tập"> Cộng đồng học tập</label>
-                            <label><input type="checkbox" name="q15_motivation[]" value="Khác" id="q15_other_checkbox"> Khác</label>
-                        </div>
-                        <input type="text" id="q15_other_text" class="form-input other-input" name="q15_motivation_other"
-                            placeholder="Ghi rõ...">
+                        <label class="form-label">13. Bạn muốn các ví dụ, bài tập được xây dựng xoay quanh chủ đề nào bạn yêu thích? *</label>
+                        <input type="text" name="q16_theme_preference" class="form-input" required
+                            placeholder="VD: Bóng đá, Nấu ăn, Du lịch, Phim ảnh">
                     </div>
                 </div>     
                  <!-- PHẦN 6: TÀI LIỆU & ĐÁNH GIÁ -->
                 <div class="form-section">
                     <h3 class="section-title">📊 Phần 6: Tài Liệu & Đánh Giá</h3>   
-                    <!-- Q14: Loại tài liệu -->
+                    <!-- C14: Loại tài liệu -->
                     <div class="form-group">
-                        <label class="form-label">14. Loại tài liệu bạn thích? *</label>
+                        <label class="form-label">14. Loại tài liệu học nào hiệu quả nhất với bạn? *</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="q16_material_types[]" value="Sách"> Sách</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Video hướng dẫn"> Video hướng dẫn</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Bài tập online"> Bài tập online</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Podcast"> Podcast</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="App học tập"> App học tập</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Tài liệu theo chủ đề"> Tài liệu theo chủ đề</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Phim ảnh"> Phim ảnh</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Nhạc"> Nhạc</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Khóa học online"> Khóa học online</label>
-                            <label><input type="checkbox" name="q16_material_types[]" value="Khác" id="q16_other_checkbox"> Khác</label>
+                            <label><input type="checkbox" name="q17_material_type[]" value="Video bài giảng"> Video bài giảng</label>
+                            <label><input type="checkbox" name="q17_material_type[]" value="Bài viết/blog"> Bài viết/blog</label>
+                            <label><input type="checkbox" name="q17_material_type[]" value="Flashcard"> Flashcard</label>
+                            <label><input type="checkbox" name="q17_material_type[]" value="Podcast"> Podcast</label>
+                            <label><input type="checkbox" name="q17_material_type[]" value="Khác" id="q16_other_checkbox"> Khác</label>
                         </div>
-                        <input type="text" id="q16_other_text" class="form-input other-input" name="q16_material_types_other"
-                            placeholder="Bạn hãy ghi rõ tên sách & tác giả/link dẫn đến nguồn tài liệu cụ thể">
+                        <input type="text" id="q16_other_text" class="form-input other-input" name="q17_material_type_other"
+                            placeholder="Ghi rõ loại tài liệu khác...">
                     </div>
 
-                    <!-- Q15: Ngôn ngữ tài liệu -->
+                    <!-- C15: Ngôn ngữ tài liệu -->
                     <div class="form-group">
-                        <label class="form-label">15. Ngôn ngữ tài liệu? *</label>
-                        <select class="form-select" name="q17_material_language" required>
+                        <label class="form-label">15. Bạn muốn tài liệu học bằng ngôn ngữ nào? *</label>
+                        <select class="form-select" name="q18_material_language" required>
                             <option value="">-- Chọn --</option>
-                            <option value="Việt Nam">Việt Nam</option>
-                            <option value="English">English</option>
-                            <option value="Việt Nam & English">Việt Nam & English</option>
+                            <option value="Tiếng Việt">Tiếng Việt</option>
+                            <option value="Tiếng Anh">Tiếng Anh</option>
+                            <option value="Song ngữ Việt–Anh">Song ngữ Việt–Anh</option>
                         </select>
                     </div>
 
-                    <!-- Q16: Loại đánh giá -->
+                    <!-- C16: Ngưỡng đạt -->
                     <div class="form-group">
-                        <label class="form-label">16. Loại đánh giá bạn thích? *</label>
+                        <label class="form-label">16. Bạn muốn ngưỡng "Đạt" cho quiz cuối ngày và bài kiểm tra cuối chương là bao nhiêu? *</label>
+                        <select class="form-select" name="q19_pass_threshold" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="60">Đúng tối thiểu 3/5 câu (60%)</option>
+                            <option value="80">Đúng tối thiểu 4/5 câu (80%)</option>
+                            <option value="100">Đúng cả 5/5 câu (100%)</option>
+                        </select>
+                    </div>
+
+                    <!-- C17: Thiết bị -->
+                    <div class="form-group">
+                        <label class="form-label">17. Bạn chủ yếu dùng thiết bị nào để học? *</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="q18_assessment_types[]" value="Quiz ngắn"> Quiz ngắn</label>
-                            <label><input type="checkbox" name="q18_assessment_types[]" value="Dự án nhỏ"> Dự án nhỏ</label>
-                            <label><input type="checkbox" name="q18_assessment_types[]" value="Bài kiểm tra"> Bài kiểm tra</label>
-                            <label><input type="checkbox" name="q18_assessment_types[]" value="Đề thi chuẩn"> Đề thi chuẩn</label>
+                            <label><input type="checkbox" name="q20_device_type[]" value="Điện thoại"> Điện thoại</label>
+                            <label><input type="checkbox" name="q20_device_type[]" value="Máy tính bảng"> Máy tính bảng</label>
+                            <label><input type="checkbox" name="q20_device_type[]" value="Laptop/PC"> Laptop/PC</label>
+                            <label><input type="checkbox" name="q20_device_type[]" value="Kết hợp nhiều thiết bị"> Kết hợp nhiều thiết bị</label>
                         </div>
                     </div>
 
-                    <!-- Q17: Hiển thị kết quả -->
+                    <!-- C18: Hiển thị kết quả -->
                     <div class="form-group">
-                        <label class="form-label">17. Hiển thị kết quả như thế nào? *</label>
+                        <label class="form-label">18. Bạn muốn kết quả sau mỗi lần đánh giá hiển thị như thế nào? *</label>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="q19_result_display[]" value="Biểu đồ"> Tiến độ</label>
-                            <label><input type="checkbox" name="q19_result_display[]" value="Biểu đồ"> Biểu đồ</label>
-                            <label><input type="checkbox" name="q19_result_display[]" value="Số điểm"> Số điểm</label>
-                            <label><input type="checkbox" name="q19_result_display[]" value="Phản hồi chi tiết"> Phản hồi chi tiết</label>
+                            <label><input type="radio" name="q21_result_display" value="Chỉ hiện Đạt/Chưa đạt" required> Chỉ hiện Đạt/Chưa đạt</label>
+                            <label><input type="radio" name="q21_result_display" value="Hiện điểm số + đáp án"> Hiện điểm số + đáp án</label>
+                            <label><input type="radio" name="q21_result_display" value="Hiện điểm số + giải thích chi tiết"> Hiện điểm số + giải thích chi tiết</label>
                         </div>
-                    </div>
-
-                    <!-- Q18: Tần suất đánh giá -->
-                    <div class="form-group">
-                        <label class="form-label">18. Tần suất đánh giá? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="radio" name="q20_assessment_frequency" value="Hàng tuần"> Hàng tuần</label>
-                            <label><input type="radio" name="q20_assessment_frequency" value="Hàng tháng"> Hàng tháng</label>
-                            <label><input type="radio" name="q20_assessment_frequency" value="2 tuần/lần"> 2 tuần/lần</label>
-                            <label><input type="radio" name="q20_assessment_frequency" value="Khác" id="q20_other_radio"> Khác</label>
-                        </div>
-                        <input type="text" id="q20_other_text" class="form-input other-input" name="q20_assessment_frequency_other"
-                            placeholder="Ghi rõ...">
                     </div>
                 </div>
 
@@ -2584,48 +2556,42 @@ async function generateRoadmapWithAI() {
     const q5_specific_goal = getField(formData, 'q5_specific_goal');
     const q5_current_job = getField(formData, 'q5_current_job');
 
-    // Q6-Q8
-    const q6_learning_duration = getField(formData, 'q6_learning_duration');
-    const q7_current_level = getField(formData, 'q7_current_level');
-    const q8_skills_text = getField(formData, 'q8_skills_text');
+    // Q4: Thời gian đã học
+    const q7_current_level = getField(formData, 'q6_current_level');
+    const q7_skill_breakdown = getField(formData, 'q7_skill_breakdown');
+    const q8_known_skills = getField(formData, 'q8_known_skills');
+    const q9_skills_to_improve = getField(formData, 'q9_skills_to_improve');
+    const q5b_target_milestone = getField(formData, 'q5b_target_milestone');
 
     // Q9-Q11
-    const q9_daily_time = getField(formData, 'q9_daily_time');
-    const q10_weekly_sessions = getField(formData, 'q10_weekly_sessions');
-    const q11_program_days = parseInt(getField(formData, 'q11_program_days') || '0', 10) || 0;
+    const q9_daily_time = getField(formData, 'q10_daily_time');
+    const q11_program_days = parseInt(getField(formData, 'q12_program_days') || '0', 10) || 0;
 
     // Q12..Q16 (checkbox groups with possible "Khác")
-    const q12 = collectCheckedWithOther(['input[name="q12_learning_styles[]"]', 'input[name="q12_learning_styles"]'], 'q12_other_text');
-    const q12_learning_styles = q12.values;
-    const q12_learning_styles_other = q12.other;
+    const q13 = collectCheckedWithOther(['input[name="q13_learning_style[]"]', 'input[name="q13_learning_style"]'], 'q12_other_text');
+    const q13_learning_style = q13.values;
+    const q13_learning_style_other = q13.other;
 
-    const q13 = collectCheckedWithOther(['input[name="q13_learning_combinations[]"]', 'input[name="q13_learning_combinations"]'], 'q13_other_text');
-    const q13_learning_combinations = q13.values;
-    const q13_learning_combinations_other = q13.other;
+    let q14_learning_method = getField(formData, 'q14_learning_method');
+    let q14_learning_method_other = '';
+    if (q14_learning_method === 'Khác') {
+        q14_learning_method_other = getField(formData, 'q14_learning_method_other');
+    }
 
-    const q14 = collectCheckedWithOther(['input[name="q14_challenges[]"]', 'input[name="q14_challenges"]'], 'q14_other_text');
-    const q14_challenges = q14.values;
-    const q14_challenges_other = q14.other;
+    const q15_engagement_trigger = getField(formData, 'q15_engagement_trigger');
+    const q16_theme_preference = getField(formData, 'q16_theme_preference');
 
-    const q15 = collectCheckedWithOther(['input[name="q15_motivation[]"]', 'input[name="q15_motivation"]'], 'q15_other_text');
-    const q15_motivation = q15.values;
-    const q15_motivation_other = q15.other;
-
-    const q16 = collectCheckedWithOther(['input[name="q16_material_types[]"]', 'input[name="q16_material_types"]'], 'q16_other_text');
-    const q16_material_types = q16.values;
-    const q16_material_types_other = q16.other;
+    const q17 = collectCheckedWithOther(['input[name="q17_material_type[]"]', 'input[name="q17_material_type"]'], 'q16_other_text');
+    const q17_material_type = q17.values;
+    const q17_material_type_other = q17.other;
 
     // Q17-Q19
-    const q17_material_language = getField(formData, 'q17_material_language');
-    const q18_assessment_types = collectChecked(['input[name="q18_assessment_types[]"]', 'input[name="q18_assessment_types"]']);
-    const q19_result_display = collectChecked(['input[name="q19_result_display[]"]', 'input[name="q19_result_display"]']);
+    const q18_material_language = getField(formData, 'q18_material_language');
+    const q19_pass_threshold = getField(formData, 'q19_pass_threshold') || '80';
+    const q20_device_type = collectChecked(['input[name="q20_device_type[]"]', 'input[name="q20_device_type"]']);
 
-    // Q20
-    let q20_assessment_frequency = getField(formData, 'q20_assessment_frequency');
-    let q20_assessment_frequency_other = '';
-    if (q20_assessment_frequency === 'Khác' || q20_assessment_frequency === 'Khac' || q20_assessment_frequency === 'Other') {
-        q20_assessment_frequency_other = getField(formData, 'q20_assessment_frequency_other');
-    }
+    // Q21
+    const q21_result_display = getField(formData, 'q21_result_display');
 
     console.log('🔍 Validation Check:', {
     q1_roadmap_name, 
@@ -2640,34 +2606,33 @@ async function generateRoadmapWithAI() {
     if (!q1_roadmap_name) throw new Error('❌ Vui lòng nhập tên lộ trình');
     if (!q2_category) throw new Error('❌ Vui lòng chọn danh mục');
     if (!q3_category_detail) throw new Error('❌ Vui lòng nhập danh mục chi tiết');
-    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
-    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
-    if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
+    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (C2)');
+    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (C3)');
+    if (!q7_skill_breakdown) throw new Error('❌ Vui lòng nhập đánh giá kỹ năng con (C4)');
+    if (!q8_known_skills) throw new Error('❌ Vui lòng nhập những gì đã biết (C5)');
+    if (!q9_skills_to_improve) throw new Error('❌ Vui lòng nhập kỹ năng yếu nhất (C6)');
+    if (!q9_daily_time) throw new Error('❌ Vui lòng nhập thời gian học mỗi ngày (C7)');
     if (!q11_program_days || q11_program_days < 15) {
-        throw new Error('❌ Số ngày tối thiểu là 15 (Q9)');
+        throw new Error('❌ Số ngày tối thiểu là 15 (C9)');
     }
+    if (!q15_engagement_trigger) throw new Error('❌ Vui lòng nhập điều khiến buổi học hứng thú (C12)');
+    if (!q16_theme_preference) throw new Error('❌ Vui lòng nhập chủ đề mong muốn (C13)');
+    if (!q18_material_language) throw new Error('❌ Vui lòng chọn ngôn ngữ tài liệu (C15)');
+    if (!q19_pass_threshold) throw new Error('❌ Vui lòng chọn ngưỡng đạt (C16)');
+    if (!q21_result_display) throw new Error('❌ Vui lòng chọn cách hiển thị kết quả (C18)');
 
     // ✅ THÊM VALIDATION CHO CÂU HỎI NHIỀU LỰA CHỌN
-    if (q12_learning_styles.length === 0 && !q12_learning_styles_other) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 phương pháp học (Q10)');
+    if (q13_learning_style.length === 0 && !q13_learning_style_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 hình thức tiếp thu (C10)');
     }
-    if (q13_learning_combinations.length === 0 && !q13_learning_combinations_other) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 kết hợp học (Q11)');
+    if (!q14_learning_method) {
+        throw new Error('❌ Vui lòng chọn nhịp học (C11)');
     }
-    if (q14_challenges.length === 0 && !q14_challenges_other) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 thách thức (Q12)');
+    if (q17_material_type.length === 0 && !q17_material_type_other) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 loại tài liệu (C14)');
     }
-    if (q15_motivation.length === 0 && !q15_motivation_other) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 động lực (Q13)');
-    }
-    if (q16_material_types.length === 0 && !q16_material_types_other) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 loại tài liệu (Q14)');
-    }
-    if (q18_assessment_types.length === 0) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 loại đánh giá (Q16)');
-    }
-    if (q19_result_display.length === 0) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 cách hiển thị kết quả (Q17)');
+    if (q20_device_type.length === 0) {
+        throw new Error('❌ Vui lòng chọn ít nhất 1 thiết bị học (C17)');
     }
 
     console.log('✅ Validation passed!');
@@ -2699,38 +2664,35 @@ async function generateRoadmapWithAI() {
             duration_days: q11_program_days,
             duration_hours: extractFirstNumber(q9_daily_time, 2) * q11_program_days,
             expected_outcome: q5_specific_goal,
+            pass_threshold: parseInt(q19_pass_threshold) || 80,
 
             // full Qs
             q1_roadmap_name,
             q2_category,
             q3_category_detail,
             q4_main_purpose,
-            q4_main_purpose_other,
             q5_specific_goal,
-            q5_current_job,
-            q6_learning_duration,
+            q5b_target_milestone,
             q7_current_level,
-            q8_skills_text,
+            q7_skill_breakdown,
+            q8_known_skills,
+            q9_skills_to_improve,
             q9_daily_time,
             q10_weekly_days: getSelectedWeekdays(),
             q11_program_days,
-            q12_learning_styles,
-            q12_learning_styles_other,
-            q13_learning_combinations,
-            q13_learning_combinations_other,
-            q14_challenges,
-            q14_challenges_other,
-            q15_motivation,
-            q15_motivation_other,
-            q16_material_types,
-            q16_material_types_other,
-            q17_material_language,
-            q18_assessment_types,
-            q19_result_display,
-            q20_assessment_frequency,
-            q20_assessment_frequency_other
+            q13_learning_style,
+            q13_learning_style_other,
+            q14_learning_method,
+            q14_learning_method_other,
+            q15_engagement_trigger,
+            q16_theme_preference,
+            q17_material_type,
+            q17_material_type_other,
+            q18_material_language,
+            q19_pass_threshold,
+            q20_device_type,
+            q21_result_display
         };
-
         // prepare API URL
         const apiUrl = `${API_BASE}/api/generate-roadmap-ai`;
 
@@ -3122,64 +3084,48 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
         q3_category_detail = q3_other ? q3_other.value.trim() : '';
     }
     // Q4 main purpose (radio/select) + other
-    let q4_main_purpose = getField(formData, 'q4_main_purpose');
-    let q4_main_purpose_other = '';
-    if (q4_main_purpose === 'Khác' || q4_main_purpose === 'Khac' || q4_main_purpose === 'Other') {
-      q4_main_purpose_other = getField(formData, 'q4_main_purpose_other');
-      if (!q4_main_purpose_other) q4_main_purpose_other = '';
-    }
+    const q4_main_purpose = getField(formData, 'q4_main_purpose');
 
     // Q5
     const q5_specific_goal = getField(formData, 'q5_specific_goal');
-    const q5_current_job = getField(formData, 'q5_current_job');
+    const q5b_target_milestone = getField(formData, 'q5b_target_milestone');
 
     // Q6-Q8
-    const q6_learning_duration = getField(formData, 'q6_learning_duration'); // e.g., "3 months"
-    const q7_current_level = getField(formData, 'q7_current_level');
-    const q8_skills_text = getField(formData, 'q8_skills_text');
+    const q7_current_level = getField(formData, 'q6_current_level');
+    const q7_skill_breakdown = getField(formData, 'q7_skill_breakdown');
+    const q8_known_skills = getField(formData, 'q8_known_skills');
+    const q9_skills_to_improve = getField(formData, 'q9_skills_to_improve');
 
     // Q9-Q11
-    const q9_daily_time = getField(formData, 'q9_daily_time'); // e.g., "2-3 giờ"
+    const q9_daily_time = getField(formData, 'q10_daily_time');
     const q10_weekly_days = getSelectedWeekdays();
-    const q11_program_days = Number(getField(formData, 'q11_program_days')) || 0;
+    const q11_program_days = Number(getField(formData, 'q12_program_days')) || 0;
 
-    // Q12 (learning styles) - checkbox array + other
-    const q12 = getCheckedListWithOther(['q12_learning_styles[]','q12_learning_styles'], 'q12_other_text');
-    const q12_learning_styles = q12.values;
-    const q12_learning_styles_other = q12.other;
+    // Q13 (learning style) - checkbox array + other
+    const q13 = getCheckedListWithOther(['q13_learning_style[]','q13_learning_style'], 'q12_other_text');
+    const q13_learning_style = q13.values;
+    const q13_learning_style_other = q13.other;
 
-    // Q13 (learning combinations)
-    const q13 = getCheckedListWithOther(['q13_learning_combinations[]','q13_learning_combinations'], 'q13_other_text');
-    const q13_learning_combinations = q13.values;
-    const q13_learning_combinations_other = q13.other;
-
-    // Q14 (challenges)
-    const q14 = getCheckedListWithOther(['q14_challenges[]','q14_challenges'], 'q14_other_text');
-    const q14_challenges = q14.values;
-    const q14_challenges_other = q14.other;
-
-    // Q15 (motivation)
-    const q15 = getCheckedListWithOther(['q15_motivation[]','q15_motivation'], 'q15_other_text');
-    const q15_motivation = q15.values;
-    const q15_motivation_other = q15.other;
-
-    // Q16 (material types)
-    const q16 = getCheckedListWithOther(['q16_material_types[]','q16_material_types'], 'q16_other_text');
-    const q16_material_types = q16.values;
-    const q16_material_types_other = q16.other;
-
-    // Q17-Q19
-    const q17_material_language = getField(formData, 'q17_material_language');
-
-    const q18_assessment_types = getCheckedList(['q18_assessment_types[]','q18_assessment_types']);
-    const q19_result_display = getCheckedList(['q19_result_display[]','q19_result_display']);
-
-    // Q20 - assessment frequency (other)
-    let q20_assessment_frequency = getField(formData, 'q20_assessment_frequency');
-    let q20_assessment_frequency_other = '';
-    if (q20_assessment_frequency === 'Khác' || q20_assessment_frequency === 'Khac' || q20_assessment_frequency === 'Other') {
-      q20_assessment_frequency_other = getField(formData, 'q20_assessment_frequency_other');
+    // Q14 (learning method) - radio + other
+    let q14_learning_method = getField(formData, 'q14_learning_method');
+    let q14_learning_method_other = '';
+    if (q14_learning_method === 'Khác') {
+      q14_learning_method_other = getField(formData, 'q14_learning_method_other');
     }
+
+    const q15_engagement_trigger = getField(formData, 'q15_engagement_trigger');
+    const q16_theme_preference = getField(formData, 'q16_theme_preference');
+
+    // Q17 (material type)
+    const q17 = getCheckedListWithOther(['q17_material_type[]','q17_material_type'], 'q16_other_text');
+    const q17_material_type = q17.values;
+    const q17_material_type_other = q17.other;
+
+    // Q18-Q21
+    const q18_material_language = getField(formData, 'q18_material_language');
+    const q19_pass_threshold = getField(formData, 'q19_pass_threshold') || '80';
+    const q20_device_type = getCheckedList(['q20_device_type[]','q20_device_type']);
+    const q21_result_display = getField(formData, 'q21_result_display');
 
     // =========================================
     // BƯỚC 2: VALIDATION CƠ BẢN
@@ -3197,11 +3143,11 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
     if (!q1_roadmap_name) throw new Error('❌ Vui lòng nhập tên lộ trình ');
     if (!q2_category) throw new Error('❌ Vui lòng chọn danh mục');
     if (!q3_category_detail) throw new Error('❌ Vui lòng nhập danh mục chi tiết ');
-    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (Q2)');
-    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (Q5)');
-    if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (Q7)');
+    if (!q5_specific_goal) throw new Error('❌ Vui lòng nhập mục tiêu cụ thể (C2)');
+    if (!q7_current_level) throw new Error('❌ Vui lòng chọn trình độ hiện tại (C3)');
+    if (!q9_daily_time) throw new Error('❌ Vui lòng chọn thời gian học mỗi ngày (C7)');
 if (!q11_program_days || q11_program_days < 15) {
-  throw new Error('❌ Số ngày tối thiểu là 15 (Q9)');
+  throw new Error('❌ Số ngày tối thiểu là 15 (C9)');
 }
 
     // =========================================
@@ -3306,38 +3252,35 @@ if (!q11_program_days || q11_program_days < 15) {
       duration_days: q11_program_days,
       duration_hours: duration_hours,
       expected_outcome: q5_specific_goal,
+      pass_threshold: parseInt(q19_pass_threshold) || 80,
 
       // full Qs for server
       q1_roadmap_name,
       q2_category,
       q3_category_detail,
       q4_main_purpose,
-      q4_main_purpose_other,
       q5_specific_goal,
-      q5_current_job,
-      q6_learning_duration,
+      q5b_target_milestone,
       q7_current_level,
-      q8_skills_text,
+      q7_skill_breakdown,
+      q8_known_skills,
+      q9_skills_to_improve,
       q9_daily_time,
       q10_weekly_days,
       q11_program_days,
-      q12_learning_styles,
-      q12_learning_styles_other,
-      q13_learning_combinations,
-      q13_learning_combinations_other,
-      q14_challenges,
-      q14_challenges_other,
-      q15_motivation,
-      q15_motivation_other,
-      q16_material_types,
-      q16_material_types_other,
-      q17_material_language,
-      q18_assessment_types,
-      q19_result_display,
-      q20_assessment_frequency,
-      q20_assessment_frequency_other
+      q13_learning_style,
+      q13_learning_style_other,
+      q14_learning_method,
+      q14_learning_method_other,
+      q15_engagement_trigger,
+      q16_theme_preference,
+      q17_material_type,
+      q17_material_type_other,
+      q18_material_language,
+      q19_pass_threshold,
+      q20_device_type,
+      q21_result_display
     };
-
     if (days.length > 0) roadmapData.days = days;
     roadmapData.study_weekdays = q10_weekly_days;
 
@@ -3509,40 +3452,35 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
       category_detail: getField(formData, 'q3_category_detail'),
       main_purpose: getField(formData, 'q4_main_purpose'),
       specific_goal: getField(formData, 'q5_specific_goal'),
-      current_job: getField(formData, 'q5_current_job'),
-      learning_duration: getField(formData, 'q6_learning_duration'),
-      current_level: getField(formData, 'q7_current_level'),
-      skills_text: getField(formData, 'q8_skills_text'),
-      daily_time: getField(formData, 'q9_daily_time'),
+      target_milestone: getField(formData, 'q5b_target_milestone'),
+      current_level: getField(formData, 'q6_current_level'),
+      skill_breakdown: getField(formData, 'q7_skill_breakdown'),
+      known_skills: getField(formData, 'q8_known_skills'),
+      skills_to_improve: getField(formData, 'q9_skills_to_improve'),
+      daily_time: getField(formData, 'q10_daily_time'),
       weekly_sessions: (() => {
         const w = getSelectedWeekdays();
         return w.length ? w.map(d => WEEKDAY_LABELS_VN[d]).join(', ') : 'Chưa xác định';
       })(),
-      program_days: getField(formData, 'q11_program_days'),
-      learning_styles: processArrayWithOther(
-        collectCheckedWithOther(['input[name="q12_learning_styles[]"]'], 'q12_other_text').values,
-        collectCheckedWithOther(['input[name="q12_learning_styles[]"]'], 'q12_other_text').other
+      program_days: getField(formData, 'q12_program_days'),
+      learning_style: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q13_learning_style[]"]'], 'q12_other_text').values,
+        collectCheckedWithOther(['input[name="q13_learning_style[]"]'], 'q12_other_text').other
       ),
-      learning_combinations: processArrayWithOther(
-        collectCheckedWithOther(['input[name="q13_learning_combinations[]"]'], 'q13_other_text').values,
-        collectCheckedWithOther(['input[name="q13_learning_combinations[]"]'], 'q13_other_text').other
+      learning_method: (() => {
+        const v = getField(formData, 'q14_learning_method');
+        return v === 'Khác' ? getField(formData, 'q14_learning_method_other') : v;
+      })(),
+      engagement_trigger: getField(formData, 'q15_engagement_trigger'),
+      theme_preference: getField(formData, 'q16_theme_preference'),
+      material_type: processArrayWithOther(
+        collectCheckedWithOther(['input[name="q17_material_type[]"]'], 'q16_other_text').values,
+        collectCheckedWithOther(['input[name="q17_material_type[]"]'], 'q16_other_text').other
       ),
-      challenges: processArrayWithOther(
-        collectCheckedWithOther(['input[name="q14_challenges[]"]'], 'q14_other_text').values,
-        collectCheckedWithOther(['input[name="q14_challenges[]"]'], 'q14_other_text').other
-      ),
-      motivation: processArrayWithOther(
-        collectCheckedWithOther(['input[name="q15_motivation[]"]'], 'q15_other_text').values,
-        collectCheckedWithOther(['input[name="q15_motivation[]"]'], 'q15_other_text').other
-      ),
-      material_types: processArrayWithOther(
-        collectCheckedWithOther(['input[name="q16_material_types[]"]'], 'q16_other_text').values,
-        collectCheckedWithOther(['input[name="q16_material_types[]"]'], 'q16_other_text').other
-      ),
-      material_language: getField(formData, 'q17_material_language'),
-      assessment_types: Array.from(document.querySelectorAll('input[name="q18_assessment_types[]"]:checked')).map(cb => cb.value).join(', '),
-      result_display: Array.from(document.querySelectorAll('input[name="q19_result_display[]"]:checked')).map(cb => cb.value).join(', '),
-      assessment_frequency: getField(formData, 'q20_assessment_frequency')
+      material_language: getField(formData, 'q18_material_language'),
+      pass_threshold: getField(formData, 'q19_pass_threshold'),
+      device_type: Array.from(document.querySelectorAll('input[name="q20_device_type[]"]:checked')).map(cb => cb.value).join(', '),
+      result_display: getField(formData, 'q21_result_display')
     };
     
     // ✅ Gọi API với form data
