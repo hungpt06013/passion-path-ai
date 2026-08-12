@@ -23,6 +23,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import nodemailer from 'nodemailer';
 import cors from "cors";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -459,7 +460,7 @@ async function initDB() {
       );
     `);
 
-    // Bảng user_feedback
+// Bảng user_feedback
     await pool.query(`
       CREATE TABLE IF NOT EXISTS user_feedback (
         feedback_id SERIAL PRIMARY KEY,
@@ -476,6 +477,39 @@ async function initDB() {
         question_2 TEXT,
         question_3 TEXT,
         created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+      );
+    `);
+
+    // Bảng quiz_questions - lưu 5 câu hỏi trắc nghiệm mỗi ngày (hoặc cuối chương)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS quiz_questions (
+        quiz_id SERIAL PRIMARY KEY,
+        roadmap_id INTEGER NOT NULL REFERENCES learning_roadmaps(roadmap_id) ON DELETE CASCADE,
+        day_number INTEGER NOT NULL,
+        is_chapter_review BOOLEAN DEFAULT FALSE,
+        question_order INTEGER NOT NULL,
+        question_text TEXT NOT NULL,
+        option_a TEXT NOT NULL,
+        option_b TEXT NOT NULL,
+        option_c TEXT NOT NULL,
+        option_d TEXT NOT NULL,
+        correct_option CHAR(1) NOT NULL CHECK (correct_option IN ('A','B','C','D')),
+        created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+      );
+    `);
+
+    // Bảng quiz_attempts - lưu kết quả mỗi lần user làm quiz
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS quiz_attempts (
+        attempt_id SERIAL PRIMARY KEY,
+        roadmap_id INTEGER NOT NULL REFERENCES learning_roadmaps(roadmap_id) ON DELETE CASCADE,
+        day_number INTEGER NOT NULL,
+        is_chapter_review BOOLEAN DEFAULT FALSE,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        score INTEGER NOT NULL,
+        passed BOOLEAN NOT NULL,
+        answers JSONB,
+        attempted_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
       );
     `);
 
@@ -508,6 +542,10 @@ async function initDB() {
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;`);
     await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;`);
+    await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "pass_threshold" INTEGER DEFAULT 80;`);
+    await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_url" TEXT;`);
+    await pool.query(`ALTER TABLE "learning_roadmap_details" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;`);
+    await pool.query(`ALTER TABLE "learning_roadmap_details_system" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;`);
 
 
     // Tạo indexes
@@ -523,12 +561,16 @@ async function initDB() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reset_email ON password_reset_codes(email);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_reset_code ON password_reset_codes(code);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_search_usage_period ON search_api_usage(provider, period);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_quiz_questions_roadmap ON quiz_questions(roadmap_id, day_number);`);
+    await pool.query(`CREATE INDEX IF NOT EXISTS idx_quiz_attempts_roadmap ON quiz_attempts(roadmap_id, day_number, user_id);`);
     // Reset sequences
     await pool.query(`SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 1));`);
     await pool.query(`SELECT setval('learning_roadmaps_roadmap_id_seq', COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps), 1));`);
     await pool.query(`SELECT setval('learning_roadmaps_system_roadmap_id_seq', COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps_system), 1));`);
     await pool.query(`SELECT setval('learning_roadmap_details_detail_id_seq', COALESCE((SELECT MAX(detail_id) FROM learning_roadmap_details), 1));`);
     await pool.query(`SELECT setval('learning_roadmap_details_system_detail_id_seq', COALESCE((SELECT MAX(detail_id) FROM learning_roadmap_details_system), 1));`);
+    await pool.query(`SELECT setval('quiz_questions_quiz_id_seq', COALESCE((SELECT MAX(quiz_id) FROM quiz_questions), 1));`);
+    await pool.query(`SELECT setval('quiz_attempts_attempt_id_seq', COALESCE((SELECT MAX(attempt_id) FROM quiz_attempts), 1));`);
 
     console.log("✅ DB initialized");
   } catch (err) {
@@ -710,48 +752,66 @@ function buildDefaultPromptTemplate() {
   return `**THIẾT KẾ LỘ TRÌNH HỌC CÁ NHÂN HÓA: <CATEGORY> -- <SUB_CATEGORY>**
 
 **I/ Vai trò của AI**
-Bạn là một chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh nghiệm.
+Bạn là chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh nghiệm, chuyên thiết kế lộ trình học tập cá nhân hóa dựa trên nguồn tài liệu giảng dạy uy tín, được đánh giá cao trên thế giới.
 
-**II/ Thông tin từ học viên:**
-- <MAIN_PURPOSE>
-- <SPECIFIC_GOAL>
-- <CURRENT_JOB>
-- <STUDY_TIME>
-- <CURRENT_LEVEL>
-- <SKILLS_TO_IMPROVE>
-- <DAILY_TIME>
-- <WEEKLY_FREQUENCY>
-- <TOTAL_DURATION>
-- <LEARNING_STYLE>
-- <LEARNING_METHOD>
-- <DIFFICULTIES>
-- <MOTIVATION>
-- <MATERIAL_TYPE>
-- <MATERIAL_LANGUAGE>
-- <ASSESSMENT_TYPE>
-- <RESULT_DISPLAY>
-- <ASSESSMENT_FREQUENCY>
+**II/ Thông tin thu thập từ học viên:**
+- Tên lộ trình: <ROADMAP_NAME>
+- Câu 1 - Mục đích bạn học điều này: <MAIN_PURPOSE>
+- Câu 2 - Kết quả cụ thể muốn đạt được khi kết thúc lộ trình: <SPECIFIC_GOAL>
+- Câu 2b - Kỳ thi/chứng chỉ/deadline cụ thể (nếu có): <TARGET_MILESTONE>
+- Câu 3 - Trình độ hiện tại (tự đánh giá): <CURRENT_LEVEL>
+- Câu 4 - Đánh giá từng kỹ năng con (thang 1-5): <SKILL_BREAKDOWN>
+- Câu 5 - Hiện đã làm/biết được những gì cụ thể: <KNOWN_SKILLS>
+- Câu 6 - Kỹ năng/chủ đề yếu nhất muốn cải thiện trước: <SKILLS_TO_IMPROVE>
+- Câu 7 - Thời gian học mỗi ngày (phút): <DAILY_TIME>
+- Câu 8 - Ngày học trong tuần: <STUDY_DAYS_OF_WEEK>
+- Câu 9 - Tổng số ngày của lộ trình: <TOTAL_DURATION>
+- Câu 10 - Hình thức tiếp thu tốt nhất: <LEARNING_STYLE>
+- Câu 11 - Nhịp học ưa thích: <LEARNING_METHOD>
+- Câu 12 - Điều khiến buổi học "đáng nhớ"/hứng thú nhất: <ENGAGEMENT_TRIGGER>
+- Câu 13 - Chủ đề mong muốn cho ví dụ/bài tập: <THEME_PREFERENCE>
+- Câu 14 - Loại tài liệu học hiệu quả nhất: <MATERIAL_TYPE>
+- Câu 15 - Ngôn ngữ tài liệu mong muốn: <MATERIAL_LANGUAGE>
+- Câu 16 - Ngưỡng "Đạt" cho quiz/đánh giá: <PASS_THRESHOLD>
+- Câu 17 - Thiết bị học chủ yếu: <DEVICE_TYPE>
+- Câu 18 - Cách hiển thị kết quả sau đánh giá: <RESULT_DISPLAY>
 
-**III/ Yêu cầu**
-Tạo lộ trình với 2 phần:
-1. Phân tích hiện trạng
-2. Lộ trình chi tiết (7 cột: day, goal, content, exercises, materials, instructions, duration)
+**III/ Yêu cầu AI trả lời**
+Dựa trên thông tin trên, thiết kế lộ trình học <CATEGORY> -- <SUB_CATEGORY> gồm đúng 2 mục:
 
-Trả về JSON format:
+1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ): tính khả thi mục tiêu trong <TOTAL_DURATION> ngày, tiêu chí đánh giá và cách đo lường kết quả, chiến lược phân chia nội dung từ dễ đến khó theo tuần, lời khuyên thực tiễn ngắn gọn.
+
+2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: mỗi ngày gồm mục tiêu, nội dung học, bài tập thực hành, tài liệu học (link đã kiểm chứng, miễn phí, còn hoạt động), hướng dẫn sử dụng tài liệu (nêu rõ vì sao chọn nguồn này, học đúng phần/phút/bài nào), thời lượng học, và một bộ 5 câu hỏi trắc nghiệm (quiz) tự soạn bám sát đúng nội dung của ngày đó (mỗi câu có 4 phương án A/B/C/D, chỉ 1 đáp án đúng, không dùng câu hỏi chung chung). Cứ mỗi 6 ngày liên tiếp (một "chương") và luôn ở ngày cuối cùng của lộ trình, ngoài quiz thường của ngày đó, còn thêm một bộ 5 câu hỏi kiểm tra tổng hợp cuối chương rút từ toàn bộ nội dung của chương đó.
+
+Áp dụng <THEME_PREFERENCE> xuyên suốt vào ví dụ, tình huống trong nội dung học và bài tập. Tận dụng <ENGAGEMENT_TRIGGER> để thiết kế cách trình bày bài học hấp dẫn. Nếu <DEVICE_TYPE> chỉ có điện thoại/máy tính bảng, ưu tiên tài liệu dạng video/đọc/quiz thân thiện di động.
+
+Chỉ trả về JSON đúng định dạng sau, không thêm chữ nào khác ngoài JSON:
 {
-  "analysis": "Phân tích chi tiết...",
+  "analysis": "Phân tích hiện trạng (tối đa 200 từ)...",
   "roadmap": [
     {
-      "day": 1,
-      "goal": "Mục tiêu ngày 1",
-      "content": "Nội dung học tập",
-      "exercises": "Bài tập thực hành",
-      "materials": "https://...",
-      "instructions": "Hướng dẫn chi tiết",
-      "duration": "1 giờ"
+      "day_number": 1,
+      "daily_goal": "Mục tiêu ngày 1",
+      "learning_content": "Nội dung học tập chi tiết",
+      "practice_exercises": "Bài tập thực hành",
+      "learning_materials": "https://example.com/material",
+      "study_guide": "Hướng dẫn chi tiết: vì sao chọn nguồn / học đúng phần nào / làm gì sau đó",
+      "study_duration": 1.0,
+      "quiz": [
+        {
+          "question_text": "Nội dung câu hỏi 1",
+          "option_a": "Phương án A",
+          "option_b": "Phương án B",
+          "option_c": "Phương án C",
+          "option_d": "Phương án D",
+          "correct_option": "A"
+        }
+      ],
+      "chapter_review_quiz": []
     }
   ]
-}`;
+}
+Lưu ý: mảng "quiz" luôn có đúng 5 phần tử cho MỌI ngày. Mảng "chapter_review_quiz" có đúng 5 phần tử CHỈ ở ngày cuối mỗi chương (cứ 6 ngày) và ngày cuối cùng của lộ trình, các ngày khác để mảng rỗng [].`;
 }
 
 function getDefaultManualPrompt() {
@@ -1083,26 +1143,65 @@ function parseAIResponse(aiResponseText) {
   }
 }
 
+function normalizeQuizArray(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.slice(0, 5).map(q => ({
+    question_text: String((q && (q.question_text || q.question)) || '').trim().substring(0, 1000),
+    option_a: String((q && q.option_a) || '').trim().substring(0, 500),
+    option_b: String((q && q.option_b) || '').trim().substring(0, 500),
+    option_c: String((q && q.option_c) || '').trim().substring(0, 500),
+    option_d: String((q && q.option_d) || '').trim().substring(0, 500),
+    correct_option: (q && ['A', 'B', 'C', 'D'].includes(String(q.correct_option || '').toUpperCase()))
+      ? String(q.correct_option).toUpperCase()
+      : 'A'
+  })).filter(q => q.question_text);
+}
+
+const CHAPTER_SIZE_DAYS = 6;
+
 function normalizeDays(days, targetCount, hoursPerDay, startDate, weekdays = []) {
   const studyDates = generateStudyDatesByWeekdays(startDate, weekdays, targetCount);
   const normalized = [];
 
   for (let i = 0; i < targetCount; i++) {
     const src = days[i] || {};
+    const dayNumber = i + 1;
+    const isChapterEnd = (dayNumber % CHAPTER_SIZE_DAYS === 0) || (dayNumber === targetCount);
     normalized.push({
-      day_number: i + 1,
-      daily_goal: String(src.daily_goal || src.goal || `Mục tiêu ngày ${i + 1}`).trim().substring(0, 500),
+      day_number: dayNumber,
+      daily_goal: String(src.daily_goal || src.goal || `Mục tiêu ngày ${dayNumber}`).trim().substring(0, 500),
       learning_content: String(src.learning_content || src.content || '').trim().substring(0, 1000),
       practice_exercises: String(src.practice_exercises || src.exercises || '').trim().substring(0, 1000),
       learning_materials: String(src.learning_materials || src.materials || '').trim(),
       study_guide: String(src.study_guide || src.usage_instructions || src.instructions || '').trim().substring(0, 2000),
       study_duration: parseFloat(src.study_duration || src.hours || hoursPerDay) || hoursPerDay,
       completion_status: 'NOT_STARTED',
-      study_date: toVietnamDateString(studyDates[i])
+      study_date: toVietnamDateString(studyDates[i]),
+      quiz: normalizeQuizArray(src.quiz),
+      chapter_review_quiz: isChapterEnd ? normalizeQuizArray(src.chapter_review_quiz) : []
     });
   }
 
   return normalized;
+}
+
+async function insertQuizForDay(roadmapId, dayNumber, quizArr, isChapterReview) {
+  if (!Array.isArray(quizArr) || quizArr.length === 0) return;
+  for (let i = 0; i < quizArr.length; i++) {
+    const q = quizArr[i];
+    if (!q || !q.question_text) continue;
+    await pool.query(
+      `INSERT INTO quiz_questions
+       (roadmap_id, day_number, is_chapter_review, question_order, question_text, option_a, option_b, option_c, option_d, correct_option)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+      [
+        roadmapId, dayNumber, isChapterReview, i + 1,
+        q.question_text,
+        q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '',
+        q.correct_option || 'A'
+      ]
+    );
+  }
 }
 
 // ============================================================================
@@ -2179,6 +2278,287 @@ app.get("/api/me", async (req, res) => {
   }
 });
 
+// PUT /api/users/me/password - Đổi mật khẩu (yêu cầu mật khẩu cũ, requireAuth)
+app.put("/api/users/me/password", requireAuth, async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ success: false, error: "Thiếu mật khẩu cũ hoặc mật khẩu mới" });
+    }
+
+    const pw = String(newPassword);
+    if (pw.length < 8 || !/[A-Z]/.test(pw) || !/[a-z]/.test(pw) || !/[0-9]/.test(pw) || !/[^A-Za-z0-9]/.test(pw)) {
+      return res.status(400).json({
+        success: false,
+        error: "Mật khẩu mới phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt"
+      });
+    }
+
+    const result = await pool.query("SELECT password FROM users WHERE id = $1", [req.user.id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+
+    const match = await comparePassword(oldPassword, result.rows[0].password);
+    if (!match) {
+      return res.status(401).json({ success: false, error: "Mật khẩu cũ không đúng" });
+    }
+
+    const hashedNew = await hashPassword(newPassword, 10);
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedNew, req.user.id]);
+
+    res.json({ success: true, message: "Đổi mật khẩu thành công" });
+  } catch (err) {
+    console.error("Error changing password:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể đổi mật khẩu" });
+  }
+});
+
+// PUT /api/users/me/profile - Cập nhật tên, username, email, avatar (requireAuth)
+app.put("/api/users/me/profile", requireAuth, async (req, res) => {
+  try {
+    const { name, username, email, avatar_url } = req.body;
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      if (!name.trim()) return res.status(400).json({ success: false, error: "Tên không được để trống" });
+      updates.push(`name = $${paramCount++}`);
+      values.push(name.trim());
+    }
+    if (username !== undefined) {
+      const uname = String(username).trim();
+      if (!/^[a-zA-Z0-9._-]{3,35}$/.test(uname)) {
+        return res.status(400).json({ success: false, error: "Tên đăng nhập chỉ được chứa chữ, số, . _ - và 3-35 ký tự" });
+      }
+      updates.push(`username = $${paramCount++}`);
+      values.push(uname);
+    }
+    if (email !== undefined) {
+      const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!EMAIL_RE.test(email)) {
+        return res.status(400).json({ success: false, error: "Email không đúng định dạng" });
+      }
+      updates.push(`email = $${paramCount++}`);
+      values.push(String(email).trim());
+    }
+    if (avatar_url !== undefined) {
+      updates.push(`avatar_url = $${paramCount++}`);
+      values.push(avatar_url || null);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, error: "Không có dữ liệu để cập nhật" });
+    }
+
+    values.push(req.user.id);
+
+    const result = await pool.query(
+      `UPDATE users SET ${updates.join(", ")} WHERE id = $${paramCount} RETURNING id, name, username, email, role, avatar_url`,
+      values
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Người dùng không tồn tại" });
+    }
+
+    res.json({ success: true, message: "Cập nhật hồ sơ thành công", data: result.rows[0] });
+  } catch (err) {
+    console.error("Error updating profile:", err?.message || err);
+    if (err.code === "23505") {
+      return res.status(409).json({ success: false, error: "Tên đăng nhập hoặc email đã được sử dụng" });
+    }
+    res.status(500).json({ success: false, error: "Không thể cập nhật hồ sơ" });
+  }
+});
+
+// POST /api/cloudinary/signature - Tạo chữ ký để frontend upload avatar thẳng lên Cloudinary
+app.post("/api/cloudinary/signature", requireAuth, async (req, res) => {
+  try {
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+      return res.status(503).json({ success: false, error: "Tính năng upload ảnh chưa được cấu hình" });
+    }
+
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = "passion_path_avatars";
+    const transformation = "q_auto,f_auto,w_150,h_150,c_fill";
+
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}&transformation=${transformation}`;
+    const signature = crypto.createHash('sha1').update(paramsToSign + apiSecret).digest('hex');
+
+    res.json({
+      success: true,
+      data: { signature, timestamp, apiKey, cloudName, folder, transformation }
+    });
+  } catch (err) {
+    console.error("Error creating Cloudinary signature:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể tạo chữ ký upload" });
+  }
+});
+
+// GET /api/roadmaps/:id/quiz-summary - Danh sách ngày có quiz + trạng thái đã làm
+app.get("/api/roadmaps/:id/quiz-summary", requireAuth, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+
+    const ownershipCheck = await pool.query(
+      "SELECT user_id FROM learning_roadmaps WHERE roadmap_id = $1", [roadmapId]
+    );
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+    }
+    if (ownershipCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ success: false, error: "Không có quyền truy cập" });
+    }
+
+    const daysResult = await pool.query(
+      `SELECT DISTINCT day_number, is_chapter_review FROM quiz_questions WHERE roadmap_id = $1 ORDER BY day_number ASC`,
+      [roadmapId]
+    );
+
+    const attemptsResult = await pool.query(
+      `SELECT day_number, is_chapter_review, MAX(score) as best_score, bool_or(passed) as ever_passed
+       FROM quiz_attempts WHERE roadmap_id = $1 AND user_id = $2
+       GROUP BY day_number, is_chapter_review`,
+      [roadmapId, req.user.id]
+    );
+
+    const attemptsMap = {};
+    attemptsResult.rows.forEach(a => {
+      attemptsMap[`${a.day_number}_${a.is_chapter_review}`] = {
+        best_score: Number(a.best_score),
+        ever_passed: a.ever_passed
+      };
+    });
+
+    const data = daysResult.rows.map(d => ({
+      day_number: d.day_number,
+      is_chapter_review: d.is_chapter_review,
+      attempt: attemptsMap[`${d.day_number}_${d.is_chapter_review}`] || null
+    }));
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("Error fetching quiz summary:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể tải thông tin quiz" });
+  }
+});
+
+// GET /api/roadmaps/:id/quiz/:dayNumber - Lấy 5 câu quiz của ngày (ẩn đáp án đúng)
+app.get("/api/roadmaps/:id/quiz/:dayNumber", requireAuth, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const dayNumber = parseInt(req.params.dayNumber);
+    const isChapterReview = req.query.chapter === 'true';
+
+    const ownershipCheck = await pool.query(
+      "SELECT user_id, pass_threshold FROM learning_roadmaps WHERE roadmap_id = $1", [roadmapId]
+    );
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+    }
+    if (ownershipCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ success: false, error: "Không có quyền truy cập" });
+    }
+
+    const questionsResult = await pool.query(
+      `SELECT quiz_id, question_order, question_text, option_a, option_b, option_c, option_d
+       FROM quiz_questions
+       WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = $3
+       ORDER BY question_order ASC`,
+      [roadmapId, dayNumber, isChapterReview]
+    );
+
+    if (questionsResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Chưa có quiz cho ngày này" });
+    }
+
+    const attemptResult = await pool.query(
+      `SELECT score, passed, answers, attempted_at
+       FROM quiz_attempts
+       WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = $3 AND user_id = $4
+       ORDER BY attempted_at DESC LIMIT 1`,
+      [roadmapId, dayNumber, isChapterReview, req.user.id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        questions: questionsResult.rows,
+        pass_threshold: ownershipCheck.rows[0].pass_threshold || 80,
+        last_attempt: attemptResult.rows[0] || null
+      }
+    });
+  } catch (err) {
+    console.error("Error fetching quiz:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể tải quiz" });
+  }
+});
+
+// POST /api/roadmaps/:id/quiz/:dayNumber/submit - Nộp bài, chấm điểm server-side
+app.post("/api/roadmaps/:id/quiz/:dayNumber/submit", requireAuth, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const dayNumber = parseInt(req.params.dayNumber);
+    const isChapterReview = req.query.chapter === 'true';
+    const { answers } = req.body;
+
+    const ownershipCheck = await pool.query(
+      "SELECT user_id, pass_threshold FROM learning_roadmaps WHERE roadmap_id = $1", [roadmapId]
+    );
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+    }
+    if (ownershipCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ success: false, error: "Không có quyền truy cập" });
+    }
+    const passThreshold = ownershipCheck.rows[0].pass_threshold || 80;
+
+    const questionsResult = await pool.query(
+      `SELECT question_order, correct_option FROM quiz_questions
+       WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = $3
+       ORDER BY question_order ASC`,
+      [roadmapId, dayNumber, isChapterReview]
+    );
+
+    if (questionsResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Không tìm thấy quiz" });
+    }
+
+    let score = 0;
+    const correctAnswers = {};
+    questionsResult.rows.forEach(q => {
+      correctAnswers[q.question_order] = q.correct_option;
+      const userAnswer = answers ? answers[q.question_order] : null;
+      if (userAnswer && String(userAnswer).toUpperCase() === q.correct_option) score++;
+    });
+
+    const totalQuestions = questionsResult.rows.length;
+    const percent = (score / totalQuestions) * 100;
+    const passed = percent >= passThreshold;
+
+    await pool.query(
+      `INSERT INTO quiz_attempts (roadmap_id, day_number, is_chapter_review, user_id, score, passed, answers)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [roadmapId, dayNumber, isChapterReview, req.user.id, score, passed, JSON.stringify(answers || {})]
+    );
+
+    res.json({
+      success: true,
+      data: { score, total: totalQuestions, passed, pass_threshold: passThreshold, correct_answers: correctAnswers }
+    });
+  } catch (err) {
+    console.error("Error submitting quiz:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể nộp bài" });
+  }
+});
+
 // 6. GET /api/users/me - Lấy thông tin chi tiết user (requireAuth)
 app.get("/api/users/me", requireAuth, async (req, res) => {
   try {
@@ -3000,7 +3380,7 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       ).catch(err => console.error('❌ Failed to link AI history:', err));
     }
 
-    if (Array.isArray(days) && days.length > 0) {
+if (Array.isArray(days) && days.length > 0) {
       const studyDates = generateStudyDatesByWeekdays(roadmapCreatedAt, weekdaysArr, days.length);
       for (let i = 0; i < days.length; i++) {
         const day = days[i];
@@ -3023,6 +3403,13 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
             day.study_guide || day.usage_instructions || ""
           ]
         );
+
+        if (Array.isArray(day.quiz) && day.quiz.length > 0) {
+          await insertQuizForDay(roadmapId, dayNumber, day.quiz, false);
+        }
+        if (Array.isArray(day.chapter_review_quiz) && day.chapter_review_quiz.length > 0) {
+          await insertQuizForDay(roadmapId, dayNumber, day.chapter_review_quiz, true);
+        }
       }
     }
 
