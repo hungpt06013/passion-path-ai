@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hồ Sơ Cá Nhân - Con đường theo đuổi đam mê</title>
+<script>
+  const _token = localStorage.getItem('token');
+  if (!_token) window.location.replace('login.html');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="footer.css">
+<link rel="stylesheet" href="header.css">
+<style>
+:root{--primary:#007bff;--bg:#f5f8fb;}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
+main{flex:1 0 auto;max-width:800px;width:100%;margin:0 auto;padding-top:120px;padding-left:20px;padding-right:20px;padding-bottom:40px;}
+.card{background:#fff;border-radius:16px;padding:30px;box-shadow:0 6px 18px rgba(20,20,40,0.06);margin-bottom:24px;}
+.card h2{margin:0 0 20px 0;font-size:20px;color:#1f2937;}
+.avatar-wrap{display:flex;align-items:center;gap:20px;margin-bottom:24px;flex-wrap:wrap;}
+.avatar-big{width:100px;height:100px;border-radius:50%;object-fit:cover;background:#e5e7eb;}
+.avatar-upload-btn{padding:10px 18px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px;}
+.form-group input{width:100%;padding:10px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;}
+.form-group input:focus{outline:none;border-color:var(--primary);}
+.btn-save{padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn-save:disabled{opacity:0.6;cursor:not-allowed;}
+.msg{margin-top:10px;font-size:13px;min-height:18px;}
+.msg.success{color:#059669;}
+.msg.error{color:#dc2626;}
+.cert-placeholder{text-align:center;padding:30px;color:#9ca3af;border:2px dashed #e5e7eb;border-radius:12px;}
+@media(max-width:600px){main{padding-top:200px;}.avatar-wrap{flex-direction:column;align-items:flex-start;}}
+</style>
+</head>
+<body>
+<script src="config.js"></script>
+<div id="header"></div>
+<script>
+fetch('header.html',{cache:'no-store'}).then(r=>r.text()).then(html=>{
+  document.getElementById('header').innerHTML = html;
+  const s = document.createElement('script'); s.src='header.js'; document.body.appendChild(s);
+});
+</script>
+
+<main>
+  <div class="card">
+    <h2>👤 Hồ Sơ Cá Nhân</h2>
+    <div class="avatar-wrap">
+      <img id="avatarPreview" class="avatar-big" src="" alt="avatar">
+      <div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+        <button class="avatar-upload-btn" onclick="document.getElementById('avatarInput').click()">
+          <i class="fa-solid fa-camera"></i> Đổi ảnh đại diện
+        </button>
+        <div class="msg" id="avatarMsg"></div>
+      </div>
+    </div>
+
+    <div class="form-group"><label>Họ và tên</label><input type="text" id="fieldName"></div>
+    <div class="form-group"><label>Tên đăng nhập</label><input type="text" id="fieldUsername"></div>
+    <div class="form-group"><label>Email</label><input type="email" id="fieldEmail"></div>
+    <button class="btn-save" id="saveProfileBtn">💾 Lưu thay đổi</button>
+    <div class="msg" id="profileMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>🔒 Đổi Mật Khẩu</h2>
+    <div class="form-group"><label>Mật khẩu cũ</label><input type="password" id="oldPassword"></div>
+    <div class="form-group"><label>Mật khẩu mới</label><input type="password" id="newPassword"></div>
+    <button class="btn-save" id="savePasswordBtn">🔑 Đổi mật khẩu</button>
+    <div class="msg" id="passwordMsg"></div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 Chứng Chỉ</h2>
+    <div class="cert-placeholder">Chưa có chứng chỉ nào</div>
+  </div>
+</main>
+<div id="footer"></div>
+
+<script>
+const token = localStorage.getItem('token');
+function authHeaders(){ return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+const DEFAULT_AVATAR_FALLBACK = (name) => 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(name || 'U');
+
+async function loadProfile() {
+  try {
+    const res = await fetch(`${API_BASE}/api/users/me`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Không thể tải hồ sơ');
+    const u = data.data;
+    document.getElementById('fieldName').value = u.name || '';
+    document.getElementById('fieldUsername').value = u.username || '';
+    document.getElementById('fieldEmail').value = u.email || '';
+    document.getElementById('avatarPreview').src = u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name);
+    if (u.avatar_url) localStorage.setItem('avatarUrl', u.avatar_url);
+  } catch (err) {
+    console.error(err);
+    document.getElementById('profileMsg').textContent = '❌ ' + err.message;
+    document.getElementById('profileMsg').className = 'msg error';
+  }
+}
+
+document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveProfileBtn');
+  const msg = document.getElementById('profileMsg');
+  btn.disabled = true;
+  msg.textContent = '';
+  try {
+    const payload = {
+      name: document.getElementById('fieldName').value.trim(),
+      username: document.getElementById('fieldUsername').value.trim(),
+      email: document.getElementById('fieldEmail').value.trim()
+    };
+    const res = await fetch(`${API_BASE}/api/users/me/profile`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Lỗi khi lưu');
+    localStorage.setItem('userName', payload.name);
+    msg.textContent = '✅ ' + data.message;
+    msg.className = 'msg success';
+  } catch (err) {
+    msg.textContent = '❌ ' + err.message;
+    msg.className = 'msg error';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('savePasswordBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('savePasswordBtn');
+  const msg = document.getElementById('passwordMsg');
+  const oldPassword = document.getElementById('oldPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+  if (!oldPassword || !newPassword) {
+    msg.textContent = '❌ Vui lòng nhập đầy đủ mật khẩu cũ và mới';
+    msg.className = 'msg error';
+    return;
+  }
+  btn.disabled = true;
+  msg.textContent = '';
+  try {
+    const res = await fetch(`${API_BASE}/api/users/me/password`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Lỗi khi đổi mật khẩu');
+    msg.textContent = '✅ ' + data.message;
+    msg.className = 'msg success';
+    document.getElementById('oldPassword').value = '';
+    document.getElementById('newPassword').value = '';
+  } catch (err) {
+    msg.textContent = '❌ ' + err.message;
+    msg.className = 'msg error';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('avatarInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const msg = document.getElementById('avatarMsg');
+  msg.textContent = 'Đang tải ảnh lên...';
+  msg.className = 'msg';
+  try {
+    const sigRes = await fetch(`${API_BASE}/api/cloudinary/signature`, { method: 'POST', headers: authHeaders() });
+    const sigData = await sigRes.json();
+    if (!sigData.success) throw new Error(sigData.error || 'Không thể lấy chữ ký upload');
+    const { signature, timestamp, apiKey, cloudName, folder, transformation } = sigData.data;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', apiKey);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+    formData.append('folder', folder);
+    formData.append('transformation', transformation);
+
+    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST', body: formData
+    });
+    const uploadData = await uploadRes.json();
+    if (!uploadData.secure_url) throw new Error('Upload ảnh thất bại');
+
+    const saveRes = await fetch(`${API_BASE}/api/users/me/profile`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ avatar_url: uploadData.secure_url })
+    });
+    const saveData = await saveRes.json();
+    if (!saveData.success) throw new Error(saveData.error || 'Không thể lưu ảnh');
+
+    document.getElementById('avatarPreview').src = uploadData.secure_url;
+    localStorage.setItem('avatarUrl', uploadData.secure_url);
+    msg.textContent = '✅ Đã cập nhật ảnh đại diện';
+    msg.className = 'msg success';
+  } catch (err) {
+    console.error(err);
+    msg.textContent = '❌ ' + err.message;
+    msg.className = 'msg error';
+  }
+});
+
+loadProfile();
+</script>
+<script src="footer.js"></script>
+</body>
+</html>
