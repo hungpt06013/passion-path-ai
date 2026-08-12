@@ -1716,11 +1716,15 @@ function openGenericCalendarDetail(detailId) {
   }
   const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
   const statusText = statusMap[d.completion_status] || null;
+  const isChapterEndDay = (d.day_number % 6 === 0) || (d.day_number === myRoadmapDetails.length);
 
   panel.innerHTML = `
     <div class="mcd-header">
-      <h4>📅 Ngày ${d.day_number}</h4>
-      <button class="mcd-close" onclick="closeGenericCalendarDetail()">✕</button>
+      <h4>📅 Ngày ${d.day_number}${d.study_date ? ' - ' + new Date(d.study_date).toLocaleDateString('vi-VN') : ''}</h4>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button type="button" class="mcd-edit-btn" onclick="editThisDayFromCalendar(${d.detail_id})"><i class="fa-solid fa-pen"></i> Sửa</button>
+        <button class="mcd-close" onclick="closeMyDayCalendarDetail()">✕</button>
+      </div>
     </div>
     <div class="mcd-body">
       <p><strong>🎯 Mục tiêu:</strong> ${escapeHtml(d.daily_goal || 'N/A')}</p>
@@ -1729,7 +1733,19 @@ function openGenericCalendarDetail(detailId) {
       <p><strong>📎 Tài liệu:</strong> ${materialsHTML}</p>
       <p><strong>💡 Hướng dẫn:</strong> ${escapeHtml(d.usage_instructions || 'N/A')}</p>
       <p><strong>⏱️ Thời lượng:</strong> ${formatHours(d.study_duration)}</p>
-      ${statusText ? `<p><strong>📌 Trạng thái:</strong> ${statusText}</p>` : ''}
+      <div class="mcd-status-row">
+        <strong>Trạng thái:</strong>
+        <select onchange="updateMyDayStatus(${myRoadmapData.roadmap_id}, ${d.detail_id}, this.value)">
+          <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
+          <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
+          <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
+          <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
+        </select>
+      </div>
+      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="mcd-edit-btn" style="background:linear-gradient(135deg,#3b82f6,#2563eb);" onclick="window.location.href='quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}'"><i class="fa-solid fa-pen-to-square"></i> Làm Quiz Ngày</button>
+        ${isChapterEndDay ? `<button class="mcd-edit-btn" style="background:linear-gradient(135deg,#dc2626,#991b1b);" onclick="window.location.href='quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}&chapter=true'"><i class="fa-solid fa-book-open"></i> Kiểm Tra Cuối Chương</button>` : ''}
+      </div>
     </div>
   `;
   panel.style.display = 'block';
@@ -2097,12 +2113,12 @@ function getMyStatusText(status) {
   return map[status] || status;
 }
 const STREAK_TIERS = [
-  { label: '17%',  from: '#f97316', to: '#fbbf24' },
-  { label: '33%',  from: '#7c3aed', to: '#a78bfa' },
-  { label: '50%',  from: '#16a34a', to: '#4ade80' },
-  { label: '66%',  from: '#dc2626', to: '#f87171' },
-  { label: '83%',  from: '#2563eb', to: '#60a5fa' },
-  { label: '100%', from: '#ec4899', to: '#8b5cf6' }
+  { label: '1/6', icon: 'Data/streak/streak-1.png' },
+  { label: '2/6', icon: 'Data/streak/streak-2.png' },
+  { label: '3/6', icon: 'Data/streak/streak-3.png' },
+  { label: '4/6', icon: 'Data/streak/streak-4.png' },
+  { label: '5/6', icon: 'Data/streak/streak-5.png' },
+  { label: '6/6', icon: 'Data/streak/streak-6.png' }
 ];
 
 function renderStreakBadge(tier) {
@@ -2111,8 +2127,8 @@ function renderStreakBadge(tier) {
   const t = STREAK_TIERS[achieved ? tier - 1 : 0];
   return `
     <div style="display:inline-flex;flex-direction:column;align-items:center;gap:6px;margin-left:8px;vertical-align:middle;">
-      <div style="font-size:34px;line-height:1;filter:${achieved ? 'none' : 'grayscale(1) opacity(0.35)'};">🔥</div>
-      <div style="background:linear-gradient(135deg, ${t.from}, ${t.to}); color:white; font-weight:700; padding:5px 14px; border-radius:20px; font-size:12px; white-space:nowrap;">
+      <img src="${t.icon}" alt="streak" style="width:34px;height:34px;object-fit:contain;filter:${achieved ? 'none' : 'grayscale(1) opacity(0.35)'};">
+      <div style="background:#f3f4f6; color:#374151; font-weight:700; padding:5px 14px; border-radius:20px; font-size:12px; white-space:nowrap; border:1px solid #e5e7eb;">
         ${achieved ? 'Chuỗi ' + t.label : 'Chưa đạt mốc'}
       </div>
     </div>
@@ -2437,6 +2453,9 @@ function displayMyRoadmapDetails(roadmap, details) {
               </td>
               <td style="text-align:center;">
                 <button class="delete-day-btn" onclick="deleteMyDay(this)"><i class="fa-solid fa-trash"></i> Xóa</button>
+                <br>
+                <a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}" style="display:inline-block;margin-top:6px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
+                ${(d.day_number % 6 === 0 || d.day_number === details.length) ? `<br><a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}
               </td>
             </tr>`;
           }).join('')}
