@@ -109,6 +109,7 @@ function applyOptimisticAuthUI() {
     if (!userArea || !token) return false;
 
     const cachedName = localStorage.getItem('userName') || 'Người dùng';
+    const cachedAvatar = localStorage.getItem('avatarUrl') || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(cachedName);
 
     const loginBtn = userArea.querySelector('.login-btn');
     const registerBtn = userArea.querySelector('.register-btn');
@@ -116,7 +117,10 @@ function applyOptimisticAuthUI() {
     if (registerBtn) registerBtn.style.display = 'none';
 
     userArea.innerHTML = `
-        <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${cachedName}</strong></span>
+        <a href="profile.html" class="profile-link">
+            <img class="avatar-circle" src="${cachedAvatar}" alt="avatar">
+            <span>Xin chào <strong style="color:white;font-weight:900 !important;font-family:'Inter',sans-serif;">${cachedName}</strong></span>
+        </a>
         <button id="logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
     `;
     const logoutEl = document.getElementById('logout');
@@ -187,6 +191,11 @@ async function loadUser(currentPage = '') {
             name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
             localStorage.setItem('role', serverRole);
             localStorage.setItem('userName', name); // ✅ cache lại để lần sau hiện ngay
+            if (data && data.user && data.user.avatar_url) {
+                localStorage.setItem('avatarUrl', data.user.avatar_url);
+                const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
+                if (avatarEl) avatarEl.src = data.user.avatar_url;
+            }
         } catch (err) {
             console.error('❌ Error loading user:', err);
             // Lỗi mạng: giữ nguyên UI optimistic đã hiện, không cần làm gì thêm
