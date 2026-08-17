@@ -221,12 +221,17 @@
 .logout-btn:hover {
     background: linear-gradient(135deg, #3a0bbd 0%, #056bb3 100%);
 }
-.profile-link {
+.profile-link,
+.profile-link:visited,
+.profile-link:hover,
+.profile-link:active,
+.profile-link span {
     display: inline-flex;
     align-items: center;
     gap: clamp(6px, 0.8vw, 10px);
     text-decoration: none;
     cursor: pointer;
+    color: white !important;
 }
 .avatar-circle {
     width: clamp(28px, 3vw, 36px);
