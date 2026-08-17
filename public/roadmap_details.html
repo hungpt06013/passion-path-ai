@@ -1680,6 +1680,7 @@ function displayRoadmapDetails(roadmap, details) {
 }
 
 let genericCalendarDetails = [];
+let genericHasStatus = false;
 
 function renderGenericCalendarHTML(details, hasStatus) {
   return details.map(d => {
@@ -1715,15 +1716,13 @@ function openGenericCalendarDetail(detailId) {
       : escapeHtml(d.learning_materials);
   }
   const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
-  const statusText = statusMap[d.completion_status] || null;
-  const isChapterEndDay = (d.day_number % 6 === 0) || (d.day_number === myRoadmapDetails.length);
+  const statusText = genericHasStatus ? (statusMap[d.completion_status] || 'Chưa học') : 'Chưa học';
 
   panel.innerHTML = `
     <div class="mcd-header">
       <h4>📅 Ngày ${d.day_number}${d.study_date ? ' - ' + new Date(d.study_date).toLocaleDateString('vi-VN') : ''}</h4>
       <div style="display:flex; align-items:center; gap:10px;">
-        <button type="button" class="mcd-edit-btn" onclick="editThisDayFromCalendar(${d.detail_id})"><i class="fa-solid fa-pen"></i> Sửa</button>
-        <button class="mcd-close" onclick="closeMyDayCalendarDetail()">✕</button>
+        <button class="mcd-close" onclick="closeGenericCalendarDetail()">✕</button>
       </div>
     </div>
     <div class="mcd-body">
@@ -1734,17 +1733,7 @@ function openGenericCalendarDetail(detailId) {
       <p><strong>💡 Hướng dẫn:</strong> ${escapeHtml(d.usage_instructions || 'N/A')}</p>
       <p><strong>⏱️ Thời lượng:</strong> ${formatHours(d.study_duration)}</p>
       <div class="mcd-status-row">
-        <strong>Trạng thái:</strong>
-        <select onchange="updateMyDayStatus(${myRoadmapData.roadmap_id}, ${d.detail_id}, this.value)">
-          <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
-          <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
-          <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
-          <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
-        </select>
-      </div>
-      <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="mcd-edit-btn" style="background:linear-gradient(135deg,#3b82f6,#2563eb);" onclick="window.location.href='quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}'"><i class="fa-solid fa-pen-to-square"></i> Làm Quiz Ngày</button>
-        ${isChapterEndDay ? `<button class="mcd-edit-btn" style="background:linear-gradient(135deg,#dc2626,#991b1b);" onclick="window.location.href='quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}&chapter=true'"><i class="fa-solid fa-book-open"></i> Kiểm Tra Cuối Chương</button>` : ''}
+        <strong>Trạng thái:</strong> <span>${statusText}</span>
       </div>
     </div>
   `;
@@ -1779,6 +1768,7 @@ function switchGenericViewMode(mode) {
 
 function populateGenericCalendar(details, hasStatus) {
   genericCalendarDetails = details;
+  genericHasStatus = !!hasStatus;
   const grid = document.getElementById('genericCalendarGrid');
   if (grid) grid.innerHTML = renderGenericCalendarHTML(details, hasStatus);
   closeGenericCalendarDetail();
@@ -2120,7 +2110,21 @@ const STREAK_TIERS = [
   { label: '5/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1786546282/streak-5.png' },
   { label: '6/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1786546280/streak-6.png' }
 ];
-
+function getTierForDay(dayNumber, totalDays) {
+  if (!totalDays || totalDays <= 0) return 1;
+  const tier = Math.ceil((dayNumber / totalDays) * 6);
+  return Math.min(6, Math.max(1, tier));
+}
+function getDayStreakIconHTML(dayNumber, totalDays, completionStatus) {
+  if (completionStatus === 'COMPLETED') {
+    const tier = getTierForDay(dayNumber, totalDays);
+    const t = STREAK_TIERS[tier - 1];
+    return `<img src="${t.icon}" alt="streak" style="width:22px;height:22px;object-fit:contain;">`;
+  }
+  if (completionStatus === 'IN_PROGRESS') return '⏳';
+  if (completionStatus === 'SKIPPED') return '⏭️';
+  return '⚪';
+}
 function renderStreakBadge(tier) {
   tier = Math.max(0, Math.min(6, tier || 0));
   const achieved = tier > 0;
@@ -2151,7 +2155,6 @@ function renderMyRoadmap() {
       <i class="fas fa-star"></i> Đánh giá lộ trình
     </button>
   `;
-  document.getElementById('badgesContainer').insertAdjacentHTML('beforeend', renderStreakBadge(myRoadmapData.streak_tier || 0));
 
   const existingWarn = document.getElementById('overdueWarningBanner');
   if (existingWarn) existingWarn.remove();
@@ -2387,9 +2390,7 @@ function displayMyRoadmapDetails(roadmap, details) {
             const statusClass = d.completion_status === 'COMPLETED' ? 'completed' :
                                  d.completion_status === 'IN_PROGRESS' ? 'in-progress' :
                                  d.completion_status === 'SKIPPED' ? 'skipped' : 'not-started';
-            const icon = d.completion_status === 'COMPLETED' ? '🔥' :
-                         d.completion_status === 'IN_PROGRESS' ? '⏳' :
-                         d.completion_status === 'SKIPPED' ? '⏭️' : '⚪';
+            const icon = getDayStreakIconHTML(d.day_number, details.length, d.completion_status);
             const dateLabel = d.study_date ? new Date(d.study_date).toLocaleDateString('vi-VN', {day:'2-digit', month:'2-digit'}) : '';
             return `
               <div class="mine-calendar-cell ${statusClass}" onclick="openMyDayCalendarDetail(${d.detail_id})" data-detail-id="${d.detail_id}" title="${escapeHtml(d.daily_goal || '')}">
