@@ -1036,6 +1036,14 @@ details > div {
         
         <div id="aiHistoryArea"></div>
         <div id="aiHistoryMessage" role="status" aria-live="polite"></div>
+        <div class="section-divider"></div>
+        <h3>⚙️ Giới Hạn Lượt Tạo Lộ Trình Bằng AI</h3>
+        <p class="small">Số lượt tối đa mỗi user (không phải admin) được tạo lộ trình bằng AI.</p>
+        <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+          <input type="number" id="aiLimitInput" min="0" style="width:100px; padding:8px; border:1px solid #d1d5db; border-radius:6px;">
+          <button id="saveAiLimitBtn" class="btn-save"><i class="fa-solid fa-save"></i> Lưu</button>
+        </div>
+        <div id="aiLimitMessage" role="status" aria-live="polite" style="margin-top:8px;"></div>
       </section>
 
       <section id="categoriesSection" style="display:none;" class="card">
@@ -1190,6 +1198,16 @@ details > div {
     
     <div id="feedbackArea"></div>
     <div id="feedbackMessage" role="status" aria-live="polite"></div>
+</section>
+<section id="quizStatsSection" style="display:none;" class="card">
+  <h2>📊 Thống Kê Quiz & Ngưỡng Đạt</h2>
+  <p class="small">Xem thống kê điểm quiz của học viên và chỉnh sửa ngưỡng đạt (pass_threshold) từng lộ trình.</p>
+  <div style="margin: 15px 0;">
+    <button id="fetchQuizStatsBtn" class="btn-refresh"><i class="fa-solid fa-sync"></i> Tải Thống Kê</button>
+  </div>
+  <div id="quizStatsOverview"></div>
+  <div id="quizStatsByRoadmap"></div>
+  <div id="quizStatsMessage" role="status" aria-live="polite"></div>
 </section>
 <!-- ===== SECTION: LỘ TRÌNH HỆ THỐNG ===== -->
 <section id="systemRoadmapsSection" style="display:none;" class="card">
@@ -2906,10 +2924,11 @@ function formatHours(hours) {
                 
                 adminNavButtons.innerHTML = `
                     <button class="admin-nav-btn active" id="btnUsers"><i class="fa-solid fa-users"></i> Quản Lý User</button>
-                    <button class="admin-nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Lịch Sử AI</button>
+                    <button class="admin-nav-btn" id="btnAIHistory"><i class="fa-solid fa-robot"></i> Tạo lộ trình với AI</button>
                     <button class="admin-nav-btn" id="btnCategories"><i class="fa-solid fa-folder"></i> Danh Mục</button>
                     <button class="admin-nav-btn" id="btnPrompt"><i class="fa-solid fa-file-code"></i> Prompt Template</button>
                     <button class="admin-nav-btn" id="btnFeedback"><i class="fa-solid fa-comments"></i> Phản Hồi</button>
+                    <button class="admin-nav-btn" id="btnQuizStats"><i class="fa-solid fa-chart-simple"></i> Quiz & Ngưỡng Đạt</button>
                     <button class="admin-nav-btn" id="btnSystemRoadmaps"><i class="fa-solid fa-sitemap"></i> Lộ Trình Hệ Thống</button>
                     <button class="admin-nav-btn" id="btnUserRoadmaps"><i class="fa-solid fa-map"></i> Lộ Trình Người Dùng</button>
                 `;
@@ -2923,6 +2942,7 @@ function formatHours(hours) {
                 document.getElementById('btnAIHistory').addEventListener('click', () => {
                     showAdminSection('aiHistorySection');
                     setActiveAdminBtn('btnAIHistory');
+                    loadAiLimit();
                 });
                 
                 document.getElementById('btnCategories').addEventListener('click', () => {
@@ -2941,6 +2961,11 @@ function formatHours(hours) {
                     showAdminSection('feedbackSection');
                     setActiveAdminBtn('btnFeedback');
                 });
+                document.getElementById('btnQuizStats').addEventListener('click', () => {
+                    showAdminSection('quizStatsSection');
+                    setActiveAdminBtn('btnQuizStats');
+                });
+
                 document.getElementById('btnSystemRoadmaps').addEventListener('click', () => {
                     showAdminSection('systemRoadmapsSection');
                     setActiveAdminBtn('btnSystemRoadmaps');
@@ -2960,6 +2985,7 @@ function formatHours(hours) {
         document.getElementById('categoriesSection').style.display = 'none';
         document.getElementById('promptSection').style.display = 'none';
         document.getElementById('feedbackSection').style.display = 'none';
+        document.getElementById('quizStatsSection').style.display = 'none';
         document.getElementById('systemRoadmapsSection').style.display = 'none';
         document.getElementById('userRoadmapsSection').style.display = 'none';
         
@@ -2971,7 +2997,128 @@ function formatHours(hours) {
         const btn = document.getElementById(btnId);
         if (btn) btn.classList.add('active');
     }
+const fetchQuizStatsBtn = document.getElementById('fetchQuizStatsBtn');
+const quizStatsOverview = document.getElementById('quizStatsOverview');
+const quizStatsByRoadmap = document.getElementById('quizStatsByRoadmap');
+const quizStatsMessage = document.getElementById('quizStatsMessage');
 
+if (fetchQuizStatsBtn) fetchQuizStatsBtn.addEventListener('click', loadQuizStats);
+
+async function loadQuizStats() {
+  quizStatsMessage.textContent = 'Đang tải...';
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/admin/quiz-stats`, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderQuizStats(data.data);
+    quizStatsMessage.textContent = '';
+  } catch (err) {
+    console.error(err);
+    quizStatsMessage.textContent = 'Lỗi khi tải thống kê quiz';
+  }
+}
+
+function renderQuizStats(data) {
+  const o = data.overall || {};
+  quizStatsOverview.innerHTML = `
+    <div style="display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin-bottom:20px;">
+      <div style="background:#f0f9ff; padding:15px; border-radius:10px; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#007bff;">${o.total_attempts || 0}</div>
+        <div class="small">Tổng lượt làm bài</div>
+      </div>
+      <div style="background:#f0fdf4; padding:15px; border-radius:10px; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#10b981;">${o.total_students || 0}</div>
+        <div class="small">Học viên đã làm quiz</div>
+      </div>
+      <div style="background:#fef3c7; padding:15px; border-radius:10px; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;">${o.avg_score || 0}/5</div>
+        <div class="small">Điểm trung bình</div>
+      </div>
+      <div style="background:#fee2e2; padding:15px; border-radius:10px; text-align:center;">
+        <div style="font-size:1.5rem; font-weight:700; color:#dc2626;">${o.pass_rate || 0}%</div>
+        <div class="small">Tỷ lệ đạt</div>
+      </div>
+    </div>
+  `;
+
+  const rows = data.by_roadmap || [];
+  if (rows.length === 0) {
+    quizStatsByRoadmap.innerHTML = '<div class="muted">Chưa có dữ liệu quiz</div>';
+    return;
+  }
+
+  quizStatsByRoadmap.innerHTML = rows.map(r => `
+    <div class="history-card">
+      <div class="history-header">
+        <div>
+          <strong>#${r.roadmap_id} - ${escapeHtml(r.roadmap_name || 'N/A')}</strong><br>
+          <span class="small">Chủ lộ trình: ${escapeHtml(r.owner_name || 'N/A')}</span>
+        </div>
+        <span class="status-badge status-success">TB: ${r.avg_score || 0}/5 - Đạt: ${r.pass_rate || 0}%</span>
+      </div>
+      <div style="margin-top:10px; display:grid; grid-template-columns:repeat(2,1fr); gap:8px;">
+        <div><strong>Lượt làm:</strong> ${r.total_attempts}</div>
+        <div><strong>Học viên:</strong> ${r.students}</div>
+      </div>
+      <div style="margin-top:12px; display:flex; align-items:center; gap:8px;">
+        <label style="font-weight:600;">Ngưỡng đạt (%):</label>
+        <input type="number" min="0" max="100" value="${r.pass_threshold ?? 80}" id="threshold_${r.roadmap_id}" style="width:80px; padding:6px; border:1px solid #d1d5db; border-radius:6px;">
+        <button class="btn-refresh" onclick="savePassThreshold(${r.roadmap_id})" style="padding:6px 12px;">
+          <i class="fa-solid fa-save"></i> Lưu
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.savePassThreshold = async function(roadmapId) {
+  const input = document.getElementById(`threshold_${roadmapId}`);
+  const val = parseInt(input.value);
+  if (isNaN(val) || val < 0 || val > 100) { alert('Ngưỡng đạt phải từ 0-100'); return; }
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/admin/roadmaps/${roadmapId}/pass-threshold`, {
+      method: 'PUT',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pass_threshold: val })
+    });
+    const data = await res.json();
+    alert(data.success ? '✅ ' + data.message : '❌ ' + data.error);
+  } catch (err) {
+    console.error(err);
+    alert('Lỗi khi lưu ngưỡng đạt');
+  }
+};
+async function loadAiLimit() {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_BASE}/api/admin/ai-limit`, { headers: { 'Authorization': 'Bearer ' + token } });
+    const data = await res.json();
+    if (data.success) document.getElementById('aiLimitInput').value = data.data.ai_generation_limit;
+  } catch (err) { console.error(err); }
+}
+
+const saveAiLimitBtn = document.getElementById('saveAiLimitBtn');
+if (saveAiLimitBtn) {
+  saveAiLimitBtn.addEventListener('click', async () => {
+    const val = parseInt(document.getElementById('aiLimitInput').value);
+    const msg = document.getElementById('aiLimitMessage');
+    if (isNaN(val) || val < 0) { msg.textContent = 'Giá trị không hợp lệ'; return; }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_BASE}/api/admin/ai-limit/save`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ai_generation_limit: val })
+      });
+      const data = await res.json();
+      msg.textContent = data.success ? '✅ ' + data.message : '❌ ' + data.error;
+    } catch (err) {
+      msg.textContent = 'Lỗi khi lưu';
+    }
+  });
+}
     document.addEventListener('DOMContentLoaded', setupAdminNavigation);
     setupAdminNavigation();
   </script>
