@@ -42,6 +42,16 @@ const publicDir = path.resolve(process.env.PUBLIC_DIR || path.join(__dirname, "p
 // AI Limits
 const MIN_AI_DAYS = 15;
 const AI_GENERATION_LIMIT_PER_USER = 1;
+async function getAIGenerationLimit() {
+  try {
+    const r = await pool.query("SELECT config_value FROM system_config WHERE config_key = 'ai_generation_limit' LIMIT 1");
+    if (r.rows.length > 0) {
+      const v = parseInt(r.rows[0].config_value);
+      if (!isNaN(v) && v >= 0) return v;
+    }
+  } catch (e) { console.warn('getAIGenerationLimit error:', e.message); }
+  return AI_GENERATION_LIMIT_PER_USER;
+}
 const TOKENS_PER_DAY = parseInt(process.env.TOKENS_PER_DAY || "800", 10);
 const MIN_COMPLETION_TOKENS = 128;
 
@@ -537,7 +547,12 @@ async function initDB() {
         UNIQUE(provider, key_index, period)
       );
     `);
-
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS system_config (
+        config_key VARCHAR(100) PRIMARY KEY,
+        config_value TEXT
+      );
+    `);
     await pool.query(`ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;`);
@@ -2266,7 +2281,8 @@ app.get("/api/me", async (req, res) => {
 
     const u = result.rows[0];
     const isAdmin = String(u.role || '').toLowerCase() === 'admin';
-    const aiRemaining = isAdmin ? null : Math.max(0, AI_GENERATION_LIMIT_PER_USER - (u.ai_roadmap_generations_used || 0));
+    const aiLimit = await getAIGenerationLimit();
+    const aiRemaining = isAdmin ? null : Math.max(0, aiLimit - (u.ai_roadmap_generations_used || 0));
 
     res.json({ user: { ...u, ai_generations_remaining: aiRemaining } });
   } catch (err) {
@@ -2870,15 +2886,16 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       });
     }
     if (String(req.user.role || '').toLowerCase() !== 'admin') {
+      const aiLimit = await getAIGenerationLimit();
       const usageRes = await pool.query(
         'SELECT ai_roadmap_generations_used FROM users WHERE id = $1', [req.user.id]
       );
       const used = usageRes.rows[0]?.ai_roadmap_generations_used || 0;
-      if (used >= AI_GENERATION_LIMIT_PER_USER) {
+      if (used >= aiLimit) {
         return res.status(403).json({
           success: false,
           code: 'AI_LIMIT_REACHED',
-          error: `Bạn đã sử dụng hết lượt tạo lộ trình bằng AI (giới hạn ${AI_GENERATION_LIMIT_PER_USER} lần/tài khoản). Vui lòng dùng nút "Tạo lộ trình thủ công" để tiếp tục tạo lộ trình.`
+          error: `Bạn đã sử dụng hết lượt tạo lộ trình bằng AI (giới hạn ${aiLimit} lần/tài khoản). Vui lòng dùng nút "Tạo lộ trình thủ công" để tiếp tục tạo lộ trình.`
         });
       }
     }
@@ -5922,7 +5939,87 @@ app.delete('/api/admin/feedback/:feedbackId', requireAdmin, async (req, res) => 
     client.release();
   }
 });
+// 4b. GET /api/admin/quiz-stats - Thống kê điểm quiz học viên
+app.get("/api/admin/quiz-stats", requireAdmin, async (req, res) => {
+  try {
+    const overall = await pool.query(`
+      SELECT 
+        COUNT(*) as total_attempts,
+        COUNT(DISTINCT user_id) as total_students,
+        COUNT(DISTINCT roadmap_id) as total_roadmaps,
+        ROUND(AVG(score), 2) as avg_score,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE passed) / NULLIF(COUNT(*),0), 2) as pass_rate
+      FROM quiz_attempts
+    `);
 
+    const byRoadmap = await pool.query(`
+      SELECT 
+        qa.roadmap_id,
+        lr.roadmap_name,
+        u2.name as owner_name,
+        COUNT(*) as total_attempts,
+        COUNT(DISTINCT qa.user_id) as students,
+        ROUND(AVG(qa.score), 2) as avg_score,
+        ROUND(100.0 * COUNT(*) FILTER (WHERE qa.passed) / NULLIF(COUNT(*),0), 2) as pass_rate,
+        lr.pass_threshold
+      FROM quiz_attempts qa
+      LEFT JOIN learning_roadmaps lr ON qa.roadmap_id = lr.roadmap_id
+      LEFT JOIN users u2 ON lr.user_id = u2.id
+      GROUP BY qa.roadmap_id, lr.roadmap_name, u2.name, lr.pass_threshold
+      ORDER BY total_attempts DESC
+      LIMIT 100
+    `);
+
+    res.json({ success: true, data: { overall: overall.rows[0], by_roadmap: byRoadmap.rows } });
+  } catch (err) {
+    console.error('Error fetching quiz stats:', err?.message || err);
+    res.status(500).json({ success: false, error: 'Không thể lấy thống kê quiz' });
+  }
+});
+
+// 4c. PUT /api/admin/roadmaps/:id/pass-threshold - Sửa ngưỡng đạt
+app.put("/api/admin/roadmaps/:id/pass-threshold", requireAdmin, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const val = parseInt(req.body.pass_threshold);
+    if (isNaN(val) || val < 0 || val > 100) {
+      return res.status(400).json({ success: false, error: 'pass_threshold phải từ 0-100' });
+    }
+    const result = await pool.query(
+      `UPDATE learning_roadmaps SET pass_threshold = $1, updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh') WHERE roadmap_id = $2 RETURNING roadmap_id, pass_threshold`,
+      [val, roadmapId]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ success: false, error: 'Lộ trình không tồn tại' });
+    res.json({ success: true, message: 'Đã cập nhật ngưỡng đạt', data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Không thể cập nhật ngưỡng đạt' });
+  }
+});
+// 4d. GET /api/admin/ai-limit - Lấy giới hạn lượt tạo AI
+app.get("/api/admin/ai-limit", requireAdmin, async (req, res) => {
+  const limit = await getAIGenerationLimit();
+  res.json({ success: true, data: { ai_generation_limit: limit } });
+});
+
+// 4e. POST /api/admin/ai-limit/save - Sửa giới hạn lượt tạo AI
+app.post("/api/admin/ai-limit/save", requireAdmin, async (req, res) => {
+  try {
+    const val = parseInt(req.body.ai_generation_limit);
+    if (isNaN(val) || val < 0) {
+      return res.status(400).json({ success: false, error: 'Giá trị không hợp lệ' });
+    }
+    await pool.query(
+      `INSERT INTO system_config (config_key, config_value) VALUES ('ai_generation_limit', $1)
+       ON CONFLICT (config_key) DO UPDATE SET config_value = $1`,
+      [String(val)]
+    );
+    res.json({ success: true, message: 'Đã cập nhật số lượt tạo AI', data: { ai_generation_limit: val } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: 'Không thể cập nhật' });
+  }
+});
 // 5. POST /api/admin/prompt/save - Lưu AI prompt template
 app.post("/api/admin/prompt/save", requireAdmin, async (req, res) => {
   try {
