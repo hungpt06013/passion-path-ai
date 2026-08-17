@@ -99,6 +99,7 @@ async function loadProfile() {
     document.getElementById('fieldEmail').value = u.email || '';
     document.getElementById('avatarPreview').src = u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name);
     if (u.avatar_url) localStorage.setItem('avatarUrl', u.avatar_url);
+    syncHeaderAvatar(u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name));
   } catch (err) {
     console.error(err);
     document.getElementById('profileMsg').textContent = '❌ ' + err.message;
@@ -197,6 +198,7 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
 
     document.getElementById('avatarPreview').src = uploadData.secure_url;
     localStorage.setItem('avatarUrl', uploadData.secure_url);
+    syncHeaderAvatar(uploadData.secure_url);
     msg.textContent = '✅ Đã cập nhật ảnh đại diện';
     msg.className = 'msg success';
   } catch (err) {
@@ -205,7 +207,30 @@ document.getElementById('avatarInput').addEventListener('change', async (e) => {
     msg.className = 'msg error';
   }
 });
-
+function syncHeaderAvatar(url) {
+    const el = document.querySelector('.avatar-circle');
+    if (el) {
+        el.src = url;
+        return;
+    }
+    // Header chưa load xong -> đợi sự kiện headerAuthReady, hoặc thử lại vài lần
+    let attempts = 0;
+    const timer = setInterval(() => {
+        attempts++;
+        const el2 = document.querySelector('.avatar-circle');
+        if (el2) {
+            el2.src = url;
+            clearInterval(timer);
+        } else if (attempts > 20) {
+            clearInterval(timer);
+        }
+    }, 150);
+}
+window.addEventListener('headerAuthReady', () => {
+    const el = document.querySelector('.avatar-circle');
+    const cached = localStorage.getItem('avatarUrl');
+    if (el && cached) el.src = cached;
+});
 loadProfile();
 </script>
 <script src="footer.js"></script>
