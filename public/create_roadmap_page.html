@@ -1371,7 +1371,7 @@ body {
                     <h3 class="section-title">🤖 Tạo Lộ Trình</h3>
                     <div class="ai-notice">
                         <strong>⚠️ Bắt buộc:</strong> Bạn PHẢI nhấn một trong các nút bên dưới trước khi có thể tạo lộ trình.<br>
-                        🤖 <strong>Tạo với AI:</strong> hỗ trợ tối đa <strong>180 ngày</strong>.<br>
+                        🤖 <strong>Tạo với AI:</strong> hỗ trợ tối đa <strong>120 ngày</strong>.<br>
                         📝 <strong>Tạo thủ công:</strong> hỗ trợ tối đa <strong>360 ngày</strong>.
                     </div>
 
@@ -1382,6 +1382,8 @@ body {
                     <button type="button" id="adminManualBtn" class="ai-btn" disabled style="display:none; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.3); margin-top: 12px;">
                         📝 Tạo lộ trình thủ công (Prompt + Excel)
                     </button>
+
+                    <div id="aiQuotaNotice" style="display:none; margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; font-size: 0.9rem; font-weight: 600;"></div>
                 </div>
                 <div class="analysis-section">
                     <h3>📊 PHÂN TÍCH HIỆN TRẠNG</h3>
@@ -1479,159 +1481,106 @@ function resetFormTracking() {
 }
 function validateAllQuestions(silent = false) {
     const errors = [];
-    
-    // Q1: Tên lộ trình
+
     const q1 = document.querySelector('input[name="q1_roadmap_name"]');
-    if (!q1 || !q1.value.trim()) {
-        errors.push('Câu tên lộ trình');
-    }
-    
-    // ✅ Q2: Danh mục - SỬA LẠI
+    if (!q1 || !q1.value.trim()) errors.push('Câu tên lộ trình');
+
     const q2_hidden = document.getElementById('q2_category_hidden');
-    if (!q2_hidden || !q2_hidden.value || q2_hidden.value.trim() === '') {
-        errors.push('Câu danh mục');
+    let q2_valid = false;
+    if (q2_hidden && q2_hidden.value && q2_hidden.value.trim() !== '') {
+        if (q2_hidden.value === 'Khác') {
+            const other = document.getElementById('q2_category_other_input');
+            q2_valid = !!(other && other.value.trim());
+        } else {
+            q2_valid = true;
+        }
     }
-    
-    // ✅ Q3: Danh mục chi tiết - SỬA LẠI
+    if (!q2_valid) errors.push('Câu danh mục');
+
     const q3_hidden = document.getElementById('q3_category_detail_hidden');
     const q3_text = document.querySelector('input[name="q3_category_detail"][type="text"]');
-    
+    const q3_other = document.getElementById('q3_other_text');
     let q3_valid = false;
-    
-    // Kiểm tra hidden input (từ dropdown)
     if (q3_hidden && q3_hidden.value && q3_hidden.value.trim() !== '') {
+        q3_valid = q3_hidden.value === 'Khác' ? !!(q3_other && q3_other.value.trim()) : true;
+    } else if (q3_text && q3_text.value && q3_text.value.trim() !== '') {
         q3_valid = true;
     }
-    // Kiểm tra text input (khi không có sub-categories)
-    else if (q3_text && q3_text.value && q3_text.value.trim() !== '') {
-        q3_valid = true;
-    }
-    
-    if (!q3_valid) {
-        errors.push('Câu danh mục chi tiết');
-    }
-    
-    // Q4: Mục đích chính
-    const q4 = document.querySelector('input[name="q4_main_purpose"]:checked');
-    if (!q4 || ((q4.value === 'Khác' || q4.value === 'Other') && !document.getElementById('q4_other_text')?.value.trim())) {
-        errors.push('Câu mục đích chính');
-    }
-    // Q5: Mục tiêu cụ thể
-    const q5_goal = document.querySelector('textarea[name="q5_specific_goal"]');
-    if (!q5_goal || !q5_goal.value.trim()) {
-        errors.push('Câu mục tiêu cụ thể');
-    }
-    
-    // Q5: Công việc hiện tại
-    const q5_job = document.querySelector('input[name="q5_current_job"]');
-    if (!q5_job || !q5_job.value.trim()) {
-        errors.push('Câu công việc hiện tại');
-    }
-    
-    // Q6: Thời gian đã học
-    const q6 = document.querySelector('select[name="q6_learning_duration"]');
-    if (!q6 || !q6.value) {
-        errors.push('Câu thời gian đã học');
-    }
-    
-    // Q7: Trình độ hiện tại
-    const q7 = document.querySelector('select[name="q7_current_level"]');
-    if (!q7 || !q7.value) {
-        errors.push('Câu trình độ hiện tại');
-    }
-    
-    // Q8: Kỹ năng muốn cải thiện
-    const q8 = document.querySelector('input[name="q8_skills_text"]');
-    if (!q8 || !q8.value.trim()) {
-        errors.push('Câu kỹ năng muốn cải thiện');
-    }
-    
-    // Q9: Thời gian học mỗi ngày
-    const q9 = document.getElementById('q9_daily_time_input');
-    if (!q9 || !q9.value || parseInt(q9.value) < 15 || parseInt(q9.value) > 720) {
+    if (!q3_valid) errors.push('Câu danh mục chi tiết');
+
+    const q4 = document.querySelector('textarea[name="q4_main_purpose"]');
+    if (!q4 || !q4.value.trim()) errors.push('Câu mục đích chính');
+
+    const q5 = document.querySelector('textarea[name="q5_specific_goal"]');
+    if (!q5 || !q5.value.trim()) errors.push('Câu mục tiêu cụ thể');
+
+    const q6 = document.querySelector('select[name="q6_current_level"]');
+    if (!q6 || !q6.value) errors.push('Câu trình độ hiện tại');
+
+    const q7 = document.querySelector('textarea[name="q7_skill_breakdown"]');
+    if (!q7 || !q7.value.trim()) errors.push('Câu đánh giá kỹ năng con');
+
+    const q8 = document.querySelector('textarea[name="q8_known_skills"]');
+    if (!q8 || !q8.value.trim()) errors.push('Câu đã biết những gì');
+
+    const q9skill = document.querySelector('input[name="q9_skills_to_improve"]');
+    if (!q9skill || !q9skill.value.trim()) errors.push('Câu kỹ năng yếu nhất');
+
+    const q9time = document.getElementById('q9_daily_time_input');
+    if (!q9time || !q9time.value || parseInt(q9time.value) < 15 || parseInt(q9time.value) > 720) {
         errors.push('Câu thời gian học mỗi ngày');
     }
-    
-    // Q10: Ngày học trong tuần
-    const q10days = document.querySelectorAll('input[name="q10_weekly_days[]"]:checked');
-    if (q10days.length === 0) {
-        errors.push('Câu chọn ngày học trong tuần');
-    }
-    
-    // Q11: Thời gian lộ trình
-    const q11 = document.getElementById('q11_program_days');
-    if (!q11 || !q11.value || parseInt(q11.value) < 15 || parseInt(q11.value) > 360) {
+
+    const weekDays = document.querySelectorAll('input[name="q11_weekly_days[]"]:checked');
+    if (weekDays.length === 0) errors.push('Câu chọn ngày học trong tuần');
+
+    const q11days = document.getElementById('q11_program_days');
+    if (!q11days || !q11days.value || parseInt(q11days.value) < 15 || parseInt(q11days.value) > 360) {
         errors.push('Câu thời gian lộ trình');
     }
-    
-    // Q12: Phương pháp học
-    const q12 = document.querySelectorAll('input[name="q12_learning_styles[]"]:checked, input[name="q12_learning_styles"]:checked');
-    if (q12.length === 0) {
-        errors.push('Câu phương pháp học');
-    }
-    // Q13: Kết hợp học
-    const q13 = document.querySelectorAll('input[name="q13_learning_combinations[]"]:checked, input[name="q13_learning_combinations"]:checked');
-    const q13Other = document.getElementById('q13_other_text');
-    if (q13.length === 0 && !(q13Other && q13Other.value.trim())) {
-        errors.push('Câu kết hợp học');
+
+    const q13 = document.querySelectorAll('input[name="q13_learning_style[]"]:checked');
+    const q13Other = document.getElementById('q12_other_text');
+    const q13HasOther = Array.from(q13).some(cb => cb.value === 'Khác');
+    if (q13.length === 0 || (q13HasOther && !(q13Other && q13Other.value.trim()))) {
+        errors.push('Câu hình thức tiếp thu');
     }
 
-    // Q14: Thách thức
-    const q14 = document.querySelectorAll('input[name="q14_challenges[]"]:checked, input[name="q14_challenges"]:checked');
-    const q14Other = document.getElementById('q14_other_text');
-    if (q14.length === 0 && !(q14Other && q14Other.value.trim())) {
-        errors.push('Câu thách thức');
+    const q14 = document.querySelector('input[name="q14_learning_method"]:checked');
+    const q14Other = document.getElementById('q13_other_text');
+    if (!q14 || (q14.value === 'Khác' && !(q14Other && q14Other.value.trim()))) {
+        errors.push('Câu nhịp học');
     }
 
-    // Q15: Động lực
-    const q15 = document.querySelectorAll('input[name="q15_motivation[]"]:checked, input[name="q15_motivation"]:checked');
-    const q15Other = document.getElementById('q15_other_text');
-    if (q15.length === 0 && !(q15Other && q15Other.value.trim())) {
-        errors.push('Câu động lực');
-    }
+    const q15 = document.querySelector('input[name="q15_engagement_trigger"]');
+    if (!q15 || !q15.value.trim()) errors.push('Câu điều khiến buổi học hứng thú');
 
-    // Q16: Loại tài liệu
-    const q16 = document.querySelectorAll('input[name="q16_material_types[]"]:checked, input[name="q16_material_types"]:checked');
-    const q16Other = document.getElementById('q16_other_text');
-    if (q16.length === 0 && !(q16Other && q16Other.value.trim())) {
+    const q16 = document.querySelector('input[name="q16_theme_preference"]');
+    if (!q16 || !q16.value.trim()) errors.push('Câu chủ đề mong muốn');
+
+    const q17 = document.querySelectorAll('input[name="q17_material_type[]"]:checked');
+    const q17Other = document.getElementById('q16_other_text');
+    const q17HasOther = Array.from(q17).some(cb => cb.value === 'Khác');
+    if (q17.length === 0 || (q17HasOther && !(q17Other && q17Other.value.trim()))) {
         errors.push('Câu loại tài liệu');
     }
 
-    // Q17: Ngôn ngữ tài liệu
-    const q17 = document.querySelector('select[name="q17_material_language"]');
-    if (!q17 || !q17.value) {
-        errors.push('Câu ngôn ngữ tài liệu');
-    }
+    const q18 = document.querySelector('select[name="q18_material_language"]');
+    if (!q18 || !q18.value) errors.push('Câu ngôn ngữ tài liệu');
 
-    // Q18: Loại đánh giá
-    const q18 = document.querySelectorAll('input[name="q18_assessment_types[]"]:checked, input[name="q18_assessment_types"]:checked');
-    if (q18.length === 0) {
-        errors.push('Câu loại đánh giá');
-    }
+    const q19 = document.querySelector('select[name="q19_pass_threshold"]');
+    if (!q19 || !q19.value) errors.push('Câu ngưỡng đạt');
 
-    // Q19: Hiển thị kết quả
-    const q19 = document.querySelectorAll('input[name="q19_result_display[]"]:checked, input[name="q19_result_display"]:checked');
-    if (q19.length === 0) {
-        errors.push('Câu hiển thị kết quả');
-    }
+    const q20 = document.querySelectorAll('input[name="q20_device_type[]"]:checked');
+    if (q20.length === 0) errors.push('Câu thiết bị học');
 
-    // Q20: Tần suất đánh giá
-    const q20 = document.querySelector('input[name="q20_assessment_frequency"]:checked');
-    const q20Other = document.getElementById('q20_other_text');
-    if (!q20) {
-        errors.push('Câu tần suất đánh giá');
-    } else if ((q20.value === 'Khác' || q20.value === 'Khac' || q20.value === 'Other') && !(q20Other && q20Other.value.trim())) {
-        errors.push('Câu tần suất đánh giá (vui lòng điền "Khác")');
-    }
+    const q21 = document.querySelector('input[name="q21_result_display"]:checked');
+    if (!q21) errors.push('Câu hiển thị kết quả');
 
-    // Cuối cùng: hiển thị các lỗi nếu có
     if (errors.length > 0) {
-        if (!silent) {
-          alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
-        }
+        if (!silent) alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
         return errors;
     }
-
     return [];
 }
 function updateGenerateButtonsState() {
@@ -1661,7 +1610,7 @@ if (window.__aiQuotaExhausted) {
   if (adminManualBtn) { adminManualBtn.disabled = false; adminManualBtn.style.display = 'block'; }
 
   // Nút AI chỉ hiện + bấm được khi số ngày <= 180
-  if (!isNaN(days) && days > 0 && days <= 180) {
+  if (!isNaN(days) && days > 0 && days <= 120) {
     if (generateBtn) { generateBtn.disabled = false; generateBtn.style.display = ''; }
   } else {
     if (generateBtn) { generateBtn.disabled = true; generateBtn.style.display = 'none'; }
@@ -2336,6 +2285,19 @@ async function checkUserRoleAndUpdateUI() {
         if (remaining !== null && remaining !== undefined && remaining <= 0) {
         window.__aiQuotaExhausted = true;
         }
+
+        // ✅ Thông báo cho user biết còn bao nhiêu lượt tạo lộ trình bằng AI
+        const quotaNotice = document.getElementById('aiQuotaNotice');
+        if (quotaNotice) {
+          if (remaining === null || remaining === undefined) {
+            quotaNotice.style.display = 'none';
+          } else {
+            quotaNotice.style.display = 'block';
+            quotaNotice.textContent = remaining > 0
+              ? `ℹ️ Bạn có ${remaining} lần tạo lộ trình với AI.`
+              : `⚠️ Bạn đã hết lượt tạo lộ trình với AI.`;
+          }
+        }
     }
     } catch (e) { console.warn('Không thể kiểm tra lượt AI:', e); }
   const generateBtn = document.getElementById('generateAI');
@@ -2638,7 +2600,7 @@ async function generateRoadmapWithAI() {
     console.log('✅ Validation passed!');
 
     // ✅ Giới hạn AI: tối đa 180 ngày cho CẢ admin lẫn user
-    const MAX_AI_DAYS = 180;
+    const MAX_AI_DAYS = 120;
 
     if (q11_program_days > MAX_AI_DAYS) {
         const message = `⚠️ Tạo lộ trình với AI chỉ hỗ trợ tối đa ${MAX_AI_DAYS} ngày.\nVui lòng giảm số ngày xuống ≤ ${MAX_AI_DAYS}, hoặc dùng nút "Tạo lộ trình thủ công" để tạo lộ trình nhiều hơn ${MAX_AI_DAYS} ngày.`;
@@ -2739,51 +2701,99 @@ async function generateRoadmapWithAI() {
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
-const result = await response.json().catch(() => ({}));
-if (!result || !result.success || !result.data) {
-    throw new Error('AI response không hợp lệ');
-}
-
-// ✅ LƯU history_id NGAY SAU KHI VALIDATE
-aiHistoryId = result.metadata?.history_id;
-console.log('✅ Saved aiHistoryId:', aiHistoryId);
-
-// CLEAR EXISTING DAYS & RENDER AI DAYS
+// CLEAR EXISTING DAYS trước khi bắt đầu render (streaming hoặc fallback JSON thường)
 if (typeof dayCount !== 'undefined') dayCount = 0;
 const daysContainer = document.getElementById('daysContainer');
 if (daysContainer) daysContainer.innerHTML = '';
 
-result.data.forEach((aiDay, index) => {
-    const dayData = {
-        day_number: aiDay.day_number || aiDay.day || (index + 1),
-        study_date: aiDay.study_date || aiDay.study_date_iso || null,
-        study_date_iso: aiDay.study_date || aiDay.study_date_iso || null,
-        daily_goal: aiDay.daily_goal || aiDay.goal || '',
-        learning_content: aiDay.learning_content || aiDay.content || '',
-        practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
-        learning_materials: aiDay.learning_materials || aiDay.materials || '',
-        study_guide: aiDay.study_guide || '',
-        study_duration: (typeof aiDay.study_duration !== 'undefined') ? aiDay.study_duration : (aiDay.hours || 2),
-        completion_status: aiDay.completion_status || 'NOT_STARTED'
-    };
-    
-    if (typeof addDay === 'function') {
-        addDay(dayData);
-    } else {
-        const container = document.getElementById('daysContainer');
-        if (container) {
-            const row = document.createElement('div');
-            row.className = 'day-item';
-            row.textContent = `Ngày ${dayData.day_number}: ${dayData.daily_goal}`;
-            container.appendChild(row);
-        }
-    }
+const mapAiDayToDayData = (aiDay, index) => ({
+    day_number: aiDay.day_number || aiDay.day || (index + 1),
+    study_date: aiDay.study_date || aiDay.study_date_iso || null,
+    study_date_iso: aiDay.study_date || aiDay.study_date_iso || null,
+    daily_goal: aiDay.daily_goal || aiDay.goal || '',
+    learning_content: aiDay.learning_content || aiDay.content || '',
+    practice_exercises: aiDay.practice_exercises || aiDay.exercises || '',
+    learning_materials: aiDay.learning_materials || aiDay.materials || '',
+    study_guide: aiDay.study_guide || '',
+    study_duration: (typeof aiDay.study_duration !== 'undefined') ? aiDay.study_duration : (aiDay.hours || 2),
+    completion_status: aiDay.completion_status || 'NOT_STARTED',
+    // Quiz do AI tạo không có ô nhập trên form -> phải giữ lại riêng (gắn vào DOM) để khi submit
+    // vẫn gửi lên server được, nếu không sẽ bị mất và trang quiz sẽ không có dữ liệu.
+    quiz: Array.isArray(aiDay.quiz) ? aiDay.quiz : [],
+    chapter_review_quiz: Array.isArray(aiDay.chapter_review_quiz) ? aiDay.chapter_review_quiz : []
 });
 
-recalculateAllStudyDates();
+const renderAiDay = (aiDay, index) => {
+    const dayData = mapAiDayToDayData(aiDay, index);
+    if (typeof addDay === 'function') {
+        addDay(dayData);
+    } else if (daysContainer) {
+        const row = document.createElement('div');
+        row.className = 'day-item';
+        row.textContent = `Ngày ${dayData.day_number}: ${dayData.daily_goal}`;
+        daysContainer.appendChild(row);
+    }
+};
+
+let finalAnalysis = '';
+
+if (response.body && typeof response.body.getReader === 'function') {
+    // ✅ STREAMING: backend trả NDJSON (mỗi dòng 1 JSON event) — hiện từng ngày ngay khi
+    // AI tạo xong, không cần chờ toàn bộ pipeline (tìm tài liệu + validate link) hoàn tất.
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let streamError = null;
+    let gotAnyEvent = false;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let newlineIndex;
+        while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, newlineIndex).trim();
+            buffer = buffer.slice(newlineIndex + 1);
+            if (!line) continue;
+            let event;
+            try { event = JSON.parse(line); } catch (e) { continue; }
+            gotAnyEvent = true;
+
+            if (event.type === 'batch' && Array.isArray(event.days)) {
+                event.days.forEach((aiDay, index) => renderAiDay(aiDay, index));
+                recalculateAllStudyDates();
+            } else if (event.type === 'materials_final' && Array.isArray(event.materials)) {
+                event.materials.forEach(m => {
+                    const dayItem = daysContainer && daysContainer.querySelector(`.day-item[data-day-number="${m.day_number}"]`);
+                    if (dayItem) updateDayMaterialsUI(dayItem, m.learning_materials, m.study_guide);
+                });
+            } else if (event.type === 'done') {
+                aiHistoryId = event.metadata?.history_id;
+                finalAnalysis = event.analysis || '';
+            } else if (event.type === 'error') {
+                streamError = event.error || 'Lỗi không xác định từ AI';
+            }
+        }
+    }
+
+    if (streamError) throw new Error(streamError);
+    if (!gotAnyEvent) throw new Error('AI response không hợp lệ');
+} else {
+    // Fallback cho trình duyệt không hỗ trợ streaming reader: đọc nguyên JSON như cũ
+    const result = await response.json().catch(() => ({}));
+    if (!result || !result.success || !result.data) {
+        throw new Error('AI response không hợp lệ');
+    }
+    aiHistoryId = result.metadata?.history_id;
+    result.data.forEach((aiDay, index) => renderAiDay(aiDay, index));
+    recalculateAllStudyDates();
+    finalAnalysis = result.analysis || '';
+}
+
+console.log('✅ Saved aiHistoryId:', aiHistoryId);
 
 // Display analysis
-document.getElementById('analysisContent').textContent = result.analysis;
+document.getElementById('analysisContent').textContent = finalAnalysis;
 submitBtn.disabled = false;
 submitText.innerHTML = '🎉 Tạo Lộ Trình';
 showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể chỉnh sửa nếu cần.', 'success');
@@ -2840,6 +2850,15 @@ function addDay(dayData = null) {
 
     const dayElement = document.createElement('div');
     dayElement.className = 'day-item';
+    dayElement.dataset.dayNumber = dayData?.day_number || dayCount;
+    // Quiz do AI tạo không có ô nhập trên form -> lưu kèm vào chính phần tử ngày này, để lúc submit
+    // đọc lại được (không thì sẽ mất, khiến trang quiz của ngày đó không có dữ liệu).
+    if ((dayData?.quiz && dayData.quiz.length > 0) || (dayData?.chapter_review_quiz && dayData.chapter_review_quiz.length > 0)) {
+        dayElement.dataset.aiQuiz = JSON.stringify({
+            quiz: dayData.quiz || [],
+            chapter_review_quiz: dayData.chapter_review_quiz || []
+        });
+    }
     dayElement.innerHTML = `
         <div class="day-header">
             <div style="display: flex; gap: 15px; align-items: center;">
@@ -2880,10 +2899,9 @@ function addDay(dayData = null) {
         
         <div class="form-group">
             <label class="form-label">Công cụ/Tài liệu học tập</label>
-            <input type="text" class="form-input" name="days[${dayCount-1}][materials]"
-                   placeholder="Công cụ, tài liệu cần thiết (mỗi link xuống dòng hoặc cách nhau bởi dấu ;)"
-                   value="${escapeHtmlAttr(dayData?.learning_materials || '')}">
-            ${materialsDisplay ? `<div style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem;">${materialsDisplay}</div>` : ''}
+            <textarea class="form-textarea" name="days[${dayCount-1}][materials]" rows="2"
+                      placeholder="Công cụ, tài liệu cần thiết (mỗi link xuống dòng hoặc cách nhau bởi dấu ;)">${escapeHtmlAttr(dayData?.learning_materials || '')}</textarea>
+            ${materialsDisplay ? `<div class="materials-preview" style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem;">${materialsDisplay}</div>` : ''}
         </div>
         
         <div class="form-group">
@@ -2923,6 +2941,40 @@ function addDay(dayData = null) {
 
     container.appendChild(dayElement);
     recalculateAllStudyDates();
+}
+// Cập nhật tài liệu/hướng dẫn học vào 1 day-item đã render sẵn (dùng khi kết quả AI đến dần qua stream)
+function updateDayMaterialsUI(dayItem, learningMaterials, studyGuide) {
+    const materialsInput = dayItem.querySelector('textarea[name*="[materials]"]');
+    const guideTextarea = dayItem.querySelector('textarea[name*="[study_guide]"]');
+    if (materialsInput) materialsInput.value = learningMaterials || '';
+    if (guideTextarea) guideTextarea.value = studyGuide || '';
+
+    if (!materialsInput) return;
+    const formGroup = materialsInput.closest('.form-group');
+    if (!formGroup) return;
+
+    const existingPreview = formGroup.querySelector('.materials-preview');
+    if (existingPreview) existingPreview.remove();
+
+    if (!learningMaterials) return;
+    const links = learningMaterials.split(/[;\n]/).map(l => l.trim()).filter(Boolean);
+    const materialsDisplay = links.map(link => {
+        if (link.match(/^https?:\/\//i)) {
+            try {
+                const domain = new URL(link).hostname.replace(/^www\./, '');
+                return `<a href="${escapeHtmlAttr(link)}" target="_blank" style="color: #007bff; display: block; margin: 2px 0;">${domain}</a>`;
+            } catch (e) {
+                return link;
+            }
+        }
+        return link;
+    }).join('<br>');
+
+    const preview = document.createElement('div');
+    preview.className = 'materials-preview';
+    preview.style.cssText = 'margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem;';
+    preview.innerHTML = materialsDisplay;
+    formGroup.appendChild(preview);
 }
         function removeDay(button) {
             const dayItem = button.closest('.day-item');
@@ -3211,6 +3263,18 @@ if (!q11_program_days || q11_program_days < 15) {
             break;
         }
       });
+
+      // Lấy lại quiz do AI tạo đã gắn kèm trên phần tử ngày này (không có ô nhập trên form nên
+      // không đọc được qua "inputs" ở trên) -> nếu không lấy lại, dữ liệu quiz sẽ bị mất khi submit.
+      if (dayItem.dataset.aiQuiz) {
+        try {
+          const aiQuiz = JSON.parse(dayItem.dataset.aiQuiz);
+          dayData.quiz = Array.isArray(aiQuiz.quiz) ? aiQuiz.quiz : [];
+          dayData.chapter_review_quiz = Array.isArray(aiQuiz.chapter_review_quiz) ? aiQuiz.chapter_review_quiz : [];
+        } catch (e) {
+          console.warn('⚠️ Không đọc được quiz đã lưu của ngày này:', e);
+        }
+      }
 
       // only push if minimal useful content
       if ((dayData.daily_goal && dayData.learning_content) || dayData.study_date) {

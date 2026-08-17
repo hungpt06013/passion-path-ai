@@ -172,3 +172,5 @@ docker-compose.override.yml
 # Uploads / temp user data (tùy project)
 uploads/
 tmp/
+
+.vercel/

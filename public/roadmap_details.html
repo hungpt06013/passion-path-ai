@@ -1487,6 +1487,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const roadmapId = urlParams.get('id');
 const isMine = urlParams.get('mine') === 'true';
 const isAdminView = urlParams.get('admin') === 'true';
+const isAdminRole = localStorage.getItem('role') === 'admin';
 const token = localStorage.getItem('token');
 
 if (isMine && !token) {
@@ -1655,25 +1656,29 @@ async function viewRoadmapDetails(roadmapId, roadmap_analyst) {
 
 function displayRoadmapDetails(roadmap, details) {
   document.getElementById('analysisContent').innerHTML = roadmap;
-  
+
   const tbody = document.getElementById('detailsTableBody');
-  tbody.innerHTML = details.map(d => `
+  // ✅ Admin xem lộ trình hệ thống vẫn có nút làm quiz/kiểm tra chương để xem trước nội dung
+  // (đây là bản mẫu chung, không gắn với kết quả làm bài thật của người dùng nào).
+  tbody.innerHTML = details.map(d => {
+    const isChapterDay = (d.day_number % 6 === 0 || d.day_number === details.length);
+    const quizLinksHTML = isAdminRole ? `
+      <br><a href="quiz_day.html?roadmap_id=${roadmapId}&day=${d.day_number}&admin=true" style="display:inline-block;margin-top:4px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
+      ${isChapterDay ? `<br><a href="quiz_day.html?roadmap_id=${roadmapId}&day=${d.day_number}&chapter=true&admin=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}
+    ` : '';
+    return `
     <tr>
       <td class="day-cell">${d.day_number}</td>
       <td><strong>${d.daily_goal}</strong></td>
       <td>${d.learning_content}</td>
       <td>${d.practice_exercises || '-'}</td>
-      <td>
-        ${d.learning_materials ? 
-          `<a href="${d.learning_materials}" target="_blank" style="color: #4f46e5;">Xem</a>` : 
-          '-'
-        }
-      </td>
+      <td>${renderMaterialsLinksHTML(d.learning_materials)}</td>
       <td>${d.usage_instructions || '-'}</td>
       <td style="text-align: center;"><strong>${formatHours(d.study_duration)}</strong></td>
-      <td>Chưa học</td>
+      <td>Chưa học${quizLinksHTML}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
   populateGenericCalendar(details, false);
   document.getElementById('analysisAndDetails').style.display = 'block';
@@ -1709,14 +1714,18 @@ function openGenericCalendarDetail(detailId) {
   if (cell) cell.classList.add('selected');
 
   const panel = document.getElementById('genericCalendarDetailPanel');
-  let materialsHTML = 'N/A';
-  if (d.learning_materials) {
-    materialsHTML = /^https?:\/\//i.test(d.learning_materials)
-      ? `<a href="${d.learning_materials}" target="_blank">Xem tài liệu</a>`
-      : escapeHtml(d.learning_materials);
-  }
+  const materialsHTML = d.learning_materials ? renderMaterialsLinksHTML(d.learning_materials, 'Xem tài liệu') : 'N/A';
   const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
   const statusText = genericHasStatus ? (statusMap[d.completion_status] || 'Chưa học') : 'Chưa học';
+
+  // ✅ Admin xem lộ trình (hệ thống hoặc của người dùng) vẫn có nút làm quiz/kiểm tra chương.
+  const isChapterDay = (d.day_number % 6 === 0 || d.day_number === genericCalendarDetails.length);
+  const quizSectionHTML = (isAdminRole || isAdminView) ? `
+    <div class="mcd-status-row" style="margin-top:10px;">
+      <a href="quiz_day.html?roadmap_id=${roadmapId}&day=${d.day_number}&admin=true" style="display:inline-block;color:#007bff;font-size:0.85rem;font-weight:600;text-decoration:underline;">📝 Làm Quiz</a>
+      ${isChapterDay ? `<a href="quiz_day.html?roadmap_id=${roadmapId}&day=${d.day_number}&chapter=true&admin=true" style="display:inline-block;margin-left:14px;color:#dc2626;font-size:0.85rem;font-weight:600;text-decoration:underline;">📘 Kiểm tra chương</a>` : ''}
+    </div>
+  ` : '';
 
   panel.innerHTML = `
     <div class="mcd-header">
@@ -1735,6 +1744,7 @@ function openGenericCalendarDetail(detailId) {
       <div class="mcd-status-row">
         <strong>Trạng thái:</strong> <span>${statusText}</span>
       </div>
+      ${quizSectionHTML}
     </div>
   `;
   panel.style.display = 'block';
@@ -1938,6 +1948,15 @@ function renderDays() {
         return vnTime.toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' }); 
     }
     function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    // learning_materials có thể chứa nhiều link, cách nhau bởi dấu ; hoặc xuống dòng -> tách ra
+    // thành từng nút link riêng thay vì gộp chung 1 href (nếu không tách thì nhiều link sẽ dính
+    // liền vào nhau, ví dụ "https://a.comhttps://b.com").
+    function renderMaterialsLinksHTML(materials, linkText) {
+      if (!materials) return '-';
+      const links = String(materials).split(/[;\n]/).map(l => l.trim()).filter(l => l && /^https?:\/\//i.test(l));
+      if (links.length === 0) return escapeHtml(materials);
+      return links.map(l => `<a href="${l}" target="_blank" style="color:#4f46e5;">${linkText || 'Xem'}</a>`).join('<br>');
+    }
 
     document.addEventListener('DOMContentLoaded', () => { loadRoadmapDetails(); });
 
@@ -2075,18 +2094,27 @@ async function loadAdminRoadmapDetails() {
 
     const statusMap = { NOT_STARTED: 'Chưa học', IN_PROGRESS: 'Đang học', COMPLETED: 'Hoàn thành', SKIPPED: 'Bỏ qua' };
     const tbody = document.getElementById('detailsTableBody');
-    tbody.innerHTML = details.map(d => `
+    // ✅ Admin xem lộ trình của người dùng vẫn có nút làm quiz/kiểm tra chương để thử/xem trước nội
+    // dung (không bị khoá theo tiến độ thật, và không hiện kết quả làm bài của người dùng).
+    tbody.innerHTML = details.map(d => {
+      const isChapterDay = (d.day_number % 6 === 0 || d.day_number === details.length);
+      const quizLinksHTML = `
+        <a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&admin=true" style="display:inline-block;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
+        ${isChapterDay ? `<br><a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&chapter=true&admin=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}
+      `;
+      return `
       <tr>
         <td class="day-cell">${d.day_number}</td>
         <td><strong>${escapeHtml(d.daily_goal)}</strong></td>
         <td>${escapeHtml(d.learning_content)}</td>
         <td>${escapeHtml(d.practice_exercises || '-')}</td>
-        <td>${d.learning_materials ? `<a href="${d.learning_materials}" target="_blank" style="color:#4f46e5;">Xem</a>` : '-'}</td>
+        <td>${renderMaterialsLinksHTML(d.learning_materials)}</td>
         <td>${escapeHtml(d.usage_instructions || '-')}</td>
         <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
-        <td>${statusMap[d.completion_status] || d.completion_status}</td>
+        <td>${statusMap[d.completion_status] || d.completion_status}<br>${quizLinksHTML}</td>
       </tr>
-    `).join('');
+    `;
+    }).join('');
     populateGenericCalendar(details, true);
     document.getElementById('analysisAndDetails').style.display = 'block';
   } catch (error) {
@@ -2284,7 +2312,8 @@ function toggleGuideCell(btn) {
   }
 }
 function openMyDayCalendarDetail(detailId) {
-  const d = myRoadmapDetails.find(x => x.detail_id === detailId);
+  const idx = myRoadmapDetails.findIndex(x => x.detail_id === detailId);
+  const d = myRoadmapDetails[idx];
   if (!d) return;
 
   document.querySelectorAll('.mine-calendar-cell').forEach(c => c.classList.remove('selected'));
@@ -2299,6 +2328,17 @@ function openMyDayCalendarDetail(detailId) {
       ? links.map(l => `<a href="${l}" target="_blank">${l}</a>`).join('<br>')
       : escapeHtml(d.learning_materials);
   }
+
+  const locked = idx > 0 && myRoadmapDetails[idx - 1].completion_status !== 'COMPLETED';
+  const statusText = d.completion_status === 'COMPLETED' ? '✅ Hoàn thành' : '⏳ Chưa học';
+  const quizSectionHTML = locked
+    ? `<div class="mcd-status-row" style="margin-top:10px;">
+         <span style="color:#dc2626;font-size:0.85rem;font-weight:600;">🔒 Vui lòng hoàn thành bài kiểm tra của ngày ${d.day_number - 1} để mở khoá ngày này.</span>
+       </div>`
+    : `<div class="mcd-status-row" style="margin-top:10px;">
+         <a href="quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}" style="display:inline-block;color:#007bff;font-size:0.85rem;font-weight:600;text-decoration:underline;">📝 Làm Quiz</a>
+         ${(d.day_number % 6 === 0 || d.day_number === myRoadmapDetails.length) ? `<a href="quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-left:14px;color:#dc2626;font-size:0.85rem;font-weight:600;text-decoration:underline;">📘 Kiểm tra chương</a>` : ''}
+       </div>`;
 
   panel.innerHTML = `
     <div class="mcd-header">
@@ -2316,14 +2356,9 @@ function openMyDayCalendarDetail(detailId) {
       <p><strong>💡 Hướng dẫn:</strong> ${escapeHtml(d.usage_instructions || 'N/A')}</p>
       <p><strong>⏱️ Thời lượng:</strong> ${formatHours(d.study_duration)}</p>
       <div class="mcd-status-row">
-        <strong>Trạng thái:</strong>
-        <select onchange="updateMyDayStatus(${myRoadmapData.roadmap_id}, ${d.detail_id}, this.value)">
-          <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
-          <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
-          <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
-          <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
-        </select>
+        <strong>Trạng thái:</strong> <span>${statusText}</span>
       </div>
+      ${quizSectionHTML}
     </div>
   `;
   panel.style.display = 'block';
@@ -2421,7 +2456,7 @@ function displayMyRoadmapDetails(roadmap, details) {
           </tr>
         </thead>
         <tbody>
-          ${details.map(d => {
+          ${details.map((d, idx) => {
             let materialsHTML = 'N/A';
             if (d.learning_materials) {
               const links = d.learning_materials.split(/[;\n]/).map(l => l.trim()).filter(l => l && l.match(/^https?:\/\//i));
@@ -2431,6 +2466,12 @@ function displayMyRoadmapDetails(roadmap, details) {
                 materialsHTML = `<span style="font-size:0.85rem;">${escapeHtml(d.learning_materials)}</span>`;
               }
             }
+            const locked = idx > 0 && details[idx - 1].completion_status !== 'COMPLETED';
+            const statusText = d.completion_status === 'COMPLETED' ? '✅ Hoàn thành' : '⏳ Chưa học';
+            const quizLinksHTML = locked
+              ? `<span style="display:inline-block;margin-top:6px;color:#dc2626;font-size:0.72rem;font-weight:600;">🔒 Hoàn thành ngày ${d.day_number - 1} để mở khoá</span>`
+              : `<a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}" style="display:inline-block;margin-top:6px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
+                 ${(d.day_number % 6 === 0 || d.day_number === details.length) ? `<br><a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}`;
             return `
             <tr data-detail-id="${d.detail_id}">
               <td class="day-cell">${d.day_number}</td>
@@ -2445,18 +2486,12 @@ function displayMyRoadmapDetails(roadmap, details) {
               </td>
               <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
               <td>
-                <select onchange="updateMyDayStatus(${roadmap.roadmap_id}, ${d.detail_id}, this.value)">
-                  <option value="NOT_STARTED" ${d.completion_status === 'NOT_STARTED' ? 'selected' : ''}>Chưa học</option>
-                  <option value="IN_PROGRESS" ${d.completion_status === 'IN_PROGRESS' ? 'selected' : ''}>Đang học</option>
-                  <option value="COMPLETED" ${d.completion_status === 'COMPLETED' ? 'selected' : ''}>Hoàn thành</option>
-                  <option value="SKIPPED" ${d.completion_status === 'SKIPPED' ? 'selected' : ''}>Bỏ qua</option>
-                </select>
+                <span style="font-weight:600;${d.completion_status === 'COMPLETED' ? 'color:#059669;' : 'color:#6b7280;'}">${statusText}</span>
+                <br>
+                ${quizLinksHTML}
               </td>
               <td style="text-align:center;">
                 <button class="delete-day-btn" onclick="deleteMyDay(this)"><i class="fa-solid fa-trash"></i> Xóa</button>
-                <br>
-                <a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}" style="display:inline-block;margin-top:6px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
-                ${(d.day_number % 6 === 0 || d.day_number === details.length) ? `<br><a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}
               </td>
             </tr>`;
           }).join('')}
@@ -2696,12 +2731,7 @@ function addMyNewDay() {
     <td class="editable"><textarea placeholder="Nhập hướng dẫn..." style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;min-height:80px;resize:vertical;"></textarea></td>
     <td class="editable"><input type="text" placeholder="VD: 1.5h, 90m" required style="width:100%;padding:8px;border:2px solid #e5e7eb;border-radius:6px;font-family:inherit;font-size:0.9rem;"></td>
     <td>
-      <select style="padding:8px 12px;border:2px solid #e5e7eb;border-radius:8px;font-size:0.85rem;width:100%;">
-        <option value="NOT_STARTED" selected>Chưa học</option>
-        <option value="IN_PROGRESS">Đang học</option>
-        <option value="COMPLETED">Hoàn thành</option>
-        <option value="SKIPPED">Bỏ qua</option>
-      </select>
+      <span style="font-weight:600;color:#6b7280;">⏳ Chưa học</span>
     </td>
     <td style="text-align:center;">
       <button class="delete-day-btn" onclick="deleteMyDay(this)"><i class="fa-solid fa-trash"></i> Xóa</button>
@@ -2861,7 +2891,11 @@ async function saveMyChanges() {
       learning_materials: materials,
       usage_instructions: cells[6].querySelector('textarea')?.value || cells[6].textContent.trim(),
       study_duration: cells[7].querySelector('input')?.value || cells[7].textContent.trim(),
-      completion_status: cells[8].querySelector('select')?.value || 'NOT_STARTED'
+      // ✅ Trạng thái do hệ thống quản lý qua kết quả quiz, không cho người dùng chọn tay ở đây —
+      // giữ nguyên trạng thái hiện có của ngày đó (ngày mới thêm luôn bắt đầu là "Chưa học").
+      completion_status: isNewRow
+        ? 'NOT_STARTED'
+        : ((myRoadmapDetails.find(x => String(x.detail_id) === String(detailId)) || {}).completion_status || 'NOT_STARTED')
     });
   });
 
@@ -3006,39 +3040,6 @@ function setMyRating(fieldName, value) {
   }
   const valueSpan = document.getElementById(`my_${fieldName}-value`);
   if (valueSpan) valueSpan.textContent = value;
-}
-
-async function updateMyDayStatus(roadmapId, detailId, status) {
-  try {
-    const response = await fetch(`${API_BASE}/api/roadmap/${roadmapId}/update-status`, {
-      method: 'PUT',
-      headers: getMyAuthHeaders(),
-      body: JSON.stringify({
-        detailId: detailId,
-        status: status,
-        studyDate: status === 'COMPLETED' ? getVietnamDateMine().toISOString().split('T')[0] : null
-      })
-    });
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update status');
-    }
-    showNotification('✅ Đã cập nhật trạng thái!', 'success');
-
-    const wasCalendarView = myCurrentViewMode !== 'table';
-    await loadMyRoadmapDetails();
-
-    // ✅ Giữ nguyên chế độ xem, và mở lại đúng ngày vừa đổi trạng thái (không tự đóng)
-    if (wasCalendarView) {
-      switchMyViewMode('calendar');
-      openMyDayCalendarDetail(detailId);
-    } else {
-      switchMyViewMode('table');
-    }
-  } catch (error) {
-    console.error('❌ Error updating status:', error);
-    showNotification('❌ Không thể cập nhật trạng thái: ' + error.message, 'error');
-  }
 }
 
 async function submitMyEvaluation() {

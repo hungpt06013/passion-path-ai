@@ -224,11 +224,23 @@
 .profile-link,
 .profile-link:visited,
 .profile-link:hover,
-.profile-link:active,
-.profile-link span {
+.profile-link:active {
     display: inline-flex;
     align-items: center;
     gap: clamp(6px, 0.8vw, 10px);
+    text-decoration: none;
+    cursor: pointer;
+    color: white !important;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.profile-link:hover {
+    background-color: rgba(255,255,255,0.16);
+    transform: translateY(-1px);
+}
+.profile-link span {
+    display: inline;
     text-decoration: none;
     cursor: pointer;
     color: white !important;
@@ -241,6 +253,11 @@
     border: 2px solid rgba(255,255,255,0.6);
     flex-shrink: 0;
     background: #fff;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.profile-link:hover .avatar-circle {
+    border-color: #fff;
+    transform: scale(1.08);
 }
 @media (max-width: 900px) {
     .avatar-circle {

@@ -28,22 +28,18 @@ function checkNavScrollbar() {
 // Hàm hiển thị nút đăng nhập/đăng ký
 function showAuthButtons() {
     const userArea = document.getElementById('userArea');
-    const loginBtn = userArea?.querySelector('.login-btn');
-    const registerBtn = userArea?.querySelector('.register-btn');
-    
-    if (loginBtn) loginBtn.style.display = "inline-flex";
-    if (registerBtn) registerBtn.style.display = "inline-flex";
-    
-    if (userArea) {
-        const children = Array.from(userArea.children);
-        children.forEach(c => {
-            if (!c.classList.contains('login-btn') && !c.classList.contains('register-btn')) {
-                try {
-                    userArea.removeChild(c);
-                } catch (e) {}
-            }
-        });
-    }
+    if (!userArea) return;
+
+    // Luôn build lại từ đầu, không phụ thuộc vào nút cũ còn tồn tại hay không
+    userArea.innerHTML = `
+        <button class="login-btn"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+        <button class="register-btn"><i class="fa-solid fa-user-plus"></i> Đăng ký</button>
+    `;
+
+    const loginBtn = userArea.querySelector('.login-btn');
+    const registerBtn = userArea.querySelector('.register-btn');
+    if (loginBtn) loginBtn.addEventListener('click', () => window.location.href = 'login.html');
+    if (registerBtn) registerBtn.addEventListener('click', () => window.location.href = 'register.html');
 }
 
 // Hàm thiết lập navigation buttons
@@ -138,16 +134,6 @@ async function loadUser(currentPage = '') {
     // ✅ Hiện "Xin chào..." + nút đăng xuất NGAY, không chờ mạng
     applyOptimisticAuthUI();
 
-    const loginBtn = userArea?.querySelector('.login-btn');
-    const registerBtn = userArea?.querySelector('.register-btn');
-
-    if (loginBtn) {
-        loginBtn.addEventListener('click', () => window.location.href = 'login.html');
-    }
-    if (registerBtn) {
-        registerBtn.addEventListener('click', () => window.location.href = 'register.html');
-    }
-
     if (!token) {
         showAuthButtons();
         return;
@@ -196,6 +182,9 @@ async function loadUser(currentPage = '') {
                 const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
                 if (avatarEl) avatarEl.src = data.user.avatar_url;
             }
+            window.dispatchEvent(new CustomEvent('headerAuthReady', {
+                detail: { avatarUrl: (data && data.user && data.user.avatar_url) || null }
+            }));
         } catch (err) {
             console.error('❌ Error loading user:', err);
             // Lỗi mạng: giữ nguyên UI optimistic đã hiện, không cần làm gì thêm
@@ -272,3 +261,15 @@ if (document.readyState === 'loading') {
         loadUser(currentPage);
     }
 }
+// Fix bfcache: khi quay lại trang bằng back/forward, trình duyệt có thể phục hồi
+// trang mà không chạy lại script -> UI đăng nhập bị stale. Buộc load lại user info.
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        const currentPath = window.location.pathname;
+        let currentPage = '';
+        if (currentPath.includes('main.html') || currentPath === '/') currentPage = 'main';
+        else if (currentPath.includes('path.html')) currentPage = 'path';
+        else if (currentPath.includes('progress.html')) currentPage = 'progress';
+        loadUser(currentPage);
+    }
+});

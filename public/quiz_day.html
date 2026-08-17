@@ -40,6 +40,13 @@ main{flex:1 0 auto;max-width:800px;width:100%;margin:0 auto;padding-top:120px;pa
 @keyframes spin{to{transform:rotate(360deg);}}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--primary);text-decoration:none;font-weight:600;margin-bottom:16px;}
 @media(max-width:600px){main{padding-top:200px;}}
+.quiz-wait-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;}
+.quiz-wait-box{background:#fff;border-radius:16px;padding:32px 28px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.25);}
+.quiz-wait-box .spinner{margin:0 auto 18px;}
+.quiz-wait-box h3{margin:0 0 8px 0;font-size:17px;color:#1f2937;}
+.quiz-wait-box p{margin:0;color:#6b7280;font-size:14px;line-height:1.5;}
+.quiz-wait-done-icon{font-size:40px;margin-bottom:12px;}
+.quiz-wait-box .submit-btn{margin-top:18px;}
 </style>
 </head>
 <body>
@@ -66,6 +73,7 @@ const params = new URLSearchParams(window.location.search);
 const roadmapId = params.get('roadmap_id');
 const dayNumber = params.get('day');
 const isChapter = params.get('chapter') === 'true';
+const isAdminPreview = params.get('admin') === 'true';
 let quizData = null;
 
 function authHeaders(){ return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
@@ -96,8 +104,14 @@ function renderQuiz() {
     </div>
   `;
 
+  if (isAdminPreview) {
+    html += `<div class="result-banner" style="background:#eff6ff;color:#1e40af;font-size:14px;">
+      👁️ Bạn đang xem/thử quiz này với vai trò Admin. Kết quả làm bài này không ảnh hưởng đến tiến độ thật của người dùng.
+    </div>`;
+  }
+
   if (alreadyDone) {
-    html += `<div class="result-banner ${alreadyDone.passed ? 'passed' : 'failed'}">
+    html += `<div class="result-banner ${alreadyDone.passed ? 'passed' : 'failed'}" id="lastAttemptBanner">
       Lần làm gần nhất: ${alreadyDone.score}/${quizData.questions.length} câu đúng - ${alreadyDone.passed ? '✅ Đạt' : '❌ Chưa đạt'}
     </div>`;
   }
@@ -163,6 +177,9 @@ async function submitQuiz(e) {
       }
     });
 
+    const oldBanner = document.getElementById('lastAttemptBanner');
+    if (oldBanner) oldBanner.remove();
+
     const banner = document.createElement('div');
     banner.className = 'result-banner ' + (result.passed ? 'passed' : 'failed');
     banner.textContent = `Kết quả: ${result.score}/${result.total} câu đúng - ${result.passed ? '✅ Đạt' : '❌ Chưa đạt'}`;
@@ -170,12 +187,61 @@ async function submitQuiz(e) {
 
     btn.style.display = 'none';
     document.querySelectorAll('input[type="radio"]').forEach(el => el.disabled = true);
+
+    // ✅ Nếu lần này đạt và toàn bộ ngày (quiz + kiểm tra chương nếu có) đã đủ điều kiện hoàn thành,
+    // báo cho người dùng đợi hệ thống cập nhật trạng thái trước khi cho phép rời trang.
+    if (result.passed && result.day_completed) {
+      await waitForStatusUpdate();
+    }
   } catch (err) {
     console.error(err);
     alert('❌ ' + err.message);
     btn.disabled = false;
     btn.textContent = 'Nộp Bài';
   }
+}
+
+function waitForStatusUpdate() {
+  return new Promise(resolve => {
+    const backLink = document.querySelector('.back-link');
+    if (backLink) {
+      backLink.style.pointerEvents = 'none';
+      backLink.style.opacity = '0.5';
+    }
+    const beforeUnloadHandler = (e) => { e.preventDefault(); e.returnValue = ''; return ''; };
+    window.addEventListener('beforeunload', beforeUnloadHandler);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'quiz-wait-overlay';
+    overlay.innerHTML = `
+      <div class="quiz-wait-box">
+        <div class="spinner"></div>
+        <h3>Đang cập nhật trạng thái...</h3>
+        <p>Bạn đã đạt bài kiểm tra! Vui lòng đợi trong giây lát để hệ thống cập nhật trạng thái "Hoàn thành" cho ngày học này. Vui lòng không rời khỏi trang.</p>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+      const box = overlay.querySelector('.quiz-wait-box');
+      box.innerHTML = `
+        <div class="quiz-wait-done-icon">✅</div>
+        <h3>Đã cập nhật trạng thái!</h3>
+        <p>Ngày học này đã được đánh dấu "Hoàn thành". Giờ bạn có thể rời khỏi trang.</p>
+        <button type="button" class="submit-btn" id="quizWaitCloseBtn">Đã hiểu</button>
+      `;
+      const closeBtn = document.getElementById('quizWaitCloseBtn');
+      closeBtn.addEventListener('click', () => {
+        overlay.remove();
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+        if (backLink) {
+          backLink.style.pointerEvents = '';
+          backLink.style.opacity = '';
+        }
+        resolve();
+      }, { once: true });
+    }, 1400);
+  });
 }
 
 loadQuiz();
