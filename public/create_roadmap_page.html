@@ -2579,9 +2579,10 @@ async function generateRoadmapWithAI() {
     }
     if (!q15_engagement_trigger) throw new Error('❌ Vui lòng nhập điều khiến buổi học hứng thú (C12)');
     if (!q16_theme_preference) throw new Error('❌ Vui lòng nhập chủ đề mong muốn (C13)');
-    if (!q18_material_language) throw new Error('❌ Vui lòng chọn ngôn ngữ tài liệu (C15)');
+    if (!q22_demotivation_trigger) throw new Error('❌ Vui lòng nhập điều khiến bỏ cuộc/mất động lực (C15)');
     if (!q19_pass_threshold) throw new Error('❌ Vui lòng chọn ngưỡng đạt (C16)');
-    if (!q21_result_display) throw new Error('❌ Vui lòng chọn cách hiển thị kết quả (C18)');
+    if (!q23_quiz_day_length || !q24_quiz_chapter_length) throw new Error('❌ Vui lòng nhập số câu hỏi quiz (C17)');
+    if (!q18_material_language) throw new Error('❌ Vui lòng chọn ngôn ngữ tài liệu (C18)');
 
     // ✅ THÊM VALIDATION CHO CÂU HỎI NHIỀU LỰA CHỌN
     if (q13_learning_style.length === 0 && !q13_learning_style_other) {
@@ -2592,9 +2593,6 @@ async function generateRoadmapWithAI() {
     }
     if (q17_material_type.length === 0 && !q17_material_type_other) {
         throw new Error('❌ Vui lòng chọn ít nhất 1 loại tài liệu (C14)');
-    }
-    if (q20_device_type.length === 0) {
-        throw new Error('❌ Vui lòng chọn ít nhất 1 thiết bị học (C17)');
     }
 
     console.log('✅ Validation passed!');
@@ -2652,8 +2650,9 @@ async function generateRoadmapWithAI() {
             q17_material_type_other,
             q18_material_language,
             q19_pass_threshold,
-            q20_device_type,
-            q21_result_display
+            q22_demotivation_trigger,
+            q23_quiz_day_length,
+            q24_quiz_chapter_length
         };
         // prepare API URL
         const apiUrl = `${API_BASE}/api/generate-roadmap-ai`;
@@ -3173,11 +3172,12 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
     const q17_material_type = q17.values;
     const q17_material_type_other = q17.other;
 
-    // Q18-Q21
-    const q18_material_language = getField(formData, 'q18_material_language');
+    // Q15(mới)/Q16/Q17(mới)/Q18
+    const q22_demotivation_trigger = getField(formData, 'q22_demotivation_trigger');
     const q19_pass_threshold = getField(formData, 'q19_pass_threshold') || '80';
-    const q20_device_type = getCheckedList(['q20_device_type[]','q20_device_type']);
-    const q21_result_display = getField(formData, 'q21_result_display');
+    const q23_quiz_day_length = getField(formData, 'q23_quiz_day_length') || '5';
+    const q24_quiz_chapter_length = getField(formData, 'q24_quiz_chapter_length') || '10';
+    const q18_material_language = getField(formData, 'q18_material_language');
 
     // =========================================
     // BƯỚC 2: VALIDATION CƠ BẢN
@@ -3342,8 +3342,9 @@ if (!q11_program_days || q11_program_days < 15) {
       q17_material_type_other,
       q18_material_language,
       q19_pass_threshold,
-      q20_device_type,
-      q21_result_display
+      q22_demotivation_trigger,
+      q23_quiz_day_length,
+      q24_quiz_chapter_length
     };
     if (days.length > 0) roadmapData.days = days;
     roadmapData.study_weekdays = q10_weekly_days;

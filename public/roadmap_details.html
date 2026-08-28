@@ -1671,12 +1671,12 @@ function displayRoadmapDetails(roadmap, details) {
     return `
     <tr>
       <td class="day-cell">${d.day_number}</td>
-      <td><div class="cell-inner"><strong>${escapehtml(d.daily_goal || '')}</strong></div></td>
-      <td><div class="cell-inner">${escapehtml(d.learning_content || '')}</div></td>
-      <td><div class="cell-inner">${escapehtml(d.practice_exercises || '-')}</div></td>
+      <td><div class="cell-inner"><strong>${escapeHtml(d.daily_goal || '')}</strong></div></td>
+      <td><div class="cell-inner">${escapeHtml(d.learning_content || '')}</div></td>
+      <td><div class="cell-inner">${escapeHtml(d.practice_exercises || '-')}</div></td>
       <td><div class="cell-inner">${renderMaterialsLinksHTML(d.learning_materials)}</div></td>
       <td>
-        <div class="cell-inner">${escapehtml(d.usage_instructions || '-')}</div>
+        <div class="cell-inner">${escapeHtml(d.usage_instructions || '-')}</div>
         <button type="button" class="hd-toggle-btn" style="display:none;" onclick="toggleGuideCell(this)"><i class="fa-solid fa-chevron-down"></i></button>
       </td>
       <td style="text-align: center;"><strong>${formatHours(d.study_duration)}</strong></td>

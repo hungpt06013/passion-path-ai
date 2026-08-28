@@ -806,7 +806,7 @@ Dựa trên thông tin trên, thiết kế lộ trình học <CATEGORY> -- <SUB_
 
 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ): tính khả thi mục tiêu trong <TOTAL_DURATION> ngày, tiêu chí đánh giá và cách đo lường kết quả, chiến lược phân chia nội dung từ dễ đến khó theo tuần, lời khuyên thực tiễn ngắn gọn.
 
-2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: mỗi ngày gồm mục tiêu, nội dung học, bài tập thực hành, tài liệu học (link đã kiểm chứng, miễn phí, còn hoạt động), hướng dẫn sử dụng tài liệu (nêu rõ vì sao chọn nguồn này, học đúng phần/phút/bài nào), thời lượng học, và một bộ <QUIZ_DAY_LENGTH> câu hỏi trắc nghiệm (quiz) tự soạn bám sát đúng nội dung của ngày đó (mỗi câu có 4 phương án A/B/C/D, chỉ 1 đáp án đúng, không dùng câu hỏi chung chung). Cứ mỗi 6 ngày liên tiếp (một "chương") và luôn ở ngày cuối cùng của lộ trình, ngoài quiz thường của ngày đó, còn thêm một bộ <QUIZ_CHAPTER_LENGTH> câu hỏi kiểm tra tổng hợp cuối chương rút từ toàn bộ nội dung của chương đó.
+2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: mỗi ngày gồm mục tiêu, nội dung học, bài tập thực hành, tài liệu học (link đã kiểm chứng, miễn phí, còn hoạt động), hướng dẫn sử dụng tài liệu (nêu rõ vì sao chọn nguồn này, học đúng phần/phút/bài nào), thời lượng học, và một bộ <QUIZ_DAY_LENGTH> câu hỏi trắc nghiệm (quiz) tự soạn bám sát đúng nội dung của ngày đó (mỗi câu có 4 phương án A/B/C/D, chỉ 1 đáp án đúng, kèm giải thích ngắn gọn vì sao đáp án đó đúng, không dùng câu hỏi chung chung). Cứ mỗi 6 ngày liên tiếp (một "chương") và luôn ở ngày cuối cùng của lộ trình, ngoài quiz thường của ngày đó, còn thêm một bộ <QUIZ_CHAPTER_LENGTH> câu hỏi kiểm tra tổng hợp cuối chương rút từ toàn bộ nội dung của chương đó.
 
 Áp dụng <THEME_PREFERENCE> xuyên suốt vào ví dụ, tình huống trong nội dung học và bài tập. Tận dụng <ENGAGEMENT_TRIGGER> để thiết kế cách trình bày bài học hấp dẫn. Lưu ý <DEMOTIVATION_TRIGGER> của học viên để thiết kế nhịp độ, cách trình bày giúp hạn chế bỏ cuộc giữa chừng.
 
@@ -849,7 +849,7 @@ Bạn là một chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ nă
 **II/ Thông tin từ học viên:**
 - Tên lộ trình: <ROADMAP_NAME>
 - Mục đích chính: <MAIN_PURPOSE>
-- Mục tiêu cụ thể: <SPECIFIC_GOAL>
+- Mục tiêu cụ thể: <APPLICATION_GOAL>
 - Công việc hiện tại: <CURRENT_JOB>
 - Đã học được: <STUDY_TIME>
 - Trình độ hiện tại: <CURRENT_LEVEL>
@@ -864,7 +864,8 @@ Bạn là một chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ nă
 - Loại tài liệu ưa thích: <MATERIAL_TYPE>
 - Ngôn ngữ tài liệu: <MATERIAL_LANGUAGE>
 - Loại đánh giá: <ASSESSMENT_TYPE>
-- Hiển thị kết quả: <RESULT_DISPLAY>
+- Điều khiến bỏ cuộc/mất động lực: <DEMOTIVATION_TRIGGER>
+- Số câu quiz cuối ngày / kiểm tra cuối chương: <QUIZ_DAY_LENGTH> câu/ngày, <QUIZ_CHAPTER_LENGTH> câu/chương
 - Tần suất đánh giá: <ASSESSMENT_FREQUENCY>
 
 **III/ Yêu cầu**
@@ -1369,7 +1370,7 @@ function normalizeDaysBatch(days, batchStartDay, batchCount, hoursPerDay, studyD
       completion_status: 'NOT_STARTED',
       study_date: toVietnamDateString(studyDatesForBatch[i]),
       quiz: normalizeQuizArray(src.quiz, quizDayLength),
-      chapter_review_quiz: isChapterEnd ? normalizeQuizArray(src.chapter_review_quiz, quizchapterlength) : []
+      chapter_review_quiz: isChapterEnd ? normalizeQuizArray(src.chapter_review_quiz, quizChapterLength) : []
     });
   }
 
@@ -3711,7 +3712,7 @@ Trả về JSON format:
             }
             const isChapterEnd = (day.day_number % CHAPTER_SIZE_DAYS === 0) || (day.day_number === actualDays);
             if (isChapterEnd && Array.isArray(src.chapter_review_quiz) && src.chapter_review_quiz.length > 0) {
-              day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz, quizchapterlength);
+              day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz, quizChapterLength);
             }
           });
           console.log(`✅ Đã lấp đầy ${filledCount}/${missingContentDays.length} ngày thiếu nội dung`);
