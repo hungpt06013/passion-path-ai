@@ -1412,7 +1412,7 @@ Trả về JSON format:
     missingDays.map(d => `- Ngày ${d.day_number}: ${d.daily_goal}`).join('\n');
 
   const desiredCompletionTokens = Math.min(
-    missingDays.length * (TOKENS_PER_DAY_ESTIMATE + CHAPTER_REVIEW_EXTRA_TOKENS) + 500,
+    missingDays.length * (TOKENS_PER_DAY_ESTIMATE +CHAPTER_REVIEW_EXTRA_TOKENS) + 500,
     MODEL_MAX_OUTPUT_TOKENS
   );
 
