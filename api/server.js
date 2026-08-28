@@ -507,7 +507,7 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
       );
     `);
-
+    await pool.query(`ALTER TABLE "quiz_questions" ADD COLUMN IF NOT EXISTS "explanation" TEXT;`);
     // Bảng quiz_attempts - lưu kết quả mỗi lần user làm quiz
     await pool.query(`
       CREATE TABLE IF NOT EXISTS quiz_attempts (
@@ -551,6 +551,16 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS system_config (
         config_key VARCHAR(100) PRIMARY KEY,
         config_value TEXT
+      );
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS roadmap_certificates (
+        certificate_id SERIAL PRIMARY KEY,
+        roadmap_id INTEGER NOT NULL REFERENCES learning_roadmaps(roadmap_id) ON DELETE CASCADE,
+        milestone_percent SMALLINT NOT NULL CHECK (milestone_percent IN (25,50,75,100)),
+        certificate_code VARCHAR(50) NOT NULL,
+        awarded_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'),
+        UNIQUE(roadmap_id, milestone_percent)
       );
     `);
     await pool.query(`ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);`);
@@ -772,7 +782,7 @@ Bạn là chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh
 **II/ Thông tin thu thập từ học viên:**
 - Tên lộ trình: <ROADMAP_NAME>
 - Câu 1 - Mục đích bạn học điều này: <MAIN_PURPOSE>
-- Câu 2 - Kết quả cụ thể muốn đạt được khi kết thúc lộ trình: <SPECIFIC_GOAL>
+- Câu 2 - Sau khi hoàn thành lộ trình, bạn muốn dùng kỹ năng này vào việc gì cụ thể trong cuộc sống/công việc: <APPLICATION_GOAL>
 - Câu 2b - Kỳ thi/chứng chỉ/deadline cụ thể (nếu có): <TARGET_MILESTONE>
 - Câu 3 - Trình độ hiện tại (tự đánh giá): <CURRENT_LEVEL>
 - Câu 4 - Đánh giá từng kỹ năng con (thang 1-5): <SKILL_BREAKDOWN>
@@ -786,19 +796,19 @@ Bạn là chuyên gia giáo dục <CATEGORY> -- <SUB_CATEGORY> có 15+ năm kinh
 - Câu 12 - Điều khiến buổi học "đáng nhớ"/hứng thú nhất: <ENGAGEMENT_TRIGGER>
 - Câu 13 - Chủ đề mong muốn cho ví dụ/bài tập: <THEME_PREFERENCE>
 - Câu 14 - Loại tài liệu học hiệu quả nhất: <MATERIAL_TYPE>
-- Câu 15 - Ngôn ngữ tài liệu mong muốn: <MATERIAL_LANGUAGE>
+- Câu 15 - Điều gì thường khiến bạn bỏ cuộc hoặc mất động lực giữa chừng: <DEMOTIVATION_TRIGGER>
 - Câu 16 - Ngưỡng "Đạt" cho quiz/đánh giá: <PASS_THRESHOLD>
-- Câu 17 - Thiết bị học chủ yếu: <DEVICE_TYPE>
-- Câu 18 - Cách hiển thị kết quả sau đánh giá: <RESULT_DISPLAY>
+- Câu 17 - Số câu hỏi quiz cuối ngày / kiểm tra cuối chương: <QUIZ_DAY_LENGTH> câu/ngày, <QUIZ_CHAPTER_LENGTH> câu/chương
+- Câu 18 - Ngôn ngữ tài liệu mong muốn: <MATERIAL_LANGUAGE>
 
 **III/ Yêu cầu AI trả lời**
 Dựa trên thông tin trên, thiết kế lộ trình học <CATEGORY> -- <SUB_CATEGORY> gồm đúng 2 mục:
 
 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ): tính khả thi mục tiêu trong <TOTAL_DURATION> ngày, tiêu chí đánh giá và cách đo lường kết quả, chiến lược phân chia nội dung từ dễ đến khó theo tuần, lời khuyên thực tiễn ngắn gọn.
 
-2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: mỗi ngày gồm mục tiêu, nội dung học, bài tập thực hành, tài liệu học (link đã kiểm chứng, miễn phí, còn hoạt động), hướng dẫn sử dụng tài liệu (nêu rõ vì sao chọn nguồn này, học đúng phần/phút/bài nào), thời lượng học, và một bộ 5 câu hỏi trắc nghiệm (quiz) tự soạn bám sát đúng nội dung của ngày đó (mỗi câu có 4 phương án A/B/C/D, chỉ 1 đáp án đúng, không dùng câu hỏi chung chung). Cứ mỗi 6 ngày liên tiếp (một "chương") và luôn ở ngày cuối cùng của lộ trình, ngoài quiz thường của ngày đó, còn thêm một bộ 5 câu hỏi kiểm tra tổng hợp cuối chương rút từ toàn bộ nội dung của chương đó.
+2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY: mỗi ngày gồm mục tiêu, nội dung học, bài tập thực hành, tài liệu học (link đã kiểm chứng, miễn phí, còn hoạt động), hướng dẫn sử dụng tài liệu (nêu rõ vì sao chọn nguồn này, học đúng phần/phút/bài nào), thời lượng học, và một bộ <QUIZ_DAY_LENGTH> câu hỏi trắc nghiệm (quiz) tự soạn bám sát đúng nội dung của ngày đó (mỗi câu có 4 phương án A/B/C/D, chỉ 1 đáp án đúng, không dùng câu hỏi chung chung). Cứ mỗi 6 ngày liên tiếp (một "chương") và luôn ở ngày cuối cùng của lộ trình, ngoài quiz thường của ngày đó, còn thêm một bộ <QUIZ_CHAPTER_LENGTH> câu hỏi kiểm tra tổng hợp cuối chương rút từ toàn bộ nội dung của chương đó.
 
-Áp dụng <THEME_PREFERENCE> xuyên suốt vào ví dụ, tình huống trong nội dung học và bài tập. Tận dụng <ENGAGEMENT_TRIGGER> để thiết kế cách trình bày bài học hấp dẫn. Nếu <DEVICE_TYPE> chỉ có điện thoại/máy tính bảng, ưu tiên tài liệu dạng video/đọc/quiz thân thiện di động.
+Áp dụng <THEME_PREFERENCE> xuyên suốt vào ví dụ, tình huống trong nội dung học và bài tập. Tận dụng <ENGAGEMENT_TRIGGER> để thiết kế cách trình bày bài học hấp dẫn. Lưu ý <DEMOTIVATION_TRIGGER> của học viên để thiết kế nhịp độ, cách trình bày giúp hạn chế bỏ cuộc giữa chừng.
 
 Chỉ trả về JSON đúng định dạng sau, không thêm chữ nào khác ngoài JSON:
 {
@@ -819,14 +829,15 @@ Chỉ trả về JSON đúng định dạng sau, không thêm chữ nào khác n
           "option_b": "Phương án B",
           "option_c": "Phương án C",
           "option_d": "Phương án D",
-          "correct_option": "A"
+          "correct_option": "A",
+          "explanation": "Giải thích ngắn gọn vì sao đáp án đúng là A"
         }
       ],
       "chapter_review_quiz": []
     }
   ]
 }
-Lưu ý: mảng "quiz" luôn có đúng 5 phần tử cho MỌI ngày. Mảng "chapter_review_quiz" có đúng 5 phần tử CHỈ ở ngày cuối mỗi chương (cứ 6 ngày) và ngày cuối cùng của lộ trình, các ngày khác để mảng rỗng [].`;
+Lưu ý: mảng "quiz" luôn có đúng <QUIZ_DAY_LENGTH> phần tử cho MỌI ngày. Mảng "chapter_review_quiz" có đúng <QUIZ_CHAPTER_LENGTH> phần tử CHỈ ở ngày cuối mỗi chương (cứ 6 ngày) và ngày cuối cùng của lộ trình, các ngày khác để mảng rỗng [].`;
 }
 
 function getDefaultManualPrompt() {
@@ -1254,9 +1265,9 @@ function parseAIResponse(aiResponseText) {
   }
 }
 
-function normalizeQuizArray(arr) {
+function normalizeQuizArray(arr, maxLength = 12) {
   if (!Array.isArray(arr)) return [];
-  return arr.slice(0, 5).map(q => ({
+  return arr.slice(0, maxLength).map(q => ({
     question_text: String((q && (q.question_text || q.question)) || '').trim().substring(0, 1000),
     option_a: String((q && q.option_a) || '').trim().substring(0, 500),
     option_b: String((q && q.option_b) || '').trim().substring(0, 500),
@@ -1264,7 +1275,8 @@ function normalizeQuizArray(arr) {
     option_d: String((q && q.option_d) || '').trim().substring(0, 500),
     correct_option: (q && ['A', 'B', 'C', 'D'].includes(String(q.correct_option || '').toUpperCase()))
       ? String(q.correct_option).toUpperCase()
-      : 'A'
+      : 'A',
+    explanation: String((q && q.explanation) || '').trim().substring(0, 1000)
   })).filter(q => q.question_text);
 }
 
@@ -1338,7 +1350,7 @@ function computeBatchPlan(totalDays) {
 }
 
 // Chuẩn hóa dữ liệu 1 batch, gán đúng day_number tuyệt đối (không phải index+1 cục bộ)
-function normalizeDaysBatch(days, batchStartDay, batchCount, hoursPerDay, studyDatesForBatch, totalDays) {
+function normalizeDaysBatch(days, batchStartDay, batchCount, hoursPerDay, studyDatesForBatch, totalDays, quizDayLength = 5, quizChapterLength = 10) {
   const normalized = [];
 
   for (let i = 0; i < batchCount; i++) {
@@ -1356,8 +1368,8 @@ function normalizeDaysBatch(days, batchStartDay, batchCount, hoursPerDay, studyD
       study_duration: parseFloat(src.study_duration || src.hours || hoursPerDay) || hoursPerDay,
       completion_status: 'NOT_STARTED',
       study_date: toVietnamDateString(studyDatesForBatch[i]),
-      quiz: normalizeQuizArray(src.quiz),
-      chapter_review_quiz: isChapterEnd ? normalizeQuizArray(src.chapter_review_quiz) : []
+      quiz: normalizeQuizArray(src.quiz, quizDayLength),
+      chapter_review_quiz: isChapterEnd ? normalizeQuizArray(src.chapter_review_quiz, quizchapterlength) : []
     });
   }
 
@@ -2774,6 +2786,31 @@ async function isDayUnlocked(roadmapId, dayNumber) {
 
 // Sau mỗi lần nộp quiz, tính lại xem ngày đó đã đủ điều kiện "Hoàn thành" chưa: cần đạt quiz
 // thường VÀ bài kiểm tra chương (nếu ngày đó có), dựa trên điểm cao nhất trong mọi lần làm.
+const CERTIFICATE_MILESTONES = [
+  { percent: 25, code: 'BRZ' },
+  { percent: 50, code: 'SIL' },
+  { percent: 75, code: 'GOL' },
+  { percent: 100, code: 'ACH' }
+];
+
+async function awardCertificatesIfEligible(client, roadmapId, progressPercentage) {
+  const dateCode = toVietnamDateString(getVietnamDate()).replace(/-/g, '');
+  const newlyAwarded = [];
+  for (const m of CERTIFICATE_MILESTONES) {
+    if (progressPercentage + 0.001 < m.percent) continue;
+    const certificateCode = `PPAI-${m.code}-${roadmapId}-${dateCode}`;
+    const result = await client.query(
+      `INSERT INTO roadmap_certificates (roadmap_id, milestone_percent, certificate_code)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (roadmap_id, milestone_percent) DO NOTHING
+       RETURNING milestone_percent, certificate_code, awarded_at`,
+      [roadmapId, m.percent, certificateCode]
+    );
+    if (result.rows.length > 0) newlyAwarded.push(result.rows[0]);
+  }
+  return newlyAwarded;
+}
+
 async function recomputeDayCompletion(roadmapId, dayNumber, userId) {
   const chapterExists = await pool.query(
     `SELECT EXISTS(SELECT 1 FROM quiz_questions WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = true) AS has_chapter`,
@@ -2790,7 +2827,7 @@ async function recomputeDayCompletion(roadmapId, dayNumber, userId) {
     [roadmapId, dayNumber, userId]
   );
   const { normal_passed, chapter_passed } = passedRes.rows[0];
-  if (!normal_passed || (hasChapter && !chapter_passed)) return false;
+  if (!normal_passed || (hasChapter && !chapter_passed)) return { completed: false, newCertificates: [] };
 
   const updateRes = await pool.query(
     `UPDATE learning_roadmap_details
@@ -2801,7 +2838,7 @@ async function recomputeDayCompletion(roadmapId, dayNumber, userId) {
      RETURNING detail_id`,
     [roadmapId, dayNumber]
   );
-  if (updateRes.rows.length === 0) return true; // đã hoàn thành từ trước, không cần tính lại tiến độ
+  if (updateRes.rows.length === 0) return { completed: true, newCertificates: [] };
 
   const progressRes = await pool.query(
     `SELECT
@@ -2826,7 +2863,8 @@ async function recomputeDayCompletion(roadmapId, dayNumber, userId) {
   );
 
   await updateStreakTier(pool, roadmapId);
-  return true;
+  const newCertificates = await awardCertificatesIfEligible(pool, roadmapId, progressPercentage);
+  return { completed: true, newCertificates };
 }
 
 // GET /api/roadmaps/:id/quiz-summary - Danh sách ngày có quiz + trạng thái đã làm
@@ -2966,7 +3004,7 @@ app.post("/api/roadmaps/:id/quiz/:dayNumber/submit", requireAuth, async (req, re
     }
 
     const questionsResult = await pool.query(
-      `SELECT question_order, correct_option FROM quiz_questions
+      `SELECT question_order, correct_option, explanation FROM quiz_questions
        WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = $3
        ORDER BY question_order ASC`,
       [roadmapId, dayNumber, isChapterReview]
@@ -2978,8 +3016,10 @@ app.post("/api/roadmaps/:id/quiz/:dayNumber/submit", requireAuth, async (req, re
 
     let score = 0;
     const correctAnswers = {};
+    const explanations = {};
     questionsResult.rows.forEach(q => {
       correctAnswers[q.question_order] = q.correct_option;
+      explanations[q.question_order] = q.explanation || '';
       const userAnswer = answers ? answers[q.question_order] : null;
       if (userAnswer && String(userAnswer).toUpperCase() === q.correct_option) score++;
     });
@@ -2997,15 +3037,65 @@ app.post("/api/roadmaps/:id/quiz/:dayNumber/submit", requireAuth, async (req, re
     // Chỉ cập nhật trạng thái "Hoàn thành" thật sự của lộ trình khi chính chủ lộ trình làm bài;
     // admin xem/thử quiz hộ không được phép làm thay đổi tiến độ của người dùng, nên day_completed
     // luôn là false trong trường hợp đó (không có gì thật sự được cập nhật).
-    const dayCompleted = isOwner ? await recomputeDayCompletion(roadmapId, dayNumber, req.user.id) : false;
+    const completionResult = isOwner
+      ? await recomputeDayCompletion(roadmapId, dayNumber, req.user.id)
+      : { completed: false, newCertificates: [] };
 
     res.json({
       success: true,
-      data: { score, total: totalQuestions, passed, pass_threshold: passThreshold, correct_answers: correctAnswers, day_completed: dayCompleted }
+      data: {
+        score, total: totalQuestions, passed, pass_threshold: passThreshold, correct_answers: correctAnswers, explanations,
+        day_completed: completionResult.completed,
+        new_certificates: completionResult.newCertificates
+      }
     });
   } catch (err) {
     console.error("Error submitting quiz:", err?.message || err);
     res.status(500).json({ success: false, error: "Không thể nộp bài" });
+  }
+});
+
+// GET /api/certificates - Toàn bộ chứng chỉ của user hiện tại (dùng cho profile.html)
+app.get("/api/certificates", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT rc.certificate_id, rc.roadmap_id, rc.milestone_percent, rc.certificate_code, rc.awarded_at,
+              lr.roadmap_name, lr.category
+       FROM roadmap_certificates rc
+       JOIN learning_roadmaps lr ON lr.roadmap_id = rc.roadmap_id
+       WHERE lr.user_id = $1
+       ORDER BY rc.awarded_at DESC`,
+      [req.user.id]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error("Error fetching certificates:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể tải chứng chỉ" });
+  }
+});
+
+// GET /api/roadmaps/:id/certificates - Chứng chỉ của riêng 1 lộ trình (dùng cho roadmap_details.html?mine=true)
+app.get("/api/roadmaps/:id/certificates", requireAuth, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const ownershipCheck = await pool.query(
+      "SELECT user_id FROM learning_roadmaps WHERE roadmap_id = $1", [roadmapId]
+    );
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+    }
+    if (ownershipCheck.rows[0].user_id !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: "Không có quyền truy cập" });
+    }
+    const result = await pool.query(
+      `SELECT certificate_id, milestone_percent, certificate_code, awarded_at
+       FROM roadmap_certificates WHERE roadmap_id = $1 ORDER BY milestone_percent ASC`,
+      [roadmapId]
+    );
+    res.json({ success: true, data: result.rows });
+  } catch (err) {
+    console.error("Error fetching roadmap certificates:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể tải chứng chỉ" });
   }
 });
 
@@ -3454,7 +3544,7 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       'SUB_CATEGORY': finalData.category_detail,
       'ROADMAP_NAME': finalData.roadmap_name,
       'MAIN_PURPOSE': finalData.main_purpose,
-      'SPECIFIC_GOAL': finalData.specific_goal,
+      'APPLICATION_GOAL': finalData.specific_goal,
       'TARGET_MILESTONE': finalData.target_milestone,
       'CURRENT_LEVEL': finalData.current_level,
       'SKILL_BREAKDOWN': finalData.skill_breakdown,
@@ -3469,9 +3559,10 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       'THEME_PREFERENCE': finalData.theme_preference,
       'MATERIAL_TYPE': finalData.material_type,
       'MATERIAL_LANGUAGE': finalData.material_language,
+      'DEMOTIVATION_TRIGGER': finalData.demotivation_trigger,
       'PASS_THRESHOLD': finalData.pass_threshold,
-      'DEVICE_TYPE': finalData.device_type,
-      'RESULT_DISPLAY': finalData.result_display
+      'QUIZ_DAY_LENGTH': finalData.quiz_day_length || 5,
+      'QUIZ_CHAPTER_LENGTH': finalData.quiz_chapter_length || 10
     };
 
     Object.keys(variableMapping).forEach(key => {
@@ -3495,6 +3586,8 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     // Tính trước toàn bộ study_date cho cả lộ trình (không phụ thuộc batch)
     const fullStudyDates = generateStudyDatesByWeekdays(roadmapStartDate, selectedWeekdays, actualDays);
 
+    const quizDayLength = parseInt(finalData.quiz_day_length) || 5;
+    const quizChapterLength = parseInt(finalData.quiz_chapter_length) || 10;
     const batchPlan = computeBatchPlan(actualDays);
 
     let days = [];
@@ -3526,8 +3619,8 @@ ${continuitySummary ? `- Tóm tắt vài ngày gần nhất đã tạo ở batch
 
       let batchSystemPrompt = `Bạn là chuyên gia thiết kế lộ trình học.
 Đây là lần gọi ${batchIndex + 1}/${batchPlan.length} để tạo TỪNG PHẦN của một lộ trình tổng thể dài ${actualDays} ngày. Lần này CHỈ tạo đúng ${batch.count} ngày, day_number từ ${batch.startDay} đến ${batch.endDay}, KHÔNG bao gồm learning_materials và usage_instructions.
-Mỗi ngày phải kèm 1 mảng "quiz" gồm đúng 5 câu hỏi trắc nghiệm (4 phương án A/B/C/D, 1 đáp án đúng) bám sát learning_content/practice_exercises của chính ngày đó.
-Cứ mỗi 6 ngày liên tiếp (tính theo day_number tuyệt đối trong TOÀN BỘ lộ trình ${actualDays} ngày) và ở ngày cuối cùng của lộ trình (day_number = ${actualDays}), thêm mảng "chapter_review_quiz" gồm 5 câu hỏi tổng hợp cả chương; các ngày khác để chapter_review_quiz là mảng rỗng.
+Mỗi ngày phải kèm 1 mảng "quiz" gồm đúng ${quizDayLength} câu hỏi trắc nghiệm (4 phương án A/B/C/D, 1 đáp án đúng, kèm "explanation" giải thích ngắn gọn vì sao đáp án đó đúng) bám sát learning_content/practice_exercises của chính ngày đó.
+Cứ mỗi 6 ngày liên tiếp (tính theo day_number tuyệt đối trong TOÀN BỘ lộ trình ${actualDays} ngày) và ở ngày cuối cùng của lộ trình (day_number = ${actualDays}), thêm mảng "chapter_review_quiz" gồm ${quizChapterLength} câu hỏi tổng hợp cả chương; các ngày khác để chapter_review_quiz là mảng rỗng.
 ${isFirstBatch ? 'Vì đây là batch đầu tiên, hãy điền đầy đủ trường "analysis" (phân tích hiện trạng, tối đa 200 từ).' : 'Vì đây KHÔNG phải batch đầu tiên, để trường "analysis" là chuỗi rỗng "".'}
 
 Trả về JSON format:
@@ -3541,7 +3634,7 @@ Trả về JSON format:
       "practice_exercises": "...",
       "study_duration": ${hoursPerDay},
       "quiz": [
-        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A"}
+        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}
       ],
       "chapter_review_quiz": []
     }
@@ -3581,7 +3674,9 @@ Trả về JSON format:
         batch.count,
         hoursPerDay,
         studyDatesForBatch,
-        actualDays
+        actualDays,
+        quizDayLength,
+        quizChapterLength
       );
 
       // Phát hiện ngày bị thiếu nội dung (thường do JSON bị cắt cụt ở gần cuối response,
@@ -3612,11 +3707,11 @@ Trả về JSON format:
             day.learning_content = String(src.learning_content || src.content || day.learning_content).trim().substring(0, 1000);
             day.practice_exercises = String(src.practice_exercises || src.exercises || day.practice_exercises).trim().substring(0, 1000);
             if (Array.isArray(src.quiz) && src.quiz.length > 0) {
-              day.quiz = normalizeQuizArray(src.quiz);
+              day.quiz = normalizeQuizArray(src.quiz, quizDayLength);
             }
             const isChapterEnd = (day.day_number % CHAPTER_SIZE_DAYS === 0) || (day.day_number === actualDays);
             if (isChapterEnd && Array.isArray(src.chapter_review_quiz) && src.chapter_review_quiz.length > 0) {
-              day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz);
+              day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz, quizchapterlength);
             }
           });
           console.log(`✅ Đã lấp đầy ${filledCount}/${missingContentDays.length} ngày thiếu nội dung`);
@@ -3810,7 +3905,7 @@ app.post("/api/get-manual-prompt", requireAuth, async (req, res) => {
       'SUB_CATEGORY': formData.category_detail || '',
       'ROADMAP_NAME': formData.roadmap_name || '',
       'MAIN_PURPOSE': formData.main_purpose || '',
-      'SPECIFIC_GOAL': formData.specific_goal || '',
+      'APPLICATION_GOAL': formData.specific_goal || '',
       'CURRENT_JOB': formData.current_job || '',
       'STUDY_TIME': formData.learning_duration || '',
       'CURRENT_LEVEL': formData.current_level || '',
@@ -3822,10 +3917,12 @@ app.post("/api/get-manual-prompt", requireAuth, async (req, res) => {
       'LEARNING_METHOD': Array.isArray(formData.learning_combinations) ? formData.learning_combinations.join(', ') : formData.learning_combinations || '',
       'DIFFICULTIES': Array.isArray(formData.challenges) ? formData.challenges.join(', ') : formData.challenges || '',
       'MOTIVATION': Array.isArray(formData.motivation) ? formData.motivation.join(', ') : formData.motivation || '',
+      'DEMOTIVATION_TRIGGER': formData.demotivation_trigger || '',
       'MATERIAL_TYPE': Array.isArray(formData.material_types) ? formData.material_types.join(', ') : formData.material_types || '',
       'MATERIAL_LANGUAGE': formData.material_language || '',
       'ASSESSMENT_TYPE': Array.isArray(formData.assessment_types) ? formData.assessment_types.join(', ') : formData.assessment_types || '',
-      'RESULT_DISPLAY': Array.isArray(formData.result_display) ? formData.result_display.join(', ') : formData.result_display || '',
+      'QUIZ_DAY_LENGTH': formData.quiz_day_length || 5,
+      'QUIZ_CHAPTER_LENGTH': formData.quiz_chapter_length || 10,
       'ASSESSMENT_FREQUENCY': formData.assessment_frequency || ''
     };
     
@@ -3870,7 +3967,7 @@ app.post("/api/check-roadmap-exists", requireAuth, async (req, res) => {
           SELECT 1 
           FROM learning_roadmaps lr
           WHERE lr.roadmap_name = lrs.roadmap_name
-            AND lr.category = lrs.category
+            AND (lr.category = lrs.category OR SPLIT_PART(lr.category, ' - ', 1) = lrs.category)
             AND lr.user_id = $3
             AND (lr.overall_rating >= 4 OR lr.learning_effectiveness >= 4)
           LIMIT 1
@@ -3897,7 +3994,7 @@ app.post("/api/check-roadmap-exists", requireAuth, async (req, res) => {
       SELECT roadmap_id, roadmap_name
       FROM learning_roadmaps
       WHERE roadmap_name = $1 
-        AND category = $2
+        AND (category = $2 OR SPLIT_PART(category, ' - ', 1) = $2)
         AND user_id = $3
       LIMIT 1
     `;
@@ -3996,7 +4093,8 @@ if (Array.isArray(days) && days.length > 0) {
               roadmapId, dayNumber, isChapterReview, qi + 1,
               q.question_text,
               q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '',
-              q.correct_option || 'A'
+              q.correct_option || 'A',
+              q.explanation || ''
             ]);
           });
         };
@@ -4018,7 +4116,7 @@ if (Array.isArray(days) && days.length > 0) {
         if (quizRows.length > 0) {
           await bulkInsert(client,
             `INSERT INTO quiz_questions
-             (roadmap_id, day_number, is_chapter_review, question_order, question_text, option_a, option_b, option_c, option_d, correct_option)`,
+             (roadmap_id, day_number, is_chapter_review, question_order, question_text, option_a, option_b, option_c, option_d, correct_option, explanation)`,
             quizRows
           );
         }
@@ -4160,7 +4258,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       });
     }
 
-    const hasQuizColumn = headers[8] === 'quiz_content';
+    const hasQuizColumn = headers[8] === 'quiz_json';
 
     const normalizedData = [];
     for (let i = 2; i < data.length; i++) {
@@ -4171,7 +4269,7 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       headers.forEach((header, idx) => {
         normalized[header] = row[idx] || '';
       });
-      if (hasQuizColumn) normalized.quiz_content = row[8] || '';
+      if (hasQuizColumn) normalized.quiz_json = row[8] || '';
       normalizedData.push(normalized);
     }
 
@@ -4212,6 +4310,17 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
         if (!studyDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(studyDateStr)) {
           hasInvalidDayStudy = true;
           errors.push(`Hàng ${rowNumber}: day_study không đúng định dạng`);
+        }
+      }
+
+      if (hasQuizColumn && row.quiz_json && String(row.quiz_json).trim()) {
+        try {
+          const parsedQuiz = JSON.parse(row.quiz_json);
+          if (!Array.isArray(parsedQuiz.quiz)) {
+            errors.push(`Hàng ${rowNumber}: cột quiz_json thiếu mảng "quiz"`);
+          }
+        } catch (e) {
+          errors.push(`Hàng ${rowNumber}: cột quiz_json không phải JSON hợp lệ`);
         }
       }
     }
@@ -4260,8 +4369,8 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
       await pool.query(
         `INSERT INTO learning_roadmap_details 
         (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
-          learning_materials, usage_instructions, study_duration, study_date, completion_status, quiz_content)
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+          learning_materials, usage_instructions, study_duration, study_date, completion_status)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
         [
           roadmapId,
           dayNumber,
@@ -4272,10 +4381,30 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
           String(row.guide_learning || '').trim() || '',
           parseDurationToHours(row.study_duration),
           studyDateStr,
-          'NOT_STARTED',
-          hasQuizColumn ? String(row.quiz_content || '').trim() : null
+          'NOT_STARTED'
         ]
       );
+
+      if (hasQuizColumn && row.quiz_json && String(row.quiz_json).trim()) {
+        try {
+          const parsedQuiz = JSON.parse(row.quiz_json);
+          const insertQuizRow = async (q, order, isChapterReview) => {
+            if (!q || !q.question_text) return;
+            await pool.query(
+              `INSERT INTO quiz_questions
+               (roadmap_id, day_number, is_chapter_review, question_order, question_text, option_a, option_b, option_c, option_d, correct_option, explanation)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+              [roadmapId, dayNumber, isChapterReview, order, q.question_text, q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '', q.correct_option || 'A', q.explanation || '']
+            );
+          };
+          const quizArr = Array.isArray(parsedQuiz.quiz) ? parsedQuiz.quiz : [];
+          const chapterArr = Array.isArray(parsedQuiz.chapter_review_quiz) ? parsedQuiz.chapter_review_quiz : [];
+          for (let qi = 0; qi < quizArr.length; qi++) await insertQuizRow(quizArr[qi], qi + 1, false);
+          for (let qi = 0; qi < chapterArr.length; qi++) await insertQuizRow(chapterArr[qi], qi + 1, true);
+        } catch (e) {
+          console.error(`Bỏ qua quiz_json không hợp lệ ở ngày ${dayNumber}:`, e.message);
+        }
+      }
     }
 
     const message = hasInvalidDayStudy 

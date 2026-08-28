@@ -12,7 +12,7 @@
 
 ### **BƯỚC 1: Phân tích thông tin học viên**
 - Đọc kỹ tất cả thông tin ở mục II.
-- Xác định chủ đề chính cần học dựa trên `<CATEGORY>`, `<SUB_CATEGORY>` và `<SPECIFIC_GOAL>`.
+- Xác định chủ đề chính cần học dựa trên `<CATEGORY>`, `<SUB_CATEGORY>` và `<APPLICATION_GOAL>`.
 - Nếu có `<TARGET_MILESTONE>` (kỳ thi/deadline cụ thể): ngược từ mốc đó để phân bổ độ khó theo tuần cho phù hợp.
 - Chia nhỏ nội dung theo tuần (dễ → trung bình → khó), sau đó chia theo ngày phù hợp với `<CURRENT_LEVEL>` và `<KNOWN_SKILLS>`.
 - Đối chiếu `<SKILL_BREAKDOWN>`: phân bổ nhiều thời lượng/buổi học hơn cho các kỹ năng con đang ở mức Yếu–Trung bình, giảm tải cho các kỹ năng con đã ở mức Khá–Tốt.
@@ -20,7 +20,7 @@
 ### **BƯỚC 2: Tìm kiếm và xác minh tài liệu học tập**
 - Nếu có công cụ tìm kiếm web (web_search/web_fetch): dùng để tìm và **mở thực tế** ít nhất `<TOTAL_DURATION>` link tiềm năng phù hợp với `<CATEGORY>`, `<SUB_CATEGORY>`, `<MATERIAL_TYPE>`, `<MATERIAL_LANGUAGE>`, `<CURRENT_LEVEL>`.
 - Nếu **không có** công cụ tìm kiếm web thực sự: **không được tự bịa URL cụ thể** (VD: link YouTube video lẻ). Chỉ được dùng link đến trang chủ/mục lục khóa học của các nền tảng uy tín đã biết chắc chắn tồn tại và ổn định lâu dài (Khan Academy, Coursera, freeCodeCamp, HubSpot Academy, BBC Learning English, Duolingo, MDN, W3Schools, official docs...). Ghi rõ trong "Hướng dẫn" rằng học viên cần tự tìm bài học cụ thể trong mục lục đó.
-- Chỉ giữ lại link khi: truy cập được (không lỗi 404); nội dung phù hợp `<SPECIFIC_GOAL>` và `<CURRENT_LEVEL>`; không bị chặn địa lý (accessible từ Việt Nam); không yêu cầu đăng nhập đặc biệt; kênh/nguồn còn hoạt động, có nội dung đăng trong 3 năm gần đây.
+- Chỉ giữ lại link khi: truy cập được (không lỗi 404); nội dung phù hợp `<APPLICATION_GOAL>` và `<CURRENT_LEVEL>`; không bị chặn địa lý (accessible từ Việt Nam); không yêu cầu đăng nhập đặc biệt; kênh/nguồn còn hoạt động, có nội dung đăng trong 3 năm gần đây.
 - **LOẠI BỎ** ngay và tìm thay thế nếu link lỗi hoặc không đạt tiêu chí trên.
 - **Nguyên tắc log:** Ghi nội bộ (không cần hiển thị chi tiết cho học viên) kênh nào đã verify, kênh nào bị loại và lý do.
 - **Fallback khi thiếu link:** Nếu không tìm đủ `<TOTAL_DURATION>` link đạt chuẩn, được phép dùng lại một nguồn/kênh cho nhiều ngày — nhưng **bắt buộc** chỉ rõ phần/video/chương khác nhau mỗi lần, tuyệt đối không lặp y hệt một bài học.
@@ -28,24 +28,18 @@
 ### **BƯỚC 3: Phân loại, sắp xếp link và thiết kế bài kiểm tra**
 - Phân loại theo: chủ đề, độ khó, kỹ năng.
 - Sắp xếp phù hợp với `<TOTAL_DURATION>` và `<DAILY_TIME>` phút/ngày, ưu tiên loại tài liệu theo `<MATERIAL_TYPE>` và nhịp học theo `<LEARNING_METHOD>`.
-- Đối chiếu `<DEVICE_TYPE>`: nếu học viên chỉ dùng điện thoại/máy tính bảng, ưu tiên tài liệu dạng video, đọc, quiz thân thiện với di động; tránh chỉ định bài tập yêu cầu cài đặt phần mềm/IDE phức tạp trên máy tính trừ khi có phiên bản web/app tương thích.
 - Mỗi link chỉ dùng 1 lần, trừ khi ghi rõ phần/video khác trong cùng nguồn.
 - Chèn kiểm tra nhanh vào **cuối mỗi ngày học** (tầng 1) và bài đánh giá tổng hợp vào **ngày cuối mỗi chương** (tầng 2, AI tự nhóm ngày theo chủ đề lớn, mặc định 5–7 buổi/chương). Cả hai tầng đều áp dụng cùng ngưỡng "Đạt" theo `<PASS_THRESHOLD>`.
-- **⭐ QUY TẮC MỚI — Quiz tự soạn cho cột assessment_link:** thay vì tìm link quiz có sẵn trên mạng (thường không khớp chính xác nội dung từng ngày), AI **tự soạn 5 câu hỏi trắc nghiệm (A/B/C/D, 1 đáp án đúng)** bám sát đúng `<learning_content>` và `<practice_exercises>` của chính ngày đó — không dùng câu hỏi chung chung, không tái sử dụng nguyên câu hỏi giữa các ngày. Vào ngày cuối chương, bộ 5 câu là **quiz tổng hợp** rút từ nội dung cả chương, có thể kèm thêm link đề mẫu/đề thi thử chính thức (nếu có) để học viên đối chiếu thêm.
-- **⭐ QUY TẮC MỚI — Xuất bài kiểm tra dưới dạng có thể bấm làm ngay:** toàn bộ quiz tự soạn (tương ứng `<TOTAL_DURATION>` × 5 câu) được đóng gói thành **một file HTML tương tác duy nhất** (đặt tên gợi ý: `<ROADMAP_NAME>_quiz.html`), trong đó:
-  - Mỗi ngày là một section riêng, có anchor `#day{N}` để liên kết trực tiếp.
-  - Học viên chọn đáp án bằng radio button, bấm nút "Kiểm tra kết quả" để **tự động chấm điểm ngay trên trình duyệt** (không cần gửi đi đâu), hiển thị đáp án đúng/sai và kết luận Đạt/Chưa đạt theo `<PASS_THRESHOLD>`.
-  - Có thanh điều hướng (danh sách ngày hoặc nút Ngày trước/Ngày sau) để học viên tự chuyển giữa các ngày.
-  - File không dùng thư viện ngoài, không cần kết nối mạng để chấm điểm (JavaScript thuần, chạy offline sau khi tải về).
+- **⭐ Quiz tự soạn theo từng ngày (lưu trực tiếp vào hệ thống, KHÔNG dùng link/file quiz ngoài):** AI **tự soạn đúng `<QUIZ_DAY_LENGTH>` câu hỏi trắc nghiệm (A/B/C/D, 1 đáp án đúng, kèm giải thích ngắn gọn vì sao đáp án đó đúng)** bám sát đúng `<learning_content>` và `<practice_exercises>` của chính ngày đó — không dùng câu hỏi chung chung, không tái sử dụng nguyên câu hỏi giữa các ngày. Vào ngày cuối chương, thêm bộ `<QUIZ_CHAPTER_LENGTH>` câu hỏi **kiểm tra tổng hợp** rút từ toàn bộ nội dung của chương đó.
 
 ### **BƯỚC 4: Tạo bảng lộ trình**
-- Điền vào bảng 9 cột, dùng đúng tên cột kỹ thuật (xem mục III.2).
+- Điền vào bảng 8 cột, dùng đúng tên cột kỹ thuật (xem mục III.2), cộng thêm phần quiz riêng theo từng ngày ở mục IV (JSON output).
 - Cột "guide_learning" phải nêu: vì sao chọn nguồn này, học đúng phần/phút/bài/chương nào.
 - Đảm bảo nội dung khắc phục đúng điểm yếu ở `<SKILLS_TO_IMPROVE>`, và tận dụng `<ENGAGEMENT_TRIGGER>` để thiết kế cách trình bày bài học hấp dẫn.
 - Áp dụng `<THEME_PREFERENCE>` xuyên suốt: viết ví dụ, tình huống trong learning_content, practice_exercises và guide_learning theo đúng chủ đề/bối cảnh học viên chọn.
-- Mỗi ngày (mọi dòng trong bảng), thêm vào cuối cột practice_exercises một câu kiểm tra nhanh cuối ngày, kèm ngưỡng "Đạt" theo `<PASS_THRESHOLD>` — đây là tầng đánh giá 1, tách biệt với bài tập thực hành chính.
-- Vào ngày cuối mỗi chương (mặc định 5–7 buổi/chương), thêm bài đánh giá tổng hợp vào cột practice_exercises, ghi rõ "Đánh giá cuối Chương [X]", nội dung bao trùm toàn bộ chương đó, cùng áp dụng ngưỡng `<PASS_THRESHOLD>`. Nếu chưa đạt, gợi ý ôn tập trước khi sang chương tiếp theo trong guide_learning.
-- **Cột assessment_link** ở mọi dòng phải là **hyperlink bấm được**, trỏ tới đúng anchor `#day{N}` tương ứng trong file quiz HTML đã tạo ở Bước 3 — không để text URL thuần không bấm được, không để trống.
+- Lưu ý `<DEMOTIVATION_TRIGGER>` của học viên để thiết kế nhịp độ, độ dài bài học và cách trình bày giúp hạn chế bỏ cuộc giữa chừng.
+- Mỗi ngày (mọi dòng trong bảng), soạn đúng `<QUIZ_DAY_LENGTH>` câu quiz cuối ngày, kèm ngưỡng "Đạt" theo `<PASS_THRESHOLD>` — đây là tầng đánh giá 1, tách biệt với bài tập thực hành chính.
+- Vào ngày cuối mỗi chương (mặc định 5–7 buổi/chương), soạn thêm đúng `<QUIZ_CHAPTER_LENGTH>` câu kiểm tra tổng hợp, nội dung bao trùm toàn bộ chương đó, cùng áp dụng ngưỡng `<PASS_THRESHOLD>`. Nếu chưa đạt, gợi ý ôn tập trước khi sang chương tiếp theo trong guide_learning.
 
 ---
 
@@ -62,7 +56,7 @@ Bạn là chuyên gia giáo dục **`<CATEGORY>` -- `<SUB_CATEGORY>`** có 15+ n
 
 ### 1. MỤC TIÊU HỌC TẬP
 - **Câu 1** — Mục đích bạn học điều này: `<MAIN_PURPOSE>`
-- **Câu 2** — Kết quả cụ thể muốn đạt được khi kết thúc lộ trình: `<SPECIFIC_GOAL>`
+- **Câu 2** — Sau khi hoàn thành lộ trình, bạn muốn dùng kỹ năng này vào việc gì cụ thể trong cuộc sống/công việc?: `<APPLICATION_GOAL>`
 - **Câu 2b** *(tùy chọn)* — Có kỳ thi/chứng chỉ/deadline cụ thể cần đạt không? `<TARGET_MILESTONE>`
 
 ### 2. TRÌNH ĐỘ HIỆN TẠI
@@ -87,10 +81,10 @@ Bạn là chuyên gia giáo dục **`<CATEGORY>` -- `<SUB_CATEGORY>`** có 15+ n
 
 ### 6. TÀI LIỆU & ĐÁNH GIÁ
 - **Câu 14** — Loại tài liệu học hiệu quả nhất: `<MATERIAL_TYPE>`
-- **Câu 15** — Ngôn ngữ tài liệu mong muốn: `<MATERIAL_LANGUAGE>`
+- **Câu 15** — Điều gì thường khiến bạn bỏ cuộc hoặc mất động lực giữa chừng: `<DEMOTIVATION_TRIGGER>`
 - **Câu 16** — Ngưỡng "Đạt" cho đánh giá 2 tầng: `<PASS_THRESHOLD>`
-- **Câu 17** — Thiết bị học chủ yếu: `<DEVICE_TYPE>`
-- **Câu 18** — Cách hiển thị kết quả sau mỗi lần đánh giá: `<RESULT_DISPLAY>`
+- **Câu 17** — Số câu hỏi quiz cuối ngày và bài kiểm tra cuối chương: `<QUIZ_DAY_LENGTH>` câu/ngày, `<QUIZ_CHAPTER_LENGTH>` câu/chương
+- **Câu 18** — Ngôn ngữ tài liệu mong muốn: `<MATERIAL_LANGUAGE>`
 
 ---
 
@@ -107,7 +101,7 @@ Dựa trên thông tin trên, thiết kế lộ trình học **`<CATEGORY>` -- `
 
 ### 2. LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY
 
-Đánh giá tất cả các thông tin ở mục II để thiết kế lộ trình phù hợp. Tạo "Lộ trình học chi tiết theo ngày" với 9 cột cụ thể sau (dùng **chính xác tên cột kỹ thuật**):
+Đánh giá tất cả các thông tin ở mục II để thiết kế lộ trình phù hợp. Tạo "Lộ trình học chi tiết theo ngày" với 8 cột cụ thể sau (dùng **chính xác tên cột kỹ thuật**), cộng thêm phần quiz riêng của mỗi ngày theo đúng định dạng JSON ở mục IV:
 
 | Cột | Mô tả | Định dạng |
 |---|---|---|
@@ -119,7 +113,6 @@ Dựa trên thông tin trên, thiết kế lộ trình học **`<CATEGORY>` -- `
 | **learning_materials** | Link tài liệu học trực tuyến | URL đầy đủ, đã kiểm chứng |
 | **guide_learning** | Hướng dẫn học chính xác phần nào trong link | Đủ 3 phần: vì sao chọn / học đoạn nào / làm gì sau đó |
 | **study_duration** | Thời gian học | Ví dụ: 30m, 1h |
-| **assessment_link** | **Hyperlink bấm được**, dẫn tới quiz 5 câu tự soạn của đúng ngày đó trong file HTML quiz (anchor #day{N}); ngày cuối chương là quiz tổng hợp + có thể kèm link đề mẫu chính thức để đối chiếu thêm | Text hiển thị dạng "Bấm làm Quiz Ngày X (5 câu)", hyperlink trỏ tới `<file_quiz>.html#day{N}` |
 
 ---
 
@@ -151,12 +144,12 @@ Dựa trên thông tin trên, thiết kế lộ trình học **`<CATEGORY>` -- `
 
 ---
 
-#### Yêu cầu về cột assessment_link
+#### Yêu cầu về quiz theo từng ngày (mảng "quiz"/"chapter_review_quiz" trong JSON, không phải 1 cột trong bảng)
 
-1. **Không dùng link quiz có sẵn trên mạng làm nguồn chính** trừ khi đã kiểm chứng chắc chắn nội dung khớp 100% với bài học của đúng ngày đó.
-2. **Ưu tiên AI tự soạn** 5 câu hỏi trắc nghiệm bám sát learning_content/practice_exercises của ngày, đóng gói vào file HTML quiz tương tác chấm điểm tự động (xem Bước 3).
-3. Mỗi ô assessment_link là **1 hyperlink duy nhất, có thể bấm trực tiếp** để mở đúng phần quiz của ngày đó — không dán URL dạng text tĩnh không bấm được.
-4. Ngày cuối chương: quiz tổng hợp (đủ 5 câu rút từ cả chương) + có thể bổ sung thêm 1 link đề thi thử/đề mẫu chính thức (nếu tìm được và đã kiểm chứng) để học viên luyện thêm.
+1. **Không dùng link quiz có sẵn trên mạng.** AI tự soạn toàn bộ câu hỏi bám sát learning_content/practice_exercises của chính ngày đó.
+2. Mỗi ngày có đúng `<QUIZ_DAY_LENGTH>` câu hỏi trắc nghiệm trong mảng "quiz" (question_text, option_a-d, correct_option, explanation) — không dùng câu hỏi chung chung, không lặp lại câu hỏi giữa các ngày.
+3. Ngày cuối chương (mặc định 5-7 buổi/chương) và ngày cuối cùng của lộ trình: thêm mảng "chapter_review_quiz" gồm đúng `<QUIZ_CHAPTER_LENGTH>` câu hỏi tổng hợp rút từ nội dung cả chương; các ngày khác để mảng rỗng [].
+4. Mỗi câu hỏi phải có thêm trường "explanation" giải thích ngắn gọn vì sao đáp án đó đúng.
 
 ---
 
@@ -193,7 +186,7 @@ AI thể hiện rõ mục tiêu học của ngày đó, bắt buộc phải ghi 
 - **BẮT BUỘC**: Mỗi link video chỉ dùng 1 lần.
 - **BẮT BUỘC**: Toàn bộ tài liệu trong lộ trình phải MIỄN PHÍ.
 - Lộ trình phải thực tế, đi từ dễ → khó, bám sát toàn bộ thông tin mục II.
-- Kết quả trả về chỉ bao gồm 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ) và 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY (gồm 9 cột).
+- Kết quả trả về chỉ bao gồm 1. PHÂN TÍCH HIỆN TRẠNG (tối đa 200 từ) và 2. BẢNG LỘ TRÌNH HỌC CHI TIẾT THEO NGÀY (gồm 8 cột + quiz mỗi ngày theo mục IV).
 - AI toàn quyền tự quyết định phương án tối ưu nhất cho học viên dựa trên mục I và III, không cần hỏi lại học viên.
 
 ---
@@ -214,8 +207,12 @@ AI thể hiện rõ mục tiêu học của ngày đó, bắt buộc phải ghi 
       "learning_materials": "Đường link web tài liệu học trực tuyến đã kiểm chứng",
       "guide_learning": "Hướng dẫn đủ 3 phần: vì sao chọn link / học đúng phần/phút/bài/chương nào / làm gì sau đó",
       "study_duration": "Thời gian học theo thông tin của học viên (định dạng: 30m hoặc 1h)",
-      "assessment_link": "Hyperlink bấm được trỏ tới anchor #day{N} trong file quiz HTML tương tác"
+      "quiz": [
+        { "question_text": "Nội dung câu hỏi", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "Giải thích ngắn gọn vì sao đáp án đúng" }
+      ],
+      "chapter_review_quiz": []
     }
   ]
 }
 ```
+Lưu ý: mảng "quiz" luôn có đúng `<QUIZ_DAY_LENGTH>` phần tử cho MỌI ngày. Mảng "chapter_review_quiz" có đúng `<QUIZ_CHAPTER_LENGTH>` phần tử CHỈ ở ngày cuối mỗi chương (mặc định 5-7 buổi/chương) và ngày cuối cùng của lộ trình, các ngày khác để mảng rỗng [].

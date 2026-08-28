@@ -1977,7 +1977,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
         <div class="modal-header">
             <div>
                 <h2>📤 Upload Lộ Trình từ Excel</h2>
-                <p>File Excel phải có đúng 8 cột theo thứ tự</p>
+                <p>File Excel phải có đúng 8 cột bắt buộc theo thứ tự (có thể thêm cột thứ 9 tùy chọn cho quiz)</p>
             </div>
             <button class="close-modal" onclick="closeUploadModal()">✕</button>
         </div>
@@ -1991,7 +1991,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
                     <i class="fa-solid fa-download"></i> Nhấn vào đây để tải file Excel mẫu
                 </a>
                 <br><br>
-                <span>Hướng dẫn copy nội dung AI trả về: copy mục "Phân tích hiện trạng" vào dòng 1, dòng 2 là tiêu đề 8 cột ko được điều chỉnh và từ dòng 3 là 1 bảng gồm 8 cột gồm chi tiết lộ trình học. Lưu ý xóa các dòng data thừa phía sau bảng lộ trình 8 cột.</span>
+                <span>Hướng dẫn copy nội dung AI trả về: copy mục "Phân tích hiện trạng" vào dòng 1, dòng 2 là tiêu đề các cột (8 cột bắt buộc, có thể thêm cột <code>quiz_json</code> ở vị trí thứ 9 nếu muốn tự cấu hình quiz) ko được điều chỉnh và từ dòng 3 là 1 bảng chi tiết lộ trình học. Lưu ý xóa các dòng data thừa phía sau bảng lộ trình.</span>
                 <br>
                 <a href="Data/roadmap_template_example.xlsx" 
                 download="roadmap_template_example.xlsx"
@@ -2062,6 +2062,7 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
                     <li><code>learning_materials</code> - Tài liệu</li>
                     <li><code>guide_learning</code> - Hướng dẫn học tập</li>
                     <li><code>study_duration</code> - Thời gian học mỗi ngày</li>
+                    <li><code>quiz_json</code> - (Không bắt buộc) Quiz cuối ngày/cuối chương dạng JSON, xem định dạng bên dưới</li>
                 </ul>
                 <br>
 
@@ -2069,12 +2070,15 @@ tbody tr.marked-for-deletion .undo-delete-btn:hover {
                 <p style="margin-top: 10px; color: #856404;">
                     <strong>Lưu ý thêm:</strong>
                     <ul style="margin: 10px 0 0 20px; line-height: 1.8; ">
-                        <li>Tiêu đề của 8 cột phải theo thứ tự và không được đổi tên</li>
+                        <li>Tiêu đề của 8 cột bắt buộc phải theo thứ tự và không được đổi tên</li>
                         <li><code>day_number</code> phải có giá trị tăng 1 đơn vị từ 1 trở đi (ví dụ 1, 2, 3...)</li>
                         <li>Nếu có nhiều URL tài liệu, thì mỗi URL phải để trên <strong>một dòng riêng</strong></li>
                         <li>Định dạng của <code>day_study</code> là dưới dạng dd/mm/yyyy</li>
                         <li><code>study_duration</code> phải có đơn vị là m HOẶC/VÀ h</li>
                         <li>File định dạng phải là .xlsx hoặc .xls</li>
+                        <li>Nếu thêm cột <code>quiz_json</code> (cột 9, tùy chọn): mỗi ô phải là 1 chuỗi JSON hợp lệ dạng
+                          <code>{"quiz":[{"question_text":"...","option_a":"...","option_b":"...","option_c":"...","option_d":"...","correct_option":"A","explanation":"..."}],"chapter_review_quiz":[]}</code>.
+                          Chỉ ngày cuối chương (mỗi 6 ngày, hoặc ngày cuối lộ trình) mới cần điền <code>chapter_review_quiz</code>, các ngày khác để mảng rỗng <code>[]</code>. Bỏ trống ô này nếu không muốn tạo quiz cho ngày đó.</li>
                     </ul>
                 </p>
             </div>

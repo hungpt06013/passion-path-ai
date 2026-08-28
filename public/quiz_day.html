@@ -47,6 +47,7 @@ main{flex:1 0 auto;max-width:800px;width:100%;margin:0 auto;padding-top:120px;pa
 .quiz-wait-box p{margin:0;color:#6b7280;font-size:14px;line-height:1.5;}
 .quiz-wait-done-icon{font-size:40px;margin-bottom:12px;}
 .quiz-wait-box .submit-btn{margin-top:18px;}
+.quiz-explanation{margin-top:10px;padding:10px 12px;background:#eff6ff;border-left:3px solid #3b82f6;border-radius:6px;font-size:13px;color:#1e3a8a;}
 </style>
 </head>
 <body>
@@ -175,6 +176,13 @@ async function submitQuiz(e) {
         const wrongEl = document.getElementById(`opt_${q.question_order}_${userAns}`);
         if (wrongEl) wrongEl.classList.add('wrong-answer');
       }
+      const explanationText = result.explanations && result.explanations[q.question_order];
+      if (explanationText) {
+        const explEl = document.createElement('div');
+        explEl.className = 'quiz-explanation';
+        explEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${explanationText}`;
+        card.appendChild(explEl);
+      }
     });
 
     const oldBanner = document.getElementById('lastAttemptBanner');
@@ -191,6 +199,11 @@ async function submitQuiz(e) {
     // ✅ Nếu lần này đạt và toàn bộ ngày (quiz + kiểm tra chương nếu có) đã đủ điều kiện hoàn thành,
     // báo cho người dùng đợi hệ thống cập nhật trạng thái trước khi cho phép rời trang.
     if (result.passed && result.day_completed) {
+      if (Array.isArray(result.new_certificates) && result.new_certificates.length > 0) {
+        result.new_certificates.forEach(cert => {
+          showNotification(`🎉 Chúc mừng! Bạn vừa nhận được chứng chỉ mốc ${cert.milestone_percent}% cho lộ trình này!`, 'success');
+        });
+      }
       await waitForStatusUpdate();
     }
   } catch (err) {

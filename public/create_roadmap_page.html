@@ -1127,7 +1127,7 @@ body {
                     <div class="form-group">
                         <label class="form-label">Tên lộ trình *</label>
                         <input type="text" class="form-input" name="q1_roadmap_name" required 
-                            placeholder="VD: Học Python từ cơ bản đến nâng cao">
+                            placeholder="VD: Học IELTS từ band 6.0 đến 7.5 trong 3 tháng">
                     </div>
 
                     <!-- Q2: Danh mục - CUSTOM DROPDOWN -->
@@ -1156,11 +1156,11 @@ body {
                                 placeholder="VD: Cần tiếng Anh để phỏng vấn xin việc trong 1 tháng tới; Muốn chuyển ngành sang lập trình"></textarea>
                     </div>
 
-                    <!-- C2: Kết quả cụ thể -->
+                    <!-- C2: Ứng dụng thực tế sau khi hoàn thành -->
                     <div class="form-group">
-                        <label class="form-label">2. Kết quả cụ thể bạn muốn đạt được khi kết thúc lộ trình là gì? *</label>
+                        <label class="form-label">2. Sau khi hoàn thành lộ trình, bạn muốn dùng kỹ năng này vào việc gì cụ thể trong cuộc sống/công việc? *</label>
                         <textarea class="form-textarea" name="q5_specific_goal" required
-                                placeholder="VD: Giao tiếp được tình huống cơ bản; Đạt band 6.0 IELTS Speaking; Viết được app to-do list bằng Python"></textarea>
+                                placeholder="VD: Phỏng vấn xin việc bằng tiếng Anh; Làm dự án cá nhân bằng Python; Tự tin giao tiếp khi đi du lịch"></textarea>
                     </div>
 
                     <!-- C2b: Deadline/chứng chỉ (tùy chọn) -->
@@ -1322,15 +1322,11 @@ body {
                             placeholder="Ghi rõ loại tài liệu khác...">
                     </div>
 
-                    <!-- C15: Ngôn ngữ tài liệu -->
+                    <!-- C15: Điều gì khiến bỏ cuộc/mất động lực -->
                     <div class="form-group">
-                        <label class="form-label">15. Bạn muốn tài liệu học bằng ngôn ngữ nào? *</label>
-                        <select class="form-select" name="q18_material_language" required>
-                            <option value="">-- Chọn --</option>
-                            <option value="Tiếng Việt">Tiếng Việt</option>
-                            <option value="Tiếng Anh">Tiếng Anh</option>
-                            <option value="Song ngữ Việt–Anh">Song ngữ Việt–Anh</option>
-                        </select>
+                        <label class="form-label">15. Điều gì thường khiến bạn bỏ cuộc hoặc mất động lực giữa chừng khi tự học? *</label>
+                        <input type="text" name="q22_demotivation_trigger" class="form-input" required
+                            placeholder="VD: Bài học quá dài/khó nản; Không thấy tiến bộ rõ ràng; Không có ai nhắc nhở, dễ quên">
                     </div>
 
                     <!-- C16: Ngưỡng đạt -->
@@ -1338,31 +1334,36 @@ body {
                         <label class="form-label">16. Bạn muốn ngưỡng "Đạt" cho quiz cuối ngày và bài kiểm tra cuối chương là bao nhiêu? *</label>
                         <select class="form-select" name="q19_pass_threshold" required>
                             <option value="">-- Chọn --</option>
-                            <option value="60">Đúng tối thiểu 3/5 câu (60%)</option>
-                            <option value="80">Đúng tối thiểu 4/5 câu (80%)</option>
-                            <option value="100">Đúng cả 5/5 câu (100%)</option>
+                            <option value="60">Đúng tối thiểu 60% số câu</option>
+                            <option value="80">Đúng tối thiểu 80% số câu</option>
+                            <option value="100">Đúng 100% số câu</option>
                         </select>
                     </div>
 
-                    <!-- C17: Thiết bị -->
+                    <!-- C17: Độ dài quiz -->
                     <div class="form-group">
-                        <label class="form-label">17. Bạn chủ yếu dùng thiết bị nào để học? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="q20_device_type[]" value="Điện thoại"> Điện thoại</label>
-                            <label><input type="checkbox" name="q20_device_type[]" value="Máy tính bảng"> Máy tính bảng</label>
-                            <label><input type="checkbox" name="q20_device_type[]" value="Laptop/PC"> Laptop/PC</label>
-                            <label><input type="checkbox" name="q20_device_type[]" value="Kết hợp nhiều thiết bị"> Kết hợp nhiều thiết bị</label>
+                        <label class="form-label">17. Bạn muốn quiz cuối ngày và bài kiểm tra đánh giá cuối chương lần lượt có bao nhiêu câu hỏi? *</label>
+                        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:200px;">
+                                <label style="font-weight:500; font-size:0.85rem; color:#6b7280;">Quiz cuối ngày (3 - 7 câu)</label>
+                                <input type="number" class="form-input" name="q23_quiz_day_length" min="3" max="7" required placeholder="VD: 5">
+                            </div>
+                            <div style="flex:1; min-width:200px;">
+                                <label style="font-weight:500; font-size:0.85rem; color:#6b7280;">Kiểm tra cuối chương (6 - 12 câu)</label>
+                                <input type="number" class="form-input" name="q24_quiz_chapter_length" min="6" max="12" required placeholder="VD: 10">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- C18: Hiển thị kết quả -->
+                    <!-- C18: Ngôn ngữ tài liệu (chuyển từ câu 15 cũ xuống, thay cho câu 18 cũ đã bỏ) -->
                     <div class="form-group">
-                        <label class="form-label">18. Bạn muốn kết quả sau mỗi lần đánh giá hiển thị như thế nào? *</label>
-                        <div class="checkbox-group">
-                            <label><input type="radio" name="q21_result_display" value="Chỉ hiện Đạt/Chưa đạt" required> Chỉ hiện Đạt/Chưa đạt</label>
-                            <label><input type="radio" name="q21_result_display" value="Hiện điểm số + đáp án"> Hiện điểm số + đáp án</label>
-                            <label><input type="radio" name="q21_result_display" value="Hiện điểm số + giải thích chi tiết"> Hiện điểm số + giải thích chi tiết</label>
-                        </div>
+                        <label class="form-label">18. Bạn muốn tài liệu học bằng ngôn ngữ nào? *</label>
+                        <select class="form-select" name="q18_material_language" required>
+                            <option value="">-- Chọn --</option>
+                            <option value="Tiếng Việt">Tiếng Việt</option>
+                            <option value="Tiếng Anh">Tiếng Anh</option>
+                            <option value="Song ngữ Việt–Anh">Song ngữ Việt–Anh</option>
+                        </select>
                     </div>
                 </div>
 
@@ -1565,18 +1566,18 @@ function validateAllQuestions(silent = false) {
         errors.push('Câu loại tài liệu');
     }
 
-    const q18 = document.querySelector('select[name="q18_material_language"]');
-    if (!q18 || !q18.value) errors.push('Câu ngôn ngữ tài liệu');
+    const q22 = document.querySelector('input[name="q22_demotivation_trigger"]');
+    if (!q22 || !q22.value.trim()) errors.push('Câu điều khiến bỏ cuộc/mất động lực');
 
     const q19 = document.querySelector('select[name="q19_pass_threshold"]');
     if (!q19 || !q19.value) errors.push('Câu ngưỡng đạt');
 
-    const q20 = document.querySelectorAll('input[name="q20_device_type[]"]:checked');
-    if (q20.length === 0) errors.push('Câu thiết bị học');
+    const q23 = document.querySelector('input[name="q23_quiz_day_length"]');
+    const q24 = document.querySelector('input[name="q24_quiz_chapter_length"]');
+    if (!q23 || !q23.value || !q24 || !q24.value) errors.push('Câu số câu hỏi quiz');
 
-    const q21 = document.querySelector('input[name="q21_result_display"]:checked');
-    if (!q21) errors.push('Câu hiển thị kết quả');
-
+    const q18 = document.querySelector('select[name="q18_material_language"]');
+    if (!q18 || !q18.value) errors.push('Câu ngôn ngữ tài liệu');
     if (errors.length > 0) {
         if (!silent) alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
         return errors;
@@ -2547,13 +2548,12 @@ async function generateRoadmapWithAI() {
     const q17_material_type = q17.values;
     const q17_material_type_other = q17.other;
 
-    // Q17-Q19
-    const q18_material_language = getField(formData, 'q18_material_language');
+    // Q15(mới)/Q16/Q17(mới)/Q19
+    const q22_demotivation_trigger = getField(formData, 'q22_demotivation_trigger');
     const q19_pass_threshold = getField(formData, 'q19_pass_threshold') || '80';
-    const q20_device_type = collectChecked(['input[name="q20_device_type[]"]', 'input[name="q20_device_type"]']);
-
-    // Q21
-    const q21_result_display = getField(formData, 'q21_result_display');
+    const q23_quiz_day_length = getField(formData, 'q23_quiz_day_length') || '5';
+    const q24_quiz_chapter_length = getField(formData, 'q24_quiz_chapter_length') || '10';
+    const q18_material_language = getField(formData, 'q18_material_language');
 
     console.log('🔍 Validation Check:', {
     q1_roadmap_name, 
@@ -3543,8 +3543,9 @@ if (q2_category_hidden && q2_category_hidden.value === 'Khác') {
       ),
       material_language: getField(formData, 'q18_material_language'),
       pass_threshold: getField(formData, 'q19_pass_threshold'),
-      device_type: Array.from(document.querySelectorAll('input[name="q20_device_type[]"]:checked')).map(cb => cb.value).join(', '),
-      result_display: getField(formData, 'q21_result_display')
+      demotivation_trigger: getField(formData, 'q22_demotivation_trigger'),
+      quiz_day_length: getField(formData, 'q23_quiz_day_length') || '5',
+      quiz_chapter_length: getField(formData, 'q24_quiz_chapter_length') || '10'
     };
     
     // ✅ Gọi API với form data

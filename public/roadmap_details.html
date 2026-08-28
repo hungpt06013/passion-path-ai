@@ -1253,6 +1253,7 @@ thead {
 }
 
 .view-toggle-buttons { display: flex; gap: 8px; }
+.roadmap-section-header { margin-bottom: 16px; }
 .view-toggle-btn {
   background: white; border: 2px solid #e5e7eb; color: #4b5563;
   padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
@@ -1403,6 +1404,7 @@ thead {
           </div>
 
           <div class="overview-stats" id="statsContainer"></div>
+          <div id="myCertificatesContainer" style="margin-top:16px;"></div>
         </div>
         
         <div id="promptMessage" role="status" aria-live="polite"></div>
@@ -1669,11 +1671,14 @@ function displayRoadmapDetails(roadmap, details) {
     return `
     <tr>
       <td class="day-cell">${d.day_number}</td>
-      <td><strong>${d.daily_goal}</strong></td>
-      <td>${d.learning_content}</td>
-      <td>${d.practice_exercises || '-'}</td>
-      <td>${renderMaterialsLinksHTML(d.learning_materials)}</td>
-      <td>${d.usage_instructions || '-'}</td>
+      <td><div class="cell-inner"><strong>${escapehtml(d.daily_goal || '')}</strong></div></td>
+      <td><div class="cell-inner">${escapehtml(d.learning_content || '')}</div></td>
+      <td><div class="cell-inner">${escapehtml(d.practice_exercises || '-')}</div></td>
+      <td><div class="cell-inner">${renderMaterialsLinksHTML(d.learning_materials)}</div></td>
+      <td>
+        <div class="cell-inner">${escapehtml(d.usage_instructions || '-')}</div>
+        <button type="button" class="hd-toggle-btn" style="display:none;" onclick="toggleGuideCell(this)"><i class="fa-solid fa-chevron-down"></i></button>
+      </td>
       <td style="text-align: center;"><strong>${formatHours(d.study_duration)}</strong></td>
       <td>Chưa học${quizLinksHTML}</td>
     </tr>
@@ -1768,6 +1773,7 @@ function switchGenericViewMode(mode) {
     calWrap.style.display = 'none';
     btnTable.classList.add('active');
     btnCal.classList.remove('active');
+    setTimeout(() => adjustGuideColumnHeights('#genericTableViewWrap table', 5, [1, 2, 3, 4]), 50);
   } else {
     tableWrap.style.display = 'none';
     calWrap.style.display = 'block';
@@ -2105,11 +2111,14 @@ async function loadAdminRoadmapDetails() {
       return `
       <tr>
         <td class="day-cell">${d.day_number}</td>
-        <td><strong>${escapeHtml(d.daily_goal)}</strong></td>
-        <td>${escapeHtml(d.learning_content)}</td>
-        <td>${escapeHtml(d.practice_exercises || '-')}</td>
-        <td>${renderMaterialsLinksHTML(d.learning_materials)}</td>
-        <td>${escapeHtml(d.usage_instructions || '-')}</td>
+        <td><div class="cell-inner"><strong>${escapeHtml(d.daily_goal)}</strong></div></td>
+        <td><div class="cell-inner">${escapeHtml(d.learning_content)}</div></td>
+        <td><div class="cell-inner">${escapeHtml(d.practice_exercises || '-')}</div></td>
+        <td><div class="cell-inner">${renderMaterialsLinksHTML(d.learning_materials)}</div></td>
+        <td>
+          <div class="cell-inner">${escapeHtml(d.usage_instructions || '-')}</div>
+          <button type="button" class="hd-toggle-btn" style="display:none;" onclick="toggleGuideCell(this)"><i class="fa-solid fa-chevron-down"></i></button>
+        </td>
         <td style="text-align:center;"><strong>${formatHours(d.study_duration)}</strong></td>
         <td>${statusMap[d.completion_status] || d.completion_status}<br>${quizLinksHTML}</td>
       </tr>
@@ -2166,6 +2175,33 @@ function renderStreakBadge(tier) {
     </div>
   `;
 }
+async function loadMyCertificates(roadmapId) {
+  const container = document.getElementById('myCertificatesContainer');
+  if (!container) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/roadmaps/${roadmapId}/certificates`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!data.success || !Array.isArray(data.data) || data.data.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+    const TITLES = { 25: 'Bronze Certificate', 50: 'Silver Certificate', 75: 'Gold Certificate', 100: 'Certificate of Achievement' };
+    container.innerHTML = `
+      <div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:8px;">🏆 Chứng chỉ của lộ trình này</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${data.data.map(c => `
+          <span style="background:#eef2ff;color:#4338ca;font-weight:600;font-size:12px;padding:6px 12px;border-radius:16px;">
+            ${TITLES[c.milestone_percent]} (${c.milestone_percent}%)
+          </span>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    console.error('Error loading certificates:', err);
+  }
+}
 function renderMyRoadmap() {
   document.getElementById('roadmapTitle').textContent = myRoadmapData.roadmap_name;
 
@@ -2209,9 +2245,9 @@ function renderMyRoadmap() {
     <div class="stat-box"><span class="stat-value">${formatHours(myRoadmapData.duration_hours)}</span><span class="stat-label">Tổng thời gian</span></div>
     <div class="stat-box"><span class="stat-value">${formatHours(myRoadmapData.total_studied_hours || 0)}</span><span class="stat-label">Đã học</span></div>
     <div class="stat-box"><span class="stat-value">${Math.round(myRoadmapData.progress_percentage || 0)}%</span><span class="stat-label">Tiến độ</span></div>
-    <div class="stat-box"><span class="stat-value">${avgRating}</span><span class="stat-label">Đánh giá tổng thể</span></div>
-  `;
-
+      <div class="stat-box"><span class="stat-value">${avgRating}</span><span class="stat-label">Đánh giá tổng thể</span></div>
+    `;
+  loadMyCertificates(myRoadmapData.roadmap_id);
   const createBtn = document.querySelector('.create-btn');
   if (createBtn) createBtn.style.display = 'none';
 
@@ -2245,7 +2281,7 @@ function switchMyViewMode(mode) {
     calWrap.style.display = 'none';
     btnTable.classList.add('active');
     btnCal.classList.remove('active');
-    setTimeout(adjustGuideColumnHeights, 50); // đợi bảng hiện xong mới đo
+    setTimeout(() => adjustGuideColumnHeights('#myTableViewWrap table', 6, [2, 3, 4, 5]), 50); // đợi bảng hiện xong mới đo
   } else {
     tableWrap.style.display = 'none';
     calWrap.style.display = 'block';
@@ -2255,27 +2291,30 @@ function switchMyViewMode(mode) {
 }
 
 // ✅ Cắt chữ cột "Hướng dẫn" theo chiều cao cột cao thứ 2 trong dòng
-function adjustGuideColumnHeights() {
-  const table = document.querySelector('#myTableViewWrap table');
+// tableSelector: bảng cần xử lý; guideIndex: vị trí cột "Hướng dẫn" (0-based); compareIndices: các cột dùng so chiều cao
+function adjustGuideColumnHeights(tableSelector, guideIndex, compareIndices) {
+  const table = document.querySelector(tableSelector || '#myTableViewWrap table');
   if (!table || table.classList.contains('edit-mode-active')) return;
-  const rows = table.querySelectorAll('tbody tr[data-detail-id]');
+  const gIdx = guideIndex ?? 6;
+  const cmpIdx = compareIndices || [2, 3, 4, 5];
+  const rows = table.querySelectorAll('tbody tr');
 
   rows.forEach(row => {
     const cells = row.querySelectorAll('td');
-    const guideCellInner = cells[6] ? cells[6].querySelector('.cell-inner') : null;
+    const guideCellInner = cells[gIdx] ? cells[gIdx].querySelector('.cell-inner') : null;
     if (!guideCellInner) return;
 
     guideCellInner.style.maxHeight = 'none';
     guideCellInner.style.overflow = 'visible';
 
     const otherHeights = [];
-    [2, 3, 4, 5].forEach(i => {
+    cmpIdx.forEach(i => {
       const inner = cells[i] ? cells[i].querySelector('.cell-inner') : null;
       if (inner) otherHeights.push(inner.scrollHeight);
     });
     const guideHeight = guideCellInner.scrollHeight;
     const allHeights = [...otherHeights, guideHeight].sort((a, b) => b - a);
-    const targetHeight = allHeights[1] || guideHeight; // chiều cao cao thứ 2
+    const targetHeight = allHeights[1] || guideHeight;
 
     const toggleBtn = row.querySelector('.hd-toggle-btn');
 

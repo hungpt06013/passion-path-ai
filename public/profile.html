@@ -34,6 +34,16 @@ main{flex:1 0 auto;max-width:800px;width:100%;margin:0 auto;padding-top:120px;pa
 .msg.success{color:#059669;}
 .msg.error{color:#dc2626;}
 .cert-placeholder{text-align:center;padding:30px;color:#9ca3af;border:2px dashed #e5e7eb;border-radius:12px;}
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.cert-card{border-radius:14px;padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.12);}
+.cert-card.cert-25{background:linear-gradient(135deg,#b08d57,#8a6a3f);}
+.cert-card.cert-50{background:linear-gradient(135deg,#9ca3af,#6b7280);}
+.cert-card.cert-75{background:linear-gradient(135deg,#f4c430,#c9971e);}
+.cert-card.cert-100{background:linear-gradient(135deg,#4f46e5,#1e1b4b);}
+.cert-card .cert-title{font-weight:800;font-size:15px;margin-bottom:4px;}
+.cert-card .cert-sub{font-size:12px;opacity:0.9;margin-bottom:10px;}
+.cert-card .cert-roadmap{font-size:13px;font-weight:600;margin-bottom:6px;}
+.cert-card .cert-meta{font-size:11px;opacity:0.85;}
 @media(max-width:600px){main{padding-top:200px;}.avatar-wrap{flex-direction:column;align-items:flex-start;}}
 </style>
 </head>
@@ -78,7 +88,7 @@ fetch('header.html',{cache:'no-store'}).then(r=>r.text()).then(html=>{
 
   <div class="card">
     <h2>🏆 Chứng Chỉ</h2>
-    <div class="cert-placeholder">Chưa có chứng chỉ nào</div>
+    <div id="certificatesContainer" class="cert-placeholder">Đang tải chứng chỉ...</div>
   </div>
 </main>
 <div id="footer"></div>
@@ -232,6 +242,37 @@ window.addEventListener('headerAuthReady', () => {
     if (el && cached) el.src = cached;
 });
 loadProfile();
+loadCertificates();
+
+async function loadCertificates() {
+  const container = document.getElementById('certificatesContainer');
+  try {
+    const res = await fetch(`${API_BASE}/api/certificates`, { headers: authHeaders() });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Không thể tải chứng chỉ');
+    const certs = data.data || [];
+    if (certs.length === 0) {
+      container.className = 'cert-placeholder';
+      container.textContent = 'Chưa có chứng chỉ nào';
+      return;
+    }
+    const TITLES = { 25: 'Bronze Certificate', 50: 'Silver Certificate', 75: 'Gold Certificate', 100: 'Certificate of Achievement' };
+    const SUBS = { 25: 'Chứng nhận Khởi đầu', 50: 'Chứng nhận Tiến bộ', 75: 'Chứng nhận Thành tựu', 100: 'Chứng Nhận Hoàn Thành' };
+    container.className = 'cert-grid';
+    container.innerHTML = certs.map(c => `
+      <div class="cert-card cert-${c.milestone_percent}">
+        <div class="cert-title">${TITLES[c.milestone_percent]}</div>
+        <div class="cert-sub">${SUBS[c.milestone_percent]} • ${c.milestone_percent}%</div>
+        <div class="cert-roadmap">${c.roadmap_name || ''}</div>
+        <div class="cert-meta">Mã: ${c.certificate_code} · ${new Date(c.awarded_at).toLocaleDateString('vi-VN')}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error(err);
+    container.className = 'cert-placeholder';
+    container.textContent = '❌ Không thể tải chứng chỉ';
+  }
+}
 </script>
 <script src="footer.js"></script>
 </body>
