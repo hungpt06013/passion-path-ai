@@ -2812,23 +2812,25 @@ async function awardCertificatesIfEligible(client, roadmapId, progressPercentage
   return newlyAwarded;
 }
 
-async function recomputeDayCompletion(roadmapId, dayNumber, userId) {
-  const chapterExists = await pool.query(
-    `SELECT EXISTS(SELECT 1 FROM quiz_questions WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = true) AS has_chapter`,
-    [roadmapId, dayNumber]
-  );
-  const hasChapter = chapterExists.rows[0].has_chapter;
+async function recomputeDayCompletion(roadmapId, dayNumber, userId, requireQuizPass = true) {
+  if (requireQuizPass) {
+    const chapterExists = await pool.query(
+      `SELECT EXISTS(SELECT 1 FROM quiz_questions WHERE roadmap_id = $1 AND day_number = $2 AND is_chapter_review = true) AS has_chapter`,
+      [roadmapId, dayNumber]
+    );
+    const hasChapter = chapterExists.rows[0].has_chapter;
 
-  const passedRes = await pool.query(
-    `SELECT
-       bool_or(passed) FILTER (WHERE is_chapter_review = false) AS normal_passed,
-       bool_or(passed) FILTER (WHERE is_chapter_review = true) AS chapter_passed
-     FROM quiz_attempts
-     WHERE roadmap_id = $1 AND day_number = $2 AND user_id = $3`,
-    [roadmapId, dayNumber, userId]
-  );
-  const { normal_passed, chapter_passed } = passedRes.rows[0];
-  if (!normal_passed || (hasChapter && !chapter_passed)) return { completed: false, newCertificates: [] };
+    const passedRes = await pool.query(
+      `SELECT
+         bool_or(passed) FILTER (WHERE is_chapter_review = false) AS normal_passed,
+         bool_or(passed) FILTER (WHERE is_chapter_review = true) AS chapter_passed
+       FROM quiz_attempts
+       WHERE roadmap_id = $1 AND day_number = $2 AND user_id = $3`,
+      [roadmapId, dayNumber, userId]
+    );
+    const { normal_passed, chapter_passed } = passedRes.rows[0];
+    if (!normal_passed || (hasChapter && !chapter_passed)) return { completed: false, newCertificates: [] };
+  }
 
   const updateRes = await pool.query(
     `UPDATE learning_roadmap_details
@@ -3053,6 +3055,52 @@ app.post("/api/roadmaps/:id/quiz/:dayNumber/submit", requireAuth, async (req, re
   } catch (err) {
     console.error("Error submitting quiz:", err?.message || err);
     res.status(500).json({ success: false, error: "Không thể nộp bài" });
+  }
+});
+
+// POST /api/roadmaps/:id/complete-day/:dayNumber - Đánh dấu "Đã học xong" cho ngày không có quiz
+app.post("/api/roadmaps/:id/complete-day/:dayNumber", requireAuth, async (req, res) => {
+  try {
+    const roadmapId = parseInt(req.params.id);
+    const dayNumber = parseInt(req.params.dayNumber);
+
+    const ownershipCheck = await pool.query(
+      "SELECT user_id FROM learning_roadmaps WHERE roadmap_id = $1", [roadmapId]
+    );
+    if (ownershipCheck.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
+    }
+    if (ownershipCheck.rows[0].user_id !== req.user.id) {
+      return res.status(403).json({ success: false, error: "Không có quyền truy cập" });
+    }
+
+    if (!(await isDayUnlocked(roadmapId, dayNumber))) {
+      return res.status(403).json({
+        success: false,
+        error: `Vui lòng hoàn thành ngày ${dayNumber - 1} để mở khoá ngày này.`
+      });
+    }
+
+    const quizExists = await pool.query(
+      `SELECT EXISTS(SELECT 1 FROM quiz_questions WHERE roadmap_id = $1 AND day_number = $2) AS has_quiz`,
+      [roadmapId, dayNumber]
+    );
+    if (quizExists.rows[0].has_quiz) {
+      return res.status(400).json({ success: false, error: "Ngày này có quiz, vui lòng làm quiz để hoàn thành." });
+    }
+
+    const completionResult = await recomputeDayCompletion(roadmapId, dayNumber, req.user.id, false);
+
+    res.json({
+      success: true,
+      data: {
+        day_completed: completionResult.completed,
+        new_certificates: completionResult.newCertificates
+      }
+    });
+  } catch (err) {
+    console.error("Error completing day without quiz:", err?.message || err);
+    res.status(500).json({ success: false, error: "Không thể đánh dấu hoàn thành" });
   }
 });
 
@@ -4620,30 +4668,37 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
     `;
     
     const detailsResult = await pool.query(detailsQuery, [roadmapId]);
-    
+
+    const quizDaysResult = await pool.query(
+      `SELECT DISTINCT day_number FROM quiz_questions WHERE roadmap_id = $1::integer AND is_chapter_review = false`,
+      [roadmapId]
+    );
+    const quizDaySet = new Set(quizDaysResult.rows.map(r => r.day_number));
+
     const roadmap = roadmapResult.rows[0];
     const formattedRoadmap = {
       ...roadmap,
       created_at: formatTimestampForAPI(roadmap.created_at),
       updated_at: formatTimestampForAPI(roadmap.updated_at)
     };
-    
+
     const formattedDetails = detailsResult.rows.map(detail => ({
       ...detail,
       study_date: detail.study_date ? toVietnamDateString(new Date(detail.study_date)) : null,
       created_at: formatTimestampForAPI(detail.created_at),
       updated_at: formatTimestampForAPI(detail.updated_at),
-      completed_at: formatTimestampForAPI(detail.completed_at)
+      completed_at: formatTimestampForAPI(detail.completed_at),
+      has_quiz: quizDaySet.has(detail.day_number)
     }));
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       data: {
         roadmap: { ...formattedRoadmap, has_overdue: scheduleInfo.hasOverdueToday, was_rescheduled: scheduleInfo.rescheduled },
         details: formattedDetails
       }
     });
-    
+
   } catch (err) {
     console.error("ERROR in /api/roadmaps/:id:", err);
     res.status(500).json({ 

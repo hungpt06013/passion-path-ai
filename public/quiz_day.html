@@ -240,19 +240,15 @@ function waitForStatusUpdate() {
       box.innerHTML = `
         <div class="quiz-wait-done-icon">✅</div>
         <h3>Đã cập nhật trạng thái!</h3>
-        <p>Ngày học này đã được đánh dấu "Hoàn thành". Giờ bạn có thể rời khỏi trang.</p>
-        <button type="button" class="submit-btn" id="quizWaitCloseBtn">Đã hiểu</button>
+        <p>Ngày học này đã được đánh dấu "Hoàn thành". Đang chuyển về trang lộ trình...</p>
       `;
-      const closeBtn = document.getElementById('quizWaitCloseBtn');
-      closeBtn.addEventListener('click', () => {
-        overlay.remove();
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-        if (backLink) {
-          backLink.style.pointerEvents = '';
-          backLink.style.opacity = '';
-        }
-        resolve();
-      }, { once: true });
+      window.removeEventListener('beforeunload', beforeUnloadHandler);
+
+      setTimeout(() => {
+        try { sessionStorage.setItem('pp_force_reload_roadmap', String(roadmapId)); } catch (e) {}
+        window.location.href = `roadmap_details.html?id=${roadmapId}&mine=true`;
+      }, 1200);
+      resolve();
     }, 1400);
   });
 }

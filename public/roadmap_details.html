@@ -1495,6 +1495,14 @@ const token = localStorage.getItem('token');
 if (isMine && !token) {
     window.location.replace('login.html');
 }
+if (isMine && roadmapId) {
+  try {
+    if (sessionStorage.getItem('pp_force_reload_roadmap') === String(roadmapId)) {
+      sessionStorage.removeItem('pp_force_reload_roadmap');
+      location.reload();
+    }
+  } catch (e) {}
+}
 if (isAdminView) {
     const role = localStorage.getItem('role');
     if (!token || role !== 'admin') {
@@ -2350,6 +2358,32 @@ function toggleGuideCell(btn) {
     btn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
   }
 }
+
+async function markDayDoneNoQuiz(dayNumber, btnEl) {
+  if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Đang cập nhật...'; }
+  try {
+    const response = await fetch(`${API_BASE}/api/roadmaps/${myRoadmapData.roadmap_id}/complete-day/${dayNumber}`, {
+      method: 'POST',
+      headers: getMyAuthHeaders()
+    });
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error || 'Không thể đánh dấu hoàn thành');
+
+    showNotification('✅ Đã đánh dấu ngày học này là hoàn thành!', 'success');
+    if (Array.isArray(result.data.new_certificates) && result.data.new_certificates.length > 0) {
+      result.data.new_certificates.forEach(cert => {
+        showNotification(`🎉 Chúc mừng! Bạn vừa nhận được chứng chỉ mốc ${cert.milestone_percent}% cho lộ trình này!`, 'success');
+      });
+    }
+    closeMyDayCalendarDetail();
+    await loadMyRoadmapDetails();
+  } catch (err) {
+    console.error(err);
+    showNotification('❌ ' + err.message, 'error');
+    if (btnEl) { btnEl.disabled = false; btnEl.textContent = '✅ Đã học xong'; }
+  }
+}
+
 function openMyDayCalendarDetail(detailId) {
   const idx = myRoadmapDetails.findIndex(x => x.detail_id === detailId);
   const d = myRoadmapDetails[idx];
@@ -2374,7 +2408,13 @@ function openMyDayCalendarDetail(detailId) {
     ? `<div class="mcd-status-row" style="margin-top:10px;">
          <span style="color:#dc2626;font-size:0.85rem;font-weight:600;">🔒 Vui lòng hoàn thành bài kiểm tra của ngày ${d.day_number - 1} để mở khoá ngày này.</span>
        </div>`
-    : `<div class="mcd-status-row" style="margin-top:10px;">
+    : d.has_quiz === false
+      ? `<div class="mcd-status-row" style="margin-top:10px;">
+           ${d.completion_status === 'COMPLETED'
+              ? `<span style="color:#059669;font-size:0.85rem;font-weight:600;">✅ Đã học xong</span>`
+              : `<button type="button" class="mcd-edit-btn" style="background:linear-gradient(135deg,#10b981,#059669);" onclick="markDayDoneNoQuiz(${d.day_number}, this)">✅ Đã học xong</button>`}
+         </div>`
+      : `<div class="mcd-status-row" style="margin-top:10px;">
          <a href="quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}" style="display:inline-block;color:#007bff;font-size:0.85rem;font-weight:600;text-decoration:underline;">📝 Làm Quiz</a>
          ${(d.day_number % 6 === 0 || d.day_number === myRoadmapDetails.length) ? `<a href="quiz_day.html?roadmap_id=${myRoadmapData.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-left:14px;color:#dc2626;font-size:0.85rem;font-weight:600;text-decoration:underline;">📘 Kiểm tra chương</a>` : ''}
        </div>`;
@@ -2509,7 +2549,11 @@ function displayMyRoadmapDetails(roadmap, details) {
             const statusText = d.completion_status === 'COMPLETED' ? '✅ Hoàn thành' : '⏳ Chưa học';
             const quizLinksHTML = locked
               ? `<span style="display:inline-block;margin-top:6px;color:#dc2626;font-size:0.72rem;font-weight:600;">🔒 Hoàn thành ngày ${d.day_number - 1} để mở khoá</span>`
-              : `<a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}" style="display:inline-block;margin-top:6px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
+              : d.has_quiz === false
+                ? (d.completion_status === 'COMPLETED'
+                    ? `<span style="display:inline-block;margin-top:6px;color:#059669;font-size:0.75rem;font-weight:600;">✅ Đã học xong</span>`
+                    : `<button type="button" style="display:inline-block;margin-top:6px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:0.75rem;font-weight:600;cursor:pointer;" onclick="markDayDoneNoQuiz(${d.day_number}, this)">✅ Đã học xong</button>`)
+                : `<a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}" style="display:inline-block;margin-top:6px;color:#007bff;font-size:0.75rem;font-weight:600;text-decoration:underline;">📝 Quiz</a>
                  ${(d.day_number % 6 === 0 || d.day_number === details.length) ? `<br><a href="quiz_day.html?roadmap_id=${roadmap.roadmap_id}&day=${d.day_number}&chapter=true" style="display:inline-block;margin-top:4px;color:#dc2626;font-size:0.75rem;font-weight:600;text-decoration:underline;">📘 Ktr chương</a>` : ''}`;
             return `
             <tr data-detail-id="${d.detail_id}">
