@@ -1401,7 +1401,7 @@ Trả về JSON format:
       "practice_exercises": "...",
       "study_duration": ${hoursPerDay},
       "quiz": [
-        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A"}
+        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}
       ],
       "chapter_review_quiz": []
     }
@@ -3438,8 +3438,9 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       q17_material_type, q17_material_type_other,
       q18_material_language,
       q19_pass_threshold,
-      q20_device_type,
-      q21_result_display
+      q22_demotivation_trigger,
+      q23_quiz_day_length,
+      q24_quiz_chapter_length
     } = req.body;
 
     const processArrayWithOther = (arr, otherValue) => {
@@ -3487,8 +3488,9 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
       material_type: processArrayWithOther(q17_material_type, q17_material_type_other),
       material_language: q18_material_language || 'Tiếng Việt',
       pass_threshold: q19_pass_threshold || pass_threshold || '80',
-      device_type: Array.isArray(q20_device_type) ? q20_device_type.join(', ') : 'Chưa xác định',
-      result_display: q21_result_display || 'Hiện điểm số + đáp án',
+      demotivation_trigger: q22_demotivation_trigger || 'Chưa xác định',
+      quiz_day_length: parseInt(q23_quiz_day_length) || 5,
+      quiz_chapter_length: parseInt(q24_quiz_chapter_length) || 10,
       start_level: q7_current_level || start_level,
       duration_days: q11_program_days || duration_days,
       duration_hours: duration_hours,
