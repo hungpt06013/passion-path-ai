@@ -21,12 +21,9 @@ import XLSX from "xlsx";
 import Joi from "joi";
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import nodemailer from 'nodemailer';
+import { resend } from 'resend';
 import cors from "cors";
 import crypto from "crypto";
-
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
 
 dotenv.config();
 
@@ -109,25 +106,14 @@ if (rawAllowed) {
 // 4. EMAIL CONFIGURATION
 // ============================================================================
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  family: 4, // ép dùng IPv4, tránh treo kết nối khi IPv6 outbound không thông trên Render
-  connectionTimeout: 10000, // 10s thay vì để mặc định quá lâu, dễ debug hơn nếu vẫn lỗi
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+const EMAIL_SENDER = process.env.EMAIL_FROM || 'onboarding@resend.dev';
 
-transporter.verify(function(error, success) {
-  if (error) {
-    console.error('❌ Email configuration error:', error.message);
-  } else {
-    console.log('✅ Email server is ready');
-  }
-});
+if (!process.env.RESEND_API_KEY) {
+  console.warn('⚠️ RESEND_API_KEY chưa được set - tính năng gửi email sẽ không hoạt động');
+} else {
+  console.log('✅ Resend email client đã sẵn sàng');
+}
 
 // ============================================================================
 // 5. AI CLIENTS INITIALIZATION (Gemini free tier - key pool)
@@ -691,11 +677,7 @@ function generateResetCode() {
 }
 
 async function sendResetEmail(email, code) {
-  const mailOptions = {
-    from: `"Con đường đam mê" <${process.env.EMAIL_FROM}>`,
-    to: email,
-    subject: 'Mã xác thực đặt lại mật khẩu',
-    html: `
+  const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="color: #007bff; margin: 0;">Con đường đam mê</h1>
@@ -724,11 +706,16 @@ async function sendResetEmail(email, code) {
           <p style="margin-bottom: 0;">Đây là email tự động, vui lòng không trả lời.</p>
         </div>
       </div>
-    `
-  };
+    `;
 
   try {
-    await transporter.sendMail(mailOptions);
+    const { error } = await resend.emails.send({
+      from: `Con đường đam mê <${EMAIL_SENDER}>`,
+      to: email,
+      subject: 'Mã xác thực đặt lại mật khẩu',
+      html
+    });
+    if (error) throw new Error(error.message || JSON.stringify(error));
     return true;
   } catch (error) {
     console.error('❌ Send email error:', error);
@@ -2368,8 +2355,8 @@ app.post("/api/register/request-verification", async (req, res) => {
     );
     
     // Gửi email
-    const mailOptions = {
-      from: `"Con đường đam mê" <${process.env.EMAIL_FROM}>`,
+    const { error: sendErr } = await resend.emails.send({
+      from: `Con đường đam mê <${EMAIL_SENDER}>`,
       to: normalizedEmail,
       subject: 'Mã xác thực đăng ký tài khoản',
       html: `
@@ -2402,9 +2389,9 @@ app.post("/api/register/request-verification", async (req, res) => {
           </div>
         </div>
       `
-    };
+    });
     
-    await transporter.sendMail(mailOptions);
+    if (sendErr) throw new Error(sendErr.message || JSON.stringify(sendErr));
     
     res.json({
       success: true,
