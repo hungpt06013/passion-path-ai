@@ -34,16 +34,31 @@ main{flex:1 0 auto;max-width:800px;width:100%;margin:0 auto;padding-top:120px;pa
 .msg.success{color:#059669;}
 .msg.error{color:#dc2626;}
 .cert-placeholder{text-align:center;padding:30px;color:#9ca3af;border:2px dashed #e5e7eb;border-radius:12px;}
-.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
-.cert-card{border-radius:14px;padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.12);}
-.cert-card.cert-25{background:linear-gradient(135deg,#b08d57,#8a6a3f);}
-.cert-card.cert-50{background:linear-gradient(135deg,#9ca3af,#6b7280);}
-.cert-card.cert-75{background:linear-gradient(135deg,#f4c430,#c9971e);}
-.cert-card.cert-100{background:linear-gradient(135deg,#4f46e5,#1e1b4b);}
-.cert-card .cert-title{font-weight:800;font-size:15px;margin-bottom:4px;}
-.cert-card .cert-sub{font-size:12px;opacity:0.9;margin-bottom:10px;}
-.cert-card .cert-roadmap{font-size:13px;font-weight:600;margin-bottom:6px;}
-.cert-card .cert-meta{font-size:11px;opacity:0.85;}
+.cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;}
+.cert-card{position:relative;background:#fffdf9;border-radius:10px;padding:28px 22px 18px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.10);border:2px solid var(--cert-accent);text-align:center;}
+.cert-card::before{content:'';position:absolute;inset:7px;border:1px solid var(--cert-accent);border-radius:6px;opacity:.55;pointer-events:none;}
+.cert-card::after{content:'';position:absolute;top:-24px;left:-24px;width:56px;height:56px;background:linear-gradient(135deg,var(--cert-accent-light),var(--cert-accent) 65%);transform:rotate(45deg);box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.cert-card.cert-25{--cert-accent:#a9793f;--cert-accent-light:#dcb98a;--cert-accent-dark:#7a5427;--cert-text:#6b4423;}
+.cert-card.cert-50{--cert-accent:#8b93a0;--cert-accent-light:#cbd3dc;--cert-accent-dark:#5b6270;--cert-text:#4b5563;}
+.cert-card.cert-75{--cert-accent:#d6a217;--cert-accent-light:#f4d874;--cert-accent-dark:#a67c0a;--cert-text:#8a6608;}
+.cert-card.cert-100{--cert-accent:#d4af37;--cert-accent-light:#f1d97a;--cert-accent-dark:#a5841f;--cert-text:#f1d97a;background:linear-gradient(160deg,#181826,#0e0e18);}
+.cert-badge{position:absolute;top:16px;right:16px;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--cert-accent-light),var(--cert-accent) 60%,var(--cert-accent-dark));display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:12px;box-shadow:0 3px 8px rgba(0,0,0,0.25);border:2px solid #fff;}
+.cert-badge i{font-size:15px;margin-bottom:1px;}
+.cert-logo{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--cert-accent-dark);margin-bottom:10px;}
+.cert-card.cert-100 .cert-logo{color:var(--cert-accent-light);}
+.cert-title{font-weight:900;font-size:18px;letter-spacing:.5px;text-transform:uppercase;color:var(--cert-text);margin:2px 66px 10px 0;line-height:1.2;}
+.cert-card.cert-100 .cert-title{color:#fff;}
+.cert-ribbon{display:inline-block;background:linear-gradient(90deg,var(--cert-accent-dark),var(--cert-accent));color:#fff;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:5px 24px;margin:0 0 14px;clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);}
+.cert-roadmap{font-style:italic;font-weight:700;font-size:15px;color:var(--cert-text);margin-bottom:2px;}
+.cert-card.cert-100 .cert-roadmap{color:var(--cert-accent-light);}
+.cert-line{font-size:11px;color:#9ca3af;margin-bottom:16px;}
+.cert-card.cert-100 .cert-line{color:#8b8b9e;}
+.cert-footer{display:flex;justify-content:space-between;gap:10px;border-top:1px dashed var(--cert-accent);padding-top:10px;text-align:left;}
+.cert-footer .cert-meta span{display:block;font-size:10px;color:#9ca3af;}
+.cert-footer .cert-meta b{display:block;font-size:11px;color:var(--cert-text);font-weight:700;margin-top:2px;}
+.cert-card.cert-100 .cert-footer .cert-meta span{color:#8b8b9e;}
+.cert-card.cert-100 .cert-footer .cert-meta b{color:#f1d97a;}
+@media(max-width:600px){.cert-badge{width:44px;height:44px;font-size:10px;}.cert-title{font-size:15px;margin-right:52px;}}
 @media(max-width:600px){main{padding-top:200px;}.avatar-wrap{flex-direction:column;align-items:flex-start;}}
 </style>
 </head>
@@ -258,13 +273,20 @@ async function loadCertificates() {
     }
     const TITLES = { 25: 'Bronze Certificate', 50: 'Silver Certificate', 75: 'Gold Certificate', 100: 'Certificate of Achievement' };
     const SUBS = { 25: 'Chứng nhận Khởi đầu', 50: 'Chứng nhận Tiến bộ', 75: 'Chứng nhận Thành tựu', 100: 'Chứng Nhận Hoàn Thành' };
+    const ICONS = { 25: 'fa-medal', 50: 'fa-medal', 75: 'fa-trophy', 100: 'fa-award' };
     container.className = 'cert-grid';
     container.innerHTML = certs.map(c => `
       <div class="cert-card cert-${c.milestone_percent}">
+        <div class="cert-badge"><i class="fa-solid ${ICONS[c.milestone_percent]}"></i><span>${c.milestone_percent}%</span></div>
+        <div class="cert-logo"><i class="fa-solid fa-graduation-cap"></i> Passion Path AI</div>
         <div class="cert-title">${TITLES[c.milestone_percent]}</div>
-        <div class="cert-sub">${SUBS[c.milestone_percent]} • ${c.milestone_percent}%</div>
+        <div class="cert-ribbon">${SUBS[c.milestone_percent]}</div>
         <div class="cert-roadmap">${c.roadmap_name || ''}</div>
-        <div class="cert-meta">Mã: ${c.certificate_code} · ${new Date(c.awarded_at).toLocaleDateString('vi-VN')}</div>
+        <div class="cert-line">trên Passion Path AI</div>
+        <div class="cert-footer">
+          <div class="cert-meta"><span>Ngày nhận</span><b>${new Date(c.awarded_at).toLocaleDateString('vi-VN')}</b></div>
+          <div class="cert-meta" style="text-align:right"><span>Mã chứng chỉ</span><b>${c.certificate_code}</b></div>
+        </div>
       </div>
     `).join('');
   } catch (err) {

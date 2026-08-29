@@ -34,11 +34,11 @@
       color: #222;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
-      padding-top: calc(var(--header-height) + 20px);
+      padding-top: calc(var(--header-height) - 30px);
     }
 
     .page-wrapper {
-      min-height: 100%;
+      flex: 1 0 auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -185,6 +185,26 @@
       font-size: 13px;
       color: var(--muted);
       margin-top: 8px;
+    }
+
+    .back-btn {
+      background: transparent;
+      border: 1px solid rgba(10,20,40,0.12);
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .back-btn:hover {
+      background: rgba(10,20,40,0.04);
+      border-color: rgba(10,20,40,0.18);
     }
 
     a.link {
@@ -349,6 +369,9 @@
   padding: 0 12px;
 }
 @media (max-width: 900px) {
+  html, body {
+    padding-top: calc(var(--header-height) - 140px);
+  }
   body {
     padding-top: 200px; /* ✅ Đẩy xuống 200px */
   }

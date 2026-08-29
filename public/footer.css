@@ -336,8 +336,7 @@ footer {
     }
 }
 /* ✅ Clean Modern Scrollbar - Rộng & Tối màu hơn */
-html, body {
-  overflow-y: auto;
+body {
   overflow-x: hidden;
 }
 
