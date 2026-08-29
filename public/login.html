@@ -680,6 +680,7 @@
       </div>
 
       <div id="modalMessage" class="info-text" style="margin-top:12px;text-align:center;"></div>
+      <small id="spamHint" style="display:block;text-align:center;margin-top:6px;color:#6b7280;" hidden>Bạn chưa nhận được mã? Bạn hãy kiểm tra thư mục Spam hoặc Thư rác.</small>
     </div>
   </div>
 
@@ -718,6 +719,7 @@
     const confirmPassword = document.getElementById('confirmPassword');
     
     const modalMessage = document.getElementById('modalMessage');
+    const spamHint = document.getElementById('spamHint');
     const timerDiv = document.getElementById('timer');
     
     let timerInterval = null;
@@ -876,6 +878,7 @@
       document.getElementById('modalTitle').textContent = 'Quên mật khẩu';
       modalMessage.textContent = '';
       modalMessage.className = 'info-text';
+      spamhint.hidden = true;
       resetEmail.value = '';
       codeInputs.forEach(input => input.value = '');
       newPassword.value = '';
@@ -900,6 +903,7 @@
       step2.style.display = 'none';
       step3.style.display = 'block';
       document.getElementById('modalTitle').textContent = 'Đặt lại mật khẩu';
+      spamHint.hidden = true;
       clearTimer();
       newPassword.focus();
     }
@@ -1010,6 +1014,7 @@
         if (res.ok) {
           expiresAt = Date.now() + (data.expiresIn * 1000);
           setModalMessage('Mã xác thực đã được gửi đến email của bạn', false);
+          spamHint.hidden = false;
           goToStep2();
         } else {
           errorDiv.textContent = data.error || 'Không thể gửi mã';

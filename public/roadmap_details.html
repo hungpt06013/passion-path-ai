@@ -2148,12 +2148,12 @@ function getMyStatusText(status) {
   return map[status] || status;
 }
 const STREAK_TIERS = [
-  { label: '1/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966544/streak-1.png' },
-  { label: '2/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966544/streak-2.png' },
-  { label: '3/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966544/streak-3.png' },
-  { label: '4/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966548/streak-4.png' },
-  { label: '5/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966544/streak-5.png' },
-  { label: '6/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1787966544/streak-6.png' }
+  { label: '1/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014540/streak-1.png' },
+  { label: '2/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014540/streak-2.png' },
+  { label: '3/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014539/streak-3.png' },
+  { label: '4/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014539/streak-4.png' },
+  { label: '5/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014539/streak-5.png' },
+  { label: '6/6', icon: 'https://res.cloudinary.com/ti8aoh3o/image/upload/v1788014539/streak-6.png' }
 ];
 function getTierForDay(dayNumber, totalDays) {
   if (!totalDays || totalDays <= 0) return 1;
@@ -2164,7 +2164,7 @@ function getDayStreakIconHTML(dayNumber, totalDays, completionStatus) {
   if (completionStatus === 'COMPLETED') {
     const tier = getTierForDay(dayNumber, totalDays);
     const t = STREAK_TIERS[tier - 1];
-    return `<img src="${t.icon}" alt="streak" style="width:22px;height:22px;object-fit:contain;">`;
+    return `<img src="${t.icon}" alt="streak" style="width:35px;height:35px;object-fit:contain;">`;
   }
   if (completionStatus === 'IN_PROGRESS') return '⏳';
   if (completionStatus === 'SKIPPED') return '⏭️';

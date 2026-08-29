@@ -706,6 +706,7 @@
     </button>
     
     <div id="verificationMessage" class="info-text" style="margin-top:12px;text-align:center;"></div>
+    <small id="verificationSpamHint" style="display:block;text-align:center;margin-top:6px;color:#6b7280;" hidden>Bạn chưa nhận được mã? Bạn hãy kiểm tra thư mục Spam hoặc Thư rác.</small>
   </div>
 </div>
 <div id="footer"></div>
@@ -909,6 +910,7 @@ function updatePasswordCriteriaVisual(pw) {
     const verificationCodeInputs = document.querySelectorAll('.code-input');
     const verificationTimer = document.getElementById('verificationTimer');
     const verificationMessage = document.getElementById('verificationMessage');
+    const verificationSpamHint = document.getElementById('verificationSpamHint');
     const verificationCodeError = document.getElementById('verificationCodeError');
 
     let verificationTimerInterval = null;
@@ -937,6 +939,7 @@ function updatePasswordCriteriaVisual(pw) {
       verificationCodeInputs.forEach(input => input.value = '');
       verificationCodeError.hidden = true;
       verificationMessage.textContent = '';
+      verificationSpamHint.hidden = true;
       pendingRegistrationData = null;
       isRegistrationComplete = false; // ✅ Reset flag
     }
@@ -1038,6 +1041,7 @@ function updatePasswordCriteriaVisual(pw) {
         if (res.ok) {
           verificationExpiresAt = Date.now() + (data.expiresIn * 1000);
           setVerificationMessage('Mã xác thực đã được gửi đến email của bạn', false);
+          verificationSpamHint.hidden = false;
           return true;
         } else {
           setVerificationMessage(data.error || 'Không thể gửi mã', true);
@@ -1066,6 +1070,7 @@ function updatePasswordCriteriaVisual(pw) {
         
         if (res.ok) {
           setVerificationMessage('✅ Xác thực thành công!', false);
+          verificationSpamHint.hidden = true;
           
           // Proceed with registration
           setTimeout(async () => {
