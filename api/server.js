@@ -21,7 +21,6 @@ import XLSX from "xlsx";
 import Joi from "joi";
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Resend } from 'resend';
 import cors from "cors";
 import crypto from "crypto";
 
@@ -106,13 +105,33 @@ if (rawAllowed) {
 // 4. EMAIL CONFIGURATION
 // ============================================================================
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const EMAIL_SENDER = process.env.EMAIL_FROM || 'onboarding@resend.dev';
+const EMAIL_SENDER = process.env.EMAIL_FROM || '';
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn('⚠️ RESEND_API_KEY chưa được set - tính năng gửi email sẽ không hoạt động');
+if (!process.env.BREVO_API_KEY || !EMAIL_SENDER) {
+  console.warn('⚠️ BREVO_API_KEY hoặc EMAIL_FROM chưa được set - tính năng gửi email sẽ không hoạt động');
 } else {
-  console.log('✅ Resend email client đã sẵn sàng');
+  console.log('✅ Brevo email config đã sẵn sàng');
+}
+
+async function sendBrevoEmail({ to, subject, html }) {
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'api-key': process.env.BREVO_API_KEY,
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      sender: { name: 'Con đường đam mê', email: EMAIL_SENDER },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html
+    })
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Brevo lỗi ${res.status}: ${errText.substring(0, 300)}`);
+  }
 }
 
 // ============================================================================
@@ -709,13 +728,7 @@ async function sendResetEmail(email, code) {
     `;
 
   try {
-    const { error } = await resend.emails.send({
-      from: `Con đường đam mê <${EMAIL_SENDER}>`,
-      to: email,
-      subject: 'Mã xác thực đặt lại mật khẩu',
-      html
-    });
-    if (error) throw new Error(error.message || JSON.stringify(error));
+    await sendBrevoEmail({ to: email, subject: 'Mã xác thực đặt lại mật khẩu', html });
     return true;
   } catch (error) {
     console.error('❌ Send email error:', error);
@@ -2355,8 +2368,7 @@ app.post("/api/register/request-verification", async (req, res) => {
     );
     
     // Gửi email
-    const { error: sendErr } = await resend.emails.send({
-      from: `Con đường đam mê <${EMAIL_SENDER}>`,
+    await sendBrevoEmail({
       to: normalizedEmail,
       subject: 'Mã xác thực đăng ký tài khoản',
       html: `
@@ -2390,8 +2402,6 @@ app.post("/api/register/request-verification", async (req, res) => {
         </div>
       `
     });
-    
-    if (sendErr) throw new Error(sendErr.message || JSON.stringify(sendErr));
     
     res.json({
       success: true,

@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS "public";
 
-CREATE TABLE "users" (
+CREATE TABLE IF NOT EXISTS "users" (
 	"id" serial PRIMARY KEY,
 	"name" text NOT NULL,
 	"username" text NOT NULL CONSTRAINT "users_username_key" UNIQUE,
@@ -10,7 +10,7 @@ CREATE TABLE "users" (
 	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text)
 );
 
-CREATE TABLE "admin_settings" (
+CREATE TABLE IF NOT EXISTS "admin_settings" (
 	"setting_id" serial PRIMARY KEY,
 	"setting_key" varchar(100) NOT NULL CONSTRAINT "admin_settings_setting_key_key" UNIQUE,
 	"prompt_template" text,
@@ -20,14 +20,14 @@ CREATE TABLE "admin_settings" (
 	"manual_prompt_template" text
 );
 
-CREATE TABLE "categories" (
+CREATE TABLE IF NOT EXISTS "categories" (
 	"id" serial PRIMARY KEY,
 	"name" varchar(100) NOT NULL CONSTRAINT "categories_name_key" UNIQUE,
 	"description" text,
 	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text)
 );
 
-CREATE TABLE "sub_categories" (
+CREATE TABLE IF NOT EXISTS "sub_categories" (
 	"id" serial PRIMARY KEY,
 	"category_id" integer NOT NULL,
 	"name" varchar(100) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE "sub_categories" (
 	CONSTRAINT "sub_categories_category_id_name_key" UNIQUE("category_id","name")
 );
 
-CREATE TABLE "learning_roadmaps" (
+CREATE TABLE IF NOT EXISTS "learning_roadmaps" (
 	"roadmap_id" serial PRIMARY KEY,
 	"roadmap_name" varchar(255) NOT NULL,
 	"category" varchar(100) NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE "learning_roadmaps" (
 	CONSTRAINT "learning_roadmaps_status_check" CHECK ((status)::text = ANY ((ARRAY['ACTIVE'::character varying, 'COMPLETED'::character varying, 'PAUSED'::character varying])::text[]))
 );
 
-CREATE TABLE "learning_roadmaps_system" (
+CREATE TABLE IF NOT EXISTS "learning_roadmaps_system" (
 	"roadmap_id" serial PRIMARY KEY,
 	"roadmap_name" varchar(255) NOT NULL,
 	"category" varchar(100),
@@ -92,7 +92,7 @@ CREATE TABLE "learning_roadmaps_system" (
 	CONSTRAINT "learning_roadmaps_system_overall_rating_check" CHECK ((overall_rating >= 0) AND (overall_rating <= 100))
 );
 
-CREATE TABLE "ai_query_history" (
+CREATE TABLE IF NOT EXISTS "ai_query_history" (
 	"id" serial PRIMARY KEY,
 	"user_id" integer NOT NULL,
 	"query_time" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text),
@@ -106,7 +106,7 @@ CREATE TABLE "ai_query_history" (
 	CONSTRAINT "ai_query_history_status_check" CHECK ((status)::text = ANY ((ARRAY['PENDING'::character varying, 'SUCCESS'::character varying, 'FAIL'::character varying, 'TIMEOUT'::character varying])::text[]))
 );
 
-CREATE TABLE "learning_roadmap_details" (
+CREATE TABLE IF NOT EXISTS "learning_roadmap_details" (
 	"detail_id" serial PRIMARY KEY,
 	"roadmap_id" integer NOT NULL,
 	"day_number" integer NOT NULL,
@@ -126,7 +126,7 @@ CREATE TABLE "learning_roadmap_details" (
 	CONSTRAINT "learning_roadmap_details_study_duration_hours_check" CHECK (study_duration > 0)
 );
 
-CREATE TABLE "learning_roadmap_details_system" (
+CREATE TABLE IF NOT EXISTS "learning_roadmap_details_system" (
 	"detail_id" serial PRIMARY KEY,
 	"roadmap_id" integer NOT NULL,
 	"day_number" integer NOT NULL,
@@ -143,7 +143,7 @@ CREATE TABLE "learning_roadmap_details_system" (
 	"completed_at" timestamp
 );
 
-CREATE TABLE "password_reset_codes" (
+CREATE TABLE IF NOT EXISTS "password_reset_codes" (
 	"id" serial PRIMARY KEY,
 	"email" text NOT NULL,
 	"code" varchar(6) NOT NULL,
@@ -152,7 +152,7 @@ CREATE TABLE "password_reset_codes" (
 	"created_at" timestamp DEFAULT (now() AT TIME ZONE 'Asia/Ho_Chi_Minh'::text)
 );
 
-CREATE TABLE "user_feedback" (
+CREATE TABLE IF NOT EXISTS "user_feedback" (
 	"feedback_id" serial PRIMARY KEY,
 	"user_id" integer NOT NULL,
 	"rating_1" integer NOT NULL,
@@ -176,7 +176,8 @@ CREATE TABLE "user_feedback" (
 	CONSTRAINT "user_feedback_rating_7_check" CHECK ((rating_7 >= 1) AND (rating_7 <= 5)),
 	CONSTRAINT "user_feedback_rating_8_check" CHECK ((rating_8 >= 1) AND (rating_8 <= 5))
 );
-CREATE TABLE "search_api_usage" (
+
+CREATE TABLE IF NOT EXISTS "search_api_usage" (
 	"id" SERIAL PRIMARY KEY,
     "provider" VARCHAR(20) NOT NULL,
     "key_index" INTEGER NOT NULL,
@@ -187,7 +188,7 @@ CREATE TABLE "search_api_usage" (
     UNIQUE("provider", "key_index", "period")
 );
 
-CREATE TABLE "quiz_questions" (
+CREATE TABLE IF NOT EXISTS "quiz_questions" (
 	"quiz_id" SERIAL PRIMARY KEY,
 	"roadmap_id" INTEGER NOT NULL,
 	"day_number" INTEGER NOT NULL,
@@ -203,7 +204,7 @@ CREATE TABLE "quiz_questions" (
 	CONSTRAINT "quiz_questions_correct_option_check" CHECK (correct_option IN ('A','B','C','D'))
 );
 
-CREATE TABLE "quiz_attempts" (
+CREATE TABLE IF NOT EXISTS "quiz_attempts" (
 	"attempt_id" SERIAL PRIMARY KEY,
 	"roadmap_id" INTEGER NOT NULL,
 	"day_number" INTEGER NOT NULL,
@@ -213,6 +214,20 @@ CREATE TABLE "quiz_attempts" (
 	"passed" BOOLEAN NOT NULL,
 	"answers" JSONB,
 	"attempted_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+);
+
+CREATE TABLE IF NOT EXISTS "system_config" (
+	"config_key" VARCHAR(100) PRIMARY KEY,
+	"config_value" TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "roadmap_certificates" (
+	"certificate_id" SERIAL PRIMARY KEY,
+	"roadmap_id" INTEGER NOT NULL,
+	"milestone_percent" SMALLINT NOT NULL CHECK (milestone_percent IN (25,50,75,100)),
+	"certificate_code" VARCHAR(50) NOT NULL,
+	"awarded_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh'),
+	UNIQUE("roadmap_id", "milestone_percent")
 );
 
 -- Foreign Keys
@@ -225,7 +240,12 @@ ALTER TABLE "learning_roadmap_details_system" ADD CONSTRAINT "fk_roadmap" FOREIG
 ALTER TABLE "learning_roadmaps" ADD CONSTRAINT "learning_roadmaps_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
 ALTER TABLE "sub_categories" ADD CONSTRAINT "sub_categories_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE CASCADE;
 ALTER TABLE "user_feedback" ADD CONSTRAINT "user_feedback_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+ALTER TABLE "quiz_questions" ADD CONSTRAINT "quiz_questions_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
+ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
+ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+ALTER TABLE "roadmap_certificates" ADD CONSTRAINT "roadmap_certificates_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
 
+-- Cột thêm sau (migration) - khớp với ALTER TABLE ... ADD COLUMN IF NOT EXISTS trong api/server.js
 ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;
@@ -234,19 +254,21 @@ ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "pass_threshold" INTEGE
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_url" TEXT;
 ALTER TABLE "learning_roadmap_details" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
 ALTER TABLE "learning_roadmap_details_system" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
-ALTER TABLE "quiz_questions" ADD CONSTRAINT "quiz_questions_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
-ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_roadmap_id_fkey" FOREIGN KEY ("roadmap_id") REFERENCES "learning_roadmaps"("roadmap_id") ON DELETE CASCADE;
-ALTER TABLE "quiz_attempts" ADD CONSTRAINT "quiz_attempts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE;
+ALTER TABLE "quiz_questions" ADD COLUMN IF NOT EXISTS "explanation" TEXT;
+
 -- Indexes
-CREATE INDEX "idx_admin_settings_key" ON "admin_settings" ("setting_key");
-CREATE INDEX "idx_ai_history_time" ON "ai_query_history" ("query_time");
-CREATE INDEX "idx_ai_history_user" ON "ai_query_history" ("user_id");
-CREATE INDEX "idx_roadmap_details_completion" ON "learning_roadmap_details" ("completion_status");
-CREATE INDEX "idx_roadmap_details_roadmap_id" ON "learning_roadmap_details" ("roadmap_id");
-CREATE INDEX "idx_roadmap_details_study_date" ON "learning_roadmap_details" ("study_date");
-CREATE INDEX "idx_roadmaps_status" ON "learning_roadmaps" ("status");
-CREATE INDEX "idx_roadmaps_user_id" ON "learning_roadmaps" ("user_id");
-CREATE INDEX "idx_reset_code" ON "password_reset_codes" ("code");
-CREATE INDEX "idx_reset_email" ON "password_reset_codes" ("email");
-CREATE INDEX "idx_feedback_created_at" ON "user_feedback" ("created_at");
-CREATE INDEX "idx_feedback_user_id" ON "user_feedback" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_admin_settings_key" ON "admin_settings" ("setting_key");
+CREATE INDEX IF NOT EXISTS "idx_ai_history_time" ON "ai_query_history" ("query_time");
+CREATE INDEX IF NOT EXISTS "idx_ai_history_user" ON "ai_query_history" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_roadmap_details_completion" ON "learning_roadmap_details" ("completion_status");
+CREATE INDEX IF NOT EXISTS "idx_roadmap_details_roadmap_id" ON "learning_roadmap_details" ("roadmap_id");
+CREATE INDEX IF NOT EXISTS "idx_roadmap_details_study_date" ON "learning_roadmap_details" ("study_date");
+CREATE INDEX IF NOT EXISTS "idx_roadmaps_status" ON "learning_roadmaps" ("status");
+CREATE INDEX IF NOT EXISTS "idx_roadmaps_user_id" ON "learning_roadmaps" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_reset_code" ON "password_reset_codes" ("code");
+CREATE INDEX IF NOT EXISTS "idx_reset_email" ON "password_reset_codes" ("email");
+CREATE INDEX IF NOT EXISTS "idx_feedback_created_at" ON "user_feedback" ("created_at");
+CREATE INDEX IF NOT EXISTS "idx_feedback_user_id" ON "user_feedback" ("user_id");
+CREATE INDEX IF NOT EXISTS "idx_search_usage_period" ON "search_api_usage" ("provider", "period");
+CREATE INDEX IF NOT EXISTS "idx_quiz_questions_roadmap" ON "quiz_questions" ("roadmap_id", "day_number");
+CREATE INDEX IF NOT EXISTS "idx_quiz_attempts_roadmap" ON "quiz_attempts" ("roadmap_id", "day_number", "user_id");

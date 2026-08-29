@@ -174,3 +174,6 @@ uploads/
 tmp/
 
 .vercel/
+
+test.sql
+password.js
