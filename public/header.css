@@ -422,7 +422,7 @@
     padding-left: 1px; /* Tạo khoảng cách nhỏ ở đầu */
 }
 /* ============ ADMIN (4 nút): 900px-1285px thu nhỏ thay vì scroll ============ */
-@media (max-width: 1285px) and (min-width: 1101px) {
+@media (max-width: 1285px) and (min-width: 1141px) {
     .nav-buttons.has-admin {
         gap: 15px !important;
         overflow-x: hidden !important;
@@ -439,7 +439,7 @@
     }
 }
 
-@media (max-width: 1100px) and (min-width: 901px) {
+@media (max-width: 1140px) and (min-width: 961px) {
     .nav-buttons.has-admin {
         gap: 10px !important;
         overflow-x: hidden !important;
@@ -455,7 +455,22 @@
         font-size: 11px;
     }
 }
-
+@media (max-width: 960px) and (min-width: 901px) {
+    .nav-buttons.has-admin {
+        gap: 8px !important;
+        overflow-x: hidden !important;
+        justify-content: center !important;
+        margin-left:-35px !important;
+    }
+    .nav-buttons.has-admin .nav-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+        gap: 7px;
+    }
+    .nav-buttons.has-admin .nav-btn .fa {
+        font-size: 10px;
+    }
+}
 /* ============ USER (3 nút): 900px-1183px thu nhỏ thay vì scroll ============ */
 @media (max-width: 1276px) and (min-width: 901px) {
     .nav-buttons:not(.has-admin) {
