@@ -1626,7 +1626,7 @@ if (window.__aiQuotaExhausted) {
         const WEEKDAY_LABELS_VN = {1:'Thứ 2',2:'Thứ 3',3:'Thứ 4',4:'Thứ 5',5:'Thứ 6',6:'Thứ 7',7:'Chủ nhật'};
 
         function getSelectedWeekdays() {
-          return Array.from(document.querySelectorAll('input[name="q10_weekly_days[]"]:checked')).map(cb => parseInt(cb.value, 10));
+        return Array.from(document.querySelectorAll('input[name="q11_weekly_days[]"]:checked')).map(cb => parseInt(cb.value, 10));
         }
 
         function generateStudyDatesByWeekdaysJS(startDate, weekdays, count) {

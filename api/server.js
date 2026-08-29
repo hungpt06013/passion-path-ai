@@ -25,6 +25,9 @@ import nodemailer from 'nodemailer';
 import cors from "cors";
 import crypto from "crypto";
 
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
+
 dotenv.config();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5000').replace(/\/$/, '');
@@ -110,6 +113,8 @@ const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false,
+  family: 4, // ép dùng IPv4, tránh treo kết nối khi IPv6 outbound không thông trên Render
+  connectionTimeout: 10000, // 10s thay vì để mặc định quá lâu, dễ debug hơn nếu vẫn lỗi
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
@@ -1871,16 +1876,27 @@ function resultTextMatches(candidate, keywords) {
 function isCourseLikeResult(candidate) {
   return isCoursePlatformUrl(candidate?.url) || resultTextMatches(candidate, COURSE_KEYWORDS);
 }
+// Nhận diện trang tiếng Việt qua dấu tiếng Việt trong tiêu đề/mô tả
+const VIETNAMESE_CHARS_REGEX = /[àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ]/i;
 
+function looksVietnamese(candidate) {
+  const text = `${candidate?.title || ''} ${candidate?.description || ''}`;
+  return VIETNAMESE_CHARS_REGEX.test(text);
+}
 // Chọn ứng viên tốt nhất từ danh sách kết quả: luôn loại trang khóa học, có thể tránh/ưu tiên
 // thêm theo từ khóa (vd tránh trang thuần bài tập khi chọn link lý thuyết), và loại các URL đã dùng.
-function pickBestCandidate(results, { excludeUrls = [], avoidKeywords = [], preferKeywords = [] } = {}) {
-  const usable = (results || []).filter(r =>
+function pickBestCandidate(results, { excludeUrls = [], avoidKeywords = [], preferKeywords = [], wantsEnglish = null } = {}) {
+  let usable = (results || []).filter(r =>
     String(r?.url || '').trim() &&
     !isCourseLikeResult(r) &&
     !excludeUrls.includes(String(r.url).trim())
   );
   if (usable.length === 0) return null;
+
+  if (wantsEnglish !== null) {
+    const languageMatched = usable.filter(r => looksVietnamese(r) !== wantsEnglish);
+    if (languageMatched.length > 0) usable = languageMatched;
+  }
 
   if (preferKeywords.length > 0) {
     const preferred = usable.find(r => resultTextMatches(r, preferKeywords));
@@ -2064,7 +2080,7 @@ function buildMaterialSearchQuery({ category, subCategory, dailyGoal, contentTex
   return `${parts.join(' - ')} ${suffix || ''}`.trim().substring(0, 350);
 }
 
-async function callFreeSearchForMaterials({ days, category, subCategory = '', temperature = 0.5 }) {
+async function callFreeSearchForMaterials({ days, category, subCategory = '', temperature = 0.5, materialLanguage = 'Tiếng Việt' }) {
   if (!Array.isArray(days) || days.length === 0) {
     throw new Error("Days array không hợp lệ hoặc rỗng");
   }
@@ -2073,7 +2089,9 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
   if (validDays.length === 0) {
     return [];
   }
-
+  const wantsEnglish = String(materialLanguage || '').trim().toLowerCase() === 'tiếng anh';
+  const theorySuffix = wantsEnglish ? 'tutorial guide in English' : 'tutorial hướng dẫn tiếng Việt';
+  const practiceSuffix = wantsEnglish ? 'practice exercises in English' : 'bài tập thực hành tiếng Việt';
   console.log(`📊 Xử lý ${validDays.length} ngày bằng Tavily only (song song, concurrency=5), mỗi ngày tìm 2 link (lý thuyết + thực hành)`);
 
   const queue = new PQueue({ concurrency: 5 });
@@ -2084,7 +2102,7 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
       category, subCategory,
       dailyGoal: day.daily_goal,
       contentText: day.learning_content,
-      suffix: 'tutorial hướng dẫn'
+      suffix: 'bài tập thực hành exercise practice'
     });
     // Link 2 (thực hành): query gồm đủ 4 thành phần - danh mục, danh mục chi tiết, mục tiêu ngày, bài tập thực hành
     const practiceBasis = (day.practice_exercises || '').trim();
@@ -2104,14 +2122,15 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
 
     // Link lý thuyết: KHÔNG được là trang khóa học (đã lọc từ searchWithTavilyOnly), và ưu tiên
     // tránh chọn trang thuần bài tập (nếu còn ứng viên khác) -> tránh nhầm link 1 thành link bài tập.
-    const theoryCandidate = pickBestCandidate(theoryResults, { avoidKeywords: EXERCISE_KEYWORDS });
+    const theoryCandidate = pickBestCandidate(theoryResults, { avoidKeywords: EXERCISE_KEYWORDS, WANTSENGLISH });
     const theoryUrl = theoryCandidate ? String(theoryCandidate.url).trim() : "";
 
     // Link thực hành: KHÔNG được trùng link lý thuyết, KHÔNG được là trang khóa học, và ưu tiên
     // chọn đúng trang có bài tập/đề bài cụ thể (không phải bài viết lý thuyết chung chung).
     const practiceCandidate = pickBestCandidate(practiceResults, {
       excludeUrls: theoryUrl ? [theoryUrl] : [],
-      preferKeywords: EXERCISE_KEYWORDS
+      preferKeywords: EXERCISE_KEYWORDS,
+      WANTSENGLISH
     });
     const practiceUrl = practiceCandidate ? String(practiceCandidate.url).trim() : "";
 
@@ -3799,7 +3818,8 @@ Trả về JSON format:
         days: days,
         category: finalData.category,
         subCategory: finalData.category_detail,
-        temperature: 0.5
+        temperature: 0.5,
+        materialLanguage: finalData.material_language
       });
       console.log(`✅ Nhận được ${claudeMaterials.length} materials từ Tavily only`);
     } catch (error) {
