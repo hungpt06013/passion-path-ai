@@ -2459,9 +2459,7 @@ app.post("/api/register/verify-code", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
-    
-    if (vnNow > expiresAtVN) {
+    if (vnNow > expiresAtRaw) {
       return res.status(400).json({
         success: false,
         error: 'Mã xác thực đã hết hạn'
@@ -3350,9 +3348,7 @@ app.post("/api/password-reset/verify", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
-    
-    if (vnNow > expiresAtVN) {
+    if (vnNow > expiresAtRaw) {
       return res.status(400).json({
         success: false,
         error: 'Mã xác thực đã hết hạn'
@@ -3421,9 +3417,7 @@ app.post("/api/password-reset/reset", async (req, res) => {
     
     const vnNow = getVietnamDate();
     const expiresAtRaw = new Date(resetCode.expires_at);
-    const expiresAtVN = new Date(expiresAtRaw.getTime() - VIETNAM_TIMEZONE_OFFSET);
-    
-    if (vnNow > expiresAtVN) {
+    if (vnNow > expiresAtRaw) {
       return res.status(400).json({
         success: false,
         error: 'Mã xác thực đã hết hạn'
