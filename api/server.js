@@ -21,7 +21,7 @@ import XLSX from "xlsx";
 import Joi from "joi";
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { resend } from 'resend';
+import { Resend } from 'resend';
 import cors from "cors";
 import crypto from "crypto";
 
