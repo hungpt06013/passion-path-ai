@@ -1346,13 +1346,14 @@ body {
                         <div style="display:flex; gap:16px; flex-wrap:wrap;">
                             <div style="flex:1; min-width:200px;">
                                 <label style="font-weight:500; font-size:0.85rem; color:#6b7280;">Quiz cuối ngày (3 - 7 câu)</label>
-                                <input type="number" class="form-input" name="q23_quiz_day_length" min="3" max="7" required placeholder="VD: 5">
+                                <input type="number" class="form-input" name="q23_quiz_day_length" id="q23_quiz_day_length_input" min="3" max="7" required placeholder="VD: 5">
                             </div>
                             <div style="flex:1; min-width:200px;">
                                 <label style="font-weight:500; font-size:0.85rem; color:#6b7280;">Kiểm tra cuối chương (6 - 12 câu)</label>
-                                <input type="number" class="form-input" name="q24_quiz_chapter_length" min="6" max="12" required placeholder="VD: 10">
+                                <input type="number" class="form-input" name="q24_quiz_chapter_length" id="q24_quiz_chapter_length_input" min="6" max="12" required placeholder="VD: 10">
                             </div>
                         </div>
+                        <small id="quizLengthWarning" style="color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none;"></small>
                     </div>
 
                     <!-- C18: Ngôn ngữ tài liệu (chuyển từ câu 15 cũ xuống, thay cho câu 18 cũ đã bỏ) -->
@@ -1484,7 +1485,7 @@ function validateAllQuestions(silent = false) {
     const errors = [];
 
     const q1 = document.querySelector('input[name="q1_roadmap_name"]');
-    if (!q1 || !q1.value.trim()) errors.push('Câu tên lộ trình');
+    if (!q1 || !q1.value.trim()) errors.push({label:'Câu 1: Tên lộ trình', el: q1});
 
     const q2_hidden = document.getElementById('q2_category_hidden');
     let q2_valid = false;
@@ -1496,7 +1497,7 @@ function validateAllQuestions(silent = false) {
             q2_valid = true;
         }
     }
-    if (!q2_valid) errors.push('Câu danh mục');
+    if (!q2_valid) errors.push({label:'Câu 2: Danh mục', el: document.getElementById('q2_category_container')});
 
     const q3_hidden = document.getElementById('q3_category_detail_hidden');
     const q3_text = document.querySelector('input[name="q3_category_detail"][type="text"]');
@@ -1507,82 +1508,130 @@ function validateAllQuestions(silent = false) {
     } else if (q3_text && q3_text.value && q3_text.value.trim() !== '') {
         q3_valid = true;
     }
-    if (!q3_valid) errors.push('Câu danh mục chi tiết');
+    if (!q3_valid) errors.push({label:'Câu 3: Danh mục chi tiết', el: document.getElementById('q3_subCategoryContainer')});
 
     const q4 = document.querySelector('textarea[name="q4_main_purpose"]');
-    if (!q4 || !q4.value.trim()) errors.push('Câu mục đích chính');
+    if (!q4 || !q4.value.trim()) errors.push({label:'Câu 1 (Mục tiêu): Mục đích chính', el: q4});
 
     const q5 = document.querySelector('textarea[name="q5_specific_goal"]');
-    if (!q5 || !q5.value.trim()) errors.push('Câu mục tiêu cụ thể');
+    if (!q5 || !q5.value.trim()) errors.push({label:'Câu 2 (Mục tiêu): Mục tiêu cụ thể', el: q5});
 
     const q6 = document.querySelector('select[name="q6_current_level"]');
-    if (!q6 || !q6.value) errors.push('Câu trình độ hiện tại');
+    if (!q6 || !q6.value) errors.push({label:'Câu 3: Trình độ hiện tại', el: q6});
 
     const q7 = document.querySelector('textarea[name="q7_skill_breakdown"]');
-    if (!q7 || !q7.value.trim()) errors.push('Câu đánh giá kỹ năng con');
+    if (!q7 || !q7.value.trim()) errors.push({label:'Câu 4: Đánh giá kỹ năng con', el: q7});
 
     const q8 = document.querySelector('textarea[name="q8_known_skills"]');
-    if (!q8 || !q8.value.trim()) errors.push('Câu đã biết những gì');
+    if (!q8 || !q8.value.trim()) errors.push({label:'Câu 5: Đã biết những gì', el: q8});
 
     const q9skill = document.querySelector('input[name="q9_skills_to_improve"]');
-    if (!q9skill || !q9skill.value.trim()) errors.push('Câu kỹ năng yếu nhất');
+    if (!q9skill || !q9skill.value.trim()) errors.push({label:'Câu 6: Kỹ năng yếu nhất', el: q9skill});
 
     const q9time = document.getElementById('q9_daily_time_input');
     if (!q9time || !q9time.value || parseInt(q9time.value) < 15 || parseInt(q9time.value) > 720) {
-        errors.push('Câu thời gian học mỗi ngày');
+        errors.push({label:'Câu 7: Thời gian học mỗi ngày', el: q9time});
     }
 
     const weekDays = document.querySelectorAll('input[name="q11_weekly_days[]"]:checked');
-    if (weekDays.length === 0) errors.push('Câu chọn ngày học trong tuần');
+    if (weekDays.length === 0) errors.push({label:'Câu 8: Chọn ngày học trong tuần', el: document.querySelector('input[name="q11_weekly_days[]"]')});
 
     const q11days = document.getElementById('q11_program_days');
     if (!q11days || !q11days.value || parseInt(q11days.value) < 15 || parseInt(q11days.value) > 360) {
-        errors.push('Câu thời gian lộ trình');
+        errors.push({label:'Câu 9: Thời gian lộ trình', el: q11days});
     }
 
     const q13 = document.querySelectorAll('input[name="q13_learning_style[]"]:checked');
     const q13Other = document.getElementById('q12_other_text');
     const q13HasOther = Array.from(q13).some(cb => cb.value === 'Khác');
     if (q13.length === 0 || (q13HasOther && !(q13Other && q13Other.value.trim()))) {
-        errors.push('Câu hình thức tiếp thu');
+        errors.push({label:'Câu 10: Hình thức tiếp thu', el: document.querySelector('input[name="q13_learning_style[]"]')});
     }
 
     const q14 = document.querySelector('input[name="q14_learning_method"]:checked');
     const q14Other = document.getElementById('q13_other_text');
     if (!q14 || (q14.value === 'Khác' && !(q14Other && q14Other.value.trim()))) {
-        errors.push('Câu nhịp học');
+        errors.push({label:'Câu 11: Nhịp học', el: document.querySelector('input[name="q14_learning_method"]')});
     }
 
     const q15 = document.querySelector('input[name="q15_engagement_trigger"]');
-    if (!q15 || !q15.value.trim()) errors.push('Câu điều khiến buổi học hứng thú');
+    if (!q15 || !q15.value.trim()) errors.push({label:'Câu 12: Điều khiến buổi học hứng thú', el: q15});
 
     const q16 = document.querySelector('input[name="q16_theme_preference"]');
-    if (!q16 || !q16.value.trim()) errors.push('Câu chủ đề mong muốn');
+    if (!q16 || !q16.value.trim()) errors.push({label:'Câu 13: Chủ đề mong muốn', el: q16});
 
     const q17 = document.querySelectorAll('input[name="q17_material_type[]"]:checked');
     const q17Other = document.getElementById('q16_other_text');
     const q17HasOther = Array.from(q17).some(cb => cb.value === 'Khác');
     if (q17.length === 0 || (q17HasOther && !(q17Other && q17Other.value.trim()))) {
-        errors.push('Câu loại tài liệu');
+        errors.push({label:'Câu 14: Loại tài liệu', el: document.querySelector('input[name="q17_material_type[]"]')});
     }
 
     const q22 = document.querySelector('input[name="q22_demotivation_trigger"]');
-    if (!q22 || !q22.value.trim()) errors.push('Câu điều khiến bỏ cuộc/mất động lực');
+    if (!q22 || !q22.value.trim()) errors.push({label:'Câu 15: Điều khiến bỏ cuộc/mất động lực', el: q22});
 
     const q19 = document.querySelector('select[name="q19_pass_threshold"]');
-    if (!q19 || !q19.value) errors.push('Câu ngưỡng đạt');
+    if (!q19 || !q19.value) errors.push({label:'Câu 16: Ngưỡng đạt', el: q19});
 
     const q23 = document.querySelector('input[name="q23_quiz_day_length"]');
     const q24 = document.querySelector('input[name="q24_quiz_chapter_length"]');
-    if (!q23 || !q23.value || !q24 || !q24.value) errors.push('Câu số câu hỏi quiz');
+    if (!q23 || !q23.value || !q24 || !q24.value) errors.push({label:'Câu 17: Số câu hỏi quiz', el: q23 || q24});
 
     const q18 = document.querySelector('select[name="q18_material_language"]');
-    if (!q18 || !q18.value) errors.push('Câu ngôn ngữ tài liệu');
+    if (!q18 || !q18.value) errors.push({label:'Câu 18: Ngôn ngữ tài liệu', el: q18});
+
     if (errors.length > 0) {
-        if (!silent) alert('Vui lòng kiểm tra các câu sau:\n' + errors.join('\n'));
+        if (!silent) showValidationErrors(errors);
         return errors;
     }
     return [];
+}
+
+function goToQuestion(el) {
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const target = el.closest('.form-group') || el;
+    target.style.transition = 'box-shadow 0.3s ease';
+    target.style.boxShadow = '0 0 0 3px #ef4444';
+    setTimeout(() => { target.style.boxShadow = ''; }, 1800);
+    if (typeof el.focus === 'function') setTimeout(() => el.focus(), 400);
+}
+
+function showValidationErrors(errors) {
+    const old = document.getElementById('validationErrorPanel');
+    if (old) old.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'validationErrorPanel';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10001;display:flex;align-items:center;justify-content:center;';
+
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#fff;border-radius:12px;padding:24px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.25);';
+
+    const title = document.createElement('h3');
+    title.style.cssText = 'margin:0 0 12px;color:#dc2626;';
+    title.textContent = `⚠️ Bạn chưa trả lời ${errors.length} câu hỏi sau:`;
+    box.appendChild(title);
+
+    errors.forEach(err => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = `➜ ${err.label}`;
+        btn.style.cssText = 'display:block;width:100%;text-align:left;margin-bottom:8px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;color:#b91c1c;cursor:pointer;font-size:0.9rem;';
+        btn.addEventListener('click', () => { overlay.remove(); goToQuestion(err.el); });
+        box.appendChild(btn);
+    });
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.textContent = 'Đóng';
+    closeBtn.style.cssText = 'margin-top:8px;padding:10px 16px;background:#6b7280;color:#fff;border:none;border-radius:8px;cursor:pointer;';
+    closeBtn.addEventListener('click', () => overlay.remove());
+    box.appendChild(closeBtn);
+
+    overlay.appendChild(box);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
 }
 function updateGenerateButtonsState() {
   const generateBtn = document.getElementById('generateAI');
@@ -2311,7 +2360,6 @@ async function checkUserRoleAndUpdateUI() {
   function handleManualClick() {
     const validationErrors = validateAllQuestions();
     if (validationErrors && validationErrors.length > 0) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     showManualPromptForUser();
@@ -2447,9 +2495,8 @@ async function generateRoadmapWithAI() {
         const s = String(str).trim();
         const m = s.match(/(\d+(?:\.\d+)?)/);
         if (m) {
-            const num = parseFloat(m[1]);
-            if (s.toLowerCase().includes('phút')) return num / 60;
-            return num;
+            // q9_daily_time luôn là số phút (ô nhập 15-720), nên luôn phải đổi sang giờ
+            return parseFloat(m[1]) / 60;
         }
         return fallback;
     };
@@ -3091,9 +3138,8 @@ document.getElementById('roadmapForm').addEventListener('submit', async function
     const s = String(str).trim();
     const m = s.match(/(\d+(?:\.\d+)?)/);
     if (m) {
-      const num = parseFloat(m[1]);
-      if (s.toLowerCase().includes('phút')) return num / 60;
-      return num;
+        // q9_daily_time luôn là số phút (ô nhập 15-720), nên luôn phải đổi sang giờ
+        return parseFloat(m[1]) / 60;
     }
     return fallback;
   };
@@ -3436,6 +3482,36 @@ if (minutesInputEl) {
         validateMinutes(); // ✅ THÊM DÒNG NÀY
     });
 }
+
+function validateQuizLength() {
+    const dayInput = document.getElementById('q23_quiz_day_length_input');
+    const chapterInput = document.getElementById('q24_quiz_chapter_length_input');
+    const warning = document.getElementById('quizLengthWarning');
+    if (!dayInput || !chapterInput || !warning) return;
+
+    const dayVal = parseInt(dayInput.value);
+    const chapterVal = parseInt(chapterInput.value);
+    const dayInvalid = dayInput.value !== '' && (isNaN(dayVal) || dayVal < 3 || dayVal > 7);
+    const chapterInvalid = chapterInput.value !== '' && (isNaN(chapterVal) || chapterVal < 6 || chapterVal > 12);
+
+    if (dayInvalid || chapterInvalid) {
+        warning.style.display = 'block';
+        if (dayInvalid && chapterInvalid) {
+            warning.textContent = '⚠️ Số câu quiz cuối ngày phải từ 3-7 câu và số câu kiểm tra cuối chương phải từ 6-12 câu.';
+        } else if (dayInvalid) {
+            warning.textContent = '⚠️ Số câu quiz cuối ngày phải từ 3 đến 7 câu.';
+        } else {
+            warning.textContent = '⚠️ Số câu kiểm tra cuối chương phải từ 6 đến 12 câu.';
+        }
+    } else {
+        warning.style.display = 'none';
+    }
+}
+
+const q23InputEl = document.getElementById('q23_quiz_day_length_input');
+const q24InputEl = document.getElementById('q24_quiz_chapter_length_input');
+if (q23InputEl) q23InputEl.addEventListener('input', validateQuizLength);
+if (q24InputEl) q24InputEl.addEventListener('input', validateQuizLength);
 // ============ MODAL FUNCTIONS ============
     function viewPrompt() {
         const prompt = generatePrompt();

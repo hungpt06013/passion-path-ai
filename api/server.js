@@ -1303,7 +1303,9 @@ function normalizeDays(days, targetCount, hoursPerDay, startDate, weekdays = [])
       practice_exercises: String(src.practice_exercises || src.exercises || '').trim().substring(0, 1000),
       learning_materials: String(src.learning_materials || src.materials || '').trim(),
       study_guide: String(src.study_guide || src.usage_instructions || src.instructions || '').trim().substring(0, 2000),
-      study_duration: parseFloat(src.study_duration || src.hours || hoursPerDay) || hoursPerDay,
+      // Luôn dùng đúng hoursPerDay tính từ Câu 7 (phút/ngày) người dùng nhập, không tin theo AI
+      // (AI đôi khi trả nhầm số phút thay vì số giờ, ví dụ trả "30" thay vì "0.5")
+      study_duration: hoursPerDay,
       completion_status: 'NOT_STARTED',
       study_date: toVietnamDateString(studyDates[i]),
       quiz: normalizeQuizArray(src.quiz),
@@ -1371,7 +1373,9 @@ function normalizeDaysBatch(days, batchStartDay, batchCount, hoursPerDay, studyD
       practice_exercises: String(src.practice_exercises || src.exercises || '').trim().substring(0, 1000),
       learning_materials: String(src.learning_materials || src.materials || '').trim(),
       study_guide: String(src.study_guide || src.usage_instructions || src.instructions || '').trim().substring(0, 2000),
-      study_duration: parseFloat(src.study_duration || src.hours || hoursPerDay) || hoursPerDay,
+      // Luôn dùng đúng hoursPerDay tính từ Câu 7 (phút/ngày) người dùng nhập, không tin theo AI
+      // (AI đôi khi trả nhầm số phút thay vì số giờ, ví dụ trả "30" thay vì "0.5")
+      study_duration: hoursPerDay,
       completion_status: 'NOT_STARTED',
       study_date: toVietnamDateString(studyDatesForBatch[i]),
       quiz: normalizeQuizArray(src.quiz, quizDayLength),
@@ -3742,16 +3746,21 @@ Trả về JSON format:
 
       // Phát hiện ngày bị thiếu nội dung (thường do JSON bị cắt cụt ở gần cuối response,
       // hay gặp nhất ở ngày cuối cùng của lộ trình vì ngày đó luôn nặng token hơn do có
-      // thêm chapter_review_quiz) -> gọi lại Gemini để lấp đầy đúng những ngày đó.
-      const missingContentDays = normalizedBatchDays.filter(d => {
+      // thêm chapter_review_quiz) -> gọi lại Gemini để lấp đầy đúng những ngày đó, thử tối đa
+      // MAX_FILL_ATTEMPTS lần để đảm bảo không còn ngày nào bị trống.
+      let missingContentDays = normalizedBatchDays.filter(d => {
         if (!d.learning_content || !d.practice_exercises) return true;
         if (!Array.isArray(d.quiz) || d.quiz.length === 0) return true;
         const isChapterEnd = (d.day_number % CHAPTER_SIZE_DAYS === 0) || (d.day_number === actualDays);
         if (isChapterEnd && (!Array.isArray(d.chapter_review_quiz) || d.chapter_review_quiz.length === 0)) return true;
         return false;
       });
-      if (missingContentDays.length > 0) {
-        console.warn(`⚠️ Batch ${batchIndex + 1}: ${missingContentDays.length} ngày thiếu nội dung (ngày ${missingContentDays.map(d => d.day_number).join(', ')}), đang gọi lại Gemini để lấp đầy...`);
+
+      const MAX_FILL_ATTEMPTS = 3;
+      let fillAttempt = 0;
+      while (missingContentDays.length > 0 && fillAttempt < MAX_FILL_ATTEMPTS) {
+        fillAttempt++;
+        console.warn(`⚠️ Batch ${batchIndex + 1}: ${missingContentDays.length} ngày thiếu nội dung (ngày ${missingContentDays.map(d => d.day_number).join(', ')}), gọi lại Gemini lần ${fillAttempt}/${MAX_FILL_ATTEMPTS}...`);
         try {
           const filledByDayNumber = await fillMissingDaysContent(missingContentDays, {
             category: finalData.category,
@@ -3775,10 +3784,32 @@ Trả về JSON format:
               day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz, quizChapterLength);
             }
           });
-          console.log(`✅ Đã lấp đầy ${filledCount}/${missingContentDays.length} ngày thiếu nội dung`);
+          console.log(`✅ Đã lấp đầy ${filledCount}/${missingContentDays.length} ngày thiếu nội dung (lần ${fillAttempt})`);
         } catch (err) {
-          console.warn(`⚠️ Lấp đầy ngày thiếu nội dung thất bại: ${err.message}`);
+          console.warn(`⚠️ Lấp đầy ngày thiếu nội dung thất bại (lần ${fillAttempt}): ${err.message}`);
         }
+
+        missingContentDays = normalizedBatchDays.filter(d => {
+          if (!d.learning_content || !d.practice_exercises) return true;
+          if (!Array.isArray(d.quiz) || d.quiz.length === 0) return true;
+          const isChapterEnd = (d.day_number % CHAPTER_SIZE_DAYS === 0) || (d.day_number === actualDays);
+          if (isChapterEnd && (!Array.isArray(d.chapter_review_quiz) || d.chapter_review_quiz.length === 0)) return true;
+          return false;
+        });
+      }
+
+      // Vẫn còn thiếu sau tối đa MAX_FILL_ATTEMPTS lần -> gán nội dung dự phòng, KHÔNG để trống ngày nào
+      if (missingContentDays.length > 0) {
+        console.warn(`⚠️ Batch ${batchIndex + 1}: vẫn còn ${missingContentDays.length} ngày thiếu sau ${MAX_FILL_ATTEMPTS} lần thử, dùng nội dung dự phòng.`);
+        missingContentDays.forEach(day => {
+          if (!day.learning_content) {
+            day.learning_content = `Ôn tập và củng cố kiến thức đã học, tự luyện tập theo mục tiêu "${day.daily_goal}".`;
+          }
+          if (!day.practice_exercises) {
+            day.practice_exercises = `Tự ôn luyện và thực hành lại các nội dung liên quan đến mục tiêu ngày ${day.day_number}.`;
+          }
+          if (!Array.isArray(day.quiz)) day.quiz = [];
+        });
       }
 
       days = days.concat(normalizedBatchDays);
