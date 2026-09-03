@@ -1650,18 +1650,19 @@ if (window.__aiQuotaExhausted) {
   const days = daysInput ? parseInt(daysInput.value) : NaN;
 
   if (errors.length > 0) {
-    // Chưa trả lời hết câu hỏi -> khóa cả 2 nút (nhưng vẫn hiện cả 2)
-    if (generateBtn) { generateBtn.disabled = true; generateBtn.style.display = ''; }
-    if (adminManualBtn) { adminManualBtn.disabled = true; adminManualBtn.style.display = 'block'; }
+    // Chưa trả lời hết câu hỏi -> KHÔNG khóa nút (để bấm được và hiện popup báo thiếu câu nào),
+    // chỉ làm mờ nhẹ để gợi ý form còn thiếu thông tin.
+    if (generateBtn && !window.__aiQuotaExhausted) { generateBtn.disabled = false; generateBtn.style.display = ''; generateBtn.style.opacity = '0.75'; }
+    if (adminManualBtn) { adminManualBtn.disabled = false; adminManualBtn.style.display = 'block'; adminManualBtn.style.opacity = '0.75'; }
     return;
   }
 
   // Đã trả lời hết -> nút thủ công luôn bấm được
-  if (adminManualBtn) { adminManualBtn.disabled = false; adminManualBtn.style.display = 'block'; }
+  if (adminManualBtn) { adminManualBtn.disabled = false; adminManualBtn.style.display = 'block'; adminManualBtn.style.opacity = '1'; }
 
   // Nút AI chỉ hiện + bấm được khi số ngày <= 180
   if (!isNaN(days) && days > 0 && days <= 120) {
-    if (generateBtn) { generateBtn.disabled = false; generateBtn.style.display = ''; }
+    if (generateBtn && !window.__aiQuotaExhausted) { generateBtn.disabled = false; generateBtn.style.display = ''; generateBtn.style.opacity = '1'; }
   } else {
     if (generateBtn) { generateBtn.disabled = true; generateBtn.style.display = 'none'; }
   }
