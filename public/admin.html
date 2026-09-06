@@ -1097,30 +1097,32 @@ details > div {
               Các biến dưới đây là bắt buộc và không được phép xóa hoặc sửa. Nếu xóa hoặc sửa, Prompt sẽ bị lỗi khi tạo lộ trình.
             </div>
             <div class="info-text">
-              Tổng cộng: <strong>21 biến</strong> từ 18 câu hỏi của người dùng.
+              Tổng cộng: <strong>23 biến</strong> từ 18 câu hỏi của người dùng.
             </div><br>
             <ul class="var-list">
               <li><span class="var-badge">&lt;CATEGORY&gt;</span></li>
               <li><span class="var-badge">&lt;SUB_CATEGORY&gt;</span></li>
               <li><span class="var-badge">&lt;ROADMAP_NAME&gt;</span></li>
               <li><span class="var-badge">&lt;MAIN_PURPOSE&gt;</span></li>
-              <li><span class="var-badge">&lt;SPECIFIC_GOAL&gt;</span></li>
-              <li><span class="var-badge">&lt;CURRENT_JOB&gt;</span></li>
-              <li><span class="var-badge">&lt;STUDY_TIME&gt;</span></li>
+              <li><span class="var-badge">&lt;APPLICATION_GOAL&gt;</span></li>
+              <li><span class="var-badge">&lt;TARGET_MILESTONE&gt;</span></li>
               <li><span class="var-badge">&lt;CURRENT_LEVEL&gt;</span></li>
+              <li><span class="var-badge">&lt;SKILL_BREAKDOWN&gt;</span></li>
+              <li><span class="var-badge">&lt;KNOWN_SKILLS&gt;</span></li>
               <li><span class="var-badge">&lt;SKILLS_TO_IMPROVE&gt;</span></li>
               <li><span class="var-badge">&lt;DAILY_TIME&gt;</span></li>
-              <li><span class="var-badge">&lt;WEEKLY_FREQUENCY&gt;</span></li>
+              <li><span class="var-badge">&lt;STUDY_DAYS_OF_WEEK&gt;</span></li>
               <li><span class="var-badge">&lt;TOTAL_DURATION&gt;</span></li>
               <li><span class="var-badge">&lt;LEARNING_STYLE&gt;</span></li>
               <li><span class="var-badge">&lt;LEARNING_METHOD&gt;</span></li>
-              <li><span class="var-badge">&lt;DIFFICULTIES&gt;</span></li>
-              <li><span class="var-badge">&lt;MOTIVATION&gt;</span></li>
+              <li><span class="var-badge">&lt;ENGAGEMENT_TRIGGER&gt;</span></li>
+              <li><span class="var-badge">&lt;THEME_PREFERENCE&gt;</span></li>
               <li><span class="var-badge">&lt;MATERIAL_TYPE&gt;</span></li>
+              <li><span class="var-badge">&lt;DEMOTIVATION_TRIGGER&gt;</span></li>
+              <li><span class="var-badge">&lt;PASS_THRESHOLD&gt;</span></li>
+              <li><span class="var-badge">&lt;QUIZ_DAY_LENGTH&gt;</span></li>
+              <li><span class="var-badge">&lt;QUIZ_CHAPTER_LENGTH&gt;</span></li>
               <li><span class="var-badge">&lt;MATERIAL_LANGUAGE&gt;</span></li>
-              <li><span class="var-badge">&lt;ASSESSMENT_TYPE&gt;</span></li>
-              <li><span class="var-badge">&lt;RESULT_DISPLAY&gt;</span></li>
-              <li><span class="var-badge">&lt;ASSESSMENT_FREQUENCY&gt;</span></li>
             </ul>
           </div>
         </div>
@@ -2025,6 +2027,7 @@ async function loadPromptTemplate() {
     }
     if (promptEditor) promptEditor.value = '';
     if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
+    if (jsonFormat) jsonFormat.textContent = 'Không thể tải định dạng JSON';
   } finally {
     if (promptEditor) promptEditor.disabled = false;
   }

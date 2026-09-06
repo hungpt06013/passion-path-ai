@@ -7026,9 +7026,18 @@ app.post("/api/admin/prompt", requireAdmin, async (req, res) => {
     const result = await pool.query(query);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Chưa có Prompt mẫu nào'
+      // Bảng chưa có dòng nào (VD: vừa bị xoá) -> trả về giá trị mặc định thay vì lỗi 404,
+      // để trang admin vẫn hiển thị bình thường thay vì kẹt ở "Đang tải...".
+      const promptTemplate = await getPromptTemplate();
+      return res.json({
+        success: true,
+        data: {
+          setting_id: null,
+          prompt_template: promptTemplate.prompt_template,
+          json_format_response: promptTemplate.json_format_response,
+          updated_at: null,
+          updated_by: null
+        }
       });
     }
 
