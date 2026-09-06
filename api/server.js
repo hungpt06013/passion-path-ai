@@ -232,6 +232,7 @@ if (fs.existsSync(dataDir)) {
 // ============================================================================
 // 8. DATABASE CONNECTION
 // ============================================================================
+console.log("DATABASE_URL =", process.env.DATABASE_URL);
 
 let poolConfig = {};
 if (process.env.DATABASE_URL) {
@@ -241,14 +242,14 @@ if (process.env.DATABASE_URL) {
   poolConfig = {
     user: process.env.DB_USER || process.env.PGUSER || "postgres",
     host: process.env.DB_HOST || process.env.PGHOST || "localhost",
-    database: process.env.DB_NAME || process.env.PGDATABASE || "myapp",
+    database: process.env.DB_NAME || process.env.PGDATABASE || "postgres",
     password: process.env.DB_PASSWORD || process.env.PGPASSWORD || "",
     port: parseInt(process.env.DB_PORT || process.env.PGPORT || "5432", 10)
   };
 }
 
 const pool = new Pool(poolConfig);
-
+console.log("DB CONFIG:", poolConfig);
 // Test database connection
 (async function testDB() {
   try {

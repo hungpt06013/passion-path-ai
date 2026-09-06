@@ -1482,7 +1482,7 @@ body {
                     <div class="excel-download-cta">
                         <span class="excel-download-cta__badge">Bước bắt buộc</span>
                         <span class="excel-download-cta__text">
-                            Đừng quên tải file Excel mẫu — bạn cần gửi kèm file này cùng với prompt cho AI!
+                            Đừng quên tải file Excel mẫu - bạn cần gửi kèm file này cùng với prompt cho AI!
                         </span>
                         <a href="Data/roadmap_template.xlsx" download="roadmap_template.xlsx" class="excel-download-cta__btn">
                             <i class="fa-solid fa-file-excel"></i> Tải file Excel mẫu
@@ -2845,7 +2845,7 @@ const renderAiDay = (aiDay, index) => {
 let finalAnalysis = '';
 
 if (response.body && typeof response.body.getReader === 'function') {
-    // ✅ STREAMING: backend trả NDJSON (mỗi dòng 1 JSON event) — hiện từng ngày ngay khi
+    // ✅ STREAMING: backend trả NDJSON (mỗi dòng 1 JSON event) - hiện từng ngày ngay khi
     // AI tạo xong, không cần chờ toàn bộ pipeline (tìm tài liệu + validate link) hoàn tất.
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
