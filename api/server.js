@@ -232,10 +232,11 @@ if (fs.existsSync(dataDir)) {
 // ============================================================================
 // 8. DATABASE CONNECTION
 // ============================================================================
-console.log("DATABASE_URL =", process.env.DATABASE_URL);
+const useRemoteDb = process.env.NODE_ENV === "production" || process.env.FORCE_DATABASE_URL === "true";
+console.log("NODE_ENV =", process.env.NODE_ENV, "| useRemoteDb =", useRemoteDb);
 
 let poolConfig = {};
-if (process.env.DATABASE_URL) {
+if (useRemoteDb && process.env.DATABASE_URL) {
   poolConfig.connectionString = process.env.DATABASE_URL;
   if (process.env.PGSSLMODE === "require") poolConfig.ssl = { rejectUnauthorized: false };
 } else {
@@ -1320,11 +1321,10 @@ function normalizeDays(days, targetCount, hoursPerDay, startDate, weekdays = [])
 // 16c. HELPER FUNCTIONS - Chia batch gọi Gemini để tránh bị cắt JSON do quá token
 // ============================================================================
 
-const TOKENS_PER_DAY_ESTIMATE = 1000; // ước lượng gồm cả nội dung ngày + quiz 5 câu
-const CHAPTER_REVIEW_EXTRA_TOKENS = 900; // token phụ trội cho ngày có thêm chapter_review_quiz (5 câu nữa)
-const MODEL_MAX_OUTPUT_TOKENS = 65000; // trần an toàn cho 1 lần gọi Gemini
+const TOKENS_PER_DAY_ESTIMATE = 1500; // ước lượng gồm cả nội dung ngày + quiz 5 câu (tăng từ 1000, có thêm dư địa)
+const CHAPTER_REVIEW_EXTRA_TOKENS = 1200; // token phụ trội cho ngày có thêm chapter_review_quiz (tăng từ 900)
+const MODEL_MAX_OUTPUT_TOKENS = 65000; // trần an toàn cho 1 lần gọi Gemini (model giới hạn cứng 65536 token)
 const PREFERRED_BATCH_COUNT = 2;
-const FALLBACK_BATCH_COUNT = 3;
 
 // Đếm số ngày "chapter-end" (bội số của CHAPTER_SIZE_DAYS hoặc ngày cuối lộ trình) trong 1 khoảng
 // ngày -> các ngày này tốn thêm token vì phải sinh thêm chapter_review_quiz.
@@ -1336,13 +1336,31 @@ function countChapterEndDaysInRange(startDay, endDay, totalDays) {
   return count;
 }
 
-// Tính kế hoạch chia batch: ưu tiên 2 batch, nếu ước lượng token/batch vượt trần thì chuyển sang 3 batch
+// Ước lượng token cần cho 1 khoảng ngày, TÍNH LUÔN phần phụ trội của các ngày "chapter-end"
+// trong khoảng đó (trước đây computeBatchPlan bỏ sót phần này, nên batch chứa nhiều ngày
+// cuối chương vẫn dễ vượt trần dù đã chia batch).
+function estimateBatchTokens(startDay, endDay, totalDays) {
+  const dayCount = endDay - startDay + 1;
+  const chapterDays = countChapterEndDaysInRange(startDay, endDay, totalDays);
+  return dayCount * TOKENS_PER_DAY_ESTIMATE + chapterDays * CHAPTER_REVIEW_EXTRA_TOKENS;
+}
+
+// Tính kế hoạch chia batch: tăng dần số batch cho đến khi MỌI batch (kể cả batch chứa nhiều
+// ngày cuối chương) đều ước lượng nằm dưới trần token an toàn của model.
 function computeBatchPlan(totalDays) {
   let numBatches = PREFERRED_BATCH_COUNT;
   let batchSize = Math.ceil(totalDays / numBatches);
 
-  if (batchSize * TOKENS_PER_DAY_ESTIMATE > MODEL_MAX_OUTPUT_TOKENS) {
-    numBatches = FALLBACK_BATCH_COUNT;
+  const fitsUnderLimit = (size) => {
+    for (let start = 1; start <= totalDays; start += size) {
+      const end = Math.min(start + size - 1, totalDays);
+      if (estimateBatchTokens(start, end, totalDays) > MODEL_MAX_OUTPUT_TOKENS) return false;
+    }
+    return true;
+  };
+
+  while (!fitsUnderLimit(batchSize) && numBatches < totalDays) {
+    numBatches++;
     batchSize = Math.ceil(totalDays / numBatches);
   }
 
@@ -1721,11 +1739,21 @@ async function callGeminiRaw({ apiKey, model, systemPrompt, userPrompt, temperat
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
   const combinedPrompt = systemPrompt ? `${systemPrompt}\n\n${userPrompt}` : userPrompt;
 
+  // Gemini tính token "thinking" (suy luận nội bộ) vào CHUNG với maxOutputTokens -> nếu không
+  // giới hạn, model có thể tốn phần lớn ngân sách để "nghĩ" trước khi viết JSON, khiến JSON
+  // bị cắt cụt giữa chừng dù maxOutputTokens tưởng như đủ. Việc tạo nội dung lộ trình + quiz
+  // không cần suy luận nhiều bước -> ép thinking về mức tối thiểu để dồn token cho JSON thật.
+  // Gemini 3.x dùng "thinkingLevel" (không hỗ trợ tắt hẳn), các model cũ hơn (2.5 trở về
+  // trước) dùng "thinkingBudget: 0" để tắt hẳn - không được gửi cả 2 field cùng lúc (lỗi 400).
+  const isGemini3 = /gemini-3/i.test(model);
+  const thinkingConfig = isGemini3 ? { thinkingLevel: "minimal" } : { thinkingBudget: 0 };
+
   const body = {
     contents: [{ role: "user", parts: [{ text: combinedPrompt }] }],
     generationConfig: {
       temperature,
       maxOutputTokens,
+      thinkingConfig,
       ...(jsonMode ? { responseMimeType: "application/json" } : {})
     }
   };
@@ -2094,7 +2122,12 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
   if (validDays.length === 0) {
     return [];
   }
-  const wantsEnglish = String(materialLanguage || '').trim().toLowerCase() === 'tiếng anh';
+  const materialLanguageNorm = String(materialLanguage || '').trim().toLowerCase();
+  const wantsEnglish = materialLanguageNorm === 'tiếng anh'
+    ? true
+    : materialLanguageNorm === 'tiếng việt'
+      ? false
+      : null; // "Song ngữ Việt–Anh" hoặc giá trị khác -> không lọc theo ngôn ngữ, nhận cả 2
   const theorySuffix = wantsEnglish ? 'tutorial guide in English' : 'tutorial hướng dẫn tiếng Việt';
   const practiceSuffix = wantsEnglish ? 'practice exercises in English' : 'bài tập thực hành tiếng Việt';
   console.log(`📊 Xử lý ${validDays.length} ngày bằng Tavily only (song song, concurrency=5), mỗi ngày tìm 2 link (lý thuyết + thực hành)`);
@@ -2127,7 +2160,7 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
 
     // Link lý thuyết: KHÔNG được là trang khóa học (đã lọc từ searchWithTavilyOnly), và ưu tiên
     // tránh chọn trang thuần bài tập (nếu còn ứng viên khác) -> tránh nhầm link 1 thành link bài tập.
-    const theoryCandidate = pickBestCandidate(theoryResults, { avoidKeywords: EXERCISE_KEYWORDS, WANTSENGLISH });
+    const theoryCandidate = pickBestCandidate(theoryResults, { avoidKeywords: EXERCISE_KEYWORDS, wantsEnglish });
     const theoryUrl = theoryCandidate ? String(theoryCandidate.url).trim() : "";
 
     // Link thực hành: KHÔNG được trùng link lý thuyết, KHÔNG được là trang khóa học, và ưu tiên
@@ -2135,7 +2168,7 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
     const practiceCandidate = pickBestCandidate(practiceResults, {
       excludeUrls: theoryUrl ? [theoryUrl] : [],
       preferKeywords: EXERCISE_KEYWORDS,
-      WANTSENGLISH
+      wantsEnglish
     });
     const practiceUrl = practiceCandidate ? String(practiceCandidate.url).trim() : "";
 
@@ -3757,7 +3790,7 @@ Trả về JSON format:
         return false;
       });
 
-      const MAX_FILL_ATTEMPTS = 3;
+      const MAX_FILL_ATTEMPTS = 8;
       let fillAttempt = 0;
       while (missingContentDays.length > 0 && fillAttempt < MAX_FILL_ATTEMPTS) {
         fillAttempt++;
@@ -3799,18 +3832,11 @@ Trả về JSON format:
         });
       }
 
-      // Vẫn còn thiếu sau tối đa MAX_FILL_ATTEMPTS lần -> gán nội dung dự phòng, KHÔNG để trống ngày nào
+      // Vẫn còn thiếu sau tối đa MAX_FILL_ATTEMPTS lần -> KHÔNG dùng nội dung dự phòng.
+      // Báo lỗi để cả request thất bại rõ ràng (không trừ lượt tạo AI, người dùng có thể bấm tạo lại)
+      // thay vì âm thầm nhét nội dung giả vào lộ trình.
       if (missingContentDays.length > 0) {
-        console.warn(`⚠️ Batch ${batchIndex + 1}: vẫn còn ${missingContentDays.length} ngày thiếu sau ${MAX_FILL_ATTEMPTS} lần thử, dùng nội dung dự phòng.`);
-        missingContentDays.forEach(day => {
-          if (!day.learning_content) {
-            day.learning_content = `Ôn tập và củng cố kiến thức đã học, tự luyện tập theo mục tiêu "${day.daily_goal}".`;
-          }
-          if (!day.practice_exercises) {
-            day.practice_exercises = `Tự ôn luyện và thực hành lại các nội dung liên quan đến mục tiêu ngày ${day.day_number}.`;
-          }
-          if (!Array.isArray(day.quiz)) day.quiz = [];
-        });
+        throw new Error(`Không thể tạo đầy đủ nội dung cho ${missingContentDays.length} ngày (${missingContentDays.map(d => d.day_number).join(', ')}) sau ${MAX_FILL_ATTEMPTS} lần gọi lại Gemini.`);
       }
 
       days = days.concat(normalizedBatchDays);
@@ -6928,8 +6954,14 @@ app.post("/api/admin/prompt-template/reset", requireAdmin, async (req, res) => {
       const content = fs.readFileSync(defaultPath, 'utf8');
       defaultPrompt = content;
       
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      defaultJsonFormat = jsonMatch ? jsonMatch[0] : getHardcodedJsonFormat();
+      const jsonBlockMatch = content.match(/```json\s*([\s\S]*?)```\s*([\s\S]*)$/);
+      if (jsonBlockMatch) {
+        const jsonPart = jsonBlockMatch[1].trim();
+        const noteAfter = (jsonBlockMatch[2] || '').trim();
+        defaultJsonFormat = noteAfter ? `${jsonPart}\n${noteAfter}` : jsonPart;
+      } else {
+        defaultJsonFormat = getHardcodedJsonFormat();
+      }
     } else {
       defaultPrompt = buildDefaultPromptTemplate();
       defaultJsonFormat = getHardcodedJsonFormat();
