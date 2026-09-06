@@ -1999,7 +1999,7 @@ async function searchTavilyWithKey(apiKey, query, maxResults = 5) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      api_key: apiKey, query, search_depth: 'basic', max_results: maxResults,
+      api_key: apiKey, query, search_depth: 'advanced', max_results: maxResults,
       exclude_domains: COURSE_PLATFORM_DOMAINS
     })
   });
@@ -2007,9 +2007,10 @@ async function searchTavilyWithKey(apiKey, query, maxResults = 5) {
   const data = await res.json();
   return (data.results || [])
     .map(r => ({
-      title: r.title, url: r.url, description: (r.content || '').substring(0, 200)
+      title: r.title, url: r.url, description: (r.content || '').substring(0, 200), score: r.score
     }))
-    .filter(r => !isCourseLikeResult(r));
+    .filter(r => !isCourseLikeResult(r))
+    .sort((a, b) => (b.score || 0) - (a.score || 0));
 }
 
 async function searchWithKeyPool(query, maxResults = 5) {
