@@ -1240,6 +1240,50 @@ function repairTruncatedJson(text) {
   return s;
 }
 
+// Gemini đôi khi trả về newline/tab/ký tự điều khiển THẬT (không phải đã escape thành \n, \t)
+// nằm ngay bên trong giá trị string của JSON (thường gặp ở learning_content nhiều dòng) ->
+// JSON.parse ném lỗi "Bad control character in string literal". Hàm này duyệt từng ký tự,
+// CHỈ escape ký tự điều khiển khi đang ở TRONG 1 string literal của JSON (bỏ qua phần nằm
+// ngoài string, ví dụ xuống dòng để format JSON cho dễ đọc).
+function escapeRawControlCharsInJsonStrings(text) {
+  let result = '';
+  let inStr = false;
+  let esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inStr) {
+      if (esc) {
+        result += c;
+        esc = false;
+        continue;
+      }
+      if (c === '\\') {
+        result += c;
+        esc = true;
+        continue;
+      }
+      if (c === '"') {
+        inStr = false;
+        result += c;
+        continue;
+      }
+      const code = c.charCodeAt(0);
+      if (code < 0x20) {
+        if (c === '\n') result += '\\n';
+        else if (c === '\r') result += '\\r';
+        else if (c === '\t') result += '\\t';
+        else result += '\\u' + code.toString(16).padStart(4, '0');
+        continue;
+      }
+      result += c;
+    } else {
+      if (c === '"') inStr = true;
+      result += c;
+    }
+  }
+  return result;
+}
+
 function parseAIResponse(aiResponseText) {
   // Chỉ coi là response có bọc markdown fence (```json ... ```) khi TOÀN BỘ response bắt đầu
   // VÀ kết thúc bằng ``` - tránh bắt nhầm khối code ví dụ (```cpp ... ```) nằm BÊN TRONG 1
@@ -1252,7 +1296,7 @@ function parseAIResponse(aiResponseText) {
     if (fenceMatch) jsonText = fenceMatch[1];
   }
 
-  const basicClean = (str) => str
+  const basicClean = (str) => escapeRawControlCharsInJsonStrings(str)
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
     .replace(/,\s*([}\]])/g, '$1')
