@@ -1241,8 +1241,16 @@ function repairTruncatedJson(text) {
 }
 
 function parseAIResponse(aiResponseText) {
-  const jsonMatch = aiResponseText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-  const jsonText = jsonMatch ? jsonMatch[1] : aiResponseText;
+  // Chỉ coi là response có bọc markdown fence (```json ... ```) khi TOÀN BỘ response bắt đầu
+  // VÀ kết thúc bằng ``` - tránh bắt nhầm khối code ví dụ (```cpp ... ```) nằm BÊN TRONG 1
+  // field JSON (rất hay gặp ở các ngày dạy lập trình C++/Python/Java có ví dụ code), vốn cũng
+  // có dạng ``` nhưng nằm giữa chuỗi JSON chứ không bọc ngoài toàn bộ response.
+  const trimmed = aiResponseText.trim();
+  let jsonText = trimmed;
+  if (trimmed.startsWith('```')) {
+    const fenceMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```\s*$/);
+    if (fenceMatch) jsonText = fenceMatch[1];
+  }
 
   const basicClean = (str) => str
     .replace(/[\u2018\u2019]/g, "'")
