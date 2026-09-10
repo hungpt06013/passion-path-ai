@@ -2807,6 +2807,13 @@ function renderUserRoadmaps(roadmaps) {
         return;
     }
     
+    const ratingCriteria = [
+        { field: 'overall_rating', label: 'Đánh giá tổng thể' },
+        { field: 'learning_effectiveness', label: 'Hiệu quả học tập' },
+        { field: 'difficulty_suitability', label: 'Độ khó phù hợp' },
+        { field: 'content_relevance', label: 'Tính liên quan nội dung' },
+        { field: 'engagement_level', label: 'Tính hấp dẫn lộ trình' }
+    ];
     const html = roadmaps.map(r => {
         const createdAt = toVietnamTime(r.created_at);
         const statusColor = r.status === 'COMPLETED' ? '#10b981' : 
@@ -2838,9 +2845,26 @@ function renderUserRoadmaps(roadmaps) {
                     <div><strong>Thời lượng:</strong> ${r.duration_days} ngày (${r.duration_hours}h)</div>
                     <div><strong>Đã học:</strong> ${r.total_studied_hours || 0}h</div>
                     <div><strong>Tạo lúc:</strong> ${createdAt}</div>
-                    ${r.overall_rating ? `<div><strong>Đánh giá:</strong> ⭐ ${r.overall_rating}/5</div>` : ''}
                 </div>
-                
+
+                <details style="margin-top: 15px;">
+                    <summary class="btn-refresh" style="display:inline-block; background:#f59e0b; cursor:pointer; user-select:none;">
+                        <i class="fa-solid fa-star"></i> Xem đánh giá lộ trình
+                    </summary>
+                    <div style="margin-top: 10px; padding: 15px; background: #f9fafb; border-radius: 8px; border: 1px solid #e5e7eb;">
+                        ${ratingCriteria.map(c => `
+                          <div style="margin: 8px 0;">
+                            <strong>${c.label}:</strong>
+                            ${r[c.field] ? `${'⭐'.repeat(r[c.field])}${'☆'.repeat(5 - r[c.field])} (${r[c.field]}/5)` : 'Chưa đánh giá'}
+                          </div>
+                        `).join('')}
+                        <div style="margin: 8px 0;"><strong>Nhận xét chi tiết:</strong><br><span style="white-space:pre-wrap;">${r.detailed_feedback ? escapeHtml(r.detailed_feedback) : 'Không có'}</span></div>
+                        <div style="margin: 8px 0;"><strong>Kết quả học được thực tế:</strong><br><span style="white-space:pre-wrap;">${r.actual_learning_outcomes ? escapeHtml(r.actual_learning_outcomes) : 'Không có'}</span></div>
+                        <div style="margin: 8px 0;"><strong>Đề xuất cải thiện:</strong><br><span style="white-space:pre-wrap;">${r.improvement_suggestions ? escapeHtml(r.improvement_suggestions) : 'Không có'}</span></div>
+                        <div style="margin: 8px 0;"><strong>Sẽ giới thiệu cho người khác:</strong> ${r.would_recommend ? '✅ Có tick' : '☐ Không tick'}</div>
+                    </div>
+                </details>
+
                 <div style="margin-top: 15px; display: flex; gap: 10px;">
                     <button class="btn-refresh" onclick="viewUserRoadmapDetails(${r.roadmap_id})" style="background: #10b981;">
                         <i class="fa-solid fa-eye"></i> Xem Chi Tiết

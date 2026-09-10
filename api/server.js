@@ -6501,7 +6501,10 @@ app.get("/api/admin/roadmaps-user", requireAdmin, async (req, res) => {
       SELECT 
         r.roadmap_id, r.roadmap_name, r.category, r.sub_category, r.start_level,
         r.duration_days, r.duration_hours, r.status, r.progress_percentage,
-        r.total_studied_hours, r.overall_rating, r.created_at, r.updated_at,
+        r.total_studied_hours, r.overall_rating, r.learning_effectiveness,
+        r.difficulty_suitability, r.content_relevance, r.engagement_level,
+        r.would_recommend, r.detailed_feedback, r.actual_learning_outcomes,
+        r.improvement_suggestions, r.created_at, r.updated_at,
         u.name as user_name, u.email as user_email
       FROM learning_roadmaps r
       LEFT JOIN users u ON r.user_id = u.id
