@@ -23,12 +23,14 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import cors from "cors";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5000').replace(/\/$/, '');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // ============================================================================
 // 2. CONSTANTS & ENVIRONMENT VARIABLES
@@ -85,6 +87,8 @@ const LINK_VALIDATION_CONFIG = {
 // ============================================================================
 
 const rawAllowed = (process.env.ALLOWED_ORIGINS || "").trim();
+const isProduction = (process.env.NODE_ENV || "development") === "production";
+
 if (rawAllowed) {
   const allowedList = rawAllowed.split(",").map((s) => s.trim()).filter(Boolean);
   app.use(cors({
@@ -94,10 +98,14 @@ if (rawAllowed) {
       return callback(new Error("CORS not allowed from origin " + origin));
     }
   }));
+} else if (isProduction) {
+  console.error("❌ ALLOWED_ORIGINS chưa được cấu hình trong production. Chặn toàn bộ CORS cho tới khi biến này được thiết lập đúng.");
+  app.use(cors({
+    origin: function (origin, callback) {
+      return callback(new Error("CORS bị chặn: server chưa cấu hình ALLOWED_ORIGINS."));
+    }
+  }));
 } else {
-  if ((process.env.NODE_ENV || "development") === "production") {
-    console.warn("⚠️ ALLOWED_ORIGINS not set in production. This is insecure.");
-  }
   app.use(cors());
 }
 
@@ -233,7 +241,7 @@ if (fs.existsSync(dataDir)) {
 // 8. DATABASE CONNECTION
 // ============================================================================
 const useRemoteDb = process.env.NODE_ENV === "production" || process.env.FORCE_DATABASE_URL === "true";
-console.log("NODE_ENV =", process.env.NODE_ENV, "| useRemoteDb =", useRemoteDb);
+// console.log("NODE_ENV =", process.env.NODE_ENV, "| useRemoteDb =", useRemoteDb);
 
 let poolConfig = {};
 if (useRemoteDb && process.env.DATABASE_URL) {
@@ -250,7 +258,7 @@ if (useRemoteDb && process.env.DATABASE_URL) {
 }
 
 const pool = new Pool(poolConfig);
-console.log("DB CONFIG:", poolConfig);
+// console.log("DB CONFIG:", poolConfig);
 // Test database connection
 (async function testDB() {
   try {
@@ -581,6 +589,8 @@ async function initDB() {
     await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "pass_threshold" INTEGER DEFAULT 80;`);
     await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_url" TEXT;`);
+    await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "failed_login_attempts" INTEGER DEFAULT 0;`);
+    await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "locked_until" TIMESTAMP;`);
     await pool.query(`ALTER TABLE "learning_roadmap_details" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;`);
     await pool.query(`ALTER TABLE "learning_roadmap_details_system" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;`);
 
@@ -2640,7 +2650,15 @@ app.post("/api/register", async (req, res) => {
 });
 
 // 4. POST /api/login - Đăng nhập
-app.post("/api/login", async (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 20, // tối đa 20 lần gọi /api/login mỗi IP trong 15 phút
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Quá nhiều yêu cầu đăng nhập từ thiết bị này. Vui lòng thử lại sau ít phút." }
+});
+
+app.post("/api/login", loginLimiter, async (req, res) => {
   try {
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     let username = body.username ? String(body.username).trim() : "";
@@ -2661,7 +2679,7 @@ app.post("/api/login", async (req, res) => {
     
     if (username && email) {
       result = await pool.query(
-        "SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", 
+        "SELECT id, name, username, email, password, failed_login_attempts, locked_until FROM users WHERE username = $1 LIMIT 1", 
         [username]
       );
       if (result.rows.length === 0) {
@@ -2673,7 +2691,7 @@ app.post("/api/login", async (req, res) => {
       }
     } else if (username) {
       result = await pool.query(
-        "SELECT id, name, username, email, password FROM users WHERE username = $1 LIMIT 1", 
+        "SELECT id, name, username, email, password, failed_login_attempts, locked_until FROM users WHERE username = $1 LIMIT 1", 
         [username]
       );
       if (result.rows.length === 0) {
@@ -2682,7 +2700,7 @@ app.post("/api/login", async (req, res) => {
       user = result.rows[0];
     } else {
       result = await pool.query(
-        "SELECT id, name, username, email, password FROM users WHERE email = $1 LIMIT 1", 
+        "SELECT id, name, username, email, password, failed_login_attempts, locked_until FROM users WHERE email = $1 LIMIT 1", 
         [email]
       );
       if (result.rows.length === 0) {
@@ -2691,11 +2709,34 @@ app.post("/api/login", async (req, res) => {
       user = result.rows[0];
     }
     
+    const now = new Date();
+    if (user.locked_until && new Date(user.locked_until) > now) {
+      const minutesLeft = Math.ceil((new Date(user.locked_until) - now) / 60000);
+      return res.status(423).json({ message: `Tài khoản tạm khóa do đăng nhập sai nhiều lần. Vui lòng thử lại sau ${minutesLeft} phút.` });
+    }
+
     const match = await comparePassword(password, user.password);
     if (!match) {
+      const MAX_FAILED_ATTEMPTS = 5;
+      const LOCK_DURATION_MS = 15 * 60 * 1000;
+      const attempts = (user.failed_login_attempts || 0) + 1;
+
+      if (attempts >= MAX_FAILED_ATTEMPTS) {
+        await pool.query(
+          "UPDATE users SET failed_login_attempts = 0, locked_until = $2 WHERE id = $1",
+          [user.id, new Date(Date.now() + LOCK_DURATION_MS)]
+        );
+        return res.status(423).json({ message: `Tài khoản tạm khóa do đăng nhập sai ${MAX_FAILED_ATTEMPTS} lần liên tiếp. Vui lòng thử lại sau 15 phút.` });
+      }
+
+      await pool.query("UPDATE users SET failed_login_attempts = $2 WHERE id = $1", [user.id, attempts]);
       return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu!" });
     }
-    
+
+    if (user.failed_login_attempts || user.locked_until) {
+      await pool.query("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1", [user.id]);
+    }
+
     const token = makeToken(user.id);
     return res.json({ 
       message: "Đăng nhập thành công!", 
@@ -3548,6 +3589,7 @@ app.post("/api/password-reset/reset", async (req, res) => {
 // 1. POST /api/generate-roadmap-ai - Tạo lộ trình bằng AI
 app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
   let historyId = null;
+  let aiUsageReserved = false;
   const startTime = Date.now();
   
   try {
@@ -3561,17 +3603,21 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
     }
     if (String(req.user.role || '').toLowerCase() !== 'admin') {
       const aiLimit = await getAIGenerationLimit();
-      const usageRes = await pool.query(
-        'SELECT ai_roadmap_generations_used FROM users WHERE id = $1', [req.user.id]
+      const reserveRes = await pool.query(
+        `UPDATE users SET ai_roadmap_generations_used = ai_roadmap_generations_used + 1
+         WHERE id = $1 AND ai_roadmap_generations_used < $2
+         RETURNING ai_roadmap_generations_used`,
+        [req.user.id, aiLimit]
       );
-      const used = usageRes.rows[0]?.ai_roadmap_generations_used || 0;
-      if (used >= aiLimit) {
+      if (reserveRes.rows.length === 0) {
         return res.status(403).json({
           success: false,
           code: 'AI_LIMIT_REACHED',
           error: `Bạn đã sử dụng hết lượt tạo lộ trình bằng AI (giới hạn ${aiLimit} lần/tài khoản). Vui lòng dùng nút "Tạo lộ trình thủ công" để tiếp tục tạo lộ trình.`
         });
       }
+      aiUsageReserved = true;
+      console.log(`📊 Đã giữ chỗ (trừ trước) 1 lượt tạo AI cho user #${req.user.id}`);
     }
     const {
       roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome,
@@ -3903,14 +3949,6 @@ Trả về JSON format:
 
     console.log(`✅ Phase 1 complete (tất cả batch): ${days.length}/${actualDays} ngày được tạo`);
 
-    if (String(req.user.role || '').toLowerCase() !== 'admin') {
-      await pool.query(
-        'UPDATE users SET ai_roadmap_generations_used = ai_roadmap_generations_used + 1 WHERE id = $1',
-        [req.user.id]
-      );
-      console.log(`📊 Đã trừ 1 lượt tạo AI cho user #${req.user.id}`);
-    }
-
     // STEP 2: Tavily only for materials and instructions
     console.log(`📞 Phase 2: Tavily only for materials and instructions...`);
     
@@ -4014,6 +4052,14 @@ Trả về JSON format:
 
   } catch (error) {
     console.error("❌ AI GENERATION ERROR:", error.message);
+
+    if (aiUsageReserved) {
+      await pool.query(
+        'UPDATE users SET ai_roadmap_generations_used = GREATEST(ai_roadmap_generations_used - 1, 0) WHERE id = $1',
+        [req.user.id]
+      );
+      console.log(`↩️ Đã hoàn lại 1 lượt tạo AI cho user #${req.user.id} do generation thất bại`);
+    }
 
     if (historyId) {
       await pool.query(

@@ -252,6 +252,8 @@ ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER D
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "pass_threshold" INTEGER DEFAULT 80;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "avatar_url" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "failed_login_attempts" INTEGER DEFAULT 0;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "locked_until" TIMESTAMP;
 ALTER TABLE "learning_roadmap_details" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
 ALTER TABLE "learning_roadmap_details_system" ADD COLUMN IF NOT EXISTS "quiz_content" TEXT;
 ALTER TABLE "quiz_questions" ADD COLUMN IF NOT EXISTS "explanation" TEXT;
