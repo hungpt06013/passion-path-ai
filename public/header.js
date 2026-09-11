@@ -94,6 +94,7 @@ function wireLogoutAndNav(logoutEl) {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('userName'); // ✅ thêm dòng này
+        localStorage.removeItem('avatarUrl'); // ✅ xóa avatar cũ, tránh dính sang tài khoản khác
         window.location.href = 'main.html';
     });
 }
@@ -177,13 +178,14 @@ async function loadUser(currentPage = '') {
             name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
             localStorage.setItem('role', serverRole);
             localStorage.setItem('userName', name); // ✅ cache lại để lần sau hiện ngay
-            if (data && data.user && data.user.avatar_url) {
-                localStorage.setItem('avatarUrl', data.user.avatar_url);
-                const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
-                if (avatarEl) avatarEl.src = data.user.avatar_url;
-            }
+            const realAvatarUrl = (data && data.user && data.user.avatar_url)
+                ? data.user.avatar_url
+                : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(name);
+            localStorage.setItem('avatarUrl', realAvatarUrl);
+            const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
+            if (avatarEl) avatarEl.src = realAvatarUrl;
             window.dispatchEvent(new CustomEvent('headerAuthReady', {
-                detail: { avatarUrl: (data && data.user && data.user.avatar_url) || null }
+                detail: { avatarUrl: realAvatarUrl }
             }));
         } catch (err) {
             console.error('❌ Error loading user:', err);

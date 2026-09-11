@@ -122,9 +122,10 @@ async function loadProfile() {
     document.getElementById('fieldName').value = u.name || '';
     document.getElementById('fieldUsername').value = u.username || '';
     document.getElementById('fieldEmail').value = u.email || '';
-    document.getElementById('avatarPreview').src = u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name);
-    if (u.avatar_url) localStorage.setItem('avatarUrl', u.avatar_url);
-    syncHeaderAvatar(u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name));
+    const realAvatarUrl = u.avatar_url || DEFAULT_AVATAR_FALLBACK(u.name);
+    document.getElementById('avatarPreview').src = realAvatarUrl;
+    localStorage.setItem('avatarUrl', realAvatarUrl);
+    syncHeaderAvatar(realAvatarUrl);
   } catch (err) {
     console.error(err);
     document.getElementById('profileMsg').textContent = '❌ ' + err.message;
