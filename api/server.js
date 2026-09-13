@@ -1475,18 +1475,23 @@ async function fillMissingDaysContent(missingDays, { category, roadmapName, hour
   if (!Array.isArray(missingDays) || missingDays.length === 0) return {};
 
   const dayNumbersList = missingDays.map(d => d.day_number);
-  const needsChapterReview = dayNumbersList.some(d => d % CHAPTER_SIZE_DAYS === 0 || d === actualDays);
+  const chapterEndDaysInList = dayNumbersList.filter(d => d % CHAPTER_SIZE_DAYS === 0 || d === actualDays);
+  const needsChapterReview = chapterEndDaysInList.length > 0;
+  const exampleDayNumber = needsChapterReview ? chapterEndDaysInList[0] : dayNumbersList[0];
+  const chapterReviewExample = needsChapterReview
+    ? `[\n        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}\n      ]`
+    : `[]`;
 
   const systemPrompt = `Bạn là chuyên gia thiết kế lộ trình học. Lộ trình "${roadmapName}" (${category}) dài ${actualDays} ngày.
 Ở lần gọi trước, các ngày sau bị thiếu nội dung do lỗi kỹ thuật. Hãy CHỈ tạo lại nội dung đầy đủ cho đúng các ngày có day_number: ${dayNumbersList.join(', ')} (không tạo thêm ngày nào khác).
 Mỗi ngày cần đầy đủ: daily_goal, learning_content (nội dung kiến thức chi tiết), practice_exercises (bài tập thực hành), study_duration, và 1 mảng "quiz" gồm đúng 5 câu hỏi trắc nghiệm (4 phương án A/B/C/D, 1 đáp án đúng) bám sát nội dung ngày đó.
-${needsChapterReview ? `Với ngày nào trong số đó là bội số của ${CHAPTER_SIZE_DAYS} hoặc là ngày cuối cùng của lộ trình (day_number = ${actualDays}), bắt buộc thêm cả mảng "chapter_review_quiz" gồm 5 câu hỏi tổng hợp; các ngày còn lại để chapter_review_quiz là mảng rỗng.` : ''}
+${needsChapterReview ? `Các ngày sau đây BẮT BUỘC phải có thêm mảng "chapter_review_quiz" gồm 5 câu hỏi tổng hợp, KHÔNG ĐƯỢC ĐỂ RỖNG: ${chapterEndDaysInList.join(', ')}. Các ngày còn lại trong danh sách để chapter_review_quiz là mảng rỗng.` : ''}
 
-Trả về JSON format:
+Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumber}${needsChapterReview ? ', là ngày BẮT BUỘC có chapter_review_quiz' : ''}):
 {
   "roadmap": [
     {
-      "day_number": ${dayNumbersList[0]},
+      "day_number": ${exampleDayNumber},
       "daily_goal": "...",
       "learning_content": "...",
       "practice_exercises": "...",
@@ -1494,7 +1499,7 @@ Trả về JSON format:
       "quiz": [
         {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}
       ],
-      "chapter_review_quiz": []
+      "chapter_review_quiz": ${chapterReviewExample}
     }
   ]
 }`;
@@ -2219,7 +2224,7 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
       category, subCategory,
       dailyGoal: day.daily_goal,
       contentText: day.learning_content,
-      suffix: 'bài tập thực hành exercise practice'
+      suffix: theorySuffix
     });
     // Link 2 (thực hành): query gồm đủ 4 thành phần - danh mục, danh mục chi tiết, mục tiêu ngày, bài tập thực hành
     const practiceBasis = (day.practice_exercises || '').trim();
@@ -2227,7 +2232,7 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
       category, subCategory,
       dailyGoal: day.daily_goal,
       contentText: practiceBasis,
-      suffix: 'bài tập thực hành exercise practice'
+      suffix: practiceSuffix
     });
 
     // Link 1 (lý thuyết) và Link 2 (thực hành) độc lập nhau -> tìm song song thay vì tuần tự
@@ -3831,18 +3836,29 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
 - Nội dung phải tiếp nối logic, độ khó tăng dần đúng theo vị trí các ngày này trong toàn bộ lộ trình ${actualDays} ngày (không lặp lại nội dung đã dạy ở các ngày trước).
 ${continuitySummary ? `- Tóm tắt vài ngày gần nhất đã tạo ở batch trước (để tiếp nối mạch nội dung, không lặp lại):\n${continuitySummary}` : ''}`;
 
+      const chapterEndDayNumbersInBatch = [];
+      for (let d = batch.startDay; d <= batch.endDay; d++) {
+        if (d % CHAPTER_SIZE_DAYS === 0 || d === actualDays) chapterEndDayNumbersInBatch.push(d);
+      }
+      const batchHasChapterEnd = chapterEndDayNumbersInBatch.length > 0;
+      const exampleDayNumberForBatch = batchHasChapterEnd ? chapterEndDayNumbersInBatch[0] : batch.startDay;
+      const chapterReviewExampleForBatch = batchHasChapterEnd
+        ? `[\n        {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}\n      ]`
+        : `[]`;
+
       let batchSystemPrompt = `Bạn là chuyên gia thiết kế lộ trình học.
 Đây là lần gọi ${batchIndex + 1}/${batchPlan.length} để tạo TỪNG PHẦN của một lộ trình tổng thể dài ${actualDays} ngày. Lần này CHỈ tạo đúng ${batch.count} ngày, day_number từ ${batch.startDay} đến ${batch.endDay}, KHÔNG bao gồm learning_materials và usage_instructions.
 Mỗi ngày phải kèm 1 mảng "quiz" gồm đúng ${quizDayLength} câu hỏi trắc nghiệm (4 phương án A/B/C/D, 1 đáp án đúng, kèm "explanation" giải thích ngắn gọn vì sao đáp án đó đúng) bám sát learning_content/practice_exercises của chính ngày đó.
 Cứ mỗi 6 ngày liên tiếp (tính theo day_number tuyệt đối trong TOÀN BỘ lộ trình ${actualDays} ngày) và ở ngày cuối cùng của lộ trình (day_number = ${actualDays}), thêm mảng "chapter_review_quiz" gồm ${quizChapterLength} câu hỏi tổng hợp cả chương; các ngày khác để chapter_review_quiz là mảng rỗng.
+${batchHasChapterEnd ? `Trong batch này, các ngày sau BẮT BUỘC phải có "chapter_review_quiz" KHÁC RỖNG: ${chapterEndDayNumbersInBatch.join(', ')}.` : ''}
 ${isFirstBatch ? 'Vì đây là batch đầu tiên, hãy điền đầy đủ trường "analysis" (phân tích hiện trạng, tối đa 200 từ).' : 'Vì đây KHÔNG phải batch đầu tiên, để trường "analysis" là chuỗi rỗng "".'}
 
-Trả về JSON format:
+Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumberForBatch}${batchHasChapterEnd ? ', là ngày BẮT BUỘC có chapter_review_quiz' : ''}):
 {
   "analysis": ${isFirstBatch ? '"Phân tích chi tiết..."' : '""'},
   "roadmap": [
     {
-      "day_number": ${batch.startDay},
+      "day_number": ${exampleDayNumberForBatch},
       "daily_goal": "...",
       "learning_content": "...",
       "practice_exercises": "...",
@@ -3850,7 +3866,7 @@ Trả về JSON format:
       "quiz": [
         {"question_text": "...", "option_a": "...", "option_b": "...", "option_c": "...", "option_d": "...", "correct_option": "A", "explanation": "..."}
       ],
-      "chapter_review_quiz": []
+      "chapter_review_quiz": ${chapterReviewExampleForBatch}
     }
   ]
 }`;
@@ -3897,19 +3913,21 @@ Trả về JSON format:
       // hay gặp nhất ở ngày cuối cùng của lộ trình vì ngày đó luôn nặng token hơn do có
       // thêm chapter_review_quiz) -> gọi lại Gemini để lấp đầy đúng những ngày đó, thử tối đa
       // MAX_FILL_ATTEMPTS lần để đảm bảo không còn ngày nào bị trống.
-      let missingContentDays = normalizedBatchDays.filter(d => {
+      const isDayContentMissing = (d) => {
         if (!d.learning_content || !d.practice_exercises) return true;
         if (!Array.isArray(d.quiz) || d.quiz.length === 0) return true;
         const isChapterEnd = (d.day_number % CHAPTER_SIZE_DAYS === 0) || (d.day_number === actualDays);
         if (isChapterEnd && (!Array.isArray(d.chapter_review_quiz) || d.chapter_review_quiz.length === 0)) return true;
         return false;
-      });
+      };
+      let missingContentDays = normalizedBatchDays.filter(isDayContentMissing);
 
       const MAX_FILL_ATTEMPTS = 8;
       let fillAttempt = 0;
       while (missingContentDays.length > 0 && fillAttempt < MAX_FILL_ATTEMPTS) {
         fillAttempt++;
-        console.warn(`⚠️ Batch ${batchIndex + 1}: ${missingContentDays.length} ngày thiếu nội dung (ngày ${missingContentDays.map(d => d.day_number).join(', ')}), gọi lại Gemini lần ${fillAttempt}/${MAX_FILL_ATTEMPTS}...`);
+        const dayNumbersBeforeFill = missingContentDays.map(d => d.day_number);
+        console.warn(`⚠️ Batch ${batchIndex + 1}: ${missingContentDays.length} ngày thiếu nội dung (ngày ${dayNumbersBeforeFill.join(', ')}), gọi lại Gemini lần ${fillAttempt}/${MAX_FILL_ATTEMPTS}...`);
         try {
           const filledByDayNumber = await fillMissingDaysContent(missingContentDays, {
             category: finalData.category,
@@ -3917,11 +3935,9 @@ Trả về JSON format:
             hoursPerDay,
             actualDays
           });
-          let filledCount = 0;
           normalizedBatchDays.forEach(day => {
             const src = filledByDayNumber[day.day_number];
             if (!src) return;
-            filledCount++;
             day.daily_goal = String(src.daily_goal || src.goal || day.daily_goal).trim().substring(0, 500);
             day.learning_content = String(src.learning_content || src.content || day.learning_content).trim().substring(0, 1000);
             day.practice_exercises = String(src.practice_exercises || src.exercises || day.practice_exercises).trim().substring(0, 1000);
@@ -3933,18 +3949,18 @@ Trả về JSON format:
               day.chapter_review_quiz = normalizeQuizArray(src.chapter_review_quiz, quizChapterLength);
             }
           });
-          console.log(`✅ Đã lấp đầy ${filledCount}/${missingContentDays.length} ngày thiếu nội dung (lần ${fillAttempt})`);
         } catch (err) {
           console.warn(`⚠️ Lấp đầy ngày thiếu nội dung thất bại (lần ${fillAttempt}): ${err.message}`);
         }
 
-        missingContentDays = normalizedBatchDays.filter(d => {
-          if (!d.learning_content || !d.practice_exercises) return true;
-          if (!Array.isArray(d.quiz) || d.quiz.length === 0) return true;
-          const isChapterEnd = (d.day_number % CHAPTER_SIZE_DAYS === 0) || (d.day_number === actualDays);
-          if (isChapterEnd && (!Array.isArray(d.chapter_review_quiz) || d.chapter_review_quiz.length === 0)) return true;
-          return false;
-        });
+        missingContentDays = normalizedBatchDays.filter(isDayContentMissing);
+
+        // Chỉ tính là "lấp đầy" đúng nghĩa những ngày trước đó thiếu, giờ đã đủ nội dung
+        // (khác với cách đếm cũ: đếm luôn cả ngày Gemini có trả lời nhưng vẫn còn thiếu field,
+        // ví dụ vẫn thiếu chapter_review_quiz, khiến log báo "đã lấp đầy" dù thực tế chưa xong).
+        const stillMissingNumbers = new Set(missingContentDays.map(d => d.day_number));
+        const actuallyFilledCount = dayNumbersBeforeFill.filter(n => !stillMissingNumbers.has(n)).length;
+        console.log(`✅ Đã lấp đầy thực sự ${actuallyFilledCount}/${dayNumbersBeforeFill.length} ngày thiếu nội dung (lần ${fillAttempt})`);
       }
 
       // Vẫn còn thiếu sau tối đa MAX_FILL_ATTEMPTS lần -> KHÔNG dùng nội dung dự phòng.
