@@ -38,6 +38,8 @@
 - Đảm bảo nội dung khắc phục đúng điểm yếu ở `<SKILLS_TO_IMPROVE>`, và tận dụng `<ENGAGEMENT_TRIGGER>` để thiết kế cách trình bày bài học hấp dẫn.
 - Áp dụng `<THEME_PREFERENCE>` xuyên suốt: viết ví dụ, tình huống trong learning_content, practice_exercises và guide_learning theo đúng chủ đề/bối cảnh học viên chọn.
 - Lưu ý `<DEMOTIVATION_TRIGGER>` của học viên để thiết kế nhịp độ, độ dài bài học và cách trình bày giúp hạn chế bỏ cuộc giữa chừng.
+- Viết `learning_content` và `practice_exercises` theo đúng `<LEARNING_STYLE>` học viên chọn ở Câu 10 (ví dụ: chọn "Đọc hiểu & Ghi chép" → trình bày dạng bài viết có cấu trúc, gạch đầu dòng dễ ghi chú; chọn "Giải quyết vấn đề" → thêm tình huống/case study yêu cầu tự giải quyết; chọn "Thực hành trực tiếp" → tăng tỷ lệ bài tập thực hành so với lý thuyết).
+- Khi chọn nguồn cho `learning_materials` và viết `guide_learning`, ưu tiên đúng `<MATERIAL_TYPE>` học viên chọn ở Câu 14 (ví dụ: chọn "Video bài giảng" → ưu tiên link video; chọn "Bài viết ngắn / Blog" → ưu tiên link bài viết/blog; chọn "Hệ thống bài tập / Đề thi mẫu / Trắc nghiệm" → nhấn mạnh phần luyện tập, đề mẫu).
 - Mỗi ngày (mọi dòng trong bảng), soạn đúng `<QUIZ_DAY_LENGTH>` câu quiz cuối ngày, kèm ngưỡng "Đạt" theo `<PASS_THRESHOLD>` — đây là tầng đánh giá 1, tách biệt với bài tập thực hành chính.
 - Vào ngày cuối mỗi chương (mặc định 5–7 buổi/chương), soạn thêm đúng `<QUIZ_CHAPTER_LENGTH>` câu kiểm tra tổng hợp, nội dung bao trùm toàn bộ chương đó, cùng áp dụng ngưỡng `<PASS_THRESHOLD>`. Nếu chưa đạt, gợi ý ôn tập trước khi sang chương tiếp theo trong guide_learning.
 

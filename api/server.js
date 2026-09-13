@@ -2092,22 +2092,28 @@ async function searchWithTavilyOnly(query, maxResults = 5) {
   }
 
   const period = getCurrentPeriodMonth();
-  const slot = await acquireKeyFromPool('tavily', TAVILY_API_KEYS, period, TAVILY_MONTHLY_QUOTA);
-  if (!slot) {
-    console.warn(`⚠️ Tavily: toàn bộ ${TAVILY_API_KEYS.length} key đã hết quota tháng ${period}`);
-    return [];
-  }
+  const excludeIndexes = new Set(); // key đã thử và lỗi trong lượt gọi này
 
-  try {
-    const results = await searchTavilyWithKey(slot.key, query, maxResults);
-    if (results.length > 0) {
-      console.log(`✅ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → ${results.length} kết quả cho: "${query}"`);
-      return results;
+  for (let i = 0; i < TAVILY_API_KEYS.length; i++) {
+    const slot = await acquireKeyFromPool('tavily', TAVILY_API_KEYS, period, TAVILY_MONTHLY_QUOTA, excludeIndexes);
+    if (!slot) {
+      console.warn(`⚠️ Tavily: toàn bộ ${TAVILY_API_KEYS.length} key đã hết quota tháng ${period} hoặc đã thử hết`);
+      break;
     }
 
-    console.warn(`⚠️ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → không có kết quả cho: "${query}"`);
-  } catch (err) {
-    console.warn(`❌ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} lỗi: ${err.message}`);
+    try {
+      const results = await searchTavilyWithKey(slot.key, query, maxResults);
+      if (results.length > 0) {
+        console.log(`✅ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → ${results.length} kết quả cho: "${query}"`);
+        return results;
+      }
+
+      console.warn(`⚠️ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} → không có kết quả cho: "${query}"`);
+      excludeIndexes.add(slot.keyIndex);
+    } catch (err) {
+      console.warn(`❌ Tavily key #${slot.keyIndex + 1}/${TAVILY_API_KEYS.length} lỗi: ${err.message}, thử key khác...`);
+      excludeIndexes.add(slot.keyIndex);
+    }
   }
 
   return [];
@@ -2183,10 +2189,29 @@ async function generateGuideFromSearchResults({ dailyGoal, learningContent, sear
 
   return guidance.trim();
 }
+// Ánh xạ Câu 14 (MATERIAL_TYPE) sang từ khoá tìm kiếm để Tavily ưu tiên đúng định dạng
+const MATERIAL_TYPE_QUERY_HINTS = {
+  'Video bài giảng / Video hướng dẫn': 'video hướng dẫn',
+  'Sách giáo trình / Tài liệu PDF chuyên sâu': 'tài liệu pdf giáo trình',
+  'Hình ảnh tóm tắt / Infographic / Mindmap': 'infographic mindmap sơ đồ tóm tắt',
+  'File âm thanh / Podcast / Sách nói': 'podcast audio sách nói',
+  'Công cụ học thuộc nhanh (Flashcard, Quizlet)': 'flashcard quizlet',
+  'Slide bài giảng (PowerPoint, Google Slides)': 'slide bài giảng powerpoint',
+  'Bài viết ngắn / Blog / Bản tin học thuật': 'bài viết blog',
+  'Hệ thống bài tập / Đề thi mẫu / Trắc nghiệm': 'bài tập đề thi trắc nghiệm',
+  'Môi trường giả lập / Lab thực hành trực tuyến': 'lab thực hành online sandbox'
+};
 
+// Lấy tối đa 2 gợi ý định dạng từ các lựa chọn Câu 14 để chèn vào query Tavily
+function getMaterialTypeQueryHint(materialType) {
+  if (!materialType) return '';
+  const selected = String(materialType).split(',').map(s => s.trim());
+  const hints = selected.map(label => MATERIAL_TYPE_QUERY_HINTS[label]).filter(Boolean);
+  return hints.slice(0, 2).join(' ');
+}
 // Ghép đủ 4 thành phần (danh mục, danh mục chi tiết, mục tiêu ngày, nội dung học/bài tập do Gemini
 // trả ra) thành 1 câu query tìm kiếm, có cắt bớt độ dài từng phần để tổng query không quá dài.
-function buildMaterialSearchQuery({ category, subCategory, dailyGoal, contentText, suffix }) {
+function buildMaterialSearchQuery({ category, subCategory, dailyGoal, contentText, suffix, materialTypeHint }) {
   const truncate = (s, n) => String(s || '').trim().replace(/\s+/g, ' ').substring(0, n);
   const parts = [
     truncate(category, 60),
@@ -2194,10 +2219,11 @@ function buildMaterialSearchQuery({ category, subCategory, dailyGoal, contentTex
     truncate(dailyGoal, 100),
     truncate(contentText, 150)
   ].filter(Boolean);
-  return `${parts.join(' - ')} ${suffix || ''}`.trim().substring(0, 350);
+  const fullSuffix = [suffix, materialTypeHint].filter(Boolean).join(' ');
+  return `${parts.join(' - ')} ${fullSuffix}`.trim().substring(0, 350);
 }
 
-async function callFreeSearchForMaterials({ days, category, subCategory = '', temperature = 0.5, materialLanguage = 'Tiếng Việt' }) {
+async function callFreeSearchForMaterials({ days, category, subCategory = '', temperature = 0.5, materialLanguage = 'Tiếng Việt', materialType = '' }) {
   if (!Array.isArray(days) || days.length === 0) {
     throw new Error("Days array không hợp lệ hoặc rỗng");
   }
@@ -2220,11 +2246,13 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
 
   const tasks = validDays.map(day => queue.add(async () => {
     // Link 1 (lý thuyết): query gồm đủ 4 thành phần - danh mục, danh mục chi tiết, mục tiêu ngày, nội dung học
+    const materialTypeHint = getMaterialTypeQueryHint(materialType);
     const theoryQuery = buildMaterialSearchQuery({
       category, subCategory,
       dailyGoal: day.daily_goal,
       contentText: day.learning_content,
-      suffix: theorySuffix
+      suffix: theorySuffix,
+      materialTypeHint
     });
     // Link 2 (thực hành): query gồm đủ 4 thành phần - danh mục, danh mục chi tiết, mục tiêu ngày, bài tập thực hành
     const practiceBasis = (day.practice_exercises || '').trim();
@@ -2232,7 +2260,8 @@ async function callFreeSearchForMaterials({ days, category, subCategory = '', te
       category, subCategory,
       dailyGoal: day.daily_goal,
       contentText: practiceBasis,
-      suffix: practiceSuffix
+      suffix: practiceSuffix,
+      materialTypeHint
     });
 
     // Link 1 (lý thuyết) và Link 2 (thực hành) độc lập nhau -> tìm song song thay vì tuần tự
@@ -3991,7 +4020,8 @@ Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumberForBatch
         category: finalData.category,
         subCategory: finalData.category_detail,
         temperature: 0.5,
-        materialLanguage: finalData.material_language
+        materialLanguage: finalData.material_language,
+        materialType: finalData.material_type
       });
       console.log(`✅ Nhận được ${claudeMaterials.length} materials từ Tavily only`);
     } catch (error) {
