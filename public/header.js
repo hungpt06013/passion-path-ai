@@ -275,3 +275,44 @@ window.addEventListener('pageshow', function(event) {
         loadUser(currentPage);
     }
 });
+// ============ AUTO-DETECT TOKEN HẾT HẠN (JWT sống 2h) ============
+// loadUser() ở trên chỉ kiểm tra lúc trang load/pageshow -> nếu người dùng mở
+// path.html/progress.html rồi để yên (không reload, không chuyển trang) quá 2h,
+// token hết hạn ở server nhưng client không hay biết cho tới khi tự thao tác.
+// Thêm kiểm tra định kỳ + kiểm tra ngay khi quay lại tab để tự động báo hết hạn
+// và chuyển về login.html mà không cần reload.
+const TOKEN_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 phút/lần
+
+async function checkTokenExpiry() {
+    const token = localStorage.getItem('token');
+    if (!token || token === Admin_token) return;
+
+    const currentPath = window.location.pathname;
+    const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html'];
+    if (!privatePaths.some(p => currentPath.includes(p))) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('avatarUrl');
+            alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+            window.location.href = 'login.html';
+        }
+    } catch (err) {
+        // Lỗi mạng tạm thời: bỏ qua, đợi lần kiểm tra kế tiếp
+    }
+}
+
+setInterval(checkTokenExpiry, TOKEN_CHECK_INTERVAL_MS);
+
+// Người dùng đổi tab rồi quay lại (không phải reload) -> kiểm tra ngay lập tức
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        checkTokenExpiry();
+    }
+});

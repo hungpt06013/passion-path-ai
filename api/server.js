@@ -168,7 +168,7 @@ function loadKeyPool(prefix) {
 
 const GEMINI_API_KEYS = loadKeyPool("GEMINI_API_KEY");
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.6-flash";
-const GEMINI_MATERIALS_MODEL = process.env.GEMINI_MATERIALS_MODEL || "gemini-3.6-flash";
+const GEMINI_FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || "gemini-3.5-flash";
 const GEMINI_DAILY_QUOTA_PER_KEY = parseInt(process.env.GEMINI_DAILY_QUOTA_PER_KEY || "1500", 10); // RPD free tier
 
 if (GEMINI_API_KEYS.length === 0) {
@@ -1849,18 +1849,16 @@ async function callGeminiRaw({ apiKey, model, systemPrompt, userPrompt, temperat
   return text;
 }
 
-// Gọi Gemini bằng key pool: duyệt qua các key còn quota trong ngày, key nào hết thì thử key kế
-async function callGemini({ model, systemPrompt, userPrompt, temperature = 0.7, maxOutputTokens = 8000, jsonMode = true }) {
-  if (GEMINI_API_KEYS.length === 0) throw new Error("Chưa cấu hình GEMINI_API_KEY nào");
-
+// Gọi Gemini bằng key pool cho 1 model cụ thể: duyệt qua các key còn quota trong ngày, key nào hết thì thử key kế
+async function callGeminiWithModel(model, { systemPrompt, userPrompt, temperature = 0.7, maxOutputTokens = 8000, jsonMode = true }) {
   const period = getCurrentPeriodDay();
   let lastErr;
-  const excludeIndexes = new Set(); // ✅ THÊM: key đã thử và lỗi trong lượt gọi này
+  const excludeIndexes = new Set(); // key đã thử và lỗi trong lượt gọi này
 
   for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
-    const slot = await acquireKeyFromPool('gemini', GEMINI_API_KEYS, period, GEMINI_DAILY_QUOTA_PER_KEY, excludeIndexes); // ✅ truyền excludeIndexes
+    const slot = await acquireKeyFromPool('gemini', GEMINI_API_KEYS, period, GEMINI_DAILY_QUOTA_PER_KEY, excludeIndexes);
     if (!slot) {
-      console.warn(`⚠️ Toàn bộ ${GEMINI_API_KEYS.length} Gemini key đã hết quota hoặc bị rate limit ngày ${period}`);
+      console.warn(`⚠️ Toàn bộ ${GEMINI_API_KEYS.length} Gemini key đã hết quota hoặc bị rate limit ngày ${period} (model=${model})`);
       break;
     }
 
@@ -1868,22 +1866,38 @@ async function callGemini({ model, systemPrompt, userPrompt, temperature = 0.7, 
       const text = await callGeminiRaw({
         apiKey: slot.key, model, systemPrompt, userPrompt, temperature, maxOutputTokens, jsonMode
       });
-      console.log(`🔑 Gemini key #${slot.keyIndex + 1}/${GEMINI_API_KEYS.length} → OK`);
+      console.log(`🔑 Gemini key #${slot.keyIndex + 1}/${GEMINI_API_KEYS.length} (model=${model}) → OK`);
       return text;
     } catch (err) {
       lastErr = err;
-      excludeIndexes.add(slot.keyIndex); // ✅ THÊM: đánh dấu key này đã lỗi, lần sau bỏ qua
+      excludeIndexes.add(slot.keyIndex);
       if (err.isRateLimit) {
-        console.warn(`⏳ Gemini key #${slot.keyIndex + 1} bị rate limit (429), thử key khác...`);
+        console.warn(`⏳ Gemini key #${slot.keyIndex + 1} (model=${model}) bị rate limit (429), thử key khác...`);
         continue;
       } else {
-        console.warn(`⚠️ Gemini key #${slot.keyIndex + 1} lỗi: ${err.message}`);
+        console.warn(`⚠️ Gemini key #${slot.keyIndex + 1} (model=${model}) lỗi: ${err.message}`);
         await new Promise(r => setTimeout(r, 1500));
       }
     }
   }
 
-  throw lastErr || new Error("Không còn Gemini key nào khả dụng");
+  throw lastErr || new Error(`Không còn Gemini key nào khả dụng (model=${model})`);
+}
+
+// Gọi Gemini: thử model chính trước, nếu toàn bộ key pool đều fail (429/lỗi) thì tự động
+// chuyển sang model dự phòng (GEMINI_FALLBACK_MODEL) trước khi báo lỗi hẳn
+async function callGemini({ model, systemPrompt, userPrompt, temperature = 0.7, maxOutputTokens = 8000, jsonMode = true }) {
+  if (GEMINI_API_KEYS.length === 0) throw new Error("Chưa cấu hình GEMINI_API_KEY nào");
+
+  try {
+    return await callGeminiWithModel(model, { systemPrompt, userPrompt, temperature, maxOutputTokens, jsonMode });
+  } catch (err) {
+    if (GEMINI_FALLBACK_MODEL && GEMINI_FALLBACK_MODEL !== model) {
+      console.warn(`⚠️ Model chính "${model}" thất bại (${err.message}), thử model dự phòng "${GEMINI_FALLBACK_MODEL}"...`);
+      return await callGeminiWithModel(GEMINI_FALLBACK_MODEL, { systemPrompt, userPrompt, temperature, maxOutputTokens, jsonMode });
+    }
+    throw err;
+  }
 }
 
 async function callGeminiForMainContent({ systemPrompt, userPrompt, desiredCompletionTokens }) {
