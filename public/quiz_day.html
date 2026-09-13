@@ -147,7 +147,7 @@ function renderQuiz() {
     </div>`;
   } else if (isSystemPreview) {
     html += `<div class="result-banner" style="background:#eff6ff;color:#1e40af;font-size:14px;">
-      👁️ Đây là quiz mẫu của lộ trình phổ biến. Bạn có thể xem trước câu hỏi, nhưng cần đăng nhập để nộp bài.
+      👁️ Đây là quiz mẫu của lộ trình phổ biến. Bạn có thể xem trước câu hỏi, nhưng cần đăng nhập và học lộ trình này để nộp bài.
     </div>`;
   }
 
@@ -172,7 +172,7 @@ function renderQuiz() {
     `;
   });
   html += isSystemPreview
-    ? `<div class="result-banner" style="background:#fef3c7;color:#92400e;">🔒 Vui lòng <a href="login.html" style="color:#1e40af;font-weight:700;text-decoration:underline;">đăng nhập</a> để nộp bài.</div></form>`
+    ? `<div class="result-banner" style="background:#fef3c7;color:#92400e;">🔒 Vui lòng đăng nhập và học lộ trình này để nộp bài.</div></form>`
     : `<button type="submit" class="submit-btn" id="submitQuizBtn">Nộp Bài</button></form>`;
 
   document.getElementById('content').innerHTML = html;
