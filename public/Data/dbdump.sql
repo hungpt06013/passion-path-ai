@@ -247,6 +247,7 @@ ALTER TABLE "roadmap_certificates" ADD CONSTRAINT "roadmap_certificates_roadmap_
 
 -- Cột thêm sau (migration) - khớp với ALTER TABLE ... ADD COLUMN IF NOT EXISTS trong api/server.js
 ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);
+ALTER TABLE "search_api_usage" ALTER COLUMN "provider" TYPE VARCHAR(50);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);
 ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;
 ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;

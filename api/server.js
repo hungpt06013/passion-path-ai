@@ -584,6 +584,7 @@ async function initDB() {
       );
     `);
     await pool.query(`ALTER TABLE "search_api_usage" ALTER COLUMN "period" TYPE VARCHAR(10);`);
+    await pool.query(`ALTER TABLE "search_api_usage" ALTER COLUMN "provider" TYPE VARCHAR(50);`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "study_weekdays" VARCHAR(20);`);
     await pool.query(`ALTER TABLE "learning_roadmaps" ADD COLUMN IF NOT EXISTS "streak_tier" INTEGER DEFAULT 0;`);
     await pool.query(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "ai_roadmap_generations_used" INTEGER DEFAULT 0;`);
@@ -1854,9 +1855,10 @@ async function callGeminiWithModel(model, { systemPrompt, userPrompt, temperatur
   const period = getCurrentPeriodDay();
   let lastErr;
   const excludeIndexes = new Set(); // key đã thử và lỗi trong lượt gọi này
+  const providerKey = `gemini:${model}`; // ✅ tách quota riêng theo từng model, không dùng chung ngân sách
 
   for (let i = 0; i < GEMINI_API_KEYS.length; i++) {
-    const slot = await acquireKeyFromPool('gemini', GEMINI_API_KEYS, period, GEMINI_DAILY_QUOTA_PER_KEY, excludeIndexes);
+    const slot = await acquireKeyFromPool(providerKey, GEMINI_API_KEYS, period, GEMINI_DAILY_QUOTA_PER_KEY, excludeIndexes);
     if (!slot) {
       console.warn(`⚠️ Toàn bộ ${GEMINI_API_KEYS.length} Gemini key đã hết quota hoặc bị rate limit ngày ${period} (model=${model})`);
       break;
