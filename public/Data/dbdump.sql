@@ -143,6 +143,22 @@ CREATE TABLE IF NOT EXISTS "learning_roadmap_details_system" (
 	"completed_at" timestamp
 );
 
+CREATE TABLE IF NOT EXISTS "quiz_questions_system" (
+    "quiz_id" SERIAL PRIMARY KEY,
+    "roadmap_id" INTEGER NOT NULL REFERENCES "learning_roadmaps_system"("roadmap_id") ON DELETE CASCADE,
+    "day_number" INTEGER NOT NULL,
+    "is_chapter_review" BOOLEAN DEFAULT FALSE,
+    "question_order" INTEGER NOT NULL,
+    "question_text" TEXT NOT NULL,
+    "option_a" TEXT NOT NULL,
+    "option_b" TEXT NOT NULL,
+    "option_c" TEXT NOT NULL,
+    "option_d" TEXT NOT NULL,
+    "correct_option" CHAR(1) NOT NULL CHECK (correct_option IN ('A','B','C','D')),
+    "explanation" TEXT,
+    "created_at" TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+);
+
 CREATE TABLE IF NOT EXISTS "password_reset_codes" (
 	"id" serial PRIMARY KEY,
 	"email" text NOT NULL,

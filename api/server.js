@@ -460,6 +460,25 @@ async function initDB() {
       );
     `);
 
+    // Bảng quiz_questions_system - lưu quiz cho lộ trình trong "lĩnh vực phổ biến"
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS quiz_questions_system (
+        quiz_id SERIAL PRIMARY KEY,
+        roadmap_id INTEGER NOT NULL REFERENCES learning_roadmaps_system(roadmap_id) ON DELETE CASCADE,
+        day_number INTEGER NOT NULL,
+        is_chapter_review BOOLEAN DEFAULT FALSE,
+        question_order INTEGER NOT NULL,
+        question_text TEXT NOT NULL,
+        option_a TEXT NOT NULL,
+        option_b TEXT NOT NULL,
+        option_c TEXT NOT NULL,
+        option_d TEXT NOT NULL,
+        correct_option CHAR(1) NOT NULL CHECK (correct_option IN ('A','B','C','D')),
+        explanation TEXT,
+        created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+      );
+    `);
+
     // Bảng ai_query_history
     await pool.query(`
       CREATE TABLE IF NOT EXISTS ai_query_history (
@@ -4470,6 +4489,29 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
             day.usage_instructions || day.study_guide || ""
           ]
         );
+
+        const insertQuizForDay = async (quizArr, isChapterReview) => {
+          if (!Array.isArray(quizArr)) return;
+          for (let qi = 0; qi < quizArr.length; qi++) {
+            const q = quizArr[qi];
+            if (!q || !q.question_text) continue;
+            await client.query(
+              `INSERT INTO quiz_questions
+               (roadmap_id, day_number, is_chapter_review, question_order, question_text,
+                option_a, option_b, option_c, option_d, correct_option, explanation)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+              [
+                roadmapId, dayNumber, isChapterReview, qi + 1,
+                q.question_text,
+                q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '',
+                q.correct_option || 'A',
+                q.explanation || ''
+              ]
+            );
+          }
+        };
+        await insertQuizForDay(day.quiz, false);
+        await insertQuizForDay(day.chapter_review_quiz, true);
       }
     }
     
@@ -5653,6 +5695,23 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
         `;
         
         await client.query(copyDetailsQuery, [newSystemRoadmapId, roadmapId]);
+
+        // Copy quiz
+        const copyQuizQuery = `
+          INSERT INTO quiz_questions_system (
+            roadmap_id, day_number, is_chapter_review, question_order,
+            question_text, option_a, option_b, option_c, option_d,
+            correct_option, explanation
+          )
+          SELECT
+            $1, day_number, is_chapter_review, question_order,
+            question_text, option_a, option_b, option_c, option_d,
+            correct_option, explanation
+          FROM quiz_questions
+          WHERE roadmap_id = $2
+        `;
+
+        await client.query(copyQuizQuery, [newSystemRoadmapId, roadmapId]);
       } else {
         // Cập nhật rating trong system
         const updateSystemQuery = `
@@ -5997,11 +6056,37 @@ app.get('/api/roadmapsystem/:roadmapId/details', async (req, res) => {
     `;
     
     const result = await pool.query(query, [parseInt(roadmapId)]);
-    
+
+    const quizResult = await pool.query(
+      `SELECT day_number, is_chapter_review, question_order, question_text,
+              option_a, option_b, option_c, option_d, correct_option, explanation
+       FROM quiz_questions_system
+       WHERE roadmap_id = $1
+       ORDER BY day_number ASC, question_order ASC`,
+      [parseInt(roadmapId)]
+    );
+
+    const quizByDay = {};
+    quizResult.rows.forEach(q => {
+      if (!quizByDay[q.day_number]) quizByDay[q.day_number] = { quiz: [], chapter_review_quiz: [] };
+      const target = q.is_chapter_review ? quizByDay[q.day_number].chapter_review_quiz : quizByDay[q.day_number].quiz;
+      target.push({
+        question_text: q.question_text,
+        option_a: q.option_a,
+        option_b: q.option_b,
+        option_c: q.option_c,
+        option_d: q.option_d,
+        correct_option: q.correct_option,
+        explanation: q.explanation
+      });
+    });
+
     const formattedDetails = result.rows.map(detail => ({
       ...detail,
       created_at: formatTimestampForAPI(detail.created_at),
-      updated_at: formatTimestampForAPI(detail.updated_at)
+      updated_at: formatTimestampForAPI(detail.updated_at),
+      quiz: quizByDay[detail.day_number]?.quiz || [],
+      chapter_review_quiz: quizByDay[detail.day_number]?.chapter_review_quiz || []
     }));
     
     res.json({

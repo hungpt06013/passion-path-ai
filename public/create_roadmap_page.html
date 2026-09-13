@@ -2719,7 +2719,6 @@ async function generateRoadmapWithAI() {
         
         showNotification(message, 'error');
         generateBtn.disabled = false;
-        submitBtn.disabled = false;
         generateBtn.innerHTML = '🤖 Tạo lộ trình với AI';
         submitText.innerHTML = '🎉 Tạo Lộ Trình';
         return;
@@ -2803,7 +2802,6 @@ async function generateRoadmapWithAI() {
                 showNotification('⚠️ ' + parsedErr.error, 'error');
                 if (typeof updateGenerateButtonsState === 'function') updateGenerateButtonsState();
                 generateBtn.disabled = true;
-                submitBtn.disabled = false;
                 generateBtn.innerHTML = '<span id="generateBtnText">🤖 Bạn đã hết lượt tạo lộ trình bằng AI</span>';
                 submitText.innerHTML = '🎉 Tạo Lộ Trình';
                 isGenerating = false;
@@ -2916,7 +2914,6 @@ showNotification('✨ AI đã tạo lộ trình thành công! Bạn có thể ch
         console.error('❌ Error stack:', error.stack);
         alert('LỖI AI: ' + (error.message || 'Unknown error'));
         showNotification(`⚠️ ${error.message || 'Có lỗi xảy ra khi gọi AI. Vui lòng thử lại.'}`, 'error');
-        submitBtn.disabled = false;
         submitText.innerHTML = '🎉 Tạo Lộ Trình';
     } finally {
         isGenerating = false;

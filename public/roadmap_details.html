@@ -1570,7 +1570,7 @@ if (isAdminView) {
           study_guide: roadmapData.usage_instructions,
           roadmap_analyst: roadmapData.roadmap_analyst
         };
-
+        
         const days = [];
         details.forEach((onerow, idx) => {
           const dayData = {
@@ -1582,7 +1582,9 @@ if (isAdminView) {
             practice_exercises: onerow.practice_exercises || '',
             learning_materials: onerow.learning_materials || '',
             study_guide: onerow.usage_instructions || '',
-            study_duration: onerow.study_duration || 2
+            study_duration: onerow.study_duration || 2,
+            quiz: onerow.quiz || [],
+            chapter_review_quiz: onerow.chapter_review_quiz || []
           };
           days.push(dayData);
         });
