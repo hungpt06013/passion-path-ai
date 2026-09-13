@@ -5,8 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Làm Quiz - Con đường theo đuổi đam mê</title>
 <script>
+  const _preAuthParams = new URLSearchParams(window.location.search);
+  const _preAuthIsMine = _preAuthParams.get('mine') === 'true';
+  const _preAuthIsAdmin = _preAuthParams.get('admin') === 'true';
   const _token = localStorage.getItem('token');
-  if (!_token) window.location.replace('login.html');
+  if (_preAuthIsMine && !_token) {
+    window.location.replace('login.html');
+  }
+  if (_preAuthIsAdmin) {
+    const _role = localStorage.getItem('role');
+    if (!_token || _role !== 'admin') {
+      alert('Bạn không có quyền truy cập trang này!');
+      window.location.replace('path.html');
+    }
+  }
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -75,12 +87,36 @@ const roadmapId = params.get('roadmap_id');
 const dayNumber = params.get('day');
 const isChapter = params.get('chapter') === 'true';
 const isAdminPreview = params.get('admin') === 'true';
+const isMine = params.get('mine') === 'true';
+const isSystemPreview = !isAdminPreview && !isMine;
 let quizData = null;
 
 function authHeaders(){ return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
 
 async function loadQuiz() {
   try {
+    if (isSystemPreview) {
+      const res = await fetch(`${API_BASE}/api/roadmapsystem/${roadmapId}/details`);
+      const data = await res.json();
+      if (!data.success) {
+        document.getElementById('content').innerHTML = `<div class="loading">⚠️ ${data.error || 'Không thể tải lộ trình'}</div>`;
+        return;
+      }
+      const dayDetail = data.data.find(d => String(d.day_number) === String(dayNumber));
+      const questions = dayDetail ? (isChapter ? dayDetail.chapter_review_quiz : dayDetail.quiz) : [];
+      if (!questions || questions.length === 0) {
+        document.getElementById('content').innerHTML = `<div class="loading">⚠️ Chưa có quiz cho ngày này</div>`;
+        return;
+      }
+      quizData = {
+        questions: questions.map((q, idx) => ({ ...q, question_order: idx + 1 })),
+        pass_threshold: null,
+        last_attempt: null
+      };
+      renderQuiz();
+      return;
+    }
+
     const url = `${API_BASE}/api/roadmaps/${roadmapId}/quiz/${dayNumber}${isChapter ? '?chapter=true' : ''}`;
     const res = await fetch(url, { headers: authHeaders() });
     const data = await res.json();
@@ -101,13 +137,17 @@ function renderQuiz() {
   let html = `
     <div class="quiz-header">
       <h1>${isChapter ? '📘 Kiểm Tra Cuối Chương' : '📝 Quiz Ngày ' + dayNumber}</h1>
-      <p>Trả lời ${quizData.questions.length} câu hỏi trắc nghiệm. Ngưỡng đạt: ${quizData.pass_threshold}%</p>
+      <p>Trả lời ${quizData.questions.length} câu hỏi trắc nghiệm.${quizData.pass_threshold ? ' Ngưỡng đạt: ' + quizData.pass_threshold + '%' : ''}</p>
     </div>
   `;
 
   if (isAdminPreview) {
     html += `<div class="result-banner" style="background:#eff6ff;color:#1e40af;font-size:14px;">
       👁️ Bạn đang xem/thử quiz này với vai trò Admin. Kết quả làm bài này không ảnh hưởng đến tiến độ thật của người dùng.
+    </div>`;
+  } else if (isSystemPreview) {
+    html += `<div class="result-banner" style="background:#eff6ff;color:#1e40af;font-size:14px;">
+      👁️ Đây là quiz mẫu của lộ trình phổ biến. Bạn có thể xem trước câu hỏi, nhưng cần đăng nhập để nộp bài.
     </div>`;
   }
 
@@ -131,10 +171,14 @@ function renderQuiz() {
       </div>
     `;
   });
-  html += `<button type="submit" class="submit-btn" id="submitQuizBtn">Nộp Bài</button></form>`;
+  html += isSystemPreview
+    ? `<div class="result-banner" style="background:#fef3c7;color:#92400e;">🔒 Vui lòng <a href="login.html" style="color:#1e40af;font-weight:700;text-decoration:underline;">đăng nhập</a> để nộp bài.</div></form>`
+    : `<button type="submit" class="submit-btn" id="submitQuizBtn">Nộp Bài</button></form>`;
 
   document.getElementById('content').innerHTML = html;
-  document.getElementById('quizForm').addEventListener('submit', submitQuiz);
+  if (!isSystemPreview) {
+    document.getElementById('quizForm').addEventListener('submit', submitQuiz);
+  }
 }
 
 function escapeHtmlQ(s) {
