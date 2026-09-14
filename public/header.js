@@ -9,7 +9,6 @@ if (!Tokens && !PublicPagesHTML.includes(CurrentPage) && !IsHomePage) {
     window.location.href = 'login.html';
 }
 // ============ HEADER MANAGEMENT ============
-const Admin_token = 'admin-token';
 // Hàm kiểm tra và thêm padding khi có scrollbar
 function checkNavScrollbar() {
     const navButtons = document.getElementById('mainNavButtons');
@@ -145,53 +144,47 @@ async function loadUser(currentPage = '') {
     let name = 'Người dùng';
     let serverRole = 'user';
 
-    if (token === Admin_token) {
-        name = 'Admin';
-        serverRole = 'admin';
-        localStorage.setItem('role', 'admin');
-        localStorage.setItem('userName', name);
-    } else {
-        try {
-            const res = await fetch(`${API_BASE}/api/me`, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            });
+    try {
+        const res = await fetch(`${API_BASE}/api/me`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
 
-            if (!res.ok) {
-                // Token không hợp lệ -> lúc này mới đổi lại về nút đăng nhập
-                localStorage.removeItem('token');
-                localStorage.removeItem('role');
-                localStorage.removeItem('userName');
-                showAuthButtons();
+        if (!res.ok) {
+            // Token không hợp lệ -> lúc này mới đổi lại về nút đăng nhập
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userName');
+            showAuthButtons();
 
-                const currentPath = window.location.pathname;
-                const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html'];
-                const isPrivatePage = privatePaths.some(path => currentPath.includes(path));
-                if (isPrivatePage) {
-                    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
-                    window.location.href = 'login.html';
-                }
-                return;
+            const currentPath = window.location.pathname;
+            const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html', 'profile.html'];
+            const isQuizMinePage = currentPath.includes('quiz_day.html') && new URLSearchParams(window.location.search).get('mine') === 'true';
+            const isPrivatePage = privatePaths.some(path => currentPath.includes(path)) || isQuizMinePage;
+            if (isPrivatePage) {
+                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                window.location.href = 'login.html';
             }
-
-            const data = await res.json();
-            serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
-            name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
-            localStorage.setItem('role', serverRole);
-            localStorage.setItem('userName', name); // ✅ cache lại để lần sau hiện ngay
-            const realAvatarUrl = (data && data.user && data.user.avatar_url)
-                ? data.user.avatar_url
-                : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(name);
-            localStorage.setItem('avatarUrl', realAvatarUrl);
-            const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
-            if (avatarEl) avatarEl.src = realAvatarUrl;
-            window.dispatchEvent(new CustomEvent('headerAuthReady', {
-                detail: { avatarUrl: realAvatarUrl }
-            }));
-        } catch (err) {
-            console.error('❌ Error loading user:', err);
-            // Lỗi mạng: giữ nguyên UI optimistic đã hiện, không cần làm gì thêm
             return;
         }
+
+        const data = await res.json();
+        serverRole = (data && (data.role || (data.user && data.user.role))) ? (data.role || data.user.role) : 'user';
+        name = (data && data.user && data.user.name) ? data.user.name : 'Người dùng';
+        localStorage.setItem('role', serverRole);
+        localStorage.setItem('userName', name); // ✅ cache lại để lần sau hiện ngay
+        const realAvatarUrl = (data && data.user && data.user.avatar_url)
+            ? data.user.avatar_url
+            : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(name);
+        localStorage.setItem('avatarUrl', realAvatarUrl);
+        const avatarEl = userArea ? userArea.querySelector('.avatar-circle') : null;
+        if (avatarEl) avatarEl.src = realAvatarUrl;
+        window.dispatchEvent(new CustomEvent('headerAuthReady', {
+            detail: { avatarUrl: realAvatarUrl }
+        }));
+    } catch (err) {
+        console.error('❌ Error loading user:', err);
+        // Lỗi mạng: giữ nguyên UI optimistic đã hiện, không cần làm gì thêm
+        return;
     }
 
     // Cập nhật lại tên thật (nếu khác với cache) mà không gây chớp giật vì đã hiện sẵn tên gần đúng
@@ -285,11 +278,12 @@ const TOKEN_CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 phút/lần
 
 async function checkTokenExpiry() {
     const token = localStorage.getItem('token');
-    if (!token || token === Admin_token) return;
+    if (!token) return;
 
     const currentPath = window.location.pathname;
-    const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html'];
-    if (!privatePaths.some(p => currentPath.includes(p))) return;
+    const privatePaths = ['path.html', 'progress.html', 'admin.html', 'roadmap_details.html', 'profile.html'];
+    const isQuizMinePage = currentPath.includes('quiz_day.html') && new URLSearchParams(window.location.search).get('mine') === 'true';
+    if (!privatePaths.some(p => currentPath.includes(p)) && !isQuizMinePage) return;
 
     try {
         const res = await fetch(`${API_BASE}/api/me`, {

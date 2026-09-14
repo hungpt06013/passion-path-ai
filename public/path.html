@@ -2248,12 +2248,9 @@ function removeDiacritics(str) {
                 headers: getAuthHeaders()
             });
 
-            if (!response.ok) {
-                 showNotification('❌ Có lỗi xảy ra khi load page' || response.statuss, 'error');
-                if (response.status === 401) {
-                    window.location.href = 'login.html';
-                    return;
-                }
+            if (response.status === 401) {
+                window.location.href = 'login.html';
+                return;
             }
 
             const contentType = response.headers.get('content-type') || '';
@@ -2272,12 +2269,16 @@ function removeDiacritics(str) {
                 throw new Error('Invalid JSON response from server');
             }
 
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || `Lỗi máy chủ (${response.status})`);
+            }
+
             allRoadmaps = result.data || [];
             renderRoadmaps(allRoadmaps);
 
         } catch (error) {
             console.error('Error fetching roadmaps:', error);
-            showNotification('❌ Có lỗi xảy ra khi load page', 'error');
+            showNotification('❌ Không thể tải danh sách lộ trình. Vui lòng thử lại sau.', 'error');
         }
     }
 
@@ -2367,13 +2368,13 @@ function renderRoadmaps(roadmaps) {
         <!-- ✅ PHẦN TRÊN -->
         <div style="flex-shrink: 0;">
             <div class="roadmap-header">
-                <div class="roadmap-title">${roadmap.roadmap_name}</div>
+                <div class="roadmap-title">${escapeHtml(roadmap.roadmap_name)}</div>
                 ${getStatusBadge(roadmap)}
             </div>
-            
+
             <div class="roadmap-meta">
-                <div class="meta-item">📂 ${roadmap.category_name || roadmap.category}</div>
-                ${roadmap.sub_category ? `<div class="meta-item">📁 ${roadmap.sub_category}</div>` : ''}
+                <div class="meta-item">📂 ${escapeHtml(roadmap.category_name || roadmap.category)}</div>
+                ${roadmap.sub_category ? `<div class="meta-item">📁 ${escapeHtml(roadmap.sub_category)}</div>` : ''}
             </div>
         </div>
         
@@ -2413,7 +2414,7 @@ function renderRoadmaps(roadmaps) {
                     👁️ Xem Chi Tiết
                 </button>
                 
-                <button class="delete-roadmap-btn" onclick="confirmDeleteRoadmap(${roadmap.roadmap_id}, '${roadmap.roadmap_name.replace(/'/g, "\\'")}')">
+                <button class="delete-roadmap-btn" data-roadmap-id="${roadmap.roadmap_id}" data-roadmap-name="${escapeHtml(roadmap.roadmap_name)}">
                     <strong>🗑️ Xóa</strong>
                 </button>
             </div>
@@ -2421,8 +2422,14 @@ function renderRoadmaps(roadmaps) {
     </div>
     `;
   }).join('');
-  
+
   contentArea.innerHTML = `<div class="roadmaps-grid">${cardsHTML}</div>`;
+
+  contentArea.querySelectorAll('.delete-roadmap-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      confirmDeleteRoadmap(parseInt(btn.dataset.roadmapId), btn.dataset.roadmapName);
+    });
+  });
 }
 
 function goToCreateRoadmap() {

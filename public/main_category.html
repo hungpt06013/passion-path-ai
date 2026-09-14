@@ -575,7 +575,7 @@ function renderRoadmaps() {
     return `
       <div class="roadmap-card" onclick="viewRoadmapDetails(${roadmap.roadmap_id})">
         <div class="roadmap-header">
-          <span class="roadmap-level ${levelClass}">${levelText}</span>
+          <span class="roadmap-level ${levelClass}">${escapeHtml(levelText)}</span>
         </div>
         <h3>${escapeHtml(roadmap.roadmap_name)}</h3>
         <div class="roadmap-meta">

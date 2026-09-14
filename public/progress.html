@@ -438,6 +438,13 @@ function toVietnamTime(isoDate) {
   if (isNaN(date)) return isoDate;
   return date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }); // ✅ để browser tự xử lý đúng
 }
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      const div = document.createElement('div');
+      div.textContent = String(str);
+      return div.innerHTML;
+    }
+
     function renderTasks(containerId, tasks) {
       const container = document.getElementById(containerId);
       
@@ -458,25 +465,25 @@ function toVietnamTime(isoDate) {
         <div class="task-card" onclick="viewTaskDetail(${task.roadmap_id})">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
             <div>
-              <h4>${task.daily_goal || 'Không có tiêu đề'}</h4>
+              <h4>${escapeHtml(task.daily_goal) || 'Không có tiêu đề'}</h4>
               <p style="margin: 5px 0; color: #6b7280; font-size: 13px;">
-                <i class="fa-solid fa-book"></i> ${task.roadmap_name} • Ngày ${task.day_number}
+                <i class="fa-solid fa-book"></i> ${escapeHtml(task.roadmap_name)} • Ngày ${task.day_number}
               </p>
             </div>
             <span class="task-status ${getStatusBadgeClass(task.completion_status)}">
               ${getStatusText(task.completion_status)}
             </span>
           </div>
-          
+
           <p style="margin: 10px 0; color: #374151; font-size: 14px;">
-            ${task.learning_content ? task.learning_content.substring(0, 100) + '...' : 'Không có nội dung'}
+            ${task.learning_content ? escapeHtml(task.learning_content.substring(0, 100)) + '...' : 'Không có nội dung'}
           </p>
-          
+
           <div style="display: flex; gap: 15px; margin-top: 10px; color: #6b7280; font-size: 13px;">
             <span><i class="fa-solid fa-clock"></i> ${task.study_duration}h</span>
             ${task.study_date ? `<span><i class="fa-solid fa-calendar"></i> ${toVietnamTime(task.study_date)}</span>` : ''}
 
-            <span><i class="fa-solid fa-tag"></i> ${task.category}</span>
+            <span><i class="fa-solid fa-tag"></i> ${escapeHtml(task.category)}</span>
           </div>
         </div>
       `).join('');
