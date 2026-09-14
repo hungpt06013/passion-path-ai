@@ -2507,17 +2507,7 @@ async function validateDays() {
         warning.style.display = 'none';
     }
 }
-function updateTotalHours() {
-        const daysInput = document.getElementById('q11_program_days');
-        const hoursInput = document.querySelector('select[name="q9_daily_time"]');
-
-        if (daysInput && daysInput.value && hoursInput && hoursInput.value) {
-            const hours = parseFloat(hoursInput.value.split('-')[0] || '2');
-            const total = parseInt(daysInput.value) * hours;
-            console.log(`Total hours: ${total}`);
-        }
-    }
-    let aiHistoryId = null;
+let aiHistoryId = null;
 async function generateRoadmapWithAI() {
     // Run full-form validation first; if errors exist, abort and let validateAllQuestions() alert them
     try {
@@ -2544,11 +2534,12 @@ async function generateRoadmapWithAI() {
     
     if (typeof isGenerating !== 'undefined' && isGenerating) return;
 
+    // ✅ Từ đây trở đi có thể throw (thiếu trường bắt buộc, form không tồn tại...) -> BẮT BUỘC
+    // nằm trong try/catch, nếu không lỗi sẽ rơi ra ngoài không ai bắt, khiến 2 nút bị khóa
+    // vĩnh viễn ở trạng thái "Đang tạo..."/"Đang chờ AI..." mà không có thông báo lỗi nào.
+    try {
     const form = document.getElementById('roadmapForm');
-    if (!form) {
-        showNotification('Không tìm thấy form roadmap.', 'error');
-        return;
-    }
+    if (!form) throw new Error('Không tìm thấy form roadmap.');
 
     const formData = new FormData(form);
 
@@ -2731,7 +2722,6 @@ async function generateRoadmapWithAI() {
     // UI: bật trạng thái đang tạo
     isGenerating = true;
 
-    try {
         // Tạo payload đầy đủ
         const roadmapData = {
             roadmap_name: q1_roadmap_name,
@@ -2905,6 +2895,12 @@ if (response.body && typeof response.body.getReader === 'function') {
     finalAnalysis = result.analysis || '';
 }
 
+// ✅ AI có thể báo "thành công" nhưng không sinh ra ngày học nào (mảng rỗng) -> nếu không
+// chặn ở đây, lộ trình sẽ được tạo ra với 0 ngày học.
+if (!dayCount || dayCount === 0) {
+    throw new Error('AI không tạo được ngày học nào. Vui lòng thử lại.');
+}
+
 console.log('✅ Saved aiHistoryId:', aiHistoryId);
 
 // Display analysis
@@ -2938,6 +2934,11 @@ function addDay(dayData = null) {
     if (container.querySelector('p')) {
         container.innerHTML = '';
     }
+
+    // ✅ Ngày do AI tạo (dayData truthy) chỉ hiển thị xem trước, không cho sửa tay; ngày thêm
+    // thủ công (dayData null, bấm "Thêm Ngày Học") vẫn nhập liệu bình thường như trước.
+    const isFromAI = !!dayData;
+    const readonlyAttr = isFromAI ? 'readonly' : '';
 
     // ✅ Tính study_date (ngày thực tế)
     const today = getVietnamDate();
@@ -2981,7 +2982,7 @@ function addDay(dayData = null) {
                     📅 ${dayData?.study_date || formattedDate}
                 </div>
             </div>
-            <button type="button" class="remove-day-btn" onclick="removeDay(this)">✕</button>
+            ${isFromAI ? '' : `<button type="button" class="remove-day-btn" onclick="removeDay(this)">✕</button>`}
         </div>
         
         <!-- Hidden field: study_date ISO -->
@@ -2994,39 +2995,39 @@ function addDay(dayData = null) {
         
         <div class="form-group">
             <label class="form-label">Mục tiêu ngày ${dayData?.day_number || dayCount}</label>
-            <input type="text" class="form-input" name="days[${dayCount-1}][goal]" required
+            <input type="text" class="form-input" name="days[${dayCount-1}][goal]" required ${readonlyAttr}
                    placeholder="Mục tiêu cần đạt được trong ngày này"
                    value="${escapeHtmlAttr(dayData?.daily_goal || '')}">
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Nội dung học tập</label>
-            <textarea class="form-textarea" name="days[${dayCount-1}][content]" required
+            <textarea class="form-textarea" name="days[${dayCount-1}][content]" required ${readonlyAttr}
                       placeholder="Chi tiết nội dung kiến thức sẽ học">${escapeHtmlAttr(dayData?.learning_content || '')}</textarea>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Bài tập thực hành</label>
-            <textarea class="form-textarea" name="days[${dayCount-1}][exercises]"
+            <textarea class="form-textarea" name="days[${dayCount-1}][exercises]" ${readonlyAttr}
                       placeholder="Bài tập để rèn luyện kỹ năng">${escapeHtmlAttr(dayData?.practice_exercises || '')}</textarea>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Công cụ/Tài liệu học tập</label>
-            <textarea class="form-textarea" name="days[${dayCount-1}][materials]" rows="2"
+            <textarea class="form-textarea" name="days[${dayCount-1}][materials]" rows="2" ${readonlyAttr}
                       placeholder="Công cụ, tài liệu cần thiết (mỗi link xuống dòng hoặc cách nhau bởi dấu ;)">${escapeHtmlAttr(dayData?.learning_materials || '')}</textarea>
             ${materialsDisplay ? `<div class="materials-preview" style="margin-top: 8px; padding: 8px; background: #f0f9ff; border-radius: 6px; font-size: 0.85rem;">${materialsDisplay}</div>` : ''}
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Hướng dẫn sử dụng</label>
-            <textarea class="form-textarea" name="days[${dayCount-1}][study_guide]"
+            <textarea class="form-textarea" name="days[${dayCount-1}][study_guide]" ${readonlyAttr}
                       placeholder="Hướng dẫn sử dụng tài liệu và cách học">${escapeHtmlAttr(dayData?.study_guide || '')}</textarea>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Thời gian học (giờ)</label>
-            <input type="number" class="form-input" name="days[${dayCount-1}][hours]" required
+            <input type="number" class="form-input" name="days[${dayCount-1}][hours]" required ${readonlyAttr}
                    min="0.25" max="12" step="0.25"
                    value="${escapeHtmlAttr(dayData?.study_duration || 2)}">
         </div>
@@ -3524,7 +3525,7 @@ if (!q11_program_days || q11_program_days < 15) {
 });
 
 function updateTotalHours() {
-    const daysInput = document.querySelector('input[name="q11_program_days"]');
+    const daysInput = document.getElementById('q11_program_days');
     const minutesInput = document.getElementById('q9_daily_time_input');
 
     if (daysInput?.value && minutesInput?.value) {
@@ -3533,14 +3534,6 @@ function updateTotalHours() {
         const total = parseInt(daysInput.value) * hours;
         //console.log(`✅ Total hours: ${total.toFixed(2)} (${minutes} min = ${hours.toFixed(2)}h/day × ${daysInput.value} days)`);
     }
-}
-
-const daysInputEl = document.querySelector('input[name="q11_program_days"]');
-if (daysInputEl) {
-    daysInputEl.addEventListener('input', function() {
-        updateTotalHours();
-        validateDays();
-    });
 }
 
 const minutesInputEl = document.getElementById('q9_daily_time_input');

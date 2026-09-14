@@ -260,6 +260,13 @@ window.addEventListener('headerAuthReady', () => {
 loadProfile();
 loadCertificates();
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
 async function loadCertificates() {
   const container = document.getElementById('certificatesContainer');
   try {
@@ -282,11 +289,11 @@ async function loadCertificates() {
         <div class="cert-logo"><i class="fa-solid fa-graduation-cap"></i> Passion Path AI</div>
         <div class="cert-title">${TITLES[c.milestone_percent]}</div>
         <div class="cert-ribbon">${SUBS[c.milestone_percent]}</div>
-        <div class="cert-roadmap">${c.roadmap_name || ''}</div>
+        <div class="cert-roadmap">${escapeHtml(c.roadmap_name || '')}</div>
         <div class="cert-line">trên Passion Path AI</div>
         <div class="cert-footer">
           <div class="cert-meta"><span>Ngày nhận</span><b>${new Date(c.awarded_at).toLocaleDateString('vi-VN')}</b></div>
-          <div class="cert-meta" style="text-align:right"><span>Mã chứng chỉ</span><b>${c.certificate_code}</b></div>
+          <div class="cert-meta" style="text-align:right"><span>Mã chứng chỉ</span><b>${escapeHtml(c.certificate_code)}</b></div>
         </div>
       </div>
     `).join('');

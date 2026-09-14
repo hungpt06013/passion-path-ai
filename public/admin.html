@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Quản Trị - Con đường theo đuổi đam mê</title>
+    <script src="config.js"></script>
     <script>
       (function adminAuthCheck(){
       const token = localStorage.getItem('token');
@@ -11,10 +12,28 @@
       if (!token) {
         alert('Vui lòng đăng nhập!');
         window.location.replace('login.html');
+        return;
       } else if (storedRole !== 'admin') {
         alert('Bạn không phải quản trị!');
         window.location.replace('path.html');
+        return;
       }
+      // ✅ localStorage chỉ để hiển thị nhanh (UX), KHÔNG phải nguồn xác thực thật — trước đây
+      // ai cũng có thể tự set localStorage.role='admin' để thấy giao diện trang quản trị.
+      // Xác minh lại ngay với server, nếu không đúng admin thật thì đá ra khỏi trang.
+      fetch(`${API_BASE}/api/me`, { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => {
+          const realRole = (data && (data.role || (data.user && data.user.role))) || 'user';
+          if (realRole !== 'admin') {
+            alert('Bạn không phải quản trị!');
+            window.location.replace('path.html');
+          }
+        })
+        .catch(() => {
+          alert('Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại!');
+          window.location.replace('login.html');
+        });
     })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -991,7 +1010,6 @@ details > div {
     <noscript><link rel="stylesheet" href="header.css"></noscript>
 </head>
 <body>
-<script src="config.js"></script>
 <div id="header"></div>
 <script>
 (function loadHeaderWithRetry(attempt) {
@@ -1411,14 +1429,6 @@ function renderUsersTable(users) {
     async function onDeleteUserClick(evt) {
       const id = evt.currentTarget.getAttribute('data-id');
       if (!id) return alert('Không có id user');
-      const row = evt.currentTarget.closest('tr');
-      const emailCell = row.querySelector('td:nth-child(2)');
-      const email = emailCell ? emailCell.textContent.trim() : '';
-      
-      if (email === 'a&m!NA!i@gmail.com') {
-        alert('Không thể xóa tài khoản admin!');
-        return;
-      }
 
       const ok = confirm('Bạn chắc chắn muốn xóa user này? Hành động không thể hoàn tác.');
       if (!ok) return;
@@ -1442,7 +1452,7 @@ function renderUsersTable(users) {
           usersMessage.textContent = 'Xóa thành công.';
         } else {
           const body = await res.json().catch(() => null);
-          const msg = (body && body.message) ? body.message : `Xóa thất bại (status ${res.status}).`;
+          const msg = (body && (body.message || body.error)) ? (body.message || body.error) : `Xóa thất bại (status ${res.status}).`;
           usersMessage.textContent = msg;
           alert(msg);
         }
@@ -1673,13 +1683,13 @@ function renderAIHistory(records, total) {
                     <i class="fa-solid fa-eye"></i> Xem con
                   </button>
                 ` : ''}
-                <button class="btn-refresh" onclick="editCategory(${cat.id}, '${escapeHtml(displayName)}', '${escapeHtml(cat.description || '')}')" style="background: #25519c; border-color: #25519c;">
+                <button class="btn-refresh btn-edit-category" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(displayName)}" data-cat-desc="${escapeHtml(cat.description || '')}" style="background: #25519c; border-color: #25519c;">
                   <i class="fa-solid fa-edit"></i> Sửa
                 </button>
-                <button class="btn-refresh" onclick="addSubCategory(${cat.id}, '${escapeHtml(displayName)}')" style="margin-right: 5px;">
+                <button class="btn-refresh btn-add-subcategory" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(displayName)}" style="margin-right: 5px;">
                   <i class="fa-solid fa-plus"></i> Thêm con
                 </button>
-                <button class="btn-delete" onclick="deleteCategory(${cat.id}, '${escapeHtml(displayName)}')">
+                <button class="btn-delete btn-delete-category" data-cat-id="${cat.id}" data-cat-name="${escapeHtml(displayName)}">
                   <i class="fa-solid fa-trash"></i> Xóa
                 </button>
               </div>
@@ -1696,10 +1706,10 @@ function renderAIHistory(records, total) {
                           <strong>${escapeHtml(sub.name)}</strong> - <span style="color: #6b7280; font-size: 13px;">${escapeHtml(sub.description || '')}</span>
                         </div>
                         <div class="sub-cat-actions">
-                          <button class="btn-refresh" onclick="editSubCategory(${sub.id}, ${cat.id}, '${escapeHtml(sub.name)}', '${escapeHtml(sub.description || '')}')" style="padding: 4px 8px; font-size: 11px;">
+                          <button class="btn-refresh btn-edit-subcategory" data-sub-id="${sub.id}" data-cat-id="${cat.id}" data-sub-name="${escapeHtml(sub.name)}" data-sub-desc="${escapeHtml(sub.description || '')}" style="padding: 4px 8px; font-size: 11px;">
                             <i class="fa-solid fa-edit"></i> Sửa
                           </button>
-                          <button class="btn-delete" onclick="deleteSubCategory(${sub.id})" style="padding: 4px 8px; font-size: 11px;">
+                          <button class="btn-delete btn-delete-subcategory" data-sub-id="${sub.id}" style="padding: 4px 8px; font-size: 11px;">
                             <i class="fa-solid fa-trash"></i> Xóa
                           </button>
                         </div>
@@ -1714,7 +1724,33 @@ function renderAIHistory(records, total) {
       }).join('');
 
       categoriesArea.innerHTML = `<div style="margin-bottom:15px;"><strong>Tổng: ${categories.length} danh mục</strong></div>` + html;
-      
+
+      document.querySelectorAll('.btn-edit-category').forEach(btn => {
+        btn.addEventListener('click', () => {
+          editCategory(parseInt(btn.dataset.catId), btn.dataset.catName, btn.dataset.catDesc);
+        });
+      });
+      document.querySelectorAll('.btn-add-subcategory').forEach(btn => {
+        btn.addEventListener('click', () => {
+          addSubCategory(parseInt(btn.dataset.catId), btn.dataset.catName);
+        });
+      });
+      document.querySelectorAll('.btn-delete-category').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteCategory(parseInt(btn.dataset.catId), btn.dataset.catName);
+        });
+      });
+      document.querySelectorAll('.btn-edit-subcategory').forEach(btn => {
+        btn.addEventListener('click', () => {
+          editSubCategory(parseInt(btn.dataset.subId), parseInt(btn.dataset.catId), btn.dataset.subName, btn.dataset.subDesc);
+        });
+      });
+      document.querySelectorAll('.btn-delete-subcategory').forEach(btn => {
+        btn.addEventListener('click', () => {
+          deleteSubCategory(parseInt(btn.dataset.subId));
+        });
+      });
+
       // ✅ Thêm event listener cho nút toggle
       document.querySelectorAll('.toggle-sub-btn').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1812,11 +1848,8 @@ function renderAIHistory(records, total) {
           if (fetchCatClickCount % 2 === 1) {
             loadCategories();
           }
-        } else if (token !== ADMIN_TOKEN) {
-          alert('Token đã hết hạn, vui lòng đăng nhập lại!');
-        }
-          else {
-          alert('❌ ' + data.error);
+        } else {
+          alert('❌ ' + (data.error || 'Không thể tạo danh mục'));
         }
       } catch (err) {
         console.error(err);
@@ -2024,12 +2057,7 @@ async function loadPromptTemplate() {
     }
   } catch (err) {
     console.error(err);
-    const token = localStorage.getItem('token');
-    if (token !== ADMIN_TOKEN) {
-      showMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
-    } else {
-      showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
-    }
+    showMessage('Lỗi khi tải prompt template: ' + err.message, 'error');
     if (promptEditor) promptEditor.value = '';
     if (promptPreview) promptPreview.textContent = 'Không thể tải prompt template';
     if (jsonFormat) jsonFormat.textContent = 'Không thể tải định dạng JSON';
@@ -2092,12 +2120,7 @@ function extractJsonFromPrompt(promptText) {
         }
       } catch (err) {
         console.error(err);
-        const token = localStorage.getItem('token');
-        if (token !== ADMIN_TOKEN) {
-          showManualPromptMessage('Token đã hết hạn, vui lòng đăng nhập lại!', 'error');
-        } else {
-          showManualPromptMessage('Lỗi khi tải manual prompt template: ' + err.message, 'error');
-        }
+        showManualPromptMessage('Lỗi khi tải manual prompt template: ' + err.message, 'error');
         if (manualPromptEditor) manualPromptEditor.value = '';
         if (manualPromptPreview) manualPromptPreview.textContent = 'Không thể tải manual prompt template';
       } finally {
