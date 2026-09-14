@@ -619,6 +619,7 @@ async function initDB() {
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_search_usage_period ON search_api_usage(provider, period);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_quiz_questions_roadmap ON quiz_questions(roadmap_id, day_number);`);
     await pool.query(`CREATE INDEX IF NOT EXISTS idx_quiz_attempts_roadmap ON quiz_attempts(roadmap_id, day_number, user_id);`);
+    await pool.query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_roadmaps_system_name_category_unique ON learning_roadmaps_system(roadmap_name, category);`);
     // Reset sequences
     await pool.query(`SELECT setval('categories_id_seq', COALESCE((SELECT MAX(id) FROM categories), 1));`);
     await pool.query(`SELECT setval('learning_roadmaps_roadmap_id_seq', COALESCE((SELECT MAX(roadmap_id) FROM learning_roadmaps), 1));`);
@@ -2488,7 +2489,15 @@ const submitEvaluationSchema = Joi.object({
 // ============================================================================
 
 // 1. POST /api/register/request-verification - Gửi mã xác thực qua email
-app.post("/api/register/request-verification", async (req, res) => {
+const registerRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 5, // tối đa 5 lần gửi mã xác thực đăng ký mỗi IP trong 15 phút
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều yêu cầu gửi mã xác thực. Vui lòng thử lại sau ít phút." }
+});
+
+app.post("/api/register/request-verification", registerRequestLimiter, async (req, res) => {
   try {
     const { email } = req.body;
     
@@ -2678,14 +2687,23 @@ app.post("/api/register", async (req, res) => {
     }
     
     const existing = await pool.query(
-      "SELECT id FROM users WHERE username = $1 OR email = $2", 
+      "SELECT id FROM users WHERE username = $1 OR email = $2",
       [normalizedUsername, normalizedEmail]
     );
-    
+
     if (existing.rows.length > 0) {
       return res.status(409).json({ message: "Tên đăng nhập hoặc email đã tồn tại!" });
     }
-    
+
+    const verifiedCode = await pool.query(
+      "SELECT id FROM password_reset_codes WHERE LOWER(email) = LOWER($1) AND used = TRUE ORDER BY created_at DESC LIMIT 1",
+      [normalizedEmail]
+    );
+
+    if (verifiedCode.rows.length === 0) {
+      return res.status(403).json({ message: "Email chưa được xác thực. Vui lòng xác thực email trước khi đăng ký." });
+    }
+
     const hashed = await hashPassword(password, 10);
     
     const result = await pool.query(
@@ -3446,56 +3464,65 @@ app.get('/api/auth/google/callback',
 // ============================================================================
 
 // 1. POST /api/password-reset/request - Yêu cầu reset password
-app.post("/api/password-reset/request", async (req, res) => {
+const passwordResetRequestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 5, // tối đa 5 lần yêu cầu reset mật khẩu mỗi IP trong 15 phút
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau ít phút." }
+});
+
+app.post("/api/password-reset/request", passwordResetRequestLimiter, async (req, res) => {
   try {
     const { email } = req.body;
-    
+
     if (!email || !email.trim()) {
       return res.status(400).json({
         success: false,
         error: 'Email không được để trống'
       });
     }
-    
+
     const normalizedEmail = email.trim().toLowerCase();
-    
+
     const userCheck = await pool.query(
       'SELECT id, email FROM users WHERE LOWER(email) = $1',
       [normalizedEmail]
     );
-    
+
+    // ✅ Luôn trả về thông báo giống nhau dù email có tồn tại hay không, tránh lộ thông tin
+    // email nào đã có tài khoản trong hệ thống (user enumeration).
+    const genericResponse = {
+      success: true,
+      message: 'Nếu email tồn tại trong hệ thống, mã xác thực đã được gửi đến email đó',
+      expiresIn: 600
+    };
+
     if (userCheck.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Email không tồn tại trong hệ thống'
-      });
+      return res.json(genericResponse);
     }
-    
+
     const code = generateResetCode();
     const vnNow = getVietnamDate();
     const expiresAt = new Date(vnNow.getTime() + 10 * 60 * 1000);
-    
+
     await pool.query(
-      `INSERT INTO password_reset_codes (email, code, expires_at) 
+      `INSERT INTO password_reset_codes (email, code, expires_at)
        VALUES ($1, $2, $3)`,
       [normalizedEmail, code, expiresAt]
     );
-    
+
     const emailSent = await sendResetEmail(normalizedEmail, code);
-    
+
     if (!emailSent) {
       return res.status(500).json({
         success: false,
         error: 'Không thể gửi email. Vui lòng thử lại sau.'
       });
     }
-    
-    res.json({
-      success: true,
-      message: 'Mã xác thực đã được gửi đến email của bạn',
-      expiresIn: 600
-    });
-    
+
+    res.json(genericResponse);
+
   } catch (error) {
     console.error('Error requesting reset code:', error);
     res.status(500).json({
@@ -4346,6 +4373,14 @@ app.post("/api/roadmaps", requireAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
     }
 
+    if (!Array.isArray(days) || days.length === 0) {
+      return res.status(400).json({ success: false, error: "Lộ trình phải có ít nhất 1 ngày học" });
+    }
+    const MAX_DAYS_MANUAL = getMaxDaysForUser(req.user.role);
+    if (days.length > MAX_DAYS_MANUAL) {
+      return res.status(400).json({ success: false, error: `Số ngày không được vượt quá ${MAX_DAYS_MANUAL}` });
+    }
+
     const weekdaysArr = parseWeekdaysParam(study_weekdays);
     const weekdaysStr = weekdaysArr.join(',');
 
@@ -4447,105 +4482,116 @@ app.post("/api/roadmap_from_system", requireAuth, async (req, res) => {
   let client;
   try {
     client = await pool.connect();
-    const { roadmapDataSystem } = req.body;
-    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, roadmap_analyst } = roadmapDataSystem;
-    
-    if (!roadmap_name || !category || !start_level || !duration_days || !duration_hours) {
-      return res.status(400).json({ success: false, error: "Thiếu thông tin bắt buộc" });
+    const systemRoadmapId = parseInt(req.body.system_roadmap_id);
+    if (!systemRoadmapId) {
+      return res.status(400).json({ success: false, error: "Thiếu system_roadmap_id" });
     }
-    
+
+    // ✅ Luôn đọc lại dữ liệu GỐC từ DB theo ID hệ thống — không tin bất kỳ nội dung/đáp án
+    // nào client có thể tự gửi kèm trong request (trước đây client gửi nguyên nội dung + quiz,
+    // có thể sửa payload để đổi đáp án đúng hoặc nhét nội dung tùy ý).
+    const systemRoadmapResult = await client.query(
+      `SELECT roadmap_name, category, sub_category, start_level, duration_days, duration_hours, roadmap_analyst
+       FROM learning_roadmaps_system WHERE roadmap_id = $1`,
+      [systemRoadmapId]
+    );
+    if (systemRoadmapResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: "Lộ trình hệ thống không tồn tại" });
+    }
+    const { roadmap_name, category, sub_category, start_level, duration_days, duration_hours, roadmap_analyst } = systemRoadmapResult.rows[0];
+
+    const systemDetailsResult = await client.query(
+      `SELECT day_number, daily_goal, learning_content, practice_exercises, learning_materials, usage_instructions, study_duration
+       FROM learning_roadmap_details_system WHERE roadmap_id = $1 ORDER BY day_number ASC`,
+      [systemRoadmapId]
+    );
+    const systemQuizResult = await client.query(
+      `SELECT day_number, is_chapter_review, question_order, question_text, option_a, option_b, option_c, option_d, correct_option, explanation
+       FROM quiz_questions_system WHERE roadmap_id = $1`,
+      [systemRoadmapId]
+    );
+
     await client.query('BEGIN');
-    
+
     const vietnamToday = getVietnamDate();
     vietnamToday.setHours(0, 0, 0, 0);
-    
+
     const roadmapResult = await client.query(
       `INSERT INTO learning_roadmaps (roadmap_name, category, sub_category, start_level, user_id, duration_days, duration_hours, roadmap_analyst, created_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8, (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')) RETURNING roadmap_id`,
       [roadmap_name, category, sub_category || null, start_level, req.user.id, duration_days, duration_hours, roadmap_analyst || null]
     );
-   
+
     const roadmapId = roadmapResult.rows[0].roadmap_id;
-    
-    const days = roadmapDataSystem?.days || [];
-    if (Array.isArray(days)) {
-      for (let i = 0; i < days.length; i++) {
-        const day = days[i];
-        const dayNumber = parseInt(day.day_number) || (i + 1);
-        
-        const studyDate = new Date(vietnamToday);
-        studyDate.setDate(studyDate.getDate() + (dayNumber - 1));
-        const studyDateStr = toVietnamDateString(studyDate);
 
-        await client.query(
-          `INSERT INTO learning_roadmap_details 
-           (roadmap_id, day_number, daily_goal, learning_content, practice_exercises, 
-            learning_materials, study_duration, study_date, completion_status, usage_instructions)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
-          [
-            roadmapId,
-            dayNumber,
-            day.daily_goal || day.goal || "",
-            day.learning_content || day.content || "",
-            day.practice_exercises || day.exercises || "",
-            day.learning_materials || day.materials || "",
-            parseFloat(day.study_duration || day.hours || 2),
-            studyDateStr,
-            'NOT_STARTED',
-            day.usage_instructions || day.study_guide || ""
-          ]
-        );
+    for (const day of systemDetailsResult.rows) {
+      const dayNumber = day.day_number;
+      const studyDate = new Date(vietnamToday);
+      studyDate.setDate(studyDate.getDate() + (dayNumber - 1));
+      const studyDateStr = toVietnamDateString(studyDate);
 
-        const insertQuizForDay = async (quizArr, isChapterReview) => {
-          if (!Array.isArray(quizArr)) return;
-          for (let qi = 0; qi < quizArr.length; qi++) {
-            const q = quizArr[qi];
-            if (!q || !q.question_text) continue;
-            await client.query(
-              `INSERT INTO quiz_questions
-               (roadmap_id, day_number, is_chapter_review, question_order, question_text,
-                option_a, option_b, option_c, option_d, correct_option, explanation)
-               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-              [
-                roadmapId, dayNumber, isChapterReview, qi + 1,
-                q.question_text,
-                q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '',
-                q.correct_option || 'A',
-                q.explanation || ''
-              ]
-            );
-          }
-        };
-        await insertQuizForDay(day.quiz, false);
-        await insertQuizForDay(day.chapter_review_quiz, true);
-      }
+      await client.query(
+        `INSERT INTO learning_roadmap_details
+         (roadmap_id, day_number, daily_goal, learning_content, practice_exercises,
+          learning_materials, study_duration, study_date, completion_status, usage_instructions)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+        [
+          roadmapId,
+          dayNumber,
+          day.daily_goal || "",
+          day.learning_content || "",
+          day.practice_exercises || "",
+          day.learning_materials || "",
+          parseFloat(day.study_duration) || 2,
+          studyDateStr,
+          'NOT_STARTED',
+          day.usage_instructions || ""
+        ]
+      );
     }
-    
+
+    for (const q of systemQuizResult.rows) {
+      if (!q.question_text) continue;
+      await client.query(
+        `INSERT INTO quiz_questions
+         (roadmap_id, day_number, is_chapter_review, question_order, question_text,
+          option_a, option_b, option_c, option_d, correct_option, explanation)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [
+          roadmapId, q.day_number, q.is_chapter_review, q.question_order,
+          q.question_text,
+          q.option_a || '', q.option_b || '', q.option_c || '', q.option_d || '',
+          q.correct_option || 'A',
+          q.explanation || ''
+        ]
+      );
+    }
+
     const updateSystemQuery = `
       UPDATE learning_roadmaps_system
       SET total_user_learning = total_user_learning + 1,
           updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
-      WHERE roadmap_name = $1 AND category = $2
+      WHERE roadmap_id = $1
       RETURNING roadmap_id, total_user_learning
     `;
-    
-    const systemUpdate = await client.query(updateSystemQuery, [roadmap_name, category]);
-    
+
+    const systemUpdate = await client.query(updateSystemQuery, [systemRoadmapId]);
+
     await client.query('COMMIT');
-    
-    res.json({ 
-      success: true, 
-      roadmap_id: roadmapId, 
+
+    res.json({
+      success: true,
+      roadmap_id: roadmapId,
       message: "Tạo lộ trình thành công",
       system_learners: systemUpdate.rows[0]?.total_user_learning || null
     });
-    
+
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error("Error creating roadmap:", err?.message || err);
     res.status(500).json({ success: false, error: "Không thể tạo lộ trình" });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
@@ -4604,6 +4650,11 @@ app.post("/api/roadmaps/upload", requireAuth, upload.single('file'), async (req,
 
     if (normalizedData.length === 0) {
       return res.status(400).json({ success: false, error: "File Excel không có dữ liệu chi tiết" });
+    }
+
+    const MAX_DAYS_UPLOAD = getMaxDaysForUser(req.user.role);
+    if (normalizedData.length > MAX_DAYS_UPLOAD) {
+      return res.status(400).json({ success: false, error: `File Excel có ${normalizedData.length} ngày, vượt quá giới hạn tối đa ${MAX_DAYS_UPLOAD} ngày` });
     }
 
     // Validation
@@ -4953,6 +5004,12 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
     );
     const quizDaySet = new Set(quizDaysResult.rows.map(r => r.day_number));
 
+    const chapterQuizDaysResult = await pool.query(
+      `SELECT DISTINCT day_number FROM quiz_questions WHERE roadmap_id = $1::integer AND is_chapter_review = true`,
+      [roadmapId]
+    );
+    const chapterQuizDaySet = new Set(chapterQuizDaysResult.rows.map(r => r.day_number));
+
     const roadmap = roadmapResult.rows[0];
     const formattedRoadmap = {
       ...roadmap,
@@ -4966,7 +5023,8 @@ app.get("/api/roadmaps/:id", requireAuth, async (req, res) => {
       created_at: formatTimestampForAPI(detail.created_at),
       updated_at: formatTimestampForAPI(detail.updated_at),
       completed_at: formatTimestampForAPI(detail.completed_at),
-      has_quiz: quizDaySet.has(detail.day_number)
+      has_quiz: quizDaySet.has(detail.day_number),
+      has_chapter_quiz: chapterQuizDaySet.has(detail.day_number)
     }));
 
     res.json({
@@ -5043,38 +5101,52 @@ app.get("/api/roadmaps/:id/details", requireAuth, async (req, res) => {
 
 // 6. PUT /api/roadmaps/:id/update-details - Cập nhật thông tin chi tiết lộ trình
 app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
-  const client = await pool.connect();
-  
+  let client;
   try {
+    client = await pool.connect();
     const roadmapId = parseInt(req.params.id);
     const { existingRows, newRows, deletedIds, roadmap_analyst } = req.body;
-    
+
     const ownershipCheck = await client.query(
       "SELECT roadmap_id, user_id FROM learning_roadmaps WHERE roadmap_id = $1",
       [roadmapId]
     );
-    
+
     if (ownershipCheck.rows.length === 0) {
       return res.status(404).json({ success: false, error: "Lộ trình không tồn tại" });
     }
-    
+
     if (ownershipCheck.rows[0].user_id !== req.user.id) {
       return res.status(403).json({ success: false, error: "Không có quyền chỉnh sửa" });
     }
-    
+
     await client.query('BEGIN');
-    
+
     const updatedAnalysis = roadmap_analyst || null;
-    
+
+    // ✅ Lưu lại day_number & completion_status CŨ theo detail_id trước khi xóa — dùng để
+    // (1) đồng bộ lại quiz_questions theo day_number MỚI sau khi renumber (xóa/kéo-thả ngày
+    // trước đây làm quiz lệch khỏi nội dung ngày), và (2) không cho client tự set
+    // completion_status tùy ý (chỉ được đổi qua kết quả quiz).
+    const oldDetailsResult = await client.query(
+      'SELECT detail_id, day_number, completion_status FROM learning_roadmap_details WHERE roadmap_id = $1',
+      [roadmapId]
+    );
+    const oldRecordByDetailId = {};
+    oldDetailsResult.rows.forEach(r => {
+      oldRecordByDetailId[String(r.detail_id)] = { day_number: r.day_number, completion_status: r.completion_status };
+    });
+
     await client.query(
       'DELETE FROM learning_roadmap_details WHERE roadmap_id = $1',
       [roadmapId]
     );
-    
+
     const allRowsToInsert = [];
-    
+
     if (existingRows && existingRows.length > 0) {
       existingRows.forEach(detail => {
+        const oldRecord = oldRecordByDetailId[String(detail.detail_id)];
         allRowsToInsert.push({
           day_number: detail.day_number,
           study_date: detail.study_date || null,
@@ -5084,11 +5156,12 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
           learning_materials: detail.learning_materials,
           usage_instructions: detail.usage_instructions,
           study_duration: parseDurationToHours(detail.study_duration),
-          completion_status: detail.completion_status || 'NOT_STARTED'
+          // ✅ Không tin completion_status client gửi lên — giữ nguyên trạng thái đã lưu trong DB
+          completion_status: oldRecord ? oldRecord.completion_status : 'NOT_STARTED'
         });
       });
     }
-    
+
     if (newRows && newRows.length > 0) {
       newRows.forEach(detail => {
         allRowsToInsert.push({
@@ -5100,11 +5173,12 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
           learning_materials: detail.learning_materials,
           usage_instructions: detail.usage_instructions,
           study_duration: parseDurationToHours(detail.study_duration),
-          completion_status: detail.completion_status || 'NOT_STARTED'
+          // ✅ Ngày mới thêm luôn bắt đầu "Chưa học", không tin giá trị client gửi
+          completion_status: 'NOT_STARTED'
         });
       });
     }
-    
+
     for (const detail of allRowsToInsert) {
       const insertQuery = `
         INSERT INTO learning_roadmap_details (
@@ -5127,18 +5201,58 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
         detail.completion_status
       ]);
     }
-    
+
+    // ✅ Đồng bộ lại quiz_questions theo day_number MỚI + xóa quiz của các ngày đã bị xóa hẳn
+    const dayNumberMap = [];
+    const keptOldDayNumbers = new Set();
+    if (existingRows && existingRows.length > 0) {
+      existingRows.forEach(detail => {
+        const oldRecord = oldRecordByDetailId[String(detail.detail_id)];
+        if (oldRecord) {
+          keptOldDayNumbers.add(oldRecord.day_number);
+          if (oldRecord.day_number !== detail.day_number) {
+            dayNumberMap.push({ oldDayNumber: oldRecord.day_number, newDayNumber: detail.day_number });
+          }
+        }
+      });
+    }
+    const removedOldDayNumbers = oldDetailsResult.rows
+      .map(r => r.day_number)
+      .filter(dayNumber => !keptOldDayNumbers.has(dayNumber));
+
+    if (removedOldDayNumbers.length > 0) {
+      await client.query(
+        'DELETE FROM quiz_questions WHERE roadmap_id = $1 AND day_number = ANY($2::int[])',
+        [roadmapId, removedOldDayNumbers]
+      );
+    }
+
+    if (dayNumberMap.length > 0) {
+      // 2 bước để tránh đụng độ khi đổi chỗ qua lại giữa các ngày (vd ngày 2 <-> ngày 5)
+      const oldNumbers = dayNumberMap.map(m => m.oldDayNumber);
+      await client.query(
+        'UPDATE quiz_questions SET day_number = day_number + 100000 WHERE roadmap_id = $1 AND day_number = ANY($2::int[])',
+        [roadmapId, oldNumbers]
+      );
+      for (const { oldDayNumber, newDayNumber } of dayNumberMap) {
+        await client.query(
+          'UPDATE quiz_questions SET day_number = $1 WHERE roadmap_id = $2 AND day_number = $3',
+          [newDayNumber, roadmapId, oldDayNumber + 100000]
+        );
+      }
+    }
+
     const totalDays = allRowsToInsert.length;
     const totalHours = allRowsToInsert.reduce((sum, d) => sum + d.study_duration, 0);
-    
+
     const progressQuery = `
-      SELECT 
+      SELECT
         COUNT(*) FILTER (WHERE completion_status = 'COMPLETED') as completed_count,
         COUNT(*) as total_count
       FROM learning_roadmap_details
       WHERE roadmap_id = $1
     `;
-    
+
     const progressResult = await client.query(progressQuery, [roadmapId]);
     const completed_count = Number(progressResult.rows[0].completed_count) || 0;
     const total_count = Number(progressResult.rows[0].total_count) || 0;
@@ -5159,9 +5273,8 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
       : [totalHours, totalDays, Number(progressPercentage.toFixed(2)), roadmapId];
     
     await client.query(updateRoadmapQuery, updateParams);
-    
+
     // Check và update system nếu rating >= 4
-// Check và update system nếu rating >= 4
     const ratingQuery = `
       SELECT overall_rating, learning_effectiveness, roadmap_name, category
       FROM learning_roadmaps
@@ -5223,18 +5336,39 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
               detail.study_duration
             ]);
           }
-          
+
+          // ✅ ĐỒNG BỘ LUÔN QUIZ (trước đây chỉ đồng bộ nội dung ngày, bỏ quên quiz khiến bản
+          // public lệch câu hỏi so với nội dung ngày mới sau khi chủ lộ trình sửa lại)
+          await client.query(
+            'DELETE FROM quiz_questions_system WHERE roadmap_id = $1',
+            [systemRoadmapId]
+          );
+          await client.query(
+            `INSERT INTO quiz_questions_system (
+               roadmap_id, day_number, is_chapter_review, question_order,
+               question_text, option_a, option_b, option_c, option_d,
+               correct_option, explanation
+             )
+             SELECT
+               $1, day_number, is_chapter_review, question_order,
+               question_text, option_a, option_b, option_c, option_d,
+               correct_option, explanation
+             FROM quiz_questions
+             WHERE roadmap_id = $2`,
+            [systemRoadmapId, roadmapId]
+          );
+
           // ✅ CẬP NHẬT THÔNG TIN TỔNG QUAN (duration_days, duration_hours, roadmap_analyst)
           await client.query(
-            `UPDATE learning_roadmaps_system 
-             SET roadmap_analyst = $1, 
-                 duration_days = $2, 
+            `UPDATE learning_roadmaps_system
+             SET roadmap_analyst = $1,
+                 duration_days = $2,
                  duration_hours = $3,
-                 updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh') 
+                 updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
              WHERE roadmap_id = $4`,
             [updatedAnalysis, totalDays, totalHours, systemRoadmapId]
           );
-          
+
           console.log(`✅ Đã đồng bộ ${allRowsToInsert.length} ngày vào system roadmap #${systemRoadmapId}`);
         }
       }
@@ -5255,22 +5389,22 @@ app.put("/api/roadmaps/:id/update-details", requireAuth, async (req, res) => {
     });
     
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Error saving changes:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Không thể lưu thay đổi'
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
 // 7. DELETE /api/roadmaps/:id - Xóa lộ trình
 app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
-  const client = await pool.connect();
-  
+  let client;
   try {
+    client = await pool.connect();
     const roadmapId = parseInt(req.params.id);
     
     // Xác minh quyền sở hữu
@@ -5383,14 +5517,14 @@ app.delete("/api/roadmaps/:id", requireAuth, async (req, res) => {
     });
     
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Error deleting roadmap:', error);
     res.status(500).json({
       success: false,
       error: 'Không thể xóa lộ trình'
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
@@ -5556,9 +5690,9 @@ app.get("/api/roadmap/:id", requireAuth, async (req, res) => {
 
 // 4. POST /api/roadmap/:id/submit-evaluation - Gửi đánh giá lộ trình
 app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => {
-  const client = await pool.connect();
-  
+  let client;
   try {
+    client = await pool.connect();
     const roadmapId = parseInt(req.params.id);
     const { error, value } = submitEvaluationSchema.validate(req.body);
     
@@ -5665,33 +5799,35 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
     const meetsQualityCriteria = (overall_rating >= 4 || learning_effectiveness >= 4);
     
     if (meetsQualityCriteria) {
-      if (!systemExists) {
-        // Insert vào learning_roadmaps_system
-        const insertSystemQuery = `
-          INSERT INTO learning_roadmaps_system (
-            roadmap_name, category, sub_category, start_level,
-            total_user_learning, duration_days, duration_hours,
-            overall_rating, learning_effectiveness, roadmap_analyst
-          ) VALUES ($1, $2, $3, $4, 1, $5, $6, $7, $8, $9)
-          RETURNING roadmap_id
-        `;
-        
-        const systemResult = await client.query(insertSystemQuery, [
-          updatedRoadmap.roadmap_name, categoryName, updatedRoadmap.sub_category,
-          updatedRoadmap.start_level, updatedRoadmap.duration_days, updatedRoadmap.duration_hours,
-          overall_rating, learning_effectiveness, updatedRoadmap.roadmap_analyst
-        ]);
-        
-        const newSystemRoadmapId = systemResult.rows[0].roadmap_id;
-        
-        // Copy chi tiết
+      // ✅ Dùng ON CONFLICT (nguyên tử) thay vì check-rồi-insert để tránh 2 request đồng thời
+      // tạo 2 bản ghi "lộ trình phổ biến" trùng lặp cho cùng (roadmap_name, category)
+      const insertSystemQuery = `
+        INSERT INTO learning_roadmaps_system (
+          roadmap_name, category, sub_category, start_level,
+          total_user_learning, duration_days, duration_hours,
+          overall_rating, learning_effectiveness, roadmap_analyst
+        ) VALUES ($1, $2, $3, $4, 1, $5, $6, $7, $8, $9)
+        ON CONFLICT (roadmap_name, category) DO NOTHING
+        RETURNING roadmap_id
+      `;
+
+      const insertResult = await client.query(insertSystemQuery, [
+        updatedRoadmap.roadmap_name, categoryName, updatedRoadmap.sub_category,
+        updatedRoadmap.start_level, updatedRoadmap.duration_days, updatedRoadmap.duration_hours,
+        overall_rating, learning_effectiveness, updatedRoadmap.roadmap_analyst
+      ]);
+
+      if (insertResult.rows.length > 0) {
+        // Vừa tạo mới thật sự -> copy chi tiết + quiz
+        const newSystemRoadmapId = insertResult.rows[0].roadmap_id;
+
         const copyDetailsQuery = `
           INSERT INTO learning_roadmap_details_system (
             roadmap_id, day_number, daily_goal, learning_content,
             practice_exercises, learning_materials, usage_instructions,
             study_duration
           )
-          SELECT 
+          SELECT
             $1, day_number, daily_goal, learning_content,
             practice_exercises, learning_materials, usage_instructions,
             study_duration
@@ -5699,10 +5835,9 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
           WHERE roadmap_id = $2
           ORDER BY day_number ASC
         `;
-        
+
         await client.query(copyDetailsQuery, [newSystemRoadmapId, roadmapId]);
 
-        // Copy quiz
         const copyQuizQuery = `
           INSERT INTO quiz_questions_system (
             roadmap_id, day_number, is_chapter_review, question_order,
@@ -5719,19 +5854,21 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
 
         await client.query(copyQuizQuery, [newSystemRoadmapId, roadmapId]);
       } else {
-        // Cập nhật rating trong system
-        const updateSystemQuery = `
-          UPDATE learning_roadmaps_system
-          SET 
-            overall_rating = $1::integer,
-            learning_effectiveness = $2::integer,
-            updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
-          WHERE roadmap_id = $3
-        `;
-        
-        await client.query(updateSystemQuery, [
-          overall_rating, learning_effectiveness, systemRoadmapId
-        ]);
+        // Đã tồn tại từ trước (hoặc vừa được request khác tạo) -> chỉ cập nhật rating
+        const existingIdResult = await client.query(
+          `SELECT roadmap_id FROM learning_roadmaps_system WHERE roadmap_name = $1 AND category = $2 LIMIT 1`,
+          [updatedRoadmap.roadmap_name, categoryName]
+        );
+        if (existingIdResult.rows.length > 0) {
+          await client.query(
+            `UPDATE learning_roadmaps_system
+             SET overall_rating = $1::integer,
+                 learning_effectiveness = $2::integer,
+                 updated_at = (NOW() AT TIME ZONE 'Asia/Ho_Chi_Minh')
+             WHERE roadmap_id = $3`,
+            [overall_rating, learning_effectiveness, existingIdResult.rows[0].roadmap_id]
+          );
+        }
       }
     } else if (systemExists) {
       // Không đủ điều kiện và đã tồn tại: Xóa khỏi system
@@ -5758,11 +5895,11 @@ app.post("/api/roadmap/:id/submit-evaluation", requireAuth, async (req, res) => 
       }
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Error submitting evaluation:', error);
     res.status(500).json({ success: false, error: 'Không thể lưu đánh giá' });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 
@@ -6294,13 +6431,20 @@ app.delete("/api/users/:id", requireAdmin, async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    
+
     const userId = parseInt(req.params.id);
-    
+
     if (isNaN(userId)) {
       return res.status(400).json({ success: false, error: "ID không hợp lệ" });
     }
-    
+
+    const rootAdminCheckA = await pool.query(
+      `SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1`
+    );
+    if (rootAdminCheckA.rows.length > 0 && rootAdminCheckA.rows[0].id === userId) {
+      return res.status(403).json({ success: false, error: "Không thể xóa tài khoản admin gốc của hệ thống" });
+    }
+
     if (userId === req.user.id) {
       return res.status(400).json({ success: false, error: "Không thể xóa chính mình" });
     }
@@ -6473,17 +6617,24 @@ app.delete("/api/admin/users/:id", requireAdmin, async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
-    
+
     const userId = parseInt(req.params.id);
-    
+
     if (isNaN(userId)) {
       return res.status(400).json({ success: false, error: "ID không hợp lệ" });
     }
-    
+
     if (userId === req.user.id) {
       return res.status(400).json({ success: false, error: "Không thể xóa chính mình" });
     }
-    
+
+    const rootAdminCheckB = await pool.query(
+      `SELECT id FROM users WHERE role = 'admin' ORDER BY id ASC LIMIT 1`
+    );
+    if (rootAdminCheckB.rows.length > 0 && rootAdminCheckB.rows[0].id === userId) {
+      return res.status(403).json({ success: false, error: "Không thể xóa tài khoản admin gốc của hệ thống" });
+    }
+
     const result = await pool.query(
       `DELETE FROM users WHERE id = $1 RETURNING id, username`,
       [userId]
@@ -6848,9 +6999,9 @@ app.delete("/api/admin/ai-history/:id", requireAdmin, async (req, res) => {
 
 // 4. DELETE /api/admin/feedback/:feedbackId - Xóa feedback
 app.delete('/api/admin/feedback/:feedbackId', requireAdmin, async (req, res) => {
-  const client = await pool.connect();
-  
+  let client;
   try {
+    client = await pool.connect();
     const feedbackId = parseInt(req.params.feedbackId);
     
     if (isNaN(feedbackId)) {
@@ -6886,14 +7037,14 @@ app.delete('/api/admin/feedback/:feedbackId', requireAdmin, async (req, res) => 
     });
     
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     console.error('Error deleting feedback:', error);
     res.status(500).json({
       success: false,
       error: 'Không thể xóa phản hồi'
     });
   } finally {
-    client.release();
+    if (client) client.release();
   }
 });
 // 4b. GET /api/admin/quiz-stats - Thống kê điểm quiz học viên
