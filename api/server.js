@@ -178,24 +178,13 @@ if (GEMINI_API_KEYS.length === 0) {
 }
 
 // ============================================================================
-// 5b. SEARCH API KEY POOLS (Brave -> Tavily -> DuckDuckGo)
+// 5b. SEARCH API KEY POOLS (Tavily)
 // ============================================================================
 
-const SERPAPI_API_KEYS = loadKeyPool("SERPAPI_API_KEY");
 const TAVILY_API_KEYS = loadKeyPool("TAVILY_API_KEY");
-const SERPAPI_MONTHLY_QUOTA = parseInt(process.env.SERPAPI_MONTHLY_QUOTA || "100", 10); // free tier SerpAPI ~100 search/tháng
 const TAVILY_MONTHLY_QUOTA = parseInt(process.env.TAVILY_MONTHLY_QUOTA || "1000", 10);
 
-console.log(`✅ Search key pool: ${SERPAPI_API_KEYS.length} SerpAPI key(s), ${TAVILY_API_KEYS.length} Tavily key(s)`);
-
-// ============================================================================
-// 5c. FIRECRAWL KEY POOL (dùng để cào nội dung trang -> viết cột "hướng dẫn")
-// ============================================================================
-
-const FIRECRAWL_API_KEYS = loadKeyPool("FIRECRAWL_API_KEY");
-const FIRECRAWL_MONTHLY_QUOTA = parseInt(process.env.FIRECRAWL_MONTHLY_QUOTA || "500", 10); // free tier Firecrawl ~500 credit/tháng
-
-console.log(`✅ Firecrawl key pool: ${FIRECRAWL_API_KEYS.length} key(s)`);
+console.log(`✅ Search key pool: ${TAVILY_API_KEYS.length} Tavily key(s)`);
 
 // ============================================================================
 // 6. MIDDLEWARE SETUP
@@ -4049,9 +4038,9 @@ Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumberForBatch
     // STEP 2: Tavily only for materials and instructions
     console.log(`📞 Phase 2: Tavily only for materials and instructions...`);
     
-    let claudeMaterials = [];
+    let tavilyMaterials = [];
     try {
-      claudeMaterials = await callFreeSearchForMaterials({
+      tavilyMaterials = await callFreeSearchForMaterials({
         days: days,
         category: finalData.category,
         subCategory: finalData.category_detail,
@@ -4059,13 +4048,13 @@ Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumberForBatch
         materialLanguage: finalData.material_language,
         materialType: finalData.material_type
       });
-      console.log(`✅ Nhận được ${claudeMaterials.length} materials từ Tavily only`);
+      console.log(`✅ Nhận được ${tavilyMaterials.length} materials từ Tavily only`);
     } catch (error) {
       console.warn(`⚠️ Tavily enrich thất bại:`, error.message);
     }
 
     // Merge materials into days
-    for (const material of claudeMaterials) {
+    for (const material of tavilyMaterials) {
       const day = days.find(d => d.day_number === material.day_number);
       if (day) {
         day.learning_materials = material.learning_materials;
@@ -4139,8 +4128,8 @@ Trả về JSON format (ví dụ minh hoạ cho ngày ${exampleDayNumberForBatch
         total_hours: totalHours,
         history_id: historyId,
         validation_stats: {
-          claude_generated: days.length,
-          claude_failed: failedDays.length,
+          gemini_generated: days.length,
+          gemini_failed: failedDays.length,
           google_fallback_used: failedDays.length,
           processing_time_seconds: (processingTime / 1000).toFixed(2)
         }
