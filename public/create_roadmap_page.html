@@ -2688,6 +2688,10 @@ async function generateRoadmapWithAI() {
     if (!q8_known_skills) throw new Error('❌ Vui lòng nhập những gì đã biết (C5)');
     if (!q9_skills_to_improve) throw new Error('❌ Vui lòng nhập kỹ năng yếu nhất (C6)');
     if (!q9_daily_time) throw new Error('❌ Vui lòng nhập thời gian học mỗi ngày (C7)');
+    const q9_daily_time_minutes = parseInt(q9_daily_time) || 0;
+    if (q9_daily_time_minutes < 15 || q9_daily_time_minutes > 720) {
+        throw new Error('❌ Thời gian học mỗi ngày phải từ 15 đến 720 phút (C7)');
+    }
     if (!q11_program_days || q11_program_days < 15) {
         throw new Error('❌ Số ngày tối thiểu là 15 (C9)');
     }

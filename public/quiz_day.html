@@ -224,7 +224,7 @@ async function submitQuiz(e) {
       if (explanationText) {
         const explEl = document.createElement('div');
         explEl.className = 'quiz-explanation';
-        explEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${explanationText}`;
+        explEl.innerHTML = `<i class="fa-solid fa-circle-info"></i> ${escapeHtmlQ(explanationText)}`;
         card.appendChild(explEl);
       }
     });

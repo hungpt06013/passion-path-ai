@@ -2589,7 +2589,15 @@ app.post("/api/register/request-verification", async (req, res) => {
 });
 
 // 2. POST /api/register/verify-code - Xác thực mã verification
-app.post("/api/register/verify-code", async (req, res) => {
+const registerVerifyCodeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 10, // tối đa 10 lần thử mã xác thực mỗi IP trong 15 phút
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều lần thử mã xác thực. Vui lòng thử lại sau ít phút." }
+});
+
+app.post("/api/register/verify-code", registerVerifyCodeLimiter, async (req, res) => {
   try {
     const { email, code } = req.body;
     
@@ -3509,7 +3517,15 @@ app.post("/api/password-reset/request", async (req, res) => {
 });
 
 // 2. POST /api/password-reset/verify - Xác thực mã reset
-app.post("/api/password-reset/verify", async (req, res) => {
+const passwordResetVerifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 10, // tối đa 10 lần thử mã xác thực mỗi IP trong 15 phút
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: "Quá nhiều lần thử mã xác thực. Vui lòng thử lại sau ít phút." }
+});
+
+app.post("/api/password-reset/verify", passwordResetVerifyLimiter, async (req, res) => {
   try {
     const { email, code } = req.body;
     
@@ -3670,24 +3686,6 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
         error: "Tính năng AI chưa được cấu hình." 
       });
     }
-    if (String(req.user.role || '').toLowerCase() !== 'admin') {
-      const aiLimit = await getAIGenerationLimit();
-      const reserveRes = await pool.query(
-        `UPDATE users SET ai_roadmap_generations_used = ai_roadmap_generations_used + 1
-         WHERE id = $1 AND ai_roadmap_generations_used < $2
-         RETURNING ai_roadmap_generations_used`,
-        [req.user.id, aiLimit]
-      );
-      if (reserveRes.rows.length === 0) {
-        return res.status(403).json({
-          success: false,
-          code: 'AI_LIMIT_REACHED',
-          error: `Bạn đã sử dụng hết lượt tạo lộ trình bằng AI (giới hạn ${aiLimit} lần/tài khoản). Vui lòng dùng nút "Tạo lộ trình thủ công" để tiếp tục tạo lộ trình.`
-        });
-      }
-      aiUsageReserved = true;
-      console.log(`📊 Đã giữ chỗ (trừ trước) 1 lượt tạo AI cho user #${req.user.id}`);
-    }
     const {
       roadmap_name, category, sub_category, start_level, duration_days, duration_hours, expected_outcome,
       pass_threshold,
@@ -3791,6 +3789,25 @@ app.post("/api/generate-roadmap-ai", requireAuth, async (req, res) => {
         success: false, 
         error: `Số ngày phải từ ${MIN_AI_DAYS} đến ${MAX_DAYS_FOR_USER} (Role: ${userRole})` 
       });
+    }
+
+    if (String(req.user.role || '').toLowerCase() !== 'admin') {
+      const aiLimit = await getAIGenerationLimit();
+      const reserveRes = await pool.query(
+        `UPDATE users SET ai_roadmap_generations_used = ai_roadmap_generations_used + 1
+         WHERE id = $1 AND ai_roadmap_generations_used < $2
+         RETURNING ai_roadmap_generations_used`,
+        [req.user.id, aiLimit]
+      );
+      if (reserveRes.rows.length === 0) {
+        return res.status(403).json({
+          success: false,
+          code: 'AI_LIMIT_REACHED',
+          error: `Bạn đã sử dụng hết lượt tạo lộ trình bằng AI (giới hạn ${aiLimit} lần/tài khoản). Vui lòng dùng nút "Tạo lộ trình thủ công" để tiếp tục tạo lộ trình.`
+        });
+      }
+      aiUsageReserved = true;
+      console.log(`📊 Đã giữ chỗ (trừ trước) 1 lượt tạo AI cho user #${req.user.id}`);
     }
 
     const roadmapStartDate = getVietnamDate();
@@ -6059,7 +6076,7 @@ app.get('/api/roadmapsystem/:roadmapId/details', async (req, res) => {
 
     const quizResult = await pool.query(
       `SELECT day_number, is_chapter_review, question_order, question_text,
-              option_a, option_b, option_c, option_d, correct_option, explanation
+              option_a, option_b, option_c, option_d
        FROM quiz_questions_system
        WHERE roadmap_id = $1
        ORDER BY day_number ASC, question_order ASC`,
@@ -6075,9 +6092,7 @@ app.get('/api/roadmapsystem/:roadmapId/details', async (req, res) => {
         option_a: q.option_a,
         option_b: q.option_b,
         option_c: q.option_c,
-        option_d: q.option_d,
-        correct_option: q.correct_option,
-        explanation: q.explanation
+        option_d: q.option_d
       });
     });
 
