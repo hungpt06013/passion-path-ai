@@ -10,7 +10,6 @@ function checkAndOpenFeedbackModal() {
         if (modal) {
             openFeedbackModal();
         } else {
-            // Nếu modal chưa có, đợi 100ms rồi thử lại
             setTimeout(checkAndOpenFeedbackModal, 5000);
         }
     }
