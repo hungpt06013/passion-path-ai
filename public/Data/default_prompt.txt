@@ -184,7 +184,6 @@ Trình bày dưới dạng **bảng Markdown** (và file .xlsx đi kèm, xem m�
 - **BẮT BUỘC**: Toàn bộ tài liệu trong lộ trình phải MIỄN PHÍ.
 - Lộ trình phải thực tế, đi từ dễ → khó, bám sát toàn bộ thông tin mục II.
 - Kết quả trả lời **chỉ gồm đúng 2 mục**: (1) Phân tích hiện trạng, (2) Bảng lộ trình 8 cột + phần quiz theo mục III.3 — không thêm phần nào khác ngoài quy trình chuẩn bị và file xuất ra theo mục IV.
-- AI toàn quyền tự quyết định phương án tối ưu nhất cho học viên dựa trên mục I và III, không cần hỏi lại học viên — **ngoại lệ duy nhất là 4 câu hỏi chẩn đoán ở Bước 0.5**, bắt buộc phải hỏi và chờ học viên trả lời thật.
 
 ---
 
@@ -200,8 +199,6 @@ Khi có công cụ tạo file, AI xuất file `<ROADMAP_NAME>.xlsx` gồm:
 ## 📋 CÁCH HIỂN THỊ KẾT QUẢ
 
 AI sẽ trả lời theo thứ tự:
-
-**Bước 0 (bắt buộc, tương tác):** Trước khi tạo bất kỳ nội dung nào khác, AI hiển thị **4 câu hỏi chẩn đoán trình độ** dưới dạng danh sách đánh số, mỗi câu kèm 4 phương án trắc nghiệm A/B/C/D (không hiển thị đáp án đúng trước), ghi rõ đây là bước xác nhận trình độ thực tế, và **dừng lại chờ học viên trả lời** trước khi tiếp tục.
 
 Sau khi nhận được câu trả lời, AI mới tiếp tục các bước sau trong cùng lượt phản hồi tiếp theo:
 
