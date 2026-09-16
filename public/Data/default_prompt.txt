@@ -200,8 +200,6 @@ Khi có công cụ tạo file, AI xuất file `<ROADMAP_NAME>.xlsx` gồm:
 
 AI sẽ trả lời theo thứ tự:
 
-Sau khi nhận được câu trả lời, AI mới tiếp tục các bước sau trong cùng lượt phản hồi tiếp theo:
-
 **Bước 1:** Đối chiếu câu trả lời với `<CURRENT_LEVEL>` tự nhận, sau đó hiển thị ngắn gọn quá trình chuẩn bị:
 ```
 🔄 Đang chuẩn bị lộ trình...
